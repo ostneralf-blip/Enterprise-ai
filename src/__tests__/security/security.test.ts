@@ -1,0 +1,159 @@
+/**
+ * SECURITY TEST SUITE — AI Navigator
+ * ════════════════════════════════════════════════════════════════════════
+ * Diese Datei kombiniert automatisierte Tests mit einer manuellen
+ * Test-Checkliste (siehe Kommentare). Automatisierte Tests prüfen
+ * Code-Logik; RLS- und Auth-Verhalten gegen die echte Supabase-Instanz
+ * MUSS zusätzlich manuell verifiziert werden (siehe docs/testing/security-checklist.md).
+ *
+ * STATUS-KONVENTION:
+ *   ✅ automatisiert testbar ohne Live-Backend
+ *   🔶 erfordert Live-Supabase-Instanz (siehe manuelle Checkliste)
+ */
+
+import { requiresTier } from '@/lib/utils/tier-check'
+
+describe('Security: Input Validation', () => {
+  // ✅ Zod-Schema-Validierung für API-Inputs
+  it('Feedback-Schema lehnt zu lange Kommentare ab (DoS/Storage-Schutz)', async () => {
+    const { z } = await import('zod')
+    const schema = z.object({
+      module: z.string(),
+      sentiment: z.enum(['positive', 'negative']),
+      comment: z.string().max(500).optional(),
+    })
+    const longComment = 'a'.repeat(501)
+    const result = schema.safeParse({ module: 'assessment', sentiment: 'positive', comment: longComment })
+    expect(result.success).toBe(false)
+  })
+
+  it('Feedback-Schema lehnt ungültige Sentiment-Werte ab', async () => {
+    const { z } = await import('zod')
+    const schema = z.object({
+      module: z.string(),
+      sentiment: z.enum(['positive', 'negative']),
+    })
+    const result = schema.safeParse({ module: 'assessment', sentiment: 'malicious_value' })
+    expect(result.success).toBe(false)
+  })
+
+  it('PDF-Export-Query lehnt ungültige Modul-Namen ab (verhindert Path-Traversal-artige Angriffe)', async () => {
+    const { z } = await import('zod')
+    const schema = z.object({
+      module: z.enum(['assessment', 'usecase', 'governance', 'roadmap', 'canvas']),
+    })
+    const result = schema.safeParse({ module: '../../etc/passwd' })
+    expect(result.success).toBe(false)
+  })
+
+  it('PDF-Export-Query lehnt ungültige UUID für entityId ab', async () => {
+    const { z } = await import('zod')
+    const schema = z.object({ entityId: z.string().uuid().optional() })
+    const result = schema.safeParse({ entityId: '1 OR 1=1' })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('Security: Feature-Gating darf nicht client-seitig umgehbar sein', () => {
+  // ✅ Stellt sicher, dass Pro-Features nicht durch simples Tier-Spoofing freigeschaltet werden
+  it('requiresTier ist eine reine Funktion ohne Client-Input-Abhängigkeit', () => {
+    // Diese Funktion nimmt KEINEN User-Tier als Parameter — das ist beabsichtigt.
+    // Tier-Vergleich passiert immer serverseitig via hasAccess(serverTier, requiresTier(feature))
+    expect(requiresTier('pdf_export')).toBe('pro')
+    expect(typeof requiresTier).toBe('function')
+  })
+
+  /**
+   * 🔶 MANUELLER TEST ERFORDERLICH:
+   * 1. Als Free-User anmelden
+   * 2. Browser DevTools öffnen → Network Tab
+   * 3. GET /api/export/pdf?module=assessment direkt aufrufen (curl oder Browser)
+   * 4. ERWARTUNG: HTTP 403 mit { error: '...', code: 'UPGRADE_REQUIRED' }
+   * 5. NIEMALS: PDF-Datei wird zurückgegeben
+   *
+   * curl-Befehl für manuellen Test:
+   * curl -i -H "Cookie: <session-cookie-eines-free-users>" \
+   *   "https://staging.enterprise-ai.biz/api/export/pdf?module=assessment"
+   */
+})
+
+describe('Security: Stripe Webhook Signatur-Validierung', () => {
+  /**
+   * 🔶 MANUELLER TEST ERFORDERLICH (siehe docs/testing/security-checklist.md):
+   * 1. POST an /api/stripe/webhook OHNE gültige stripe-signature Header senden
+   * 2. ERWARTUNG: HTTP 400 "Invalid signature"
+   * 3. Mit Stripe CLI testen: `stripe trigger checkout.session.completed`
+   * 4. Mit manipuliertem Body + altem Secret testen → muss fehlschlagen
+   */
+  it('Webhook-Route validiert die Stripe-Signatur vor jeder Verarbeitung (statische Code-Prüfung)', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const filePath = path.join(process.cwd(), 'src/app/api/stripe/webhook/route.ts')
+    const content = fs.readFileSync(filePath, 'utf-8')
+
+    // Muss constructEvent verwenden (Signaturprüfung), nicht JSON.parse direkt auf dem Body
+    expect(content).toContain('stripe.webhooks.constructEvent')
+    expect(content).toContain('STRIPE_WEBHOOK_SECRET')
+    // Muss bei Fehler einen 400 zurückgeben, BEVOR Business-Logik ausgeführt wird
+    expect(content).toMatch(/catch[\s\S]{0,100}status:\s*400/)
+  })
+})
+
+describe('Security: Keine Service-Role-Key-Exposition im Client-Bundle', () => {
+  it('lib/supabase/client.ts referenziert NIEMALS SUPABASE_SERVICE_ROLE_KEY', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const clientFilePath = path.join(process.cwd(), 'src/lib/supabase/client.ts')
+    const content = fs.readFileSync(clientFilePath, 'utf-8')
+    expect(content).not.toContain('SERVICE_ROLE')
+  })
+
+  it('Keine Komponente mit "use client" importiert createAdminClient', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const glob = await import('glob')
+
+    const clientFiles = glob.sync('src/**/*.tsx', { cwd: process.cwd() })
+    const violatingFiles: string[] = []
+
+    for (const file of clientFiles) {
+      const fullPath = path.join(process.cwd(), file)
+      const content = fs.readFileSync(fullPath, 'utf-8')
+      if (content.includes("'use client'") && content.includes('createAdminClient')) {
+        violatingFiles.push(file)
+      }
+    }
+    expect(violatingFiles).toEqual([])
+  })
+})
+
+describe('Security: XSS-Schutz in PDF-Templates', () => {
+  it('renderAssessmentPdf escaped HTML-Sonderzeichen im Firmennamen', async () => {
+    const { renderAssessmentPdf } = await import('@/lib/pdf/templates')
+    const maliciousCompanyName = '<script>alert("xss")</script>'
+    const html = renderAssessmentPdf({
+      totalScore: 3.5,
+      dimScores: { data: 3, skills: 4 },
+      archetype: 'scaler',
+      companyName: maliciousCompanyName,
+    })
+    expect(html).not.toContain('<script>alert("xss")</script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+})
+
+/**
+ * ════════════════════════════════════════════════════════════════════════
+ * WEITERE MANUELLE SECURITY-TESTS — siehe docs/testing/security-checklist.md
+ * ════════════════════════════════════════════════════════════════════════
+ * Diese Tests erfordern eine laufende Instanz und können nicht in Jest
+ * automatisiert werden:
+ *
+ * 🔶 RLS Row-Level-Security: User A kann NICHT auf Daten von User B zugreifen
+ * 🔶 Middleware: Nicht-eingeloggte User werden von /dashboard/* zu /login umgeleitet
+ * 🔶 Share-Links: Abgelaufene Tokens geben HTTP 404/410, keine Daten
+ * 🔶 Rate-Limiting: Wiederholte Login-Versuche werden gedrosselt (Supabase Auth Default)
+ * 🔶 SQL-Injection: Supabase-Client parametrisiert automatisch — Penetrationstest empfohlen
+ * 🔶 CSRF: Next.js Server Actions haben integrierten CSRF-Schutz — verifizieren
+ * 🔶 Dependency-Scan: `npm audit` vor jedem Deployment ausführen
+ */

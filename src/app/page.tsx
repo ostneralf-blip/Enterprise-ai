@@ -1,0 +1,74 @@
+import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
+  description: 'Interaktive Frameworks für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur. Für CTOs, CDOs und Enterprise Architekten.',
+}
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Nav */}
+      <nav className="border-b border-slate-800 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-sm">N</div>
+          <span className="font-semibold">AI Navigator</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">Anmelden</Link>
+          <Link href="/register" className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            Kostenlos starten
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <div className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
+        <div className="inline-block bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
+          Enterprise AI Toolset · Version 1.0
+        </div>
+        <h1 className="text-5xl font-semibold leading-tight mb-6">
+          Enterprise AI.<br />
+          <span className="text-blue-400">Strukturiert navigiert.</span>
+        </h1>
+        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+          7 interaktive Tools für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur — 
+          direkt aus dem Enterprise AI Best-Practice-Leitfaden.
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <Link href="/register"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
+            Kostenlos registrieren
+          </Link>
+          <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">
+            Bereits registriert? Anmelden →
+          </Link>
+        </div>
+      </div>
+
+      {/* Key Stats */}
+      <div className="max-w-3xl mx-auto px-6 pb-16">
+        <div className="grid grid-cols-3 gap-6 text-center">
+          {[
+            { n: '88%', l: 'Unternehmen nutzen AI' },
+            { n: '5,5%', l: 'erzielen messbaren ROI' },
+            { n: '7', l: 'strukturierte Tools' },
+          ].map(s => (
+            <div key={s.n} className="bg-slate-800/50 border border-slate-700 rounded-xl py-6">
+              <div className="text-3xl font-bold text-blue-400 mb-1">{s.n}</div>
+              <div className="text-slate-500 text-sm">{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 py-6 text-center text-slate-600 text-xs">
+        © 2026 AI Navigator · enterprise-ai.biz ·{' '}
+        <Link href="/datenschutz" className="hover:text-slate-400">Datenschutz</Link> ·{' '}
+        <Link href="/impressum" className="hover:text-slate-400">Impressum</Link>
+      </footer>
+    </div>
+  )
+}

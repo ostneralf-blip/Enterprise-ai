@@ -1,0 +1,77 @@
+import type { ModuleConfig } from '@/types'
+
+export const MODULES: ModuleConfig[] = [
+  {
+    id: 'assessment',
+    title: 'AI-Readiness Assessment',
+    subtitle: '6 Dimensionen · 16 Fragen · ~10 Min',
+    icon: '◎',
+    href: '/assessment',
+    duration: '10 Min',
+    requiredTier: 'free',
+    description: 'Ermitteln Sie Ihren AI-Reifegrad in 6 Dimensionen: Daten, Skills, Governance, Technologie, Strategie und Kultur. Mit Radar-Chart und priorisierten Handlungsfeldern.',
+  },
+  {
+    id: 'usecase',
+    title: 'Use-Case Scoring',
+    subtitle: '5 Kriterien · Portfolio-Matrix · ~5 Min',
+    icon: '◐',
+    href: '/usecase',
+    duration: '5 Min',
+    requiredTier: 'free',
+    description: 'Priorisieren Sie AI-Use-Cases mit 5 gewichteten Kriterien: Business Value, Umsetzbarkeit, Datenqualität, Risiko und Time-to-Value.',
+  },
+  {
+    id: 'governance',
+    title: 'Governance-Check',
+    subtitle: 'DSGVO · EU AI Act · ~3 Min',
+    icon: '⬣',
+    href: '/governance',
+    duration: '3 Min',
+    requiredTier: 'free',
+    description: 'Interaktiver Entscheidungsbaum: Use Case → Freigabe. Prüft DSGVO-Anforderungen, EU AI Act Risikoklasse, Human-in-the-Loop und Monitoring.',
+  },
+  {
+    id: 'roadmap',
+    title: 'Roadmap-Generator',
+    subtitle: '3 Phasen · Archetyp-spezifisch · ~2 Min',
+    icon: '▷',
+    href: '/roadmap',
+    duration: '2 Min',
+    requiredTier: 'free',
+    description: 'Ihr AI-Umsetzungsplan in 3 Phasen (0–3 / 3–12 / 12+ Monate), automatisch angepasst an Ihren Unternehmensarchetyp mit KPIs und Budgetorientierung.',
+  },
+  {
+    id: 'canvas',
+    title: 'AI Use-Case Canvas',
+    subtitle: '8 Felder · Vollständiges Template · ~15 Min',
+    icon: '□',
+    href: '/canvas',
+    duration: '15 Min',
+    requiredTier: 'free',
+    description: 'Strukturiertes Canvas-Template für neue AI-Use-Cases: Problem, Lösung, Datenquellen, Stakeholder, KPIs, Risiken, Architektur und nächste Schritte.',
+  },
+  {
+    id: 'compliance',
+    title: 'Compliance Center',
+    subtitle: 'EU AI Act · DSGVO · Risikomatrix',
+    icon: '⬡',
+    href: '/compliance',
+    duration: '20 Min',
+    requiredTier: 'pro',
+    description: 'Zentrales Dashboard für AI-Compliance: EU AI Act Risikoklassen-Check, DSGVO-Pflichten-Checkliste, AI-Risikomatrix und Policy-Framework-Templates.',
+  },
+  {
+    id: 'architecture',
+    title: 'Architektur-Generator',
+    subtitle: '5-Schritt-Wizard · Referenzarchitektur',
+    icon: '◈',
+    href: '/architecture',
+    duration: '10 Min',
+    requiredTier: 'pro',
+    description: 'Generieren Sie eine herstellerneutrale Enterprise AI Reference Architecture basierend auf Ihrer IT-Landschaft, Use Cases und Governance-Anforderungen.',
+  },
+]
+
+export const FREE_MODULES = MODULES.filter(m => m.requiredTier === 'free')
+export const PRO_MODULES = MODULES.filter(m => m.requiredTier === 'pro')
