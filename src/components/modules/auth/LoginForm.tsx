@@ -70,7 +70,12 @@ export function LoginForm({ searchParams }: LoginFormProps) {
           />
         </div>
         <div>
-          <label className="block text-slate-400 text-xs mb-1.5 font-medium">PASSWORT</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-slate-400 text-xs font-medium">PASSWORT</label>
+            <Link href="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              Passwort vergessen?
+            </Link>
+          </div>
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)} required
             placeholder="••••••••"

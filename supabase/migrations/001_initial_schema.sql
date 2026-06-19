@@ -5,7 +5,7 @@
 
 -- ─── EXTENSIONS ─────────────────────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pg_crypto";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── USERS / PROFILES ───────────────────────────────────────────────────────
 CREATE TABLE public.profiles (
@@ -224,7 +224,7 @@ CREATE TABLE public.share_links (
   user_id       UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   module        TEXT NOT NULL,
   entity_id     UUID NOT NULL,
-  token         TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(24), 'base64url'),
+  token         TEXT NOT NULL UNIQUE DEFAULT replace(replace(replace(encode(gen_random_bytes(24), 'base64'), '+', '-'), '/', '_'), '=', ''),
   expires_at    TIMESTAMPTZ,
   password_hash TEXT,
   view_count    INTEGER DEFAULT 0,

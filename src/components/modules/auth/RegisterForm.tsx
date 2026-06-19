@@ -1,10 +1,12 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/posthog/client'
 
 export function RegisterForm() {
+  const router = useRouter()
   const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -13,41 +15,47 @@ export function RegisterForm() {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
- 
-const handleRegister = async (e: React.FormEvent) => {
-  e.preventDefault()
-  console.log('=== FORM SUBMITTED ===')
-  setLoading(true)
-  setError('')
-  track('register_started')
 
-  try {
-    const result = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, company },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    track('register_started')
+
+    try {
+      const result = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, company },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+        }
+      })
+
+      if (result.error) {
+        setError(result.error.message)
+        setLoading(false)
+        return
       }
-    })
 
-    console.log('=== SUPABASE URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    console.log('=== RESULT:', JSON.stringify(result))
+      track('register_completed', { has_company: !!company })
 
-    if (result.error) {
-      setError(result.error.message)
+      // Wenn Supabase direkt eine Session zurückgibt (E-Mail-Bestätigung deaktiviert)
+      // → sofort zu Dashboard weiterleiten
+      if (result.data.session) {
+        router.push('/dashboard')
+        router.refresh()
+        return
+      }
+
+      // Sonst: Bestätigungsmail-Hinweis anzeigen
+      setDone(true)
+    } catch (err) {
+      console.error('Register error:', err)
+      setError('Registrierung fehlgeschlagen — bitte erneut versuchen.')
       setLoading(false)
-      return
     }
-
-    track('register_completed', { has_company: !!company })
-    setDone(true)
-  } catch (err) {
-    console.error('=== CATCH ERROR:', err)
-    setError('Unbekannter Fehler — siehe Konsole')
-    setLoading(false)
   }
-}
 
   if (done) {
     return (
@@ -95,7 +103,6 @@ const handleRegister = async (e: React.FormEvent) => {
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
         </div>
         <button type="submit" disabled={loading}
-        onClick={() => console.log('=== BUTTON CLICKED ===')}  // ← neu
           className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird registriert…' : 'Kostenlosen Account erstellen'}
         </button>

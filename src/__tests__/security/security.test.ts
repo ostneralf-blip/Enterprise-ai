@@ -157,3 +157,21 @@ describe('Security: XSS-Schutz in PDF-Templates', () => {
  * 🔶 CSRF: Next.js Server Actions haben integrierten CSRF-Schutz — verifizieren
  * 🔶 Dependency-Scan: `npm audit` vor jedem Deployment ausführen
  */
+
+describe('Security: Proxy/Middleware schließt API-Routen von Auth-Guard aus', () => {
+  it('proxy.ts leitet /api/* Requests NIEMALS zu /login um (kritisch für Webhooks)', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const filePath = path.join(process.cwd(), 'src/proxy.ts')
+    const content = fs.readFileSync(filePath, 'utf-8')
+
+    // Muss einen expliziten early-return für /api/ Pfade haben, VOR dem Auth-Check
+    expect(content).toMatch(/path\.startsWith\(['"]\/api\/['"]\)/)
+
+    // Der /api/-Check muss vor dem supabase.auth.getUser() Call stehen
+    const apiCheckIndex = content.indexOf("path.startsWith('/api/')")
+    const authCheckIndex = content.indexOf('supabase.auth.getUser()')
+    expect(apiCheckIndex).toBeGreaterThan(-1)
+    expect(apiCheckIndex).toBeLessThan(authCheckIndex)
+  })
+})

@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
+import { BfcacheGuard } from '@/components/shared/BfcacheGuard'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
+      <BfcacheGuard />
       <Sidebar profile={profile} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar profile={profile} />

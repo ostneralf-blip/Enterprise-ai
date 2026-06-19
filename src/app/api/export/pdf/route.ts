@@ -19,7 +19,10 @@ export async function GET(req: Request) {
       entityId: searchParams.get('entityId') ?? undefined,
     })
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Ungültige Anfrage' }, { status: 400 })
+      return NextResponse.json({ error: 'Ungültige Anfrage' }, { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' }
+      })
     }
 
     // ─── AUTH & TIER CHECK (server-seitig, niemals nur im Client) ───────────
