@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@axe-core/react": "^4.11.3",
+    "@puppeteer/browsers": "^3.0.4",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

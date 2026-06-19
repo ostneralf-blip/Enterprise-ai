@@ -19,10 +19,39 @@ export async function getBrowser(): Promise<Browser> {
   }
 
   const puppeteer = await import('puppeteer-core')
-  return puppeteer.launch({
-    executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
-    headless: true,
-  }) as unknown as Promise<Browser>
+
+  if (process.env.CHROME_PATH) {
+    return puppeteer.launch({
+      executablePath: process.env.CHROME_PATH,
+      headless: true,
+    }) as unknown as Promise<Browser>
+  }
+
+  try {
+    const { computeExecutablePath, Browser: BrowserEnum, getInstalledBrowsers } = await import('@puppeteer/browsers')
+    const path = await import('path')
+    const cacheDir = path.join(process.cwd(), 'chrome')
+
+    const installed = await getInstalledBrowsers({ cacheDir })
+    const chromeInstall = installed.find(b => b.browser === BrowserEnum.CHROME)
+
+    if (!chromeInstall) {
+      throw new Error(`Kein installierter Chrome in ${cacheDir} gefunden`)
+    }
+
+    const executablePath = computeExecutablePath({
+      browser: BrowserEnum.CHROME,
+      buildId: chromeInstall.buildId,
+      cacheDir,
+    })
+
+    return puppeteer.launch({ executablePath, headless: true }) as unknown as Promise<Browser>
+  } catch (err) {
+    throw new Error(
+      `Lokaler Chrome für PDF-Export nicht gefunden. Bitte ausführen: ` +
+      `npx @puppeteer/browsers install chrome@stable --path ./chrome. Original-Fehler: ${err instanceof Error ? err.message : String(err)}`
+    )
+  }
 }
 
 interface PdfOptions {

@@ -35,3 +35,6 @@ coverage/
 
 # Vercel
 .vercel
+
+# Lokaler Chrome für Puppeteer-PDF-Export
+/chrome
