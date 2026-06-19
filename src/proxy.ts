@@ -5,6 +5,15 @@ const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share']
 const AUTH_ROUTES = ['/login', '/register']
 
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  // API-Routen NIEMALS durch den Dashboard-Auth-Guard schicken.
+  // Jede API-Route prüft ihre eigene Auth-Anforderung selbst (siehe route.ts-Dateien).
+  // Kritisch für Webhooks (Stripe etc.), die keine Nutzer-Session haben.
+  if (path.startsWith('/api/')) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -25,7 +34,6 @@ export async function proxy(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const path = request.nextUrl.pathname
 
   // Redirect logged-in users away from auth pages
   if (user && AUTH_ROUTES.some(r => path.startsWith(r))) {
