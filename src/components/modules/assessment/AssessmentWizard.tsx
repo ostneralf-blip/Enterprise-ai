@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
+import Link from 'next/link'
 import { ASSESSMENT_DIMENSIONS, ALL_QUESTIONS, calcDimScore, calcTotalScore, deriveArchetype } from '@/config/assessment-data'
 import { AssessmentResults } from './AssessmentResults'
 import { track } from '@/lib/posthog/client'
@@ -122,11 +123,11 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       </div>
 
       {/* Question card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 mb-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 mb-4">
         <div className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-3">
           {currentDim?.label}
         </div>
-        <h2 className="text-lg font-medium text-slate-900 mb-8 leading-relaxed">
+        <h2 className="text-base sm:text-lg font-medium text-slate-900 mb-6 sm:mb-8 leading-relaxed">
           {currentQ.text}
         </h2>
 
@@ -164,14 +165,13 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => setCurrentIdx(i => Math.max(0, i - 1))}
-          disabled={currentIdx === 0}
-          className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-3 py-2"
-          aria-label="Vorherige Frage"
+          onClick={() => currentIdx === 0 ? setState('intro') : setCurrentIdx(i => i - 1)}
+          className="text-sm text-slate-500 hover:text-slate-700 transition-colors px-3 py-3 min-h-[44px] flex items-center"
+          aria-label={currentIdx === 0 ? 'Zurück zur Übersicht' : 'Vorherige Frage'}
         >
           ← Zurück
         </button>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-slate-400 text-center">
           Klicken Sie eine Option, um fortzufahren
         </span>
         <div className="w-20" />
@@ -183,36 +183,44 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
 function AssessmentIntro({ onStart }: { onStart: () => void }) {
   return (
     <div className="max-w-xl mx-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl p-8">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
         <div className="text-3xl mb-4">◎</div>
-        <h2 className="text-xl font-semibold text-slate-900 mb-2">AI-Readiness Assessment</h2>
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">AI-Readiness Assessment</h1>
         <p className="text-slate-500 text-sm leading-relaxed mb-6">
-          Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit 
+          Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit
           16 Fragen auf einer Skala von 1 (niedrig) bis 5 (sehr hoch). Dauer: ca. 10 Minuten.
         </p>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
           {[
-            { icon: '📊', label: 'Daten & Zugriff', weight: '25%' },
-            { icon: '🎓', label: 'Skills', weight: '20%' },
-            { icon: '⚖️', label: 'Governance', weight: '20%' },
-            { icon: '⚙️', label: 'Technologie', weight: '20%' },
-            { icon: '🎯', label: 'Strategie', weight: '10%' },
-            { icon: '🌱', label: 'Kultur', weight: '5%' },
+            { id: 'data',       icon: '📊', label: 'Daten & Zugriff', weight: '25%' },
+            { id: 'skills',     icon: '🎓', label: 'Skills',          weight: '20%' },
+            { id: 'governance', icon: '⚖️', label: 'Governance',      weight: '20%' },
+            { id: 'tech',       icon: '⚙️', label: 'Technologie',     weight: '20%' },
+            { id: 'strategy',   icon: '🎯', label: 'Strategie',       weight: '10%' },
+            { id: 'culture',    icon: '🌱', label: 'Kultur',          weight: '5%'  },
           ].map(d => (
-            <div key={d.label} className="bg-slate-50 rounded-xl p-3 flex items-center gap-3">
-              <span>{d.icon}</span>
-              <div>
-                <div className="text-sm font-medium text-slate-700">{d.label}</div>
+            <Link
+              key={d.id}
+              href={`/assessment/dimensionen#${d.id}`}
+              className="bg-slate-50 hover:bg-blue-50 hover:border-blue-200 border border-transparent rounded-xl p-3 flex items-center gap-3 min-w-0 transition-colors group"
+            >
+              <span className="shrink-0">{d.icon}</span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-slate-700 group-hover:text-blue-700">{d.label}</div>
                 <div className="text-xs text-slate-400">Gewicht: {d.weight}</div>
               </div>
-            </div>
+              <span className="text-slate-300 group-hover:text-blue-400 text-xs shrink-0">→</span>
+            </Link>
           ))}
         </div>
+        <p className="text-xs text-slate-400 text-center mb-6">
+          Auf eine Dimension klicken für Details zur Gewichtung
+        </p>
 
         <button
           onClick={onStart}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label="Assessment starten"
         >
           Assessment starten →

@@ -51,8 +51,8 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-      <h1 className="text-white text-xl font-semibold mb-6">Anmelden</h1>
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-6">Anmelden</h1>
 
       {error && (
         <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">

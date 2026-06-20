@@ -59,7 +59,7 @@ export function RegisterForm() {
 
   if (done) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✉️</div>
         <h2 className="text-white text-lg font-semibold mb-2">E-Mail bestätigen</h2>
         <p className="text-slate-400 text-sm leading-relaxed">
@@ -71,8 +71,8 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-      <h1 className="text-white text-xl font-semibold mb-2">Kostenlosen Account erstellen</h1>
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-2">Kostenlosen Account erstellen</h1>
       <p className="text-slate-400 text-sm mb-6">Keine Kreditkarte erforderlich.</p>
 
       {error && (
@@ -80,7 +80,7 @@ export function RegisterForm() {
       )}
 
       <form onSubmit={handleRegister} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-slate-400 text-xs mb-1.5 font-medium">NAME</label>
             <input value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Max Mustermann"

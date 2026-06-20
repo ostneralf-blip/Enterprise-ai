@@ -62,12 +62,15 @@ describe('Accessibility: AssessmentWizard', () => {
     expect(newOptions.length).toBe(5)
   })
 
-  it('"Zurück"-Button ist beim ersten Schritt deaktiviert (kein Dead-End für Screenreader)', () => {
+  it('"Zurück"-Button navigiert beim ersten Schritt zur Intro zurück (kein Dead-End für Screenreader)', () => {
     render(<AssessmentWizard tier="free" />)
     fireEvent.click(screen.getByRole('button', { name: /assessment starten/i }))
 
-    const backButton = screen.getByRole('button', { name: /vorherige frage/i })
-    expect(backButton).toBeDisabled()
+    // Auf Frage 1: Button ist aktiv und führt zurück zur Intro (besser als disabled)
+    const backButton = screen.getByRole('button', { name: /zurück zur übersicht/i })
+    expect(backButton).not.toBeDisabled()
+    fireEvent.click(backButton)
+    expect(screen.getByRole('button', { name: /assessment starten/i })).toBeVisible()
   })
 
   it('Alle interaktiven Elemente haben einen sichtbaren Fokusindikator (Tailwind focus:ring Klassen)', () => {

@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✉️</div>
         <h2 className="text-white text-lg font-semibold mb-2">E-Mail unterwegs</h2>
         <p className="text-slate-400 text-sm leading-relaxed mb-6">
@@ -47,8 +47,8 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-      <h1 className="text-white text-xl font-semibold mb-2">Passwort vergessen</h1>
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-2">Passwort vergessen</h1>
       <p className="text-slate-400 text-sm mb-6">
         Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen.
       </p>

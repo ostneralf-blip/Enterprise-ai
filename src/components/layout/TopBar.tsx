@@ -29,7 +29,7 @@ export function TopBar({ profile }: TopBarProps) {
           <span className="text-lg">☰</span>
         </button>
         {profile?.company && (
-          <span className="font-medium text-slate-700 text-sm truncate hidden sm:inline">{profile.company}</span>
+          <span className="font-medium text-slate-700 text-sm truncate min-w-0">{profile.company}</span>
         )}
       </div>
 

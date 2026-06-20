@@ -32,6 +32,8 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
     setLoading(false)
   }
 
+  const buttonBase = "flex items-center justify-center gap-2 flex-1 px-5 py-2.5 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+
   if (submitted) {
     return (
       <div className="text-center py-4 text-sm text-slate-500">
@@ -46,11 +48,11 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
       {!sentiment ? (
         <div className="flex justify-center gap-3">
           <button onClick={() => handleSubmit('positive')}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm hover:bg-emerald-100 transition-colors">
+            className={`${buttonBase} bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-400`}>
             👍 Ja, hilfreich
           </button>
           <button onClick={() => setSentiment('negative')}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-100 transition-colors">
+            className={`${buttonBase} bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 focus:ring-slate-400`}>
             👎 Verbesserungsbedarf
           </button>
         </div>
@@ -62,7 +64,7 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 resize-none mb-2"
           />
           <button onClick={() => submit('negative', comment)} disabled={loading}
-            className="w-full bg-slate-800 text-white text-sm py-2 rounded-lg hover:bg-slate-700 transition-colors">
+            className={`${buttonBase} w-full bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500 disabled:opacity-60`}>
             {loading ? 'Wird gesendet…' : 'Feedback senden'}
           </button>
         </div>

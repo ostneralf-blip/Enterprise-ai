@@ -50,7 +50,7 @@ export function ResetPasswordForm() {
 
   if (hasValidSession === false) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">⚠️</div>
         <h2 className="text-white text-lg font-semibold mb-2">Link abgelaufen oder ungültig</h2>
         <p className="text-slate-400 text-sm leading-relaxed">
@@ -66,7 +66,7 @@ export function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✅</div>
         <h2 className="text-white text-lg font-semibold mb-2">Passwort aktualisiert</h2>
         <p className="text-slate-400 text-sm">Sie werden weitergeleitet…</p>
@@ -75,8 +75,8 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-      <h1 className="text-white text-xl font-semibold mb-6">Neues Passwort festlegen</h1>
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-6">Neues Passwort festlegen</h1>
 
       {error && (
         <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
