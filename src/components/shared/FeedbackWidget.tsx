@@ -32,7 +32,10 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
     setLoading(false)
   }
 
-  const buttonBase = "flex items-center justify-center gap-2 flex-1 px-5 py-2.5 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
+  // whitespace-nowrap verhindert, dass unterschiedlich lange Button-Texte
+  // bei begrenzter Breite (z.B. flex-1 auf Mobile) unterschiedlich umbrechen
+  // und dadurch optisch verschieden hohe Buttons erzeugen.
+  const buttonBase = "flex items-center justify-center gap-2 flex-1 px-3 sm:px-5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all focus:outline-none focus:ring-2 focus:ring-offset-2"
 
   if (submitted) {
     return (
@@ -46,7 +49,7 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
     <div className="border-t border-slate-200 pt-6 mt-6">
       <p className="text-sm text-slate-500 mb-3 text-center">War dieses Tool hilfreich?</p>
       {!sentiment ? (
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-2 sm:gap-3">
           <button onClick={() => handleSubmit('positive')}
             className={`${buttonBase} bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-400`}>
             👍 Ja, hilfreich
