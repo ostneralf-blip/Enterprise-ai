@@ -41,6 +41,15 @@ supabase/
   migrations/         # SQL Migrations
 ```
 
+### Design-System (PFLICHT für jede UI-Komponente)
+Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
+- **Mobile-first**: Basis-Klassen für 375px, `sm:`/`md:`/`lg:` fügen für größere Screens hinzu, niemals umgekehrt patchen
+- **Feste Typo-Skala**: h1 `text-xl sm:text-2xl`, h2 `text-base sm:text-lg`, Body `text-sm` (ändert sich nicht), Meta `text-xs` (ändert sich nicht)
+- **Feste Spacing-Skala**: Karten-Padding `p-4 sm:p-6/p-8`, niemals `p-8` auf Mobile-Basis
+- **`min-w-0` Pflicht** auf jedem Flex-Kind, das Text unbekannter Länge enthält (Namen, Firmennamen, Labels)
+- **Eine Button-Basisklasse** pro Funktionsebene (z. B. `buttonBase`-Konstante), nie individuelle Maße pro Button
+- **Verifikation bei 375px / 768px / 1440px** vor "fertig"-Meldung jeder Komponente — kein abgeschnittener Text, kein horizontales Scrollen
+
 ### Coding-Konventionen
 1. TypeScript strict — kein `any`
 2. Server Components by default — "use client" nur wenn nötig

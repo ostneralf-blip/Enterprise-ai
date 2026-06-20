@@ -28,7 +28,7 @@ export default async function DashboardPage() {
         <p className="text-slate-500 mt-1">Welches Tool möchten Sie heute nutzen?</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
         {[
           { label: 'Verfügbare Tools', value: MODULES.length.toString(), icon: '⬡' },
           { label: 'Ihr Plan', value: tier === 'pro' ? 'Professional' : tier === 'enterprise' ? 'Enterprise' : 'Explorer', icon: '◎' },

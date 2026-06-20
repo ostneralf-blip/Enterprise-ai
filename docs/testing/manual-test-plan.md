@@ -113,3 +113,67 @@ Mindestanforderung für Launch: Chrome + Safari (deckt die überwiegende Mehrhei
 | # | Beschreibung | Schweregrad | Status |
 |---|---|---|---|
 | | | | |
+
+---
+
+## Tatsächliche Test-Ergebnisse (durchgeführt 19. Juni 2026)
+
+### Abschnitt 1-2: Registrierung, Login, Dashboard
+✅ Alle Tests bestanden (nach Fixes aus RLS/Security-Session)
+
+### Abschnitt 3: Assessment Free-Tier (12 Tests)
+✅ Alle Tests bestanden — kompletter Flow fehlerfrei
+
+### Abschnitt 4: Assessment Pro-Tier (7 Tests)
+✅ Alle Tests bestanden
+
+**Kritischer Bug gefunden und behoben:** Lokaler PDF-Export schlug fehl,
+da `executablePath: '/usr/bin/google-chrome'` ein Linux-Pfad ist und auf
+macOS nicht existiert. Behoben durch dynamische Pfad-Auflösung über
+`@puppeteer/browsers` (`getInstalledBrowsers` + `computeExecutablePath`),
+funktioniert jetzt plattformunabhängig (macOS/Linux/Windows) und ist nicht
+mehr von einer geratenen Chrome-Version abhängig.
+
+**Setup-Hinweis für neue Entwicklungsumgebungen:**
+```bash
+npx @puppeteer/browsers install chrome@stable --path ./chrome
+```
+muss einmalig lokal ausgeführt werden, bevor PDF-Export lokal getestet
+werden kann. Auf Vercel (Produktion) wird stattdessen automatisch
+`@sparticuz/chromium` verwendet — kein manueller Schritt nötig.
+
+### Zusätzlich während dieser Session behoben (nicht im ursprünglichen Plan)
+- Fehlende `upgrade`-Seite komplett neu gebaut (Preisseite mit Stripe-Checkout-Anbindung)
+- Fehlende `compliance`/`architecture` Placeholder-Pages nachgezogen
+- Komplettes Passwort-vergessen-Flow neu gebaut (fehlte komplett — Hinweis von Daniel während Test 2.2)
+- `posthog/client.ts` fehlte lokal — nachinstalliert
+
+### Freigabe
+
+| Geprüft von | Datum | Freigabe für weitere Manual-Tests (Responsive, Browser-Matrix) |
+|---|---|---|
+| Daniel Ostner | 19. Juni 2026 | ✅ Ja |
+
+---
+
+## Nachgelagerte Mobile-Fixes (Runde 2, 20. Juni 2026)
+
+Nach dem ersten Mobile-Fix (Hamburger-Menü) traten zwei weitere Bugs auf:
+
+| # | Problem | Fix |
+|---|---|---|
+| 1 | Dashboard-Stats-Karten (3 Stück) nebeneinander erzwungen bei 375px, Text abgeschnitten ("Profe…ial") | `grid-cols-3` → `grid-cols-1 sm:grid-cols-3`, stapeln sich jetzt vertikal auf Mobile |
+| 2 | Dimension-Labels im Assessment-Ergebnis zu aggressiv trunkiert ("Datenqualität & -z…") | `truncate` entfernt, `break-words` + `items-start` statt `items-center` — Label darf jetzt über 2 Zeilen umbrechen statt abgeschnitten zu werden |
+
+## Notiert für Feature-Liste (nicht Teil von Sprint 1)
+
+**Hinweis von Daniel:** Einstellungsseite für Personalisierung und
+Rechnungsstellung fehlt komplett — insbesondere:
+- Eigenen Namen/Firmennamen im Profil bearbeiten (aktuell nur via
+  Supabase SQL Editor möglich, kein UI)
+- Rechnungsadresse / Stripe Customer Portal Zugang aus der App heraus
+- Vermutlich auch: Sprache, Avatar, Benachrichtigungseinstellungen
+
+→ Vorschlag: als eigenständiges "Einstellungen"-Modul in Sprint 2 oder 3
+einplanen. Sidebar hat bereits einen (aktuell toten) Link zu `/settings`
+vorgesehen — Ziel-Route existiert konzeptionell schon.

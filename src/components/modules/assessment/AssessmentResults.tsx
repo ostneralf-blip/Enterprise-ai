@@ -48,23 +48,23 @@ export function AssessmentResults({
     <>
       {showUpgrade && <UpgradeModal feature="Ergebnisse speichern & PDF-Export" onClose={() => setShowUpgrade(false)} />}
 
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6 w-full">
         {/* Header Score */}
-        <div className="bg-slate-900 rounded-2xl p-8 flex items-center gap-8">
+        <div className="bg-slate-900 rounded-2xl p-5 sm:p-8 flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-8">
           <div className="text-center shrink-0">
-            <div className={`text-5xl font-bold font-mono ${maturity.color.replace('text-', 'text-')}`}
+            <div className={`text-4xl sm:text-5xl font-bold font-mono ${maturity.color.replace('text-', 'text-')}`}
                  style={{ color: totalScore >= 4 ? '#10b981' : totalScore >= 3 ? '#f59e0b' : '#ef4444' }}>
               {totalScore.toFixed(1)}
             </div>
             <div className="text-slate-400 text-xs mt-1">von 5,0</div>
           </div>
-          <div className="border-l border-slate-700 pl-8">
-            <div className="text-white text-lg font-semibold mb-1">{maturity.label}</div>
+          <div className="border-l border-slate-700 pl-4 sm:pl-8 min-w-0 flex-1">
+            <div className="text-white text-base sm:text-lg font-semibold mb-1 break-words">{maturity.label}</div>
             <div className={`inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full mb-3`}
                  style={{ background: `${archetypeConfig.color}22`, color: archetypeConfig.color === 'amber' ? '#d97706' : archetypeConfig.color === 'blue' ? '#3b82f6' : '#10b981' }}>
               {archetypeConfig.icon} {archetypeConfig.label}
             </div>
-            <div className="text-slate-400 text-sm">{archetypeConfig.desc}</div>
+            <div className="text-slate-400 text-sm break-words">{archetypeConfig.desc}</div>
           </div>
         </div>
 
@@ -80,11 +80,11 @@ export function AssessmentResults({
                 : '#e2e8f0'
               return (
                 <div key={dim.id}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-slate-700">{dim.label}</span>
-                    <div className="flex items-center gap-3">
-                      {ml && <span className={`text-xs ${ml.color}`}>{ml.label}</span>}
-                      <span className="text-sm font-bold text-slate-900 w-8 text-right">
+                  <div className="flex items-start justify-between mb-1.5 gap-3">
+                    <span className="text-sm font-medium text-slate-700 break-words">{dim.label}</span>
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      {ml && <span className={`text-xs ${ml.color} hidden sm:inline whitespace-nowrap`}>{ml.label}</span>}
+                      <span className="text-sm font-bold text-slate-900 text-right">
                         {score !== undefined ? score.toFixed(1) : '—'}
                       </span>
                     </div>

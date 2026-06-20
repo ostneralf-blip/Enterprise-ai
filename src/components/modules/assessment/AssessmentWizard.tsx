@@ -148,7 +148,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
                 }`}>
                   {score}
                 </span>
-                <span className="text-sm text-slate-700">
+                <span className="text-sm text-slate-700 min-w-0">
                   {score === 1 ? currentQ.lowLabel
                     : score === 2 ? 'Ansätze vorhanden, nicht systematisch'
                     : score === 3 ? 'Teilweise etabliert, ausbaufähig'
