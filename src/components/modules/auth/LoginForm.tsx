@@ -27,20 +27,35 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('=== STEP 1: handleLogin aufgerufen ===')
     setLoading(true)
     setError('')
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    console.log('=== STEP 2: Supabase URL ist:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('=== STEP 3: Anon Key Länge:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length, 'Anfang:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 15))
+    console.log('=== STEP 4: E-Mail eingegeben:', email)
 
-    if (signInError) {
-      setError('E-Mail oder Passwort nicht korrekt.')
+    try {
+      console.log('=== STEP 5: Rufe supabase.auth.signInWithPassword auf ===')
+      const result = await supabase.auth.signInWithPassword({ email, password })
+      console.log('=== STEP 6: Antwort erhalten:', JSON.stringify(result.error), 'Session vorhanden:', !!result.data.session)
+
+      if (result.error) {
+        console.log('=== STEP 7: Fehler von Supabase:', result.error.message, result.error.status)
+        setError('E-Mail oder Passwort nicht korrekt.')
+        setLoading(false)
+        return
+      }
+
+      console.log('=== STEP 8: Login erfolgreich, navigiere zu:', redirectTo)
+      track('login', { method: 'email' })
+      router.push(redirectTo)
+      router.refresh()
+    } catch (err) {
+      console.error('=== CATCH: Unerwarteter Fehler ===', err)
+      setError('Unerwarteter Fehler — siehe Konsole')
       setLoading(false)
-      return
     }
-
-    track('login', { method: 'email' })
-    router.push(redirectTo)
-    router.refresh()
   }
 
   const handleGoogleLogin = async () => {
