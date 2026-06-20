@@ -1,37 +1,39 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { hasAccess } from '@/lib/utils/tier-check'
-import type { Tier } from '@/types'
+import { RoadmapPageClient } from './RoadmapPageClient'
 import type { Metadata } from 'next'
+import type { Archetype } from '@/types'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Roadmap' }
+export const metadata: Metadata = { title: 'Roadmap-Generator' }
 
-export default async function Page() {
+export default async function RoadmapPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profileData } = await supabase
-    .from('profiles').select('tier').eq('id', user.id).single() as { data: { tier: string } | null }
+  const { data: latestResult } = await supabase
+    .from('assessment_results')
+    .select('archetype')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle() as { data: { archetype: string | null } | null }
 
-  const tier = (profileData?.tier ?? 'free') as Tier
-  const requiredTier = ['compliance', 'architecture'].includes('roadmap') ? 'pro' : 'free'
-
-  if (!hasAccess(tier, requiredTier as Tier)) {
-    redirect('/upgrade')
-  }
+  const archetype = (latestResult?.archetype ?? null) as Archetype | null
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 capitalize">roadmap</h1>
-        <p className="text-slate-500 mt-1">Wird in Sprint 2 implementiert.</p>
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Roadmap-Generator</h1>
+        <p className="text-slate-500 text-sm mt-1">
+          3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung
+        </p>
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">🚧</div>
-        <div className="text-slate-500 text-sm">Dieses Modul wird in Sprint 2 gebaut.</div>
-      </div>
+      <RoadmapPageClient
+        initialArchetype={archetype}
+        fromAssessment={!!latestResult?.archetype}
+      />
     </div>
   )
 }
