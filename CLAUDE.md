@@ -136,3 +136,34 @@ müssen vor jedem Produktions-Launch eines neuen Moduls aktualisiert und abgezei
 ### Feature-Rückstand (Stufe 2 — eingeplant, noch nicht terminiert)
 - Einstellungsseite: Profil (Name/Firma bearbeiten), Rechnungsadresse, Stripe Customer Portal Zugang, Sprache/Avatar/Benachrichtigungen
 - FeedbackWidget: leichtes horizontales Überlaufen bei 393px Breite — am Ende von Sprint 2 final polieren
+
+### Admin-Panel & Content-Anreicherung (neu, 20.06.2026)
+
+**Stufe A — Plattform-Content-Verwaltung (Stufe 2, in Rückstand eingeplant):**
+- Eigene `content_library`-Tabelle statt hartcodierter Werte in `config/`-Dateien
+  (Gesetzesverweise, Branchen-Use-Case-Beispiele, Quellenangaben pro Modul)
+- `role = 'admin'`-Flag auf `profiles`, RLS-geschützt wie alle anderen Tabellen
+- Einfaches CRUD-Interface nur für Daniel erreichbar (kein Kunden-Zugriff)
+- Jedes Modul wird inhaltlich angereichert: konkrete Gesetzesartikel-Verweise
+  (z. B. EU AI Act Art. X, DSGVO Art. Y), echte Branchenbeispiele statt
+  Platzhalter, Quellenangaben mit Datum
+- **Aufwand:** mittel, reine Plattform-Erweiterung, kein Risiko für bestehendes
+  Tier-/RLS-Modell
+
+**Stufe B — Kunden-konfigurierbare Inhalte (Phase 3, NUR Vision, nicht bauen
+ohne erneute explizite Freigabe):**
+- Hypothese (noch nicht durch echte Kundenanfrage validiert): Enterprise-Kunden
+  sollen eigene Anforderungen/Gewichtungen/Informationen in Berechnungen und
+  Modul-Inhalte einbringen können
+- Würde erfordern: neue `organizations`-Tabelle (User-Gruppierung nach Firma,
+  existiert aktuell nicht — wir haben nur Einzel-User), Mandantentrennung auf
+  RLS-Ebene pro Organisation statt nur pro User, Preismodell-Klärung (eigenes
+  Add-on oder Teil von "Enterprise auf Anfrage"?)
+- **Bewusste Entscheidung (20.06.2026):** Architektur lässt das später zu, ohne
+  dass Stufe A umgebaut werden müsste — aber NICHT vorab bauen, bevor ein
+  echter Kunde das konkret anfragt. Vermeidet Over-Engineering für einen
+  unvalidierten Business Case.
+- **Externe Datenquellen-Anbindung** (z. B. automatischer Abruf aktueller
+  Gesetzestexte über eine API) gehört ebenfalls hierher — explizit als
+  "möglich, aber noch nicht spezifiziert, welche Quelle/API" markieren,
+  bis ein konkreter Bedarf vorliegt.
