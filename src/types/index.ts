@@ -63,23 +63,35 @@ export interface AssessmentResult {
 }
 
 // ─── USE CASE ────────────────────────────────────────────────────────────────
+export type UseCaseWeights = {
+  value: number
+  feasibility: number
+  data_readiness: number
+  risk: number
+  speed: number
+}
+
 export interface UseCase {
   id: string
   portfolio_id: string
   name: string
-  domain: string
+  domain: string | null
+  description: string | null
   scores: Record<string, number>
   weighted_score: number
   quadrant: 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid'
   created_at: string
+  updated_at: string
 }
 
 export interface UseCasePortfolio {
   id: string
   user_id: string
   name: string
-  use_cases: UseCase[]
+  weights: UseCaseWeights
+  use_cases?: UseCase[]
   created_at: string
+  updated_at: string
 }
 
 // ─── CANVAS ──────────────────────────────────────────────────────────────────

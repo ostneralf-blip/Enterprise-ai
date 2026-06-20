@@ -1,37 +1,67 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { hasAccess } from '@/lib/utils/tier-check'
-import type { Tier } from '@/types'
+import { UseCasePageClient } from './UseCasePageClient'
+import { DEFAULT_WEIGHTS } from '@/config/usecase-data'
 import type { Metadata } from 'next'
+import type { Tier, UseCasePortfolio, UseCase, UseCaseWeights } from '@/types'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Usecase' }
+export const metadata: Metadata = { title: 'Use-Case Scoring' }
 
-export default async function Page() {
+export default async function UseCasePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: profileData } = await supabase
-    .from('profiles').select('tier').eq('id', user.id).single() as { data: { tier: string } | null }
+    .from('profiles')
+    .select('tier')
+    .eq('id', user.id)
+    .single() as { data: { tier: string } | null }
 
   const tier = (profileData?.tier ?? 'free') as Tier
-  const requiredTier = ['compliance', 'architecture'].includes('usecase') ? 'pro' : 'free'
 
-  if (!hasAccess(tier, requiredTier as Tier)) {
-    redirect('/upgrade')
+  // Load or auto-create portfolio server-side for initial render
+  let { data: portfolio } = await supabase
+    .from('uc_portfolios')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle() as { data: UseCasePortfolio | null }
+
+  if (!portfolio) {
+    const { data: created } = await supabase
+      .from('uc_portfolios')
+      .insert({ user_id: user.id, name: 'Mein Portfolio', weights: DEFAULT_WEIGHTS })
+      .select()
+      .single() as { data: UseCasePortfolio | null }
+    portfolio = created
+  }
+
+  const { data: rawCases } = await supabase
+    .from('use_cases')
+    .select('*')
+    .eq('portfolio_id', portfolio?.id ?? '')
+    .order('weighted_score', { ascending: false }) as { data: UseCase[] | null }
+
+  const safePortfolio: UseCasePortfolio = portfolio ?? {
+    id: '', user_id: user.id, name: 'Mein Portfolio',
+    weights: DEFAULT_WEIGHTS as UseCaseWeights,
+    created_at: '', updated_at: '',
   }
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 capitalize">usecase</h1>
-        <p className="text-slate-500 mt-1">Wird in Sprint 2 implementiert.</p>
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Use-Case Scoring</h1>
+        <p className="text-slate-500 text-sm mt-1">
+          5 Kriterien · Portfolio-Matrix · Priorisierung nach gewichtetem Score
+        </p>
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl p-12 text-center">
-        <div className="text-4xl mb-4">🚧</div>
-        <div className="text-slate-500 text-sm">Dieses Modul wird in Sprint 2 gebaut.</div>
-      </div>
+      <UseCasePageClient
+        initialPortfolio={safePortfolio}
+        initialCases={rawCases ?? []}
+        tier={tier}
+      />
     </div>
   )
 }
