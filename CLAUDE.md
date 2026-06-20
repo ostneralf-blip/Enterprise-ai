@@ -18,6 +18,31 @@
 - **Deployment:** Vercel (fra1 Region)
 - **Lokale Entwicklung:** IMMER über `http://localhost:3001` zugreifen, NIEMALS über die Netzwerk-IP (z. B. `192.168.x.x`) — Next.js blockiert sonst Dev-Hot-Reload-Ressourcen (`allowedDevOrigins`), was zu vollständigem Hydration-Ausfall ohne sichtbare Fehlermeldung führt
 
+### Datenbank-Migrationen — VERBINDLICHER Workflow (seit 20.06.2026)
+**NIEMALS mehr Migrationen manuell im Supabase SQL-Editor ausführen.** Das umgeht
+die Tracking-Tabelle `supabase_migrations.schema_migrations` und führt zu
+`relation already exists`-Fehlern bei jedem GitHub-Push (Supabase-GitHub-Integration
+versucht dann, bereits angewendete Migrationen erneut auszuführen).
+
+**Korrekter Workflow für jede neue Migration:**
+```bash
+# Neue Migration erstellen
+supabase migration new beschreibender_name
+
+# SQL in die generierte Datei schreiben, dann:
+supabase db push
+
+# Verifizieren, dass lokal UND remote synchron sind:
+supabase migration list
+```
+Beide Spalten (Local/Remote) müssen nach jedem `db push` einen Wert zeigen.
+
+**Falls die Historie doch einmal aus dem Tritt gerät** (z. B. nach einem
+manuellen Eingriff): `supabase migration repair --status applied <name>`
+markiert nur den Tracking-Eintrag, führt KEIN SQL aus — bei bereits
+angewendeten Migrationen korrekt, bei noch nicht angewendeten muss zusätzlich
+`supabase db push` folgen, um das eigentliche SQL auch wirklich anzuwenden.
+
 ### Ordnerstruktur
 ```
 src/
@@ -40,7 +65,7 @@ src/
   types/              # TypeScript-Typen & Zod-Schemas
   config/             # constants.ts, tiers.ts, modules.ts
 supabase/
-  migrations/         # SQL Migrations
+  migrations/         # SQL Migrations — IMMER via `supabase migration new` + `db push`
 ```
 
 ### Design-System (PFLICHT für jede UI-Komponente)
@@ -80,6 +105,7 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - IMMER RLS testen vor Produktiv-Go
 - NIEMALS User-Daten außerhalb EU
 - NIEMALS `.env*`-Dateien oder Backups davon (`.env.local.backup` etc.) committen — vor jedem `git add .` einen `git status`-Check auf unerwartete Dateien durchführen (siehe Incident vom 20.06.2026 in `docs/testing/rls-verification-results.md`)
+- NIEMALS Migrationen manuell im SQL-Editor ausführen — immer `supabase migration new` + `db push` (siehe Abschnitt oben)
 
 ### Umgang mit laufenden Korrekturen & Feature-Wünschen
 Während der Entwicklung kommen ständig kleine Korrekturen oder neue Feature-Ideen auf. Diese werden nach folgender Klassifikation behandelt, nicht jedes Mal einzeln rückgefragt:
