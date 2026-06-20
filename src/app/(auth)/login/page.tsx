@@ -4,6 +4,10 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Anmelden' }
 
-export default function LoginPage() {
-  return <LoginForm />
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string; message?: string }>
+}) {
+  return <LoginForm searchParams={searchParams} />
 }
