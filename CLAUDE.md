@@ -5,16 +5,18 @@
 - **Name:** AI Navigator
 - **Domain:** enterprise-ai.biz
 - **Tagline:** Enterprise AI. Strukturiert navigiert.
-- **Stack:** Next.js 15 (App Router) + Supabase EU + Stripe + PostHog
+- **Stack:** Next.js 16 (App Router) + Supabase EU + Stripe + PostHog
 
 ### Technischer Stack
-- **Framework:** Next.js 15, TypeScript strict, App Router
+- **Framework:** Next.js 16, TypeScript strict, App Router, Turbopack
 - **Styling:** Tailwind CSS + shadcn/ui Komponenten
 - **Backend:** Supabase (Frankfurt eu-central-1) — Auth, PostgreSQL, RLS, Storage
+- **Supabase Keys:** Neues Key-System (`sb_publishable_...` / `sb_secret_...`), NICHT die alten JWT-basierten `anon`/`service_role`-Keys
 - **Payments:** Stripe Checkout + Billing Portal + Stripe Tax
 - **Analytics:** PostHog EU-Cloud (cookieless)
 - **E-Mail:** Resend
 - **Deployment:** Vercel (fra1 Region)
+- **Lokale Entwicklung:** IMMER über `http://localhost:3001` zugreifen, NIEMALS über die Netzwerk-IP (z. B. `192.168.x.x`) — Next.js blockiert sonst Dev-Hot-Reload-Ressourcen (`allowedDevOrigins`), was zu vollständigem Hydration-Ausfall ohne sichtbare Fehlermeldung führt
 
 ### Ordnerstruktur
 ```
@@ -47,6 +49,7 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - **Feste Typo-Skala**: h1 `text-xl sm:text-2xl`, h2 `text-base sm:text-lg`, Body `text-sm` (ändert sich nicht), Meta `text-xs` (ändert sich nicht)
 - **Feste Spacing-Skala**: Karten-Padding `p-4 sm:p-6/p-8`, niemals `p-8` auf Mobile-Basis
 - **`min-w-0` Pflicht** auf jedem Flex-Kind, das Text unbekannter Länge enthält (Namen, Firmennamen, Labels)
+- **`whitespace-nowrap` auf Button-Text** bei `flex-1`-Buttons nebeneinander — unterschiedlich lange Texte brechen sonst unterschiedlich um und Buttons wirken verschieden hoch (siehe Bug-Historie unten)
 - **Eine Button-Basisklasse** pro Funktionsebene (z. B. `buttonBase`-Konstante), nie individuelle Maße pro Button
 - **Verifikation bei 375px / 768px / 1440px** vor "fertig"-Meldung jeder Komponente — kein abgeschnittener Text, kein horizontales Scrollen
 
@@ -76,6 +79,18 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - IMMER Stripe Webhooks idempotent
 - IMMER RLS testen vor Produktiv-Go
 - NIEMALS User-Daten außerhalb EU
+- NIEMALS `.env*`-Dateien oder Backups davon (`.env.local.backup` etc.) committen — vor jedem `git add .` einen `git status`-Check auf unerwartete Dateien durchführen (siehe Incident vom 20.06.2026 in `docs/testing/rls-verification-results.md`)
+
+### Umgang mit laufenden Korrekturen & Feature-Wünschen
+Während der Entwicklung kommen ständig kleine Korrekturen oder neue Feature-Ideen auf. Diese werden nach folgender Klassifikation behandelt, nicht jedes Mal einzeln rückgefragt:
+
+| Stufe | Kriterium | Vorgehen |
+|---|---|---|
+| **1. Sofort-Fix** | Eindeutiger Bug, keine Designentscheidung nötig (Tippfehler, kaputter Button, abgeschnittener Text, falscher Link) | Sofort umsetzen, kurz im Commit-Message dokumentieren |
+| **2. Sprint-Einplanung** | Neues Feature oder größere Änderung ohne Dringlichkeit (z. B. "wir brauchen eine Einstellungsseite") | In diesem Dokument unter "Feature-Rückstand" notieren, NICHT sofort bauen, mit Daniel terminieren |
+| **3. Rücksprache nötig** | Betrifft Preismodell, Datenschema/Migrationen, Auth-Flow, oder hat Sicherheits-/Compliance-Implikationen | Vor Umsetzung explizit mit Daniel klären, auch wenn es klein wirkt |
+
+Im Zweifel zwischen Stufe 1 und 2: lieber als Stufe 2 behandeln und kurz nachfragen, statt voreilig Architektur-Entscheidungen zu treffen.
 
 ### Test-Gate (PFLICHT vor jedem Merge/Deployment)
 Jedes neue Modul braucht mindestens:
@@ -91,3 +106,7 @@ npm run test && npx tsc --noEmit && npx eslint src --max-warnings 0 && npm run b
 Kein Schritt wird übersprungen, auch nicht bei kleinen Änderungen. Manuelle Checklisten
 (docs/testing/security-checklist.md, manual-test-plan.md, accessibility-checklist.md)
 müssen vor jedem Produktions-Launch eines neuen Moduls aktualisiert und abgezeichnet werden.
+
+### Feature-Rückstand (Stufe 2 — eingeplant, noch nicht terminiert)
+- Einstellungsseite: Profil (Name/Firma bearbeiten), Rechnungsadresse, Stripe Customer Portal Zugang, Sprache/Avatar/Benachrichtigungen
+- FeedbackWidget: leichtes horizontales Überlaufen bei 393px Breite — am Ende von Sprint 2 final polieren
