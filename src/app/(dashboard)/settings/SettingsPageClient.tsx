@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
@@ -242,6 +243,13 @@ export function SettingsPageClient({ profile, email }: Props) {
           </button>
         </div>
       </section>
+
+      {/* Rechtliches */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 pb-1">
+        <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Impressum</Link>
+        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Datenschutz</Link>
+        <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">AGB</Link>
+      </div>
 
     </div>
   )

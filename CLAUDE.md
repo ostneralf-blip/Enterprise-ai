@@ -134,7 +134,9 @@ Kein Schritt wird übersprungen, auch nicht bei kleinen Änderungen. Manuelle Ch
 müssen vor jedem Produktions-Launch eines neuen Moduls aktualisiert und abgezeichnet werden.
 
 ### Feature-Rückstand (Stufe 2 — eingeplant, noch nicht terminiert)
-- Einstellungsseite: Profil (Name/Firma bearbeiten), Rechnungsadresse, Stripe Customer Portal Zugang, Sprache/Avatar/Benachrichtigungen
+- Settings: Adressfelder (Privat/Firma) + weitere Kontaktdetails (Mobil, Tel.) ergänzen
+- Settings: Impressum/Datenschutz/AGB sind verlinkt (Sidebar + Settings-Footer) — Platzhalter-Texte durch echte Rechtstexte (eRecht24/Anwalt) ersetzen
+- Admin Panel: User-Management (Sperren/Entsperren, Lizenz-/Feature-Zuweisung pro User)
 - FeedbackWidget: leichtes horizontales Überlaufen bei 393px Breite — am Ende von Sprint 2 final polieren
 
 ### Admin-Panel & Content-Anreicherung (neu, 20.06.2026)

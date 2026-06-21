@@ -77,6 +77,13 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
         </div>
       )}
+
+      {/* Legal-Footer */}
+      <div className="px-4 py-3 border-t border-slate-800 flex gap-3">
+        <Link href="/impressum" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Impressum</Link>
+        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Datenschutz</Link>
+        <Link href="/agb" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">AGB</Link>
+      </div>
     </>
   )
 
