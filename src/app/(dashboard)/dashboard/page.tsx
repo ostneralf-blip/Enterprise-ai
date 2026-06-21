@@ -23,18 +23,21 @@ export default async function DashboardPage() {
     { count: architectureCount },
     { count: governanceCount },
     { count: roadmapCount },
+    { count: assessmentCount },
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, company, tier').eq('id', user!.id).single(),
     supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', user!.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('architectures').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('governance_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('roadmaps').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('assessment_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id).eq('completed', true),
   ])
   const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
 
   const tier = (profileData?.tier ?? 'free') as Tier
   const fullName = profileData?.full_name as string | null
-  const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0)
+  const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0) + (assessmentCount ?? 0)
+  const accessibleToolCount = MODULES.filter(mod => hasAccess(tier, mod.requiredTier)).length
 
   return (
     <div>
@@ -47,7 +50,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
         {[
-          { label: 'Verfügbare Tools', value: MODULES.length.toString(), icon: '⬡' },
+          { label: 'Verfügbare Tools', value: accessibleToolCount.toString(), icon: '⬡' },
           { label: 'Gespeicherte Ergebnisse', value: savedCount > 0 ? savedCount.toString() : '—', icon: '□' },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-5">
@@ -75,7 +78,7 @@ export default async function DashboardPage() {
                 </div>
                 <p className="text-sm text-slate-600">AI-Readiness Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0</p>
               </div>
-              <span className="text-xs font-medium text-blue-600 whitespace-nowrap">Erneut starten →</span>
+              <span className="text-xs font-medium text-blue-600 whitespace-nowrap">Ergebnis ansehen →</span>
             </div>
           </Link>
         </div>
