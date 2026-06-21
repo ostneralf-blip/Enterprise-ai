@@ -8,7 +8,6 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
 
 -- ─── ADMIN HELPER FUNCTION ───────────────────────────────────────────────────
--- SECURITY DEFINER so RLS policies can call it without recursion
 CREATE OR REPLACE FUNCTION public.is_admin()
   RETURNS BOOLEAN
   LANGUAGE sql
@@ -34,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.content_library (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+DROP TRIGGER IF EXISTS content_library_updated_at ON public.content_library;
 CREATE TRIGGER content_library_updated_at
   BEFORE UPDATE ON public.content_library
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
@@ -41,13 +41,25 @@ CREATE TRIGGER content_library_updated_at
 -- ─── RLS ─────────────────────────────────────────────────────────────────────
 ALTER TABLE public.content_library ENABLE ROW LEVEL SECURITY;
 
--- Admins can do everything
-CREATE POLICY "admin_all" ON public.content_library
-  FOR ALL
-  USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'content_library' AND policyname = 'admin_all'
+  ) THEN
+    CREATE POLICY "admin_all" ON public.content_library
+      FOR ALL
+      USING (public.is_admin())
+      WITH CHECK (public.is_admin());
+  END IF;
+END $$;
 
--- Authenticated users can read
-CREATE POLICY "authenticated_read" ON public.content_library
-  FOR SELECT
-  USING (auth.role() = 'authenticated');
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE tablename = 'content_library' AND policyname = 'authenticated_read'
+  ) THEN
+    CREATE POLICY "authenticated_read" ON public.content_library
+      FOR SELECT
+      USING (auth.role() = 'authenticated');
+  END IF;
+END $$;
