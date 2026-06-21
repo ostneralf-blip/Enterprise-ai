@@ -36,11 +36,12 @@ describe('Security: Architektur-Generator', () => {
       expect(source).not.toContain("from '@/lib/supabase")
     })
 
-    it('ArchitecturePageClient macht keine fetch()-Aufrufe', () => {
+    it('ArchitecturePageClient nutzt fetch() nur für eigene API-Routen (kein direkter DB-Zugriff)', () => {
       const source = readFileSync(
         join(process.cwd(), 'src/app/(dashboard)/architecture/ArchitecturePageClient.tsx'), 'utf-8'
       )
-      expect(source).not.toContain('fetch(')
+      expect(source).toContain("fetch('/api/architecture")
+      expect(source).not.toContain("from '@/lib/supabase")
     })
 
     it('Architektur-Logik kommt aus config, nicht vom Client', () => {

@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
-import type { Tier } from '@/types'
+import type { Tier, Archetype } from '@/types'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -22,6 +22,12 @@ export default async function ArchitecturePage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
+  const [{ data: architectures }, { data: latestAssessment }, { data: latestGovernance }] = await Promise.all([
+    supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
+    supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('governance_sessions').select('use_case_name, result').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  ])
+
   return (
     <div>
       <div className="mb-6">
@@ -30,7 +36,18 @@ export default async function ArchitecturePage() {
           5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen
         </p>
       </div>
-      <ArchitecturePageClient />
+      <ArchitecturePageClient
+        initialArchitectures={architectures ?? []}
+        assessmentContext={latestAssessment ? {
+          archetype: latestAssessment.archetype as Archetype | null,
+          total_score: latestAssessment.total_score,
+          dim_scores: latestAssessment.dim_scores as Record<string, number>,
+        } : null}
+        governanceContext={latestGovernance ? {
+          use_case_name: latestGovernance.use_case_name as string | null,
+          result: latestGovernance.result as string | null,
+        } : null}
+      />
     </div>
   )
 }

@@ -23,8 +23,10 @@ describe('Accessibility: Roadmap-Generator', () => {
 
   it('Archetyp-Buttons haben aria-pressed', () => {
     render(<RoadmapPageClient initialArchetype="starter" fromAssessment={false} />)
-    const buttons = screen.getAllByRole('button')
-    buttons.forEach(btn => expect(btn).toHaveAttribute('aria-pressed'))
+    const archetypeGroup = screen.getByRole('group', { name: /archetyp auswählen/i })
+    const archetypeButtons = Array.from(archetypeGroup.querySelectorAll('button'))
+    expect(archetypeButtons.length).toBeGreaterThanOrEqual(3)
+    archetypeButtons.forEach(btn => expect(btn).toHaveAttribute('aria-pressed'))
   })
 
   it('aktiver Archetyp-Button hat aria-pressed="true"', () => {

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AdminPageClient } from './AdminPageClient'
-import type { ContentLibraryEntry } from '@/types'
+import type { ContentLibraryEntry, UserProfile } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,13 +18,22 @@ export default async function AdminPage() {
 
   if (!profile?.is_admin) redirect('/dashboard')
 
-  const { data: entries } = await supabase
-    .from('content_library')
-    .select('*')
-    .order('module', { ascending: true })
-    .order('created_at', { ascending: false })
+  const [{ data: entries }, { data: users }] = await Promise.all([
+    supabase
+      .from('content_library')
+      .select('*')
+      .order('module', { ascending: true })
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('profiles')
+      .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, created_at')
+      .order('created_at', { ascending: false }),
+  ])
 
   return (
-    <AdminPageClient initialEntries={(entries ?? []) as ContentLibraryEntry[]} />
+    <AdminPageClient
+      initialEntries={(entries ?? []) as ContentLibraryEntry[]}
+      initialUsers={(users ?? []) as UserProfile[]}
+    />
   )
 }

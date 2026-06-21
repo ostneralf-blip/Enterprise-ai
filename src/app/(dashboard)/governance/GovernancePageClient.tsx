@@ -9,6 +9,13 @@ import {
   type VerdictLevel,
 } from '@/config/governance-data'
 
+const VERDICT_TO_API: Record<VerdictLevel, string> = {
+  unlawful: 'stop_dsgvo',
+  stop: 'stop_risk',
+  conditional: 'improve',
+  approved: 'approve',
+}
+
 const VERDICT_STYLES: Record<VerdictLevel, { bg: string; border: string; title: string; badge: string }> = {
   unlawful: {
     bg: 'bg-red-50',
@@ -46,6 +53,8 @@ export function GovernancePageClient() {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [showResult, setShowResult] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const totalSteps = GOVERNANCE_GATES.length
   const gate = GOVERNANCE_GATES[currentStep]
@@ -73,6 +82,21 @@ export function GovernancePageClient() {
     setAnswers({})
     setCurrentStep(0)
     setShowResult(false)
+    setSaved(false)
+  }
+
+  const handleSave = async (verdictLevel: VerdictLevel) => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/governance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, result: VERDICT_TO_API[verdictLevel] }),
+      })
+      if (res.ok) setSaved(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (showResult) {
@@ -134,12 +158,26 @@ export function GovernancePageClient() {
           </ul>
         </div>
 
-        <button
-          onClick={handleReset}
-          className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Neu starten
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleReset}
+            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Neu starten
+          </button>
+          {!saved && (
+            <button
+              onClick={() => handleSave(verdict.level)}
+              disabled={saving}
+              className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              {saving ? 'Wird gespeichert…' : 'Ergebnis speichern'}
+            </button>
+          )}
+          {saved && (
+            <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
+          )}
+        </div>
       </div>
     )
   }

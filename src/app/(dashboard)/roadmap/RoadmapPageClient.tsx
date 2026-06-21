@@ -14,6 +14,29 @@ const PHASES = ['phase1', 'phase2', 'phase3'] as const
 
 export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
   const [archetype, setArchetype] = useState<Archetype>(initialArchetype ?? 'starter')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const handleArchetypeChange = (a: Archetype) => {
+    setArchetype(a)
+    setSaved(false)
+  }
+
+  const handleSave = async () => {
+    const roadmap = ROADMAPS[archetype]
+    const phases = PHASES.map(phaseId => ({ phase: phaseId, ...roadmap[phaseId] }))
+    setSaving(true)
+    try {
+      const res = await fetch('/api/roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archetype, phases }),
+      })
+      if (res.ok) setSaved(true)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const roadmap = ROADMAPS[archetype]
 
@@ -33,7 +56,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
             return (
               <button
                 key={a}
-                onClick={() => setArchetype(a)}
+                onClick={() => handleArchetypeChange(a)}
                 aria-pressed={active}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
@@ -49,6 +72,22 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
           })}
         </div>
         <p className="text-xs text-slate-400 mt-2">{ARCHETYPE_LABELS[archetype].desc}</p>
+      </div>
+
+      {/* Save button */}
+      <div className="flex items-center gap-3 mb-5">
+        {!saved && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
+          </button>
+        )}
+        {saved && (
+          <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
+        )}
       </div>
 
       {/* 3-Phasen-Roadmap */}

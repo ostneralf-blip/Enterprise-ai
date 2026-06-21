@@ -11,6 +11,8 @@ export interface UserProfile {
   tier: Tier
   stripe_customer_id: string | null
   is_admin: boolean
+  is_banned: boolean
+  feature_flags: Record<string, boolean>
   created_at: string
 }
 

@@ -10,9 +10,9 @@ describe('Security: Roadmap-Generator', () => {
       expect(source).toContain("redirect('/login')")
     })
 
-    it('Roadmap-Page liest Assessment-Daten server-seitig (kein Client-Trust)', () => {
+    it('Roadmap-Page liest Assessment-Daten server-seitig aus assessment_sessions (kein Client-Trust)', () => {
       const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/roadmap/page.tsx'), 'utf-8')
-      expect(source).toContain('assessment_results')
+      expect(source).toContain('assessment_sessions')
       expect(source).toContain('user_id')
     })
   })
@@ -25,11 +25,12 @@ describe('Security: Roadmap-Generator', () => {
       expect(source).not.toContain("from '@/lib/supabase")
     })
 
-    it('RoadmapPageClient macht keine fetch()-Aufrufe (rein statische Anzeige)', () => {
+    it('RoadmapPageClient nutzt fetch() nur für eigene API-Route (kein direkter DB-Zugriff)', () => {
       const source = readFileSync(
         join(process.cwd(), 'src/app/(dashboard)/roadmap/RoadmapPageClient.tsx'), 'utf-8'
       )
-      expect(source).not.toContain('fetch(')
+      expect(source).toContain("fetch('/api/roadmap'")
+      expect(source).not.toContain("from '@/lib/supabase")
     })
   })
 })

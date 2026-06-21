@@ -13,9 +13,10 @@ export default async function RoadmapPage() {
   if (!user) redirect('/login')
 
   const { data: latestResult } = await supabase
-    .from('assessment_results')
+    .from('assessment_sessions')
     .select('archetype')
     .eq('user_id', user.id)
+    .eq('completed', true)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle() as { data: { archetype: string | null } | null }
