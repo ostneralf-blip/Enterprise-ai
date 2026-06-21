@@ -13,6 +13,103 @@ const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
+interface PathStep {
+  step: number
+  icon: string
+  title: string
+  desc: string
+  href: string
+  done: boolean
+  proOnly?: boolean
+}
+
+function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
+  const completedCount = steps.filter(s => s.done).length
+  const nextStep = steps.find(s => !s.done)
+  const progressPct = Math.round((completedCount / steps.length) * 100)
+  const allDone = completedCount === steps.length
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Geführter AI-Pfad</h2>
+        <span className="text-xs text-slate-400">{completedCount}/{steps.length} abgeschlossen</span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
+        <div
+          className="h-full bg-blue-500 rounded-full transition-all"
+          style={{ width: `${progressPct}%` }}
+          role="progressbar"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Fortschritt: ${completedCount} von ${steps.length} Schritten abgeschlossen`}
+        />
+      </div>
+
+      {/* Next step CTA */}
+      {nextStep && (
+        <Link
+          href={nextStep.proOnly && tier === 'free' ? '/upgrade' : nextStep.href}
+          className="flex items-center gap-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-3.5 mb-4 transition-colors group"
+          aria-label={`Nächster Schritt: ${nextStep.title}`}
+        >
+          <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-base">
+            {nextStep.icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-medium text-blue-200 mb-0.5">
+              Empfohlener nächster Schritt · {nextStep.step} von {steps.length}
+            </div>
+            <div className="text-sm font-semibold">{nextStep.title}</div>
+            <div className="text-xs text-blue-200 truncate">{nextStep.desc}</div>
+          </div>
+          <span className="text-white/70 group-hover:text-white text-sm shrink-0">→</span>
+        </Link>
+      )}
+
+      {allDone && (
+        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3.5 mb-4">
+          <span className="text-xl">✓</span>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-emerald-800">AI-Navigator Pfad vollständig!</div>
+            <div className="text-xs text-emerald-600">Alle Module abgeschlossen — Ergebnisse in PDF zusammenfassen.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Step indicator — horizontal scroll on mobile */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5" role="list">
+        {steps.map((s) => {
+          const isCurrent = s === nextStep
+          const isLocked = s.proOnly && tier === 'free'
+          return (
+            <Link
+              key={s.step}
+              href={isLocked ? '/upgrade' : s.href}
+              role="listitem"
+              aria-label={`Schritt ${s.step}: ${s.title}${s.done ? ' (abgeschlossen)' : isCurrent ? ' (aktuell empfohlen)' : ''}`}
+              className={[
+                'flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border transition-colors text-center min-w-[72px] max-w-[88px]',
+                s.done
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : isCurrent
+                    ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
+                    : 'bg-slate-50 border-slate-200 text-slate-400',
+              ].join(' ')}
+            >
+              <span className="text-base leading-none">{s.done ? '✓' : s.icon}</span>
+              <span className="text-[10px] font-medium leading-tight line-clamp-2">{s.title}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,6 +121,9 @@ export default async function DashboardPage() {
     { count: governanceCount },
     { count: roadmapCount },
     { count: assessmentCount },
+    { count: usecaseCount },
+    { count: canvasCount },
+    { count: complianceCount },
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, company, tier').eq('id', user!.id).single(),
     supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', user!.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
@@ -31,6 +131,9 @@ export default async function DashboardPage() {
     supabase.from('governance_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('roadmaps').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('assessment_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id).eq('completed', true),
+    supabase.from('use_cases').select('*', { count: 'exact', head: true }),
+    supabase.from('canvases').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('compliance_checks').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
   ])
   const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
 
@@ -39,27 +142,61 @@ export default async function DashboardPage() {
   const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0) + (assessmentCount ?? 0)
   const accessibleToolCount = MODULES.filter(mod => hasAccess(tier, mod.requiredTier)).length
 
+  const guidedSteps: PathStep[] = [
+    {
+      step: 1, icon: '◎', title: 'AI-Readiness Assessment', desc: 'Archetype & Reifegrad bestimmen',
+      href: '/assessment', done: (assessmentCount ?? 0) > 0,
+    },
+    {
+      step: 2, icon: '⊞', title: 'Use-Case Scoring', desc: 'Prioritäten setzen & Portfolio aufbauen',
+      href: '/usecase', done: (usecaseCount ?? 0) > 0,
+    },
+    {
+      step: 3, icon: '◧', title: 'AI Use-Case Canvas', desc: 'Top-Use-Case detailliert ausarbeiten',
+      href: '/canvas', done: (canvasCount ?? 0) > 0,
+    },
+    {
+      step: 4, icon: '⚖', title: 'Governance Check', desc: 'Use-Case freigeben oder verbessern',
+      href: '/governance', done: (governanceCount ?? 0) > 0,
+    },
+    {
+      step: 5, icon: '✓', title: 'Compliance Check', desc: 'EU AI Act & DSGVO prüfen',
+      href: '/compliance', done: (complianceCount ?? 0) > 0,
+    },
+    {
+      step: 6, icon: '⬡', title: 'Architektur-Generator', desc: 'Technische AI-Architektur definieren',
+      href: '/architecture', done: (architectureCount ?? 0) > 0,
+    },
+    {
+      step: 7, icon: '□', title: 'Executive Report', desc: 'Ergebnisse als PDF für den Vorstand',
+      href: '/api/export/pdf?module=assessment', done: false, proOnly: true,
+    },
+  ]
+
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
           Guten Tag{fullName ? `, ${fullName.split(' ')[0]}` : ''} 👋
         </h1>
-        <p className="text-slate-500 mt-1">Welches Tool möchten Sie heute nutzen?</p>
+        <p className="text-slate-500 mt-1 text-sm">Ihr geführter Pfad durch den AI Navigator</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
           <div className="text-slate-400 text-lg mb-1">⬡</div>
           <div className="text-2xl font-semibold text-slate-900">{accessibleToolCount}</div>
           <div className="text-xs text-slate-500 mt-0.5">Verfügbare Tools</div>
         </div>
-        <Link href="/ergebnisse" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-5 block transition-all">
+        <Link href="/ergebnisse" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-4 sm:p-5 block transition-all">
           <div className="text-slate-400 text-lg mb-1">□</div>
           <div className="text-2xl font-semibold text-slate-900">{savedCount > 0 ? savedCount : '—'}</div>
           <div className="text-xs text-slate-500 mt-0.5">Gespeicherte Ergebnisse</div>
         </Link>
       </div>
+
+      {/* Guided path */}
+      <GuidedPath steps={guidedSteps} tier={tier} />
 
       {/* Latest Assessment result */}
       {latestAssessment && (
@@ -113,13 +250,13 @@ export default async function DashboardPage() {
       </div>
 
       {tier === 'free' && (
-        <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 flex items-center justify-between">
+        <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div>
             <div className="text-white font-semibold mb-1">Auf Professional upgraden</div>
             <div className="text-blue-200 text-sm">PDF-Export, Ergebnisse speichern, Versionierung und alle 7 Tools.</div>
           </div>
           <Link href="/upgrade"
-            className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0 ml-4">
+            className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">
             Ab €49/Monat →
           </Link>
         </div>
