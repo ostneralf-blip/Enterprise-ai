@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const SaveSchema = z.object({
-  title:       z.string().min(1).max(200),
+  title:       z.string().min(1).max(200).optional(),
   wizard_data: z.record(z.string(), z.string()),
   result:      z.record(z.string(), z.unknown()),
 })

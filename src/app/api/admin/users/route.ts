@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function GET() {
   const supabase = await createClient()
@@ -9,7 +9,9 @@ export async function GET() {
   const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
   if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { data, error } = await supabase
+  // Service-role client bypasses RLS so all profiles are visible
+  const adminClient = await createAdminClient()
+  const { data, error } = await adminClient
     .from('profiles')
     .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, created_at')
     .order('created_at', { ascending: false })

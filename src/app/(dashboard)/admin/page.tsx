@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { AdminPageClient } from './AdminPageClient'
 import type { ContentLibraryEntry, UserProfile } from '@/types'
 
@@ -18,13 +18,15 @@ export default async function AdminPage() {
 
   if (!profile?.is_admin) redirect('/dashboard')
 
+  // Service-role client bypasses RLS to load all user profiles
+  const adminClient = await createAdminClient()
   const [{ data: entries }, { data: users }] = await Promise.all([
-    supabase
+    adminClient
       .from('content_library')
       .select('*')
       .order('module', { ascending: true })
       .order('created_at', { ascending: false }),
-    supabase
+    adminClient
       .from('profiles')
       .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, created_at')
       .order('created_at', { ascending: false }),
