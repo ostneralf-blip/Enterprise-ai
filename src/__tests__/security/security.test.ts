@@ -158,6 +158,40 @@ describe('Security: XSS-Schutz in PDF-Templates', () => {
  * 🔶 Dependency-Scan: `npm audit` vor jedem Deployment ausführen
  */
 
+describe('Security: DSGVO-Kontolöschung (Art. 17)', () => {
+  it('DELETE /api/account/delete verwendet createClient (nicht Admin) für Auth-Check', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const filePath = path.join(process.cwd(), 'src/app/api/account/delete/route.ts')
+    const content = fs.readFileSync(filePath, 'utf-8')
+
+    // Muss User-Session prüfen, BEVOR Admin-Operationen ausgeführt werden
+    expect(content).toContain('createClient')
+    expect(content).toContain('supabase.auth.getUser()')
+    expect(content).toMatch(/status:\s*401/)
+
+    // Auth-Check muss VOR dem Admin-Client-Aufruf stehen (indexOf findet im Function-Body)
+    const authCheckIndex = content.indexOf('supabase.auth.getUser()')
+    const adminCallIndex = content.indexOf('createAdminClient()') // Aufruf, nicht Import
+    expect(authCheckIndex).toBeGreaterThan(-1)
+    expect(adminCallIndex).toBeGreaterThan(-1)
+    expect(authCheckIndex).toBeLessThan(adminCallIndex)
+  })
+
+  it('DELETE /api/account/delete löscht Profil (Cascade) UND Auth-User', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    const filePath = path.join(process.cwd(), 'src/app/api/account/delete/route.ts')
+    const content = fs.readFileSync(filePath, 'utf-8')
+
+    // Profil-Löschung (kaskadiert alle user-Daten via FK ON DELETE CASCADE)
+    expect(content).toContain("from('profiles')")
+    expect(content).toContain('.delete()')
+    // Auth-User-Löschung (braucht Admin-Rechte)
+    expect(content).toContain('auth.admin.deleteUser')
+  })
+})
+
 describe('Security: Proxy/Middleware schließt API-Routen von Auth-Guard aus', () => {
   it('proxy.ts leitet /api/* Requests NIEMALS zu /login um (kritisch für Webhooks)', async () => {
     const fs = await import('fs')
