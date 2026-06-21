@@ -49,16 +49,16 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
-        {[
-          { label: 'Verfügbare Tools', value: accessibleToolCount.toString(), icon: '⬡' },
-          { label: 'Gespeicherte Ergebnisse', value: savedCount > 0 ? savedCount.toString() : '—', icon: '□' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-5">
-            <div className="text-slate-400 text-lg mb-1">{s.icon}</div>
-            <div className="text-2xl font-semibold text-slate-900">{s.value}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
-          </div>
-        ))}
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <div className="text-slate-400 text-lg mb-1">⬡</div>
+          <div className="text-2xl font-semibold text-slate-900">{accessibleToolCount}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Verfügbare Tools</div>
+        </div>
+        <Link href="/ergebnisse" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-5 block transition-all">
+          <div className="text-slate-400 text-lg mb-1">□</div>
+          <div className="text-2xl font-semibold text-slate-900">{savedCount > 0 ? savedCount : '—'}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Gespeicherte Ergebnisse</div>
+        </Link>
       </div>
 
       {/* Latest Assessment result */}

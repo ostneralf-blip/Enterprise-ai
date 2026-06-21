@@ -22,10 +22,23 @@ export default async function ArchitecturePage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: latestAssessment }, { data: latestGovernance }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
-    supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('governance_sessions').select('use_case_name, result').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('user_preferences')
+      .select('primary_assessment_id, primary_governance_id')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ])
+
+  const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null } | null
+
+  const [{ data: latestAssessment }, { data: latestGovernance }] = await Promise.all([
+    prefData?.primary_assessment_id
+      ? supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('id', prefData.primary_assessment_id).maybeSingle()
+      : supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    prefData?.primary_governance_id
+      ? supabase.from('governance_sessions').select('use_case_name, result').eq('id', prefData.primary_governance_id).maybeSingle()
+      : supabase.from('governance_sessions').select('use_case_name, result').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ])
 
   return (
