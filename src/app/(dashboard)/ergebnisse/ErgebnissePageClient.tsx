@@ -133,7 +133,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {assessments.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Assessment abgeschlossen. <Link href="/assessment" className="text-blue-600 hover:underline">Jetzt starten →</Link></p>}
           {assessments.map(a => (
             <div key={a.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <button className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors" onClick={() => toggle(a.id)}>
+              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(a.id)}>
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
                   <span className="text-xs font-bold text-slate-900 shrink-0">{Number(a.total_score).toFixed(1)}/5.0</span>
@@ -144,7 +144,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
                   onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
                   onDelete={e => { e.stopPropagation(); deleteItem('assessment', a.id) }} />
-              </button>
+              </div>
               {expanded === a.id && (
                 <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 mb-3">
@@ -169,7 +169,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {architectures.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Architektur gespeichert. <Link href="/architecture" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
           {architectures.map(a => (
             <div key={a.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <button className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors" onClick={() => toggle(a.id)}>
+              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(a.id)}>
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className="text-sm font-medium text-slate-700 truncate">{a.title}</span>
                   <span className="text-xs text-slate-400 shrink-0">{fmt(a.updated_at)}</span>
@@ -179,7 +179,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
                   onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
                   onDelete={e => { e.stopPropagation(); deleteItem('architecture', a.id) }} />
-              </button>
+              </div>
               {expanded === a.id && (
                 <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
                   <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
@@ -199,7 +199,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             return (
               <div key={g.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <button className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors" onClick={() => toggle(g.id)}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(g.id)}>
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${v.color}`}>{v.label}</span>
                     <span className="text-xs text-slate-600 truncate">{g.use_case_name ?? '—'}</span>
@@ -210,7 +210,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     onConfirm={e => { e.stopPropagation(); setConfirmId(g.id) }}
                     onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
                     onDelete={e => { e.stopPropagation(); deleteItem('governance', g.id) }} />
-                </button>
+                </div>
                 {expanded === g.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
                     <p className="text-xs text-slate-600">Use Case: <strong>{g.use_case_name ?? '—'}</strong></p>
@@ -229,7 +229,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {roadmaps.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Roadmap gespeichert. <Link href="/roadmap" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
           {roadmaps.map(r => (
             <div key={r.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <button className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors" onClick={() => toggle(r.id)}>
+              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(r.id)}>
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className="text-sm font-medium text-slate-700 truncate">{r.title}</span>
                   <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[r.archetype] ?? r.archetype}</span>
@@ -240,7 +240,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   onConfirm={e => { e.stopPropagation(); setConfirmId(r.id) }}
                   onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
                   onDelete={e => { e.stopPropagation(); deleteItem('roadmap', r.id) }} />
-              </button>
+              </div>
               {expanded === r.id && (
                 <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
                   <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
