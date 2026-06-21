@@ -167,3 +167,154 @@ ohne erneute explizite Freigabe):**
   Gesetzestexte über eine API) gehört ebenfalls hierher — explizit als
   "möglich, aber noch nicht spezifiziert, welche Quelle/API" markieren,
   bis ein konkreter Bedarf vorliegt.
+
+### Feature-Lücken-Analyse (21.06.2026 — CDO/CIO-Perspektive, verifiziert gegen Repo)
+
+**WICHTIG — DB-Schema ist weiter als die UI:** Migration 001 legt bereits `result_versions`
+(Versionierung) UND `share_links` (Sharing, inkl. `share_public_read`-Policy für öffentlichen
+Lesezugriff) an. Das Datenfundament steht — es fehlen nur API-Routen und UI. Beim Bauen NICHT
+neue Tabellen anlegen, sondern die vorhandenen verdrahten.
+
+**A — Rechtlich kritisch (Blocker vor jedem echten Go-Live):**
+- DSGVO-Datenlöschung (Account + alle Daten, Art. 17): Settings-Seite hat "Konto"-Abschnitt,
+  aber KEINE Löschfunktion. Route `/api/account/delete` fehlt (404). Pflicht, nicht optional.
+- Impressum (/impressum), Datenschutzerklärung (/datenschutz), AGB (/agb): existieren als
+  Routen noch nicht — separater Legal-Arbeitsblock (siehe Punkt 1 der Brainstorming-Liste).
+
+**B — Geplant, Schema vorhanden, aber NICHT verdrahtet (hoher Produktwert):**
+- Versionierung: Tabelle `result_versions` existiert, aber keine Speicher-/Vergleichs-UI.
+  Zentrales Pro-Feature laut Tier-Tabelle → "Pro" preislich sonst schwer zu rechtfertigen.
+- Link-Sharing (read-only, Ablaufdatum): Tabelle `share_links` existiert, aber Route
+  `share/[token]/` und `/api/share` fehlen (404).
+- PDF-Export für alle 7 Module: bisher nur für Assessment (Sprint 1) bestätigt. Kern-Produktwert
+  ("Ergebnis dem Vorstand zeigen") funktioniert sonst nur für 2 von 7 Modulen.
+- Google OAuth: bisher nur E-Mail-Login. Conversion-Hebel für B2B-Self-Service, kein Blocker.
+
+**C — UX-Verbesserungen (wichtig, nicht blockierend):**
+- Onboarding/Leerer-Zustand-Führung: empfohlene Modul-Reihenfolge aus dem Konzeptpapier
+  (30-Tage-Aktionsplan) im Produkt sichtbar machen, nicht nur im PDF.
+- Dashboard als echtes "Mein Stand" (Fortschritt, Readiness-Score, nächster empfohlener
+  Schritt) statt reiner Modul-Kachel-Liste.
+- Quer-Modul-Hinweise sichtbar machen (z. B. "erst Assessment, dann Use-Case-Scoring" —
+  technische Verknüpfung Roadmap↔Assessment existiert bereits, ist aber für Nutzer unsichtbar).
+- Suche/Filter/Sortierung in Tabellen (Use-Case-Liste) — ab ~10 Einträgen nötig (Pro/Enterprise).
+- Reminder-Mechanik für "Quarterly AI-Health-Review" (Konzeptpapier-Best-Practice) — macht aus
+  Einmal-Tool ein wiederkehrendes Arbeitsinstrument.
+
+**D — Strategische Abgrenzung (bewusst NICHT bauen, nur kommunizieren):**
+- AI Navigator ist Planungs-/Strategietool, KEIN Runtime-/Monitoring-Tool. Abgrenzung zu
+  OneTrust/Credo AI/TrueFoundry (die docken an laufende AI-Systeme an). Bewusst kommunizieren,
+  nicht nachbauen.
+- Team-/Mandantenfunktion (mehrere User pro Unternehmen) = identisch mit Admin-Panel-"Stufe B".
+  Wird bei echten Enterprise-Verkaufsgesprächen schneller zum Showstopper als gedacht — im Blick
+  behalten, aber weiter zurückgestellt bis konkrete Kundenanfrage.
+
+**USP-Kandidat (eigener Sprint, erst nach A+B+Tests):**
+- AI-Komponenten-Katalog: kuratierte Modell-/Komponenten-Tabelle (Hosting EU/On-Prem,
+  DSGVO-Einordnung, EU-AI-Act-Relevanz, SAP-Kompatibilität), integriert in den Architektur-
+  Generator als Vorschlags-Engine. Nutzt vorhandenes Admin-Panel (`content_library`) als Basis.
+  ACHTUNG Content-Pflege-Problem, nicht nur Code: ohne klaren Aktualisierungsprozess veraltet
+  der Katalog und wird zum Vertrauensrisiko (Compliance-Lage von Modellen ändert sich laufend).
+
+### Deployment-Lektion: Vercel Framework Preset (21.06.2026)
+**Symptom:** Grüner Build, Root Directory korrekt (`./`), aber 404 auf JEDER Route
+inklusive Startseite — auch auf der deployment-spezifischen URL, nicht nur dem Alias.
+**Ursache:** In Vercel war unter Settings → Build & Deployment das **Framework Preset
+auf "Other" statt "Next.js"** gesetzt. Dadurch wurde die App nicht als Next.js erkannt,
+das gesamte Routing (App Router, proxy.ts, Server Components) lief nicht → 404 überall,
+obwohl der Build formal "grün" durchlief (er hat nur nichts Sinnvolles gebaut).
+**Fix:** Framework Preset auf "Next.js" stellen, dann Redeploy OHNE Build-Cache
+auslösen (••• → Redeploy → "Use existing Build Cache" abwählen). Preset greift erst
+beim nächsten Build.
+**Verifikation im Build-Log:** Next.js-typische Zeilen müssen erscheinen
+(`▲ Next.js 16`, `Collecting page data`, `Generating static pages`). Fehlen sie,
+wurde nicht als Next.js gebaut.
+**Lehre:** Bei neuem Vercel-Projekt-Setup IMMER zuerst Framework Preset prüfen,
+besonders bei sehr neuen Next.js-Versionen, wo die Auto-Erkennung versagen kann.
+
+### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026, verifiziert)
+
+**BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar (Architektur-Modul, vmtl. weitere):**
+- Tabelle `architectures` existiert mit allen Spalten (title, wizard_data, result) + RLS,
+  ABER `architecture/page.tsx` lädt keine gespeicherten Einträge — fragt nur Profil/Tier ab.
+- Vergleich: canvas/page.tsx macht es korrekt (`from('canvases').select('*').eq('user_id'...)`
+  → übergibt `initialCanvases`). Dieser Lade-Schritt fehlt im Architektur-Modul.
+- Folge: Ergebnisse werden gespeichert, aber nie zurückgeladen/gelistet ("nicht gelistet").
+- FIX: Lade-Logik analog Canvas in alle Module mit Speicherfunktion einbauen. Prüfen,
+  welche der 7 Module betroffen sind (Canvas funktioniert, Architektur nicht — Rest checken).
+
+**BUG 2 — UI öffnet im "Popup-Modus" statt Vollbild (Mobile/iOS):**
+- Dashboard-Layout nutzt `h-screen overflow-hidden` außen + `overflow-y-auto` nur auf <main>.
+  Auf iOS Safari verhält sich das wie ein Modal: Seite klebt oben, scrollt erst nach
+  "Zieh"-Geste korrekt, native Adressleisten-Mechanik greift nicht.
+- FIX-Richtung: Mobile-Scroll-Verhalten überarbeiten — statt fixed `h-screen`-Container mit
+  innen-scrollendem main eher natürliches Body-Scrolling auf Mobile zulassen (z. B.
+  `min-h-screen` / `dvh`-Einheiten statt `h-screen overflow-hidden`, sticky statt fixed).
+  Bei 375px/393px verifizieren.
+
+**FEATURE-WUNSCH 1 — "Andere Ergebnisse speichern" ermöglichen:**
+- Nutzer sollen auch weitere/alternative Ergebnisse speichern können (nicht nur eins
+  überschreiben). Schema unterstützt das bereits (mehrere Zeilen pro user_id möglich,
+  result_versions-Tabelle vorhanden) — UI/Logik muss "Neu speichern" vs. "Überschreiben"
+  anbieten und eine Liste der gespeicherten Ergebnisse je Modul zeigen.
+
+**FEATURE-WUNSCH 2 — Geführter Onboarding-Wizard durch die Tools (PRIORITÄT):**
+- User soll ZUERST das Archetyp-Assessment durchlaufen (AI Starter/Scaler/Transformer),
+  dann sinnvoll durch die weiteren Tools geführt werden — statt 7 gleichwertige Kacheln
+  ohne Reihenfolge. Empfohlene Abfolge existiert bereits im Konzeptpapier (30-Tage-
+  Aktionsplan) und ist technisch teils verdrahtet (Roadmap zieht Archetyp aus Assessment).
+  Im Produkt als sichtbarer "Geführter Pfad"/Wizard umsetzen. Deckt sich mit Feature-Lücke
+  C "Onboarding/Leerer-Zustand-Führung".
+
+### Priorisierte Gesamt-Roadmap (21.06.2026, Brainstorming-Ergebnis)
+Ordnungsprinzip: Was blockiert Go-Live mit zahlenden Kunden zuerst, dann Wert/USP,
+dann strategisch-wichtig-aber-nicht-dringend. Aufwände sind grobe Orientierung —
+tatsächliche Komplexität zeigt sich beim Bauen (v. a. Onboarding-Wizard und Abo-Kanten
+können größer werden als sie wirken).
+
+**PRIO 1 — Blocker (vor jedem echten Go-Live, rechtlich oder funktional zwingend):**
+1. Legal-Seiten: Impressum, Datenschutz, AGB. Pflicht + tote Links auf Landing Page
+   (/datenschutz, /impressum werden schon verlinkt, existieren nicht). Texte extern
+   (eRecht24/Anwalt), nicht selbst formulieren. [Mittel]
+2. DSGVO-Datenlöschung (Account + alle Daten, Art. 17). Settings-Seite hat Platz, keine
+   Funktion. Route /api/account/delete fehlt. [Klein–Mittel]
+3. Bug: gespeicherte Ergebnisse nicht anzeigbar. Tabellen + RLS existieren, Ladelogik
+   fehlt (Architektur betroffen, Canvas korrekt als Vorlage). Alle 7 Module prüfen. [Klein]
+4. Bug: Mobile Popup/Scroll-Verhalten (h-screen overflow-hidden → iOS-Modal-Effekt).
+   Erster Eindruck mobil ist kaputt. [Klein–Mittel]
+5. CI-Pipeline + Branch Protection auf main. Auto-Deploy = jeder Push geht ungeprüft live.
+   Sicherheitsnetz fehlt. 1 Workflow-Datei + 1 GitHub-Einstellung. [Klein]
+
+**PRIO 2 — Hoher Produktwert (macht das Produkt verkaufbar):**
+6. Geführter Onboarding-Wizard: Archetyp-Test ZUERST, dann geführter Pfad durch die Tools
+   statt 7 gleichwertige Kacheln. Teils vorbereitet (Roadmap↔Assessment). [Mittel]
+7. Versionierung + Sharing verdrahten. Schema (result_versions, share_links) existiert,
+   nur UI/API fehlt. Zentrale Pro-Features. [Mittel]
+8. PDF-Export für alle 7 Module (aktuell nur Assessment). Kernwert "Ergebnis zeigen". [Mittel]
+9. "Andere Ergebnisse speichern" (mehrere statt überschreiben). Schema unterstützt es. [Klein–Mittel]
+10. Tests für die 5 neuen Module (Governance/Roadmap/Canvas/Compliance/Architecture). [Mittel]
+
+**PRIO 3 — Betriebsgrundlagen & Vertrauen (vor/bei echtem Kundenwachstum):**
+11. Error-Tracking + Uptime-Monitoring (z. B. Sentry). [Klein]
+12. Abo-Lebenszyklus-Kanten: Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling
+    (was passiert mit Daten über Free-Limit?), Jahreslizenz-Ablauf. [Mittel]
+13. App-Versionierung: Changelog, Git-Tags, semantische Version. Macht Rollback machbar. [Klein]
+14. Vertrauenssignale: Trust/Security-Seite, EU-Hosting (Frankfurt) kommunizieren, Über-uns. [Klein–Mittel]
+15. Inhaltliche Aktualität sichern (EU-AI-Act-Fristen etc.) — Prozess, nicht Code. Verknüpft
+    mit Admin-Panel/Content-Pflege. [Laufend]
+
+**PRIO 4 — USP & Differenzierung (eigener Sprint, nach Fundament):**
+16. AI-Komponenten-Katalog: stärkste USP-Idee. Braucht stabiles getestetes Fundament +
+    durchdachten Pflegeprozess. Nutzt Admin-Panel (content_library) als Basis. [Groß]
+17. UX-Feinschliff: Dashboard-Fortschritt, Suche/Filter (Use-Case-Liste ab ~10 Einträgen),
+    Quer-Modul-Hinweise sichtbar machen. [Mittel]
+18. Quarterly-Review-Reminder. Macht aus Einmal- ein wiederkehrendes Tool. [Klein–Mittel]
+
+**BEWUSST ZURÜCKGESTELLT (nicht bauen ohne neuen Auslöser):**
+- Team-/Mandantenfunktion (Admin-Panel Stufe B) — bis konkrete Enterprise-Kundenanfrage
+- Runtime-/Monitoring-Features — bewusste Abgrenzung, AI Navigator bleibt Planungstool
+- Google OAuth, Dark Mode, Mehrsprachigkeit EN — Conversion-/Komfort-Hebel, kein Blocker
+
+**Empfohlene Umsetzungsreihenfolge:** Prio 1 komplett (viel davon "klein"), dann in Prio 2
+mit #6 Onboarding-Wizard starten (größter spürbarer Wertsprung). Komponenten-Katalog (#16)
+bewusst zuletzt — auf stabilem, getestetem Fundament.
