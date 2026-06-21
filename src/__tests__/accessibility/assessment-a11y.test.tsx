@@ -49,17 +49,17 @@ describe('Accessibility: AssessmentWizard', () => {
     })
   })
 
-  it('Auswahl einer Antwort aktualisiert aria-pressed korrekt', () => {
+  it('Auswahl einer Antwort setzt aria-pressed="true" und aktiviert Weiter-Button', () => {
     render(<AssessmentWizard tier="free" />)
     fireEvent.click(screen.getByRole('button', { name: /assessment starten/i }))
 
     const options = screen.getAllByRole('button').filter(b => b.hasAttribute('aria-pressed'))
-    fireEvent.click(options[2]) // Score 3 wählen
+    expect(options[2]).toHaveAttribute('aria-pressed', 'false')
 
-    // Nach Klick navigiert der Wizard zur nächsten Frage (neue Optionen gerendert)
-    // Prüfe, dass die neue Fragen-Gruppe wieder korrekt ausgezeichnet ist
-    const newOptions = screen.getAllByRole('button').filter(b => b.hasAttribute('aria-pressed'))
-    expect(newOptions.length).toBe(5)
+    fireEvent.click(options[2]) // Score 3 wählen — bleibt auf gleicher Frage
+
+    expect(options[2]).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /weiter/i })).not.toBeDisabled()
   })
 
   it('"Zurück"-Button navigiert beim ersten Schritt zur Intro zurück (kein Dead-End für Screenreader)', () => {

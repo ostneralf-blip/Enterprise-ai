@@ -32,15 +32,18 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   const progress = Math.round((currentIdx / totalQ) * 100)
   const currentDim = ASSESSMENT_DIMENSIONS.find(d => d.questions.some(q => q.id === currentQ?.id))
 
-  const handleAnswer = useCallback((score: number) => {
-    const newAnswers = { ...answers, [currentQ.id]: score }
-    setAnswers(newAnswers)
+  const handleSelect = useCallback((score: number) => {
+    setAnswers(prev => ({ ...prev, [currentQ.id]: score }))
+  }, [currentQ])
+
+  const handleNext = useCallback(() => {
+    const score = answers[currentQ.id]
+    if (score === undefined) return
 
     if (currentIdx < totalQ - 1) {
       setCurrentIdx(i => i + 1)
     } else {
-      // Finished — compute results
-      const totalScore = calcTotalScore(newAnswers) ?? 0
+      const totalScore = calcTotalScore(answers) ?? 0
       track('tool_completed', { module: 'assessment', score: totalScore, questions: totalQ })
       setState('results')
     }
@@ -135,7 +138,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
           {[1, 2, 3, 4, 5].map(score => (
             <button
               key={score}
-              onClick={() => handleAnswer(score)}
+              onClick={() => handleSelect(score)}
               aria-pressed={selectedScore === score}
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 selectedScore === score
@@ -163,18 +166,21 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => currentIdx === 0 ? setState('intro') : setCurrentIdx(i => i - 1)}
-          className="text-sm text-slate-500 hover:text-slate-700 transition-colors px-3 py-3 min-h-[44px] flex items-center"
+          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label={currentIdx === 0 ? 'Zurück zur Übersicht' : 'Vorherige Frage'}
         >
           ← Zurück
         </button>
-        <span className="text-xs text-slate-400 text-center">
-          Klicken Sie eine Option, um fortzufahren
-        </span>
-        <div className="w-20" />
+        <button
+          onClick={handleNext}
+          disabled={!selectedScore}
+          className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          {currentIdx === totalQ - 1 ? 'Auswertung →' : 'Weiter →'}
+        </button>
       </div>
     </div>
   )

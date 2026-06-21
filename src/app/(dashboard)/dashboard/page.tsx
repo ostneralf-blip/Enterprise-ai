@@ -7,17 +7,34 @@ import type { Tier } from '@/types'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
+const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
+  starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  scaler:      { label: 'AI Scaler',      color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('full_name, company, tier')
-    .eq('id', user!.id)
-    .single() as { data: { full_name: string | null; company: string | null; tier: string } | null; error: unknown }
+
+  const [
+    profileResult,
+    { data: latestAssessment },
+    { count: architectureCount },
+    { count: governanceCount },
+    { count: roadmapCount },
+  ] = await Promise.all([
+    supabase.from('profiles').select('full_name, company, tier').eq('id', user!.id).single(),
+    supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', user!.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('architectures').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('governance_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('roadmaps').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+  ])
+  const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
 
   const tier = (profileData?.tier ?? 'free') as Tier
   const fullName = profileData?.full_name as string | null
+  const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0)
 
   return (
     <div>
@@ -31,7 +48,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8">
         {[
           { label: 'Verfügbare Tools', value: MODULES.length.toString(), icon: '⬡' },
-          { label: 'Gespeicherte Ergebnisse', value: '—', icon: '□' },
+          { label: 'Gespeicherte Ergebnisse', value: savedCount > 0 ? savedCount.toString() : '—', icon: '□' },
         ].map(s => (
           <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-5">
             <div className="text-slate-400 text-lg mb-1">{s.icon}</div>
@@ -40,6 +57,29 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Latest Assessment result */}
+      {latestAssessment && (
+        <div className="mb-8">
+          <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Letztes Assessment</h2>
+          <Link href="/assessment" className="block bg-white border border-slate-200 hover:border-blue-300 rounded-xl p-4 sm:p-5 transition-all hover:shadow-sm">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_LABELS[latestAssessment.archetype as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+                    {ARCHETYPE_LABELS[latestAssessment.archetype as string]?.label ?? latestAssessment.archetype}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {new Date(latestAssessment.created_at as string).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600">AI-Readiness Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0</p>
+              </div>
+              <span className="text-xs font-medium text-blue-600 whitespace-nowrap">Erneut starten →</span>
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="mb-4">
         <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Alle Tools</h2>
