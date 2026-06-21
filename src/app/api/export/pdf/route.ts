@@ -17,7 +17,7 @@ const querySchema = z.object({
   entityId: z.string().uuid().optional(),
 })
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 export async function GET(req: Request) {
   try {
@@ -199,7 +199,8 @@ export async function GET(req: Request) {
       },
     })
   } catch (err) {
-    console.error('PDF export error:', err)
-    return NextResponse.json({ error: 'PDF-Generierung fehlgeschlagen' }, { status: 500 })
+    const detail = err instanceof Error ? err.message : String(err)
+    console.error('PDF export error:', detail, err)
+    return NextResponse.json({ error: 'PDF-Generierung fehlgeschlagen', detail }, { status: 500 })
   }
 }

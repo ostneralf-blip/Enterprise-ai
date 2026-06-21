@@ -2,17 +2,18 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
-import type { Archetype } from '@/types'
+import type { Archetype, Tier } from '@/types'
 
 interface Props {
   initialArchetype: Archetype | null
   fromAssessment: boolean
+  tier: Tier
 }
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
 const PHASES = ['phase1', 'phase2', 'phase3'] as const
 
-export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
+export function RoadmapPageClient({ initialArchetype, fromAssessment, tier }: Props) {
   const [archetype, setArchetype] = useState<Archetype>(initialArchetype ?? 'starter')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -75,7 +76,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
       </div>
 
       {/* Save button */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex flex-wrap items-center gap-3 mb-5">
         {!saved && (
           <button
             onClick={handleSave}
@@ -88,6 +89,13 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment }: Props) {
         {saved && (
           <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
         )}
+        <a
+          href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
+          {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+        >
+          PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+        </a>
       </div>
 
       {/* 3-Phasen-Roadmap */}

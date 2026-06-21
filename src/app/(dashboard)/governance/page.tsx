@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { GovernancePageClient } from './GovernancePageClient'
 import type { Metadata } from 'next'
+import type { Tier } from '@/types'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Governance-Check' }
@@ -11,6 +12,14 @@ export default async function GovernancePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('tier')
+    .eq('id', user.id)
+    .single() as { data: { tier: string } | null }
+
+  const tier = (profileData?.tier ?? 'free') as Tier
+
   return (
     <div>
       <div className="mb-6">
@@ -19,7 +28,7 @@ export default async function GovernancePage() {
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>
       </div>
-      <GovernancePageClient />
+      <GovernancePageClient tier={tier} />
     </div>
   )
 }

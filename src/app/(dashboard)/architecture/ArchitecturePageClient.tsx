@@ -305,6 +305,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           {saved && (
             <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
           )}
+          <a
+            href="/api/export/pdf?module=architecture"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            PDF exportieren
+          </a>
           {architectures.length > 0 && (
             <button
               onClick={() => setView('list')}

@@ -418,6 +418,11 @@ export const ASSESSMENT_DIMENSIONS: AssessmentDimension[] = [
 export const ALL_QUESTIONS = ASSESSMENT_DIMENSIONS.flatMap(d => d.questions)
 export const TOTAL_QUESTIONS = ALL_QUESTIONS.length // 42
 
+// Free-Tier: 3 Fragen aus den 4 Hauptdimensionen + 2 aus Strategie/Kultur = 16
+export const FREE_QUESTIONS = ASSESSMENT_DIMENSIONS.flatMap(d =>
+  d.questions.slice(0, d.id === 'strategy' || d.id === 'culture' ? 2 : 3)
+)
+
 export function calcDimScore(answers: Record<string, number>, dimId: string): number | null {
   const dim = ASSESSMENT_DIMENSIONS.find(d => d.id === dimId)
   if (!dim) return null

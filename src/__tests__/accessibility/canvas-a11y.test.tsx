@@ -30,23 +30,23 @@ const MOCK_CANVAS: Canvas = {
 describe('Accessibility: AI Use-Case Canvas', () => {
 
   it('Leere Listenansicht hat keine WCAG-Verstöße (axe-core)', async () => {
-    const { container } = render(<CanvasPageClient initialCanvases={[]} />)
+    const { container } = render(<CanvasPageClient tier="free" initialCanvases={[]} />)
     expect(await axe(container)).toHaveNoViolations()
   })
 
   it('Listenansicht mit Canvases hat keine WCAG-Verstöße (axe-core)', async () => {
-    const { container } = render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    const { container } = render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     expect(await axe(container)).toHaveNoViolations()
   })
 
   it('Canvas-Karten haben "Öffnen"-Button und arialabellierten Löschen-Button', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     expect(screen.getByRole('button', { name: 'Öffnen' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /löschen/i })).toBeInTheDocument()
   })
 
   it('Editoransicht öffnet sich und zeigt 8 Textareas', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     const textareas = screen.getAllByRole('textbox')
     // 8 canvas fields + 1 title input = 9 textboxes
@@ -54,13 +54,13 @@ describe('Accessibility: AI Use-Case Canvas', () => {
   })
 
   it('Editoransicht hat keine WCAG-Verstöße (axe-core)', async () => {
-    const { container } = render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    const { container } = render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     expect(await axe(container)).toHaveNoViolations()
   })
 
   it('Archetyp-Buttons haben aria-pressed', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     const archetypeGroup = screen.getByRole('group', { name: /unternehmensarchetyp/i })
     const buttons = archetypeGroup.querySelectorAll('button')
@@ -68,14 +68,14 @@ describe('Accessibility: AI Use-Case Canvas', () => {
   })
 
   it('aktiver Archetyp hat aria-pressed="true"', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     expect(screen.getByRole('button', { name: 'AI Scaler' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'AI Starter' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('Canvas-Felder haben label-Elemente, die die Textareas beschriften', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     expect(screen.getByRole('textbox', { name: /Problem/i })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /KPIs/i })).toBeInTheDocument()
@@ -83,7 +83,7 @@ describe('Accessibility: AI Use-Case Canvas', () => {
   })
 
   it('Zurück-Button führt zur Listenansicht', () => {
-    render(<CanvasPageClient initialCanvases={[MOCK_CANVAS]} />)
+    render(<CanvasPageClient tier="free" initialCanvases={[MOCK_CANVAS]} />)
     fireEvent.click(screen.getByRole('button', { name: 'Öffnen' }))
     fireEvent.click(screen.getByRole('button', { name: /zurück/i }))
     expect(screen.getByRole('button', { name: 'Öffnen' })).toBeInTheDocument()

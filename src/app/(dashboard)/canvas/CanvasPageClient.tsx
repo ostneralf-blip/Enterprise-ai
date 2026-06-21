@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
-import type { Canvas, Archetype } from '@/types'
+import type { Canvas, Archetype, Tier } from '@/types'
 
 const ARCHETYPE_BTNS: { id: Archetype; label: string }[] = [
   { id: 'starter', label: 'AI Starter' },
@@ -12,9 +12,10 @@ const ARCHETYPE_BTNS: { id: Archetype; label: string }[] = [
 
 interface Props {
   initialCanvases: Canvas[]
+  tier: Tier
 }
 
-export function CanvasPageClient({ initialCanvases }: Props) {
+export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [canvases, setCanvases] = useState<Canvas[]>(initialCanvases)
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
@@ -74,6 +75,13 @@ export function CanvasPageClient({ initialCanvases }: Props) {
           >
             {saved ? '✓ Gespeichert' : saving ? 'Speichern…' : 'Speichern'}
           </button>
+          <a
+            href={tier !== 'free' ? '/api/export/pdf?module=canvas' : '/upgrade'}
+            {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+          >
+            PDF{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+          </a>
         </div>
 
         <div className="flex gap-2 mb-5" role="group" aria-label="Unternehmensarchetyp">

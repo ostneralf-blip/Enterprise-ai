@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { ASSESSMENT_DIMENSIONS, ALL_QUESTIONS, calcDimScore, calcTotalScore, deriveArchetype } from '@/config/assessment-data'
+import { ASSESSMENT_DIMENSIONS, ALL_QUESTIONS, FREE_QUESTIONS, calcDimScore, calcTotalScore, deriveArchetype } from '@/config/assessment-data'
 import { AssessmentResults } from './AssessmentResults'
 import { track } from '@/lib/posthog/client'
 import type { Tier } from '@/types'
@@ -27,8 +27,9 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const totalQ = ALL_QUESTIONS.length
-  const currentQ = ALL_QUESTIONS[currentIdx]
+  const questions = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
+  const totalQ = questions.length
+  const currentQ = questions[currentIdx]
   const progress = Math.round((currentIdx / totalQ) * 100)
   const currentDim = ASSESSMENT_DIMENSIONS.find(d => d.questions.some(q => q.id === currentQ?.id))
 
@@ -78,7 +79,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   }
 
   if (state === 'intro') {
-    return <AssessmentIntro onStart={() => { track('tool_started', { module: 'assessment', tier }); setState('questions') }} />
+    return <AssessmentIntro tier={tier} onStart={() => { track('tool_started', { module: 'assessment', tier }); setState('questions') }} />
   }
 
   if (state === 'results') {
@@ -186,15 +187,24 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   )
 }
 
-function AssessmentIntro({ onStart }: { onStart: () => void }) {
+function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void }) {
+  const isPro = tier !== 'free'
+  const questionCount = isPro ? 42 : 16
+  const duration = isPro ? 'ca. 25 Minuten' : 'ca. 10 Minuten'
+
   return (
     <div className="max-w-xl mx-auto">
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
         <div className="text-3xl mb-4">◎</div>
         <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">AI-Readiness Assessment</h1>
         <p className="text-slate-500 text-sm leading-relaxed mb-6">
-          Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit
-          42 Fragen auf einer Skala von 1–5 (L1 Initial bis L5 Optimizing). Dauer: ca. 25 Minuten.
+          Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit{' '}
+          <strong className="text-slate-700">{questionCount} Fragen</strong> auf einer Skala von 1–5 (L1 Initial bis L5 Optimizing). Dauer: {duration}.
+          {!isPro && (
+            <span className="block mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              Kurzversion (16 Fragen). Mit <a href="/upgrade" className="underline font-medium">Pro</a> erhalten Sie das vollständige 42-Fragen-Assessment mit vertieftem Reifegradmodell.
+            </span>
+          )}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">

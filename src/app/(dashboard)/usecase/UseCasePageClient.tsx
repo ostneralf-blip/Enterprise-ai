@@ -78,6 +78,13 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier }: Prop
             className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap">
             ⚙️ Gewichte
           </button>
+          <a
+            href={tier !== 'free' ? '/api/export/pdf?module=usecase' : '/upgrade'}
+            {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+          >
+            PDF{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+          </a>
           <button onClick={handleAddClick}
             className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
             + Use Case

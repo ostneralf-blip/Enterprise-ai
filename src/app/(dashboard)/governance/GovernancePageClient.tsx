@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import type { Tier } from '@/types'
 import {
   GOVERNANCE_GATES,
   calculateVerdict,
@@ -49,7 +50,7 @@ const WEIGHT_DOT: Record<string, string> = {
   green: 'bg-emerald-500',
 }
 
-export function GovernancePageClient() {
+export function GovernancePageClient({ tier }: { tier: Tier }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [showResult, setShowResult] = useState(false)
@@ -177,6 +178,13 @@ export function GovernancePageClient() {
           {saved && (
             <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
           )}
+          <a
+            href={tier !== 'free' ? '/api/export/pdf?module=governance' : '/upgrade'}
+            {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+          >
+            PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+          </a>
         </div>
       </div>
     )

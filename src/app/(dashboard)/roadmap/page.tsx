@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { RoadmapPageClient } from './RoadmapPageClient'
 import type { Metadata } from 'next'
-import type { Archetype } from '@/types'
+import type { Archetype, Tier } from '@/types'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Roadmap-Generator' }
@@ -12,16 +12,24 @@ export default async function RoadmapPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: latestResult } = await supabase
-    .from('assessment_sessions')
-    .select('archetype')
-    .eq('user_id', user.id)
-    .eq('completed', true)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle() as { data: { archetype: string | null } | null }
+  const [{ data: latestResult }, { data: profileData }] = await Promise.all([
+    supabase
+      .from('assessment_sessions')
+      .select('archetype')
+      .eq('user_id', user.id)
+      .eq('completed', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle() as unknown as Promise<{ data: { archetype: string | null } | null }>,
+    supabase
+      .from('profiles')
+      .select('tier')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { tier: string } | null }>,
+  ])
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
+  const tier = (profileData?.tier ?? 'free') as Tier
 
   return (
     <div>
@@ -34,6 +42,7 @@ export default async function RoadmapPage() {
       <RoadmapPageClient
         initialArchetype={archetype}
         fromAssessment={!!latestResult?.archetype}
+        tier={tier}
       />
     </div>
   )

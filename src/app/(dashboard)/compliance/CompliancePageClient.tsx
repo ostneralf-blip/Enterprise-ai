@@ -50,6 +50,16 @@ export function CompliancePageClient() {
 
   return (
     <div>
+      <div className="flex items-center justify-end mb-4">
+        <a
+          href="/api/export/pdf?module=compliance"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          PDF exportieren
+        </a>
+      </div>
       <div role="tablist" aria-label="Compliance-Bereiche" className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(t => (
           <button
