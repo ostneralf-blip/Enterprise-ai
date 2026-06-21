@@ -87,6 +87,7 @@ describe('Accessibility: Settings', () => {
   it('Sections haben aria-labelledby für Screenreader-Navigation', () => {
     render(<SettingsPageClient profile={FREE_PROFILE} email="max@example.de" />)
     expect(screen.getByRole('region', { name: /profil/i })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: /konto/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /^konto$/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /konto löschen/i })).toBeInTheDocument()
   })
 })

@@ -22,7 +22,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <MobileNavProvider>
-      <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt (dynamische Viewport-Höhe) */}
+      <div className="flex h-[100dvh] overflow-hidden bg-slate-50">
         <BfcacheGuard />
         <Sidebar profile={profile} />
         <div className="flex flex-col flex-1 overflow-hidden min-w-0">

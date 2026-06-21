@@ -39,7 +39,25 @@ export function SettingsPageClient({ profile, email }: Props) {
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
 
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const hasBilling = profile.tier !== 'free' && !!profile.stripe_customer_id
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm !== 'LÖSCHEN') return
+    setDeleting(true)
+    setDeleteError(null)
+    const res = await fetch('/api/account/delete', { method: 'DELETE' })
+    if (!res.ok) {
+      const json = await res.json()
+      setDeleteError(json.error ?? 'Fehler beim Löschen.')
+      setDeleting(false)
+      return
+    }
+    window.location.href = '/login?deleted=1'
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,6 +210,39 @@ export function SettingsPageClient({ profile, email }: Props) {
           )}
         </section>
       )}
+      {/* Gefahrenzone */}
+      <section aria-labelledby="danger-heading" className="bg-white border border-red-200 rounded-2xl p-4 sm:p-6">
+        <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-red-600 mb-2">Konto löschen</h2>
+        <p className="text-sm text-slate-500 mb-4">
+          Löscht dein Konto und alle damit verbundenen Daten unwiderruflich (Art. 17 DSGVO).
+          Diese Aktion kann nicht rückgängig gemacht werden.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="delete-confirm" className={labelClass}>
+              Gib <strong>LÖSCHEN</strong> ein, um zu bestätigen
+            </label>
+            <input
+              id="delete-confirm"
+              type="text"
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              placeholder="LÖSCHEN"
+              className={cn(inputClass, 'border-red-200 focus:ring-red-500 focus:border-red-400')}
+              disabled={deleting}
+            />
+          </div>
+          {deleteError && <p role="alert" className="text-sm text-red-600">{deleteError}</p>}
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deleteConfirm !== 'LÖSCHEN' || deleting}
+            className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-red-600 text-white hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            {deleting ? 'Wird gelöscht…' : 'Konto unwiderruflich löschen'}
+          </button>
+        </div>
+      </section>
+
     </div>
   )
 }
