@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const UpdateSchema = z.object({
@@ -10,6 +10,8 @@ const UpdateSchema = z.object({
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+
+  // Auth check via session client (RLS applied — reads own profile only)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -23,7 +25,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
 
-  const { data, error } = await supabase
+  // Service-role client bypasses RLS for cross-user update
+  const adminClient = await createAdminClient()
+  const { data, error } = await adminClient
     .from('profiles')
     .update(parsed.data)
     .eq('id', id)
