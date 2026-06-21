@@ -1,24 +1,17 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_build_placeholder', {
-  apiVersion: '2026-05-27.dahlia',
-  typescript: true,
-})
+export function getStripe(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY
+  if (!key) throw new Error('STRIPE_SECRET_KEY not configured')
+  return new Stripe(key, { apiVersion: '2026-05-27.dahlia', typescript: true })
+}
 
 export async function createCheckoutSession({
-  userId,
-  email,
-  priceId,
-  successUrl,
-  cancelUrl,
+  userId, email, priceId, successUrl, cancelUrl,
 }: {
-  userId: string
-  email: string
-  priceId: string
-  successUrl: string
-  cancelUrl: string
+  userId: string; email: string; priceId: string; successUrl: string; cancelUrl: string
 }) {
-  return stripe.checkout.sessions.create({
+  return getStripe().checkout.sessions.create({
     mode: 'subscription',
     customer_email: email,
     line_items: [{ price: priceId, quantity: 1 }],
@@ -33,7 +26,7 @@ export async function createCheckoutSession({
 }
 
 export async function createBillingPortalSession(customerId: string, returnUrl: string) {
-  return stripe.billingPortal.sessions.create({
+  return getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   })

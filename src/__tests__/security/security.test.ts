@@ -92,7 +92,7 @@ describe('Security: Stripe Webhook Signatur-Validierung', () => {
     const content = fs.readFileSync(filePath, 'utf-8')
 
     // Muss constructEvent verwenden (Signaturprüfung), nicht JSON.parse direkt auf dem Body
-    expect(content).toContain('stripe.webhooks.constructEvent')
+    expect(content).toContain('webhooks.constructEvent')
     expect(content).toContain('STRIPE_WEBHOOK_SECRET')
     // Muss bei Fehler einen 400 zurückgeben, BEVOR Business-Logik ausgeführt wird
     expect(content).toMatch(/catch[\s\S]{0,100}status:\s*400/)
