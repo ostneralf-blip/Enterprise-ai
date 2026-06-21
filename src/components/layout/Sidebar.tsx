@@ -59,6 +59,9 @@ export function Sidebar({ profile }: SidebarProps) {
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Konto</span>
         </div>
         <NavItem href="/settings" icon="⚙" label="Einstellungen" active={pathname === '/settings'} onNavigate={close} />
+        {profile?.is_admin && (
+          <NavItem href="/admin" icon="🛡" label="Admin" active={pathname.startsWith('/admin')} onNavigate={close} />
+        )}
       </nav>
 
       {/* Tier Badge */}

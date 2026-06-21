@@ -4,7 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: { default: 'AI Navigator', template: '%s | AI Navigator' },
   description: 'Enterprise AI. Strukturiert navigiert. Strategische Frameworks für AI-Readiness, Governance und Use-Case-Priorisierung.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL!),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'),
   openGraph: {
     type: 'website',
     locale: 'de_DE',
