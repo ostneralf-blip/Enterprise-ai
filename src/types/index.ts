@@ -10,7 +10,21 @@ export interface UserProfile {
   role: string | null
   tier: Tier
   stripe_customer_id: string | null
+  is_admin: boolean
   created_at: string
+}
+
+// ─── CONTENT LIBRARY ─────────────────────────────────────────────────────────
+export interface ContentLibraryEntry {
+  id: string
+  module: string
+  category: string
+  title: string
+  content: string
+  source: string | null
+  tags: string[]
+  created_at: string
+  updated_at: string
 }
 
 // ─── ARCHETYPES ──────────────────────────────────────────────────────────────
