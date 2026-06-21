@@ -3,8 +3,8 @@ import { WIZARD_STEPS, generateArchitecture, selectPattern, type WizardAnswers }
 describe('Architektur-Daten: Integrität', () => {
 
   describe('Wizard-Schritte', () => {
-    it('genau 5 Wizard-Schritte sind definiert', () => {
-      expect(WIZARD_STEPS).toHaveLength(5)
+    it('genau 8 Wizard-Schritte sind definiert (5 Basis + 3 Technologie-Spezifikation)', () => {
+      expect(WIZARD_STEPS).toHaveLength(8)
     })
 
     it('jeder Schritt hat id, step, question, context und options', () => {
@@ -17,10 +17,31 @@ describe('Architektur-Daten: Integrität', () => {
       })
     })
 
-    it('Schritte sind von 1–5 durchnummeriert', () => {
+    it('Schritte sind von 1–8 durchnummeriert', () => {
       WIZARD_STEPS.forEach((step, i) => {
         expect(step.step).toBe(i + 1)
       })
+    })
+
+    it('Schritt 6 fragt nach Data-Plattform', () => {
+      const step6 = WIZARD_STEPS[5]
+      expect(step6.id).toBe('data_platform')
+      expect(step6.options.some(o => o.id === 'sap_bw')).toBe(true)
+      expect(step6.options.some(o => o.id === 'snowflake')).toBe(true)
+    })
+
+    it('Schritt 7 fragt nach Model-Plattform', () => {
+      const step7 = WIZARD_STEPS[6]
+      expect(step7.id).toBe('model_platform')
+      expect(step7.options.some(o => o.id === 'sap_ai_core')).toBe(true)
+      expect(step7.options.some(o => o.id === 'cloud_ml')).toBe(true)
+    })
+
+    it('Schritt 8 fragt nach Monitoring-Ansatz', () => {
+      const step8 = WIZARD_STEPS[7]
+      expect(step8.id).toBe('monitoring')
+      expect(step8.options.some(o => o.id === 'enterprise')).toBe(true)
+      expect(step8.options.some(o => o.id === 'open_source_monitor')).toBe(true)
     })
 
     it('jede Option hat id, label und description', () => {
@@ -97,6 +118,28 @@ describe('Architektur-Daten: Integrität', () => {
         expect(layer.components.length).toBeGreaterThan(0)
         expect(layer.examples).toBeTruthy()
       })
+    })
+
+    it('data_platform=snowflake ersetzt Layer-0-Beispiele durch Snowflake-spezifische Tools', () => {
+      const result = generateArchitecture({ infra: 'cloud', skills: 'team', data: 'centralized', data_platform: 'snowflake' })
+      expect(result.layers[0].examples).toContain('Snowflake')
+      expect(result.layers[0].examples).toContain('dbt')
+    })
+
+    it('model_platform=sap_ai_core ersetzt Layer-1-Beispiele durch SAP-Tools', () => {
+      const result = generateArchitecture({ infra: 'cloud', skills: 'team', data_platform: 'sap_bw', model_platform: 'sap_ai_core' })
+      expect(result.layers[1].examples).toContain('SAP AI Core')
+    })
+
+    it('monitoring=open_source_monitor ersetzt Layer-2-Beispiele durch Open-Source-Tools', () => {
+      const result = generateArchitecture({ infra: 'hybrid', monitoring: 'open_source_monitor' })
+      expect(result.layers[2].examples).toContain('Evidently AI')
+    })
+
+    it('ohne Technologie-Schritte bleiben generische Beispiele erhalten', () => {
+      const result = generateArchitecture({ infra: 'cloud', skills: 'team', data: 'centralized' })
+      // Generische Beispiele sollten noch vorhanden sein
+      expect(result.layers[0].examples).toContain('z. B.')
     })
 
     it('Ergebnis hat color-Objekt mit bg, border, badge und title', () => {

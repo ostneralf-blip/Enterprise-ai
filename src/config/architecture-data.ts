@@ -3,6 +3,9 @@ export type DataOption = 'centralized' | 'distributed' | 'silos' | 'to_build'
 export type SkillsOption = 'team' | 'individuals' | 'business' | 'external'
 export type UseCaseOption = 'predictive' | 'generative' | 'vision' | 'automation'
 export type ComplianceOption = 'strict' | 'moderate' | 'low' | 'undefined'
+export type DataPlatformOption = 'sap_bw' | 'snowflake' | 'azure_fabric' | 'open_source'
+export type ModelPlatformOption = 'sap_ai_core' | 'cloud_ml' | 'open_mlops' | 'no_code'
+export type MonitoringOption = 'enterprise' | 'cloud_native_monitor' | 'open_source_monitor' | 'basic'
 export type PatternId = 'cloud_native' | 'managed' | 'hybrid' | 'onprem' | 'data_first'
 
 export interface WizardAnswers {
@@ -11,6 +14,9 @@ export interface WizardAnswers {
   skills?: SkillsOption
   usecase?: UseCaseOption
   compliance?: ComplianceOption
+  data_platform?: DataPlatformOption
+  model_platform?: ModelPlatformOption
+  monitoring?: MonitoringOption
 }
 
 export interface WizardOption {
@@ -86,6 +92,42 @@ export const WIZARD_STEPS: WizardStep[] = [
       { id: 'moderate', label: 'Moderate Anforderungen', description: 'DSGVO-konform, interne Richtlinien, ISO 27001 — Cloud mit EU-Rechenzentrum akzeptiert' },
       { id: 'low', label: 'Geringe Anforderungen', description: 'Rein interner Einsatz, keine personenbezogenen Daten, kein Kundenkontakt' },
       { id: 'undefined', label: 'Noch nicht definiert', description: 'Compliance-Anforderungen müssen noch geklärt werden' },
+    ],
+  },
+  {
+    id: 'data_platform',
+    step: 6,
+    question: 'Welche Datenplattform nutzen oder planen Sie?',
+    context: 'Die Wahl der Data-Plattform bestimmt konkrete Tooling-Empfehlungen für Ihre Architektur.',
+    options: [
+      { id: 'sap_bw', label: 'SAP Datasphere / SAP BW', description: 'SAP-zentrierte Umgebung, HANA als Fundament, enge S/4HANA- oder ERP-Integration geplant' },
+      { id: 'snowflake', label: 'Snowflake oder Databricks', description: 'Cloud-native Analytics-Plattform, SQL-first (Snowflake) oder Lakehouse-Ansatz (Databricks/Delta Lake)' },
+      { id: 'azure_fabric', label: 'Microsoft Fabric / Azure Synapse', description: 'Microsoft-Stack im Einsatz, Power BI-Integration wichtig, Azure als primäre Cloud' },
+      { id: 'open_source', label: 'Open-Source (Spark, dbt, Delta Lake)', description: 'Maximale Kontrolle und Flexibilität, eigenes Engineering-Team vorhanden, kein Vendor-Lock-in' },
+    ],
+  },
+  {
+    id: 'model_platform',
+    step: 7,
+    question: 'Wie sollen KI-Modelle entwickelt und betrieben werden?',
+    context: 'Die MLOps-Plattform bestimmt, wie effizient Modelle entwickelt, versioniert und in Produktion gebracht werden.',
+    options: [
+      { id: 'sap_ai_core', label: 'SAP AI Core & AI Launchpad', description: 'SAP-Ökosystem, BTP-Integration, standardisiertes MLOps im SAP-Stack — ideal bei SAP-Landschaft' },
+      { id: 'cloud_ml', label: 'Cloud ML-Plattform (Azure ML, SageMaker, Vertex AI)', description: 'Vollständig managed, Auto-Scaling, tiefe Cloud-Integration — für cloud-affine Teams' },
+      { id: 'open_mlops', label: 'Open-Source MLOps (Kubeflow, MLflow)', description: 'Maximale Flexibilität und Eigenverantwortung, kein Vendor-Lock-in, eigenes DevOps-Team nötig' },
+      { id: 'no_code', label: 'Low-Code / No-Code KI (Power Platform, AI Studio)', description: 'Kein ML-Team erforderlich, schnelle Time-to-Value — für Business-Teams mit wenig Technik' },
+    ],
+  },
+  {
+    id: 'monitoring',
+    step: 8,
+    question: 'Wie wollen Sie KI-Systeme überwachen und deren Qualität sichern?',
+    context: 'KI-spezifisches Monitoring (Drift, Fairness, Performance) geht über klassisches IT-Monitoring hinaus.',
+    options: [
+      { id: 'enterprise', label: 'Enterprise AI-Governance-Platform', description: 'Dedizierte AI-Monitoring-Tools, AI-Registry, vollständiges Audit-Trail — für regulierte Umgebungen' },
+      { id: 'cloud_native_monitor', label: 'Cloud-native Monitoring (Azure Monitor, CloudWatch)', description: 'Cloud-Bordmittel für Basis-Observability, kostengünstig, ausreichend für einfache Use Cases' },
+      { id: 'open_source_monitor', label: 'Open-Source Monitoring (Prometheus, Grafana, Evidently)', description: 'Eigenhosting mit maximaler Flexibilität — Evidently AI für ML-spezifisches Drift-Monitoring' },
+      { id: 'basic', label: 'Einfaches Basis-Monitoring zunächst ausreichend', description: 'Logging + Basis-Alerts reichen für den Start — Ausbau in Phase 2 geplant' },
     ],
   },
 ]
@@ -185,7 +227,41 @@ export function selectPattern(answers: WizardAnswers): PatternId {
   return 'hybrid'
 }
 
+const DATA_PLATFORM_EXAMPLES: Partial<Record<DataPlatformOption, string>> = {
+  sap_bw:        'SAP Datasphere (Virtualisierung) + SAP BW/4HANA + SAP HANA Data Lake + SAP Data Intelligence',
+  snowflake:     'Snowflake (Warehouse) + dbt (Transformation) + Fivetran/Airbyte (Ingestion) + Alation (Catalog)',
+  azure_fabric:  'Microsoft Fabric (Lakehouse) + Azure Data Factory + Azure Synapse Analytics + Microsoft Purview',
+  open_source:   'Apache Spark + Delta Lake/Apache Iceberg + dbt + Great Expectations + Apache Atlas',
+}
+
+const MODEL_PLATFORM_EXAMPLES: Partial<Record<ModelPlatformOption, string>> = {
+  sap_ai_core:  'SAP AI Core (MLOps) + SAP AI Launchpad (Management) + SAP AI Foundation + BTP-Integration',
+  cloud_ml:     'Azure ML + SageMaker oder Vertex AI + MLflow (Experiment Tracking) + Managed Feature Store',
+  open_mlops:   'Kubeflow (Pipeline-Orchestrierung) + MLflow (Tracking & Registry) + Seldon Core (Serving) + DVC',
+  no_code:      'Azure AI Studio + Power Platform AI Builder + Copilot Studio + Azure OpenAI (Low-Code RAG)',
+}
+
+const MONITORING_EXAMPLES: Partial<Record<MonitoringOption, string>> = {
+  enterprise:             'Fiddler AI / WhyLabs (AI-Monitoring) + Collibra AI Governance + AI-Registry + vollständiges Audit-Trail',
+  cloud_native_monitor:   'Azure Monitor + Application Insights + CloudWatch + Google Cloud Operations Suite',
+  open_source_monitor:    'Prometheus + Grafana + Evidently AI (Drift-Detection) + MLflow (Tracking)',
+  basic:                  'Application Logging (ELK/Loki) + Basis-Alerts (Alertmanager) + Grafana-Dashboard',
+}
+
 export function generateArchitecture(answers: WizardAnswers): ArchitectureResult {
   const patternId = selectPattern(answers)
-  return { patternId, ...PATTERNS[patternId] }
+  const base = PATTERNS[patternId]
+
+  // Deep-copy layers so shared config is never mutated
+  const layers: ArchitectureLayer[] = base.layers.map(l => ({ ...l }))
+
+  const dataEx = answers.data_platform ? DATA_PLATFORM_EXAMPLES[answers.data_platform] : undefined
+  const modelEx = answers.model_platform ? MODEL_PLATFORM_EXAMPLES[answers.model_platform] : undefined
+  const monEx = answers.monitoring ? MONITORING_EXAMPLES[answers.monitoring] : undefined
+
+  if (dataEx) layers[0] = { ...layers[0], examples: dataEx }
+  if (modelEx) layers[1] = { ...layers[1], examples: modelEx }
+  if (monEx) layers[2] = { ...layers[2], examples: monEx }
+
+  return { patternId, ...base, layers }
 }

@@ -92,8 +92,8 @@ describe('Assessment Scoring Engine', () => {
   })
 
   describe('Datenintegrität der Konfiguration', () => {
-    it('hat genau 16 Fragen total (MVP-Spezifikation)', () => {
-      expect(ALL_QUESTIONS.length).toBe(16)
+    it('hat genau 42 Fragen total (7 pro Dimension, L1–L5 Reifegradmodell)', () => {
+      expect(ALL_QUESTIONS.length).toBe(42)
     })
 
     it('jede Frage hat eine eindeutige ID', () => {

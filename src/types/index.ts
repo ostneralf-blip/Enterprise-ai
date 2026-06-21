@@ -64,6 +64,9 @@ export interface AssessmentQuestion {
   id: string
   text: string
   lowLabel: string
+  l2Label?: string
+  l3Label?: string
+  l4Label?: string
   highLabel: string
 }
 

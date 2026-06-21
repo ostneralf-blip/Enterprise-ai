@@ -59,7 +59,7 @@ describe('Accessibility: AssessmentWizard', () => {
     fireEvent.click(options[2]) // Score 3 wählen — bleibt auf gleicher Frage
 
     expect(options[2]).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /weiter/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Weiter →' })).not.toBeDisabled()
   })
 
   it('"Zurück"-Button navigiert beim ersten Schritt zur Intro zurück (kein Dead-End für Screenreader)', () => {

@@ -13,7 +13,7 @@ export async function getBrowser(): Promise<Browser> {
     const puppeteer = await import('puppeteer-core')
     return puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath('/tmp/chromium'),
       headless: true,
     }) as unknown as Promise<Browser>
   }

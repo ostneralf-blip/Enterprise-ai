@@ -154,9 +154,9 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
                 </span>
                 <span className="text-sm text-slate-700 min-w-0">
                   {score === 1 ? currentQ.lowLabel
-                    : score === 2 ? 'Ansätze vorhanden, nicht systematisch'
-                    : score === 3 ? 'Teilweise etabliert, ausbaufähig'
-                    : score === 4 ? 'Weitgehend etabliert, vereinzelte Lücken'
+                    : score === 2 ? (currentQ.l2Label ?? 'Ansätze vorhanden, nicht systematisch')
+                    : score === 3 ? (currentQ.l3Label ?? 'Teilweise etabliert, ausbaufähig')
+                    : score === 4 ? (currentQ.l4Label ?? 'Weitgehend etabliert, vereinzelte Lücken')
                     : currentQ.highLabel}
                 </span>
               </div>
@@ -194,7 +194,7 @@ function AssessmentIntro({ onStart }: { onStart: () => void }) {
         <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">AI-Readiness Assessment</h1>
         <p className="text-slate-500 text-sm leading-relaxed mb-6">
           Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit
-          16 Fragen auf einer Skala von 1 (niedrig) bis 5 (sehr hoch). Dauer: ca. 10 Minuten.
+          42 Fragen auf einer Skala von 1–5 (L1 Initial bis L5 Optimizing). Dauer: ca. 25 Minuten.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
