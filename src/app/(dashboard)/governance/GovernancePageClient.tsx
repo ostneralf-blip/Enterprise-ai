@@ -9,6 +9,7 @@ import {
   type GateAnswers,
   type VerdictLevel,
 } from '@/config/governance-data'
+import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
 
 const VERDICT_TO_API: Record<VerdictLevel, string> = {
   unlawful: 'stop_dsgvo',
@@ -50,7 +51,7 @@ const WEIGHT_DOT: Record<string, string> = {
   green: 'bg-emerald-500',
 }
 
-export function GovernancePageClient({ tier }: { tier: Tier }) {
+export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions: GovernanceSession[] }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [showResult, setShowResult] = useState(false)
@@ -186,6 +187,8 @@ export function GovernancePageClient({ tier }: { tier: Tier }) {
             PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
         </div>
+
+        <GovernanceHistory sessions={sessions} />
       </div>
     )
   }
@@ -265,6 +268,8 @@ export function GovernancePageClient({ tier }: { tier: Tier }) {
           {isLastStep ? 'Ergebnis anzeigen' : 'Weiter →'}
         </button>
       </div>
+
+      <GovernanceHistory sessions={sessions} />
     </div>
   )
 }

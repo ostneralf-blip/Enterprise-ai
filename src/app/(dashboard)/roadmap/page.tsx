@@ -12,7 +12,7 @@ export default async function RoadmapPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: latestResult }, { data: profileData }] = await Promise.all([
+  const [{ data: latestResult }, { data: profileData }, { data: topUseCases }] = await Promise.all([
     supabase
       .from('assessment_sessions')
       .select('archetype')
@@ -26,6 +26,11 @@ export default async function RoadmapPage() {
       .select('tier')
       .eq('id', user.id)
       .single() as unknown as Promise<{ data: { tier: string } | null }>,
+    supabase
+      .from('use_cases')
+      .select('id, name, domain, weighted_score, quadrant')
+      .order('weighted_score', { ascending: false })
+      .limit(3),
   ])
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
@@ -43,6 +48,7 @@ export default async function RoadmapPage() {
         initialArchetype={archetype}
         fromAssessment={!!latestResult?.archetype}
         tier={tier}
+        topUseCases={(topUseCases ?? []) as Array<{ id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }>}
       />
     </div>
   )

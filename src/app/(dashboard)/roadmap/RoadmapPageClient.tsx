@@ -2,30 +2,61 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
+import { QUADRANT_META } from '@/config/usecase-data'
 import type { Archetype, Tier } from '@/types'
+
+type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }
+type MilestoneStatus = 'not_started' | 'in_progress' | 'done'
+
+const MILESTONE_NEXT: Record<MilestoneStatus, MilestoneStatus> = {
+  not_started: 'in_progress',
+  in_progress: 'done',
+  done: 'not_started',
+}
+const MILESTONE_ICON: Record<MilestoneStatus, string> = {
+  not_started: '○',
+  in_progress: '◑',
+  done: '✓',
+}
+const MILESTONE_COLOR: Record<MilestoneStatus, string> = {
+  not_started: 'text-slate-300 hover:text-slate-400',
+  in_progress: 'text-blue-500 hover:text-blue-600',
+  done: 'text-emerald-500 hover:text-emerald-600',
+}
 
 interface Props {
   initialArchetype: Archetype | null
   fromAssessment: boolean
   tier: Tier
+  topUseCases: TopUseCase[]
 }
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
 const PHASES = ['phase1', 'phase2', 'phase3'] as const
 
-export function RoadmapPageClient({ initialArchetype, fromAssessment, tier }: Props) {
+export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases }: Props) {
   const [archetype, setArchetype] = useState<Archetype>(initialArchetype ?? 'starter')
+  const [milestones, setMilestones] = useState<Record<string, MilestoneStatus>>({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const handleArchetypeChange = (a: Archetype) => {
-    setArchetype(a)
+  const handleArchetypeChange = (a: Archetype) => { setArchetype(a); setSaved(false) }
+
+  const toggleMilestone = (key: string) => {
+    setMilestones(prev => ({ ...prev, [key]: MILESTONE_NEXT[prev[key] ?? 'not_started'] }))
     setSaved(false)
   }
 
   const handleSave = async () => {
     const roadmap = ROADMAPS[archetype]
-    const phases = PHASES.map(phaseId => ({ phase: phaseId, ...roadmap[phaseId] }))
+    const phases = PHASES.map(phaseId => {
+      const phaseMilestones = Object.fromEntries(
+        Object.entries(milestones)
+          .filter(([k]) => k.startsWith(`${phaseId}_`))
+          .map(([k, v]) => [k.replace(`${phaseId}_`, ''), v])
+      )
+      return { phase: phaseId, ...roadmap[phaseId], milestones: phaseMilestones }
+    })
     setSaving(true)
     try {
       const res = await fetch('/api/roadmap', {
@@ -55,17 +86,11 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier }: Pr
             const meta = ARCHETYPE_LABELS[a]
             const active = archetype === a
             return (
-              <button
-                key={a}
-                onClick={() => handleArchetypeChange(a)}
-                aria-pressed={active}
+              <button key={a} onClick={() => handleArchetypeChange(a)} aria-pressed={active}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                  active
-                    ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                )}
-              >
+                  active ? 'bg-blue-600 border-blue-600 text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                )}>
                 <span aria-hidden="true">{meta.icon}</span>
                 {meta.label}
               </button>
@@ -75,25 +100,44 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier }: Pr
         <p className="text-xs text-slate-400 mt-2">{ARCHETYPE_LABELS[archetype].desc}</p>
       </div>
 
-      {/* Save button */}
+      {/* Top Use-Cases aus Scoring */}
+      {topUseCases.length > 0 && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2.5">
+            Ihre Top-Use-Cases (aus Use-Case-Scoring)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {topUseCases.map((uc, i) => {
+              const qMeta = uc.quadrant ? QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META] : null
+              return (
+                <div key={uc.id} className="flex items-center gap-2 bg-white border border-blue-100 rounded-xl px-3 py-2 text-sm min-w-0">
+                  <span className="text-slate-400 text-xs flex-shrink-0">#{i + 1}</span>
+                  <span className="font-medium text-slate-900 truncate max-w-[140px]">{uc.name}</span>
+                  {uc.weighted_score != null && (
+                    <span className="text-xs text-slate-500 flex-shrink-0">{Number(uc.weighted_score).toFixed(1)}</span>
+                  )}
+                  {qMeta && (
+                    <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mb-5">
         {!saved && (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
             {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
           </button>
         )}
-        {saved && (
-          <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
-        )}
-        <a
-          href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
+        {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
+        <a href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
-        >
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5">
           PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
         </a>
       </div>
@@ -103,47 +147,57 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier }: Pr
         {PHASES.map(phaseId => {
           const phase = roadmap[phaseId]
           const colors = PHASE_COLORS[phaseId]
+          const doneCount = phase.actions.filter((_, i) => milestones[`${phaseId}_${i}`] === 'done').length
+          const progressPct = phase.actions.length > 0 ? Math.round((doneCount / phase.actions.length) * 100) : 0
           return (
-            <section
-              key={phaseId}
-              aria-labelledby={`${phaseId}-heading`}
-              className={cn('rounded-2xl border p-4 sm:p-6', colors.bg, colors.border)}
-            >
+            <section key={phaseId} aria-labelledby={`${phaseId}-heading`}
+              className={cn('rounded-2xl border p-4 sm:p-6', colors.bg, colors.border)}>
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', colors.badge)}>
-                      {phase.duration}
-                    </span>
+                    <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', colors.badge)}>{phase.duration}</span>
+                    {doneCount > 0 && (
+                      <span className="text-xs text-slate-500">{doneCount}/{phase.actions.length} erledigt</span>
+                    )}
                   </div>
-                  <h2 id={`${phaseId}-heading`} className="text-base sm:text-lg font-semibold text-slate-900">
-                    {phase.title}
-                  </h2>
+                  <h2 id={`${phaseId}-heading`} className="text-base sm:text-lg font-semibold text-slate-900">{phase.title}</h2>
                   <p className="text-sm text-slate-600 mt-0.5">{phase.focus}</p>
                 </div>
-                <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Budget: {phase.budget}</span>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Budget: {phase.budget}</span>
+                  {doneCount > 0 && (
+                    <div className="w-24 h-1 bg-white/60 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {/* Maßnahmen */}
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Maßnahmen</p>
                   <ul className="space-y-2" role="list">
-                    {phase.actions.map((action, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span
-                          className={cn('mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full', colors.dot)}
-                          aria-hidden="true"
-                        />
-                        <span className={cn('text-sm min-w-0', action.priority === 'high' ? 'text-slate-800' : 'text-slate-600')}>
-                          {action.label}
-                        </span>
-                      </li>
-                    ))}
+                    {phase.actions.map((action, i) => {
+                      const key = `${phaseId}_${i}`
+                      const status = milestones[key] ?? 'not_started'
+                      return (
+                        <li key={i} className="flex items-start gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleMilestone(key)}
+                            aria-label={`Status: ${status}`}
+                            className={cn('mt-0.5 flex-shrink-0 text-base leading-none transition-colors', MILESTONE_COLOR[status])}
+                          >
+                            {MILESTONE_ICON[status]}
+                          </button>
+                          <span className={cn('text-sm min-w-0 transition-colors', status === 'done' ? 'line-through text-slate-400' : action.priority === 'high' ? 'text-slate-800' : 'text-slate-600')}>
+                            {action.label}
+                          </span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
-
-                {/* KPIs */}
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Ziel-KPIs</p>
                   <ul className="space-y-2" role="list">

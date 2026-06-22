@@ -12,11 +12,15 @@ export default async function GovernancePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', user.id)
-    .single() as { data: { tier: string } | null }
+  const [{ data: profileData }, { data: sessions }] = await Promise.all([
+    supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
+    supabase
+      .from('governance_sessions')
+      .select('id, use_case_name, answers, result, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10),
+  ])
 
   const tier = (profileData?.tier ?? 'free') as Tier
 
@@ -28,7 +32,7 @@ export default async function GovernancePage() {
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>
       </div>
-      <GovernancePageClient tier={tier} />
+      <GovernancePageClient tier={tier} sessions={sessions ?? []} />
     </div>
   )
 }
