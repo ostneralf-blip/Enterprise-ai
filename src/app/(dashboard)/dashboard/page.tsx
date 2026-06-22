@@ -169,7 +169,7 @@ export default async function DashboardPage() {
     },
     {
       step: 7, icon: '□', title: 'Executive Summary', desc: 'Alle Ergebnisse im Überblick + PDF-Export',
-      href: '/zusammenfassung', done: false,
+      href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && (usecaseCount ?? 0) > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0,
     },
   ]
 
