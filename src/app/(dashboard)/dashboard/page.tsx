@@ -239,7 +239,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-blue-700 transition-colors">{mod.title}</h3>
-              <p className="text-xs text-slate-500 mb-1">{mod.subtitle}</p>
+              <p className="text-xs text-slate-500 mb-1">{(tier !== 'free' && mod.subtitlePro) ? mod.subtitlePro : mod.subtitle}</p>
               <p className="text-sm text-slate-600 leading-relaxed mt-3">{mod.description}</p>
               <div className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700">
                 {locked ? 'Upgrade für Zugang →' : 'Starten →'}

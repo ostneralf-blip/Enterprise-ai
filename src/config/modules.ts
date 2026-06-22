@@ -5,6 +5,7 @@ export const MODULES: ModuleConfig[] = [
     id: 'assessment',
     title: 'AI-Readiness Assessment',
     subtitle: '6 Dimensionen · 16 Fragen · ~10 Min',
+    subtitlePro: '6 Dimensionen · 42 Fragen · ~25 Min',
     icon: '◎',
     href: '/assessment',
     duration: '10 Min',

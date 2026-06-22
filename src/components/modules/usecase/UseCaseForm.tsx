@@ -68,20 +68,30 @@ export function UseCaseForm({ weights, editing, onSave, onCancel }: UseCaseFormP
 
         <div>
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Bewertung (1 = niedrig · 5 = hoch)</label>
-          <div className="space-y-3" role="group" aria-label="Kriterien bewerten">
+          <div className="space-y-4" role="group" aria-label="Kriterien bewerten">
             {CRITERIA.map(c => (
-              <div key={c.id} className="flex items-center gap-3 min-w-0">
-                <span className="text-xs text-slate-600 w-32 shrink-0 leading-tight">{c.label}</span>
-                <div className="flex gap-1.5" role="group" aria-label={c.label}>
-                  {[1, 2, 3, 4, 5].map(v => (
-                    <button key={v} type="button" onClick={() => setScores(s => ({ ...s, [c.id]: v }))}
-                      aria-pressed={scores[c.id] === v}
-                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        scores[c.id] === v ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}>
-                      {v}
-                    </button>
-                  ))}
+              <div key={c.id} className="space-y-1.5">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs font-medium text-slate-700">{c.label}</span>
+                  <span className="text-xs text-slate-400">— {c.description}</span>
+                </div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex gap-1.5 flex-1" role="group" aria-label={c.label}>
+                    {[1, 2, 3, 4, 5].map(v => (
+                      <button key={v} type="button" onClick={() => setScores(s => ({ ...s, [c.id]: v }))}
+                        aria-pressed={scores[c.id] === v}
+                        aria-label={`${c.label}: ${v}`}
+                        className={`flex-1 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          scores[c.id] === v ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        }`}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-400 leading-tight px-0.5">
+                  <span className="max-w-[45%]">{c.lowLabel}</span>
+                  <span className="max-w-[45%] text-right">{c.highLabel}</span>
                 </div>
               </div>
             ))}

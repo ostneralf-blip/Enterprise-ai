@@ -45,6 +45,7 @@ export interface ModuleConfig {
   id: ModuleId
   title: string
   subtitle: string
+  subtitlePro?: string
   icon: string
   href: string
   duration: string
