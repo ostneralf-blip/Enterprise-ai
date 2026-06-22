@@ -34,7 +34,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <NavItem href="/dashboard" icon="⊞" label="Dashboard" active={pathname === '/dashboard'} onNavigate={close} />
+        <NavItem href="/dashboard" icon="◎" label="Geführter Pfad" active={pathname === '/dashboard'} onNavigate={close} />
 
         <div className="pt-4 pb-1 px-3">
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tools</span>
@@ -54,6 +54,14 @@ export function Sidebar({ profile }: SidebarProps) {
             />
           )
         })}
+
+        <NavItem
+          href="/zusammenfassung"
+          icon="□"
+          label="Executive Summary"
+          active={pathname === '/zusammenfassung'}
+          onNavigate={close}
+        />
 
         <div className="pt-4 pb-1 px-3">
           <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Konto</span>

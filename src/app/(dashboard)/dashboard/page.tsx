@@ -168,8 +168,8 @@ export default async function DashboardPage() {
       href: '/architecture', done: (architectureCount ?? 0) > 0,
     },
     {
-      step: 7, icon: '□', title: 'Executive Report', desc: 'Ergebnisse als PDF für den Vorstand',
-      href: '/api/export/pdf?module=assessment', done: false, proOnly: true,
+      step: 7, icon: '□', title: 'Executive Summary', desc: 'Alle Ergebnisse im Überblick + PDF-Export',
+      href: '/zusammenfassung', done: false,
     },
   ]
 
