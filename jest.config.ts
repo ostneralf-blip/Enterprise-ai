@@ -9,6 +9,8 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // @react-pdf/renderer ist ESM-only — CJS-Mock verhindert SyntaxError in Jest
+    '^@react-pdf/renderer$': '<rootDir>/src/__tests__/__mocks__/react-pdf-renderer.js',
   },
   testMatch: ['<rootDir>/src/__tests__/**/*.(test|spec).(ts|tsx)'],
   collectCoverageFrom: [

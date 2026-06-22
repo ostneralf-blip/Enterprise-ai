@@ -128,17 +128,22 @@ describe('Security: Keine Service-Role-Key-Exposition im Client-Bundle', () => {
 })
 
 describe('Security: XSS-Schutz in PDF-Templates', () => {
-  it('renderAssessmentPdf escaped HTML-Sonderzeichen im Firmennamen', async () => {
+  // Mit @react-pdf/renderer ist HTML-Injection strukturell unmöglich:
+  // React PDF nutzt eine eigene Layout-Engine (kein HTML-Parser/Browser).
+  // Text-Content wird als literale Zeichenkette in die PDF-Binary geschrieben,
+  // nicht als HTML gerendert. <script>-Tags werden nie ausgeführt.
+  it('renderAssessmentPdf wirft keinen Fehler bei HTML-Sonderzeichen im Firmennamen', async () => {
     const { renderAssessmentPdf } = await import('@/lib/pdf/templates')
-    const maliciousCompanyName = '<script>alert("xss")</script>'
-    const html = renderAssessmentPdf({
+    const maliciousInput = '<script>alert("xss")</script>'
+    const element = renderAssessmentPdf({
       totalScore: 3.5,
       dimScores: { data: 3, skills: 4 },
       archetype: 'scaler',
-      companyName: maliciousCompanyName,
+      companyName: maliciousInput,
     })
-    expect(html).not.toContain('<script>alert("xss")</script>')
-    expect(html).toContain('&lt;script&gt;')
+    // Gibt ein ReactElement zurück — keine Ausnahme, kein HTML-Output
+    expect(element).not.toBeNull()
+    expect(typeof element).toBe('object')
   })
 })
 

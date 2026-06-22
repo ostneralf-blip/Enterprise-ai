@@ -10,6 +10,7 @@ import {
   renderArchitecturePdf,
   renderUsecasePdf,
 } from '@/lib/pdf/templates'
+import type { ReactElement } from 'react'
 import { z } from 'zod'
 
 const querySchema = z.object({
@@ -17,7 +18,7 @@ const querySchema = z.object({
   entityId: z.string().uuid().optional(),
 })
 
-export const maxDuration = 60
+export const maxDuration = 30
 
 export async function GET(req: Request) {
   try {
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
 
     const { module, entityId } = parsed.data
     const company = profileData?.company ?? undefined
-    let html: string
+    let doc: ReactElement
     let filename: string
 
     if (module === 'assessment') {
@@ -68,7 +69,7 @@ export async function GET(req: Request) {
         : await query.order('created_at', { ascending: false }).limit(1).single() as { data: { total_score: number; dim_scores: Record<string, number>; archetype: string } | null }
 
       if (!sessionData) return NextResponse.json({ error: 'Kein Ergebnis gefunden' }, { status: 404 })
-      html = renderAssessmentPdf({
+      doc = renderAssessmentPdf({
         totalScore: sessionData.total_score,
         dimScores: sessionData.dim_scores,
         archetype: sessionData.archetype as 'starter' | 'scaler' | 'transformer',
@@ -86,7 +87,7 @@ export async function GET(req: Request) {
         : await query.order('created_at', { ascending: false }).limit(1).single() as { data: { use_case_name: string | null; result: string | null; protocol: unknown[] | null } | null }
 
       if (!sessionData) return NextResponse.json({ error: 'Kein Ergebnis gefunden' }, { status: 404 })
-      html = renderGovernancePdf({
+      doc = renderGovernancePdf({
         useCaseName: sessionData.use_case_name,
         result: sessionData.result as 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve' | null,
         protocol: sessionData.protocol as Array<{ question?: string; answer?: string }> | null,
@@ -104,7 +105,7 @@ export async function GET(req: Request) {
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; archetype: string | null; phases: unknown[] } | null }
 
       if (!roadmapData) return NextResponse.json({ error: 'Keine Roadmap gefunden' }, { status: 404 })
-      html = renderRoadmapPdf({
+      doc = renderRoadmapPdf({
         title: roadmapData.title,
         archetype: roadmapData.archetype,
         phases: roadmapData.phases as Array<{ title: string; duration?: string; focus?: string; actions?: Array<{ label: string }>; kpis?: string[]; budget?: string }>,
@@ -122,7 +123,7 @@ export async function GET(req: Request) {
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; archetype: string | null; data: Record<string, string> } | null }
 
       if (!canvasData) return NextResponse.json({ error: 'Kein Canvas gefunden' }, { status: 404 })
-      html = renderCanvasPdf({
+      doc = renderCanvasPdf({
         title: canvasData.title,
         archetype: canvasData.archetype,
         data: canvasData.data,
@@ -140,7 +141,7 @@ export async function GET(req: Request) {
       if (!checks || checks.length === 0) {
         return NextResponse.json({ error: 'Keine Compliance-Prüfungen gefunden' }, { status: 404 })
       }
-      html = renderCompliancePdf({ checks, companyName: company })
+      doc = renderCompliancePdf({ checks, companyName: company })
       filename = 'compliance-report.pdf'
 
     } else if (module === 'architecture') {
@@ -153,7 +154,7 @@ export async function GET(req: Request) {
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[]; examples?: string }>; nextSteps?: string[] } } | null }
 
       if (!archData) return NextResponse.json({ error: 'Keine Architektur gefunden' }, { status: 404 })
-      html = renderArchitecturePdf({
+      doc = renderArchitecturePdf({
         title: archData.title,
         result: archData.result,
         companyName: company,
@@ -181,7 +182,7 @@ export async function GET(req: Request) {
           data: Array<{ name: string; domain: string | null; description: string | null; weighted_score: number | null; quadrant: string | null }> | null
         }
 
-      html = renderUsecasePdf({
+      doc = renderUsecasePdf({
         portfolioName: portfolio.name,
         useCases: useCases ?? [],
         companyName: company,
@@ -189,7 +190,7 @@ export async function GET(req: Request) {
       filename = 'use-case-portfolio.pdf'
     }
 
-    const pdfBuffer = await renderPdf({ html, filename })
+    const pdfBuffer = await renderPdf({ document: doc, filename })
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {

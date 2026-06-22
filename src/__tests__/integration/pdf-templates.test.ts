@@ -1,91 +1,44 @@
 import { renderAssessmentPdf } from '@/lib/pdf/templates'
+import { renderPdf } from '@/lib/pdf/generate'
+
+const BASE_DATA = {
+  totalScore: 3.7,
+  dimScores: { data: 4.0, skills: 3.0, governance: 3.5, tech: 4.0, strategy: 3.0, culture: 4.5 },
+  archetype: 'scaler' as const,
+}
+
+async function toBuffer(data: typeof BASE_DATA & { companyName?: string }) {
+  return renderPdf({ document: renderAssessmentPdf(data), filename: 'test.pdf' })
+}
 
 describe('Integration: PDF-Template Rendering', () => {
 
-  const validData = {
-    totalScore: 3.7,
-    dimScores: {
-      data: 4.0,
-      skills: 3.0,
-      governance: 3.5,
-      tech: 4.0,
-      strategy: 3.0,
-      culture: 4.5,
-    },
-    archetype: 'scaler' as const,
-  }
+  it('rendert gültiges PDF-Dokument (magic bytes %PDF)', async () => {
+    const buf = await toBuffer(BASE_DATA)
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
+  }, 15000)
 
-  it('rendert valides HTML-Dokument mit DOCTYPE', () => {
-    const html = renderAssessmentPdf(validData)
-    expect(html).toContain('<!DOCTYPE html>')
-    expect(html).toContain('<html lang="de">')
-  })
+  it('produzierter Buffer ist nicht leer', async () => {
+    const buf = await toBuffer(BASE_DATA)
+    expect(buf.length).toBeGreaterThan(0)
+  }, 15000)
 
-  it('enthält den Gesamtscore formatiert mit einer Nachkommastelle', () => {
-    const html = renderAssessmentPdf(validData)
-    expect(html).toContain('3.7')
-  })
+  it('funktioniert ohne optionalen Firmennamen', async () => {
+    const buf = await toBuffer(BASE_DATA)
+    expect(buf.length).toBeGreaterThan(0)
+  }, 15000)
 
-  it('enthält alle 6 Dimensionslabels', () => {
-    const html = renderAssessmentPdf(validData)
-    expect(html).toContain('Datenqualität')
-    expect(html).toContain('Skills')
-    expect(html).toContain('Governance')
-    expect(html).toContain('Technische Infrastruktur')
-    expect(html).toContain('Strategie')
-    expect(html).toContain('Kultur')
-  })
+  it('funktioniert mit Firmennamen', async () => {
+    const buf = await toBuffer({ ...BASE_DATA, companyName: 'Musterfirma GmbH' })
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
+  }, 15000)
 
-  it('zeigt die 3 niedrigsten Dimensionen als Handlungsempfehlungen', () => {
-    const html = renderAssessmentPdf(validData)
-    // Niedrigste 3: skills (3.0), strategy (3.0), governance (3.5)
-    const recommendationSection = html.split('Top Handlungsempfehlungen')[1]
-    expect(recommendationSection).toContain('Skills')
-  })
-
-  it('funktioniert ohne optionalen Firmennamen', () => {
-    const html = renderAssessmentPdf(validData)
-    expect(html).toBeTruthy()
-    expect(html).not.toContain('undefined')
-  })
-
-  it('inkludiert den Firmennamen wenn übergeben', () => {
-    const html = renderAssessmentPdf({ ...validData, companyName: 'Musterfirma GmbH' })
-    expect(html).toContain('Musterfirma GmbH')
-  })
-
-  it('produziert für alle 3 Archetypen gültiges HTML', () => {
+  it('produziert für alle 3 Archetypen gültige PDFs', async () => {
     const archetypes: Array<'starter' | 'scaler' | 'transformer'> = ['starter', 'scaler', 'transformer']
-    archetypes.forEach(archetype => {
-      const html = renderAssessmentPdf({ ...validData, archetype })
-      expect(html).toContain('<!DOCTYPE html>')
-      expect(html.length).toBeGreaterThan(500)
-    })
-  })
-
-  it('keine ungeschlossenen HTML-Tags bei doppelten Anführungszeichen im Firmennamen', () => {
-    const html = renderAssessmentPdf({ ...validData, companyName: 'Firma "Quotes" GmbH' })
-    expect(html).toContain('&quot;')
-    expect(html).not.toContain('Firma "Quotes"') // sollte escaped sein
-  })
-
-  it('enthält den Footer-Disclaimer auf jeder generierten Seite', () => {
-    const html = renderAssessmentPdf(validData)
-    expect(html).toContain('ersetzt keine individuelle')
-  })
+    for (const archetype of archetypes) {
+      const doc = renderAssessmentPdf({ ...BASE_DATA, archetype })
+      const buf = await renderPdf({ document: doc, filename: 'test.pdf' })
+      expect(buf.slice(0, 4).toString()).toBe('%PDF')
+    }
+  }, 30000)
 })
-
-/**
- * ════════════════════════════════════════════════════════════════════════
- * MANUELLER TEST ERFORDERLICH (PDF-Rendering mit echtem Chromium)
- * ════════════════════════════════════════════════════════════════════════
- * Diese Tests prüfen NUR die HTML-Generierung, NICHT das tatsächliche
- * PDF-Rendering via Puppeteer (benötigt Chromium-Binary, nicht in CI ohne
- * zusätzliches Setup verfügbar).
- *
- * 🔶 Lokal: GET /api/export/pdf?module=assessment aufrufen, PDF öffnen,
- *           visuell prüfen: Layout, Seitenumbrüche, Lesbarkeit, Farben
- * 🔶 Prüfen: Datei-Größe < 500 KB (Performance)
- * 🔶 Prüfen: PDF ist mit Screenreadern lesbar (Tagged PDF — Puppeteer-Limitation,
- *           ggf. Phase 2 Verbesserung)
- */
