@@ -65,7 +65,8 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <input
             value={active.title}
             onChange={e => setActive(prev => prev ? { ...prev, title: e.target.value } : prev)}
-            className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-blue-400 focus:outline-none transition-colors"
+            placeholder="Canvas-Titel eingeben…"
+            className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-blue-400 focus:bg-white focus:outline-none transition-colors"
             aria-label="Canvas-Titel"
           />
           <button
@@ -167,7 +168,10 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           {canvases.map(canvas => (
             <li key={canvas.id}>
               <div className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 transition-colors">
-                <p className="text-sm font-semibold text-slate-900 truncate min-w-0 mb-1">{canvas.title}</p>
+                <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate min-w-0">{canvas.title}</p>
+                  <span className="text-slate-300 text-xs flex-shrink-0" title="Titel im Editor bearbeitbar">✎</span>
+                </div>
                 {canvas.archetype && (
                   <p className="text-xs text-slate-400 mb-1 capitalize">{canvas.archetype}</p>
                 )}
