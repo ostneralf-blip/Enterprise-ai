@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { ShareButton } from '@/components/shared/ShareButton'
+import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import type { Archetype } from '@/types'
 
@@ -50,6 +52,7 @@ interface Props {
   assessmentContext?: AssessmentContext | null
   governanceContext?: GovernanceContext | null
   compliancePreset?: 'strict' | 'moderate' | 'low' | 'undefined'
+  tier?: string
 }
 
 const COMPLIANCE_PRESET_LABELS: Record<string, string> = {
@@ -98,7 +101,7 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset 
 
 type View = 'list' | 'wizard' | 'result'
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free' }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [currentStep, setCurrentStep] = useState(0)
@@ -108,6 +111,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [result, setResult] = useState<ArchitectureResult | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedId, setSavedId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const totalSteps = WIZARD_STEPS.length
@@ -139,6 +143,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setCurrentStep(0)
     setResult(null)
     setSaved(false)
+    setSavedId(null)
     setView('wizard')
   }
 
@@ -146,6 +151,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAnswers(arch.wizard_data)
     setResult(arch.result)
     setSaved(true)
+    setSavedId(arch.id)
     setView('result')
   }
 
@@ -162,6 +168,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         const { data } = await res.json()
         setArchitectures(prev => [data, ...prev])
         setSaved(true)
+        setSavedId(data.id)
       }
     } finally {
       setSaving(false)
@@ -330,6 +337,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           >
             PDF exportieren
           </a>
+          {savedId && result && (
+            <>
+              <VersionsPanel
+                module="architecture"
+                entityId={savedId}
+                tier={tier}
+                currentData={{ wizard_data: answers, result }}
+              />
+              <ShareButton module="architecture" entityId={savedId} tier={tier} />
+            </>
+          )}
           {architectures.length > 0 && (
             <button
               onClick={() => setView('list')}

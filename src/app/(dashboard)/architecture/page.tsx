@@ -76,6 +76,7 @@ export default async function ArchitecturePage() {
           result: latestGovernance.result as string | null,
         } : null}
         compliancePreset={riskClassNote ? compliancePreset : undefined}
+        tier={tier}
       />
     </div>
   )
