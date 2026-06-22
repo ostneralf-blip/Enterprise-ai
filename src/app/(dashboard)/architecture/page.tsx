@@ -22,15 +22,30 @@ export default async function ArchitecturePage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: prefs }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('user_preferences')
       .select('primary_assessment_id, primary_governance_id')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase.from('compliance_checks')
+      .select('notes')
+      .eq('user_id', user.id)
+      .eq('regulation', 'eu_ai_act')
+      .eq('check_type', 'risk_class')
+      .eq('status', 'compliant')
+      .maybeSingle(),
   ])
 
   const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null } | null
+
+  // Map EU AI Act risk class → architecture compliance answer
+  const riskClassNote = (complianceRiskClass as { notes: string | null } | null)?.notes
+  const compliancePreset: 'strict' | 'moderate' | 'low' | 'undefined' =
+    riskClassNote === 'prohibited' || riskClassNote === 'high' ? 'strict'
+    : riskClassNote === 'limited' ? 'moderate'
+    : riskClassNote === 'minimal' ? 'low'
+    : 'undefined'
 
   const [{ data: latestAssessment }, { data: latestGovernance }] = await Promise.all([
     prefData?.primary_assessment_id
@@ -60,6 +75,7 @@ export default async function ArchitecturePage() {
           use_case_name: latestGovernance.use_case_name as string | null,
           result: latestGovernance.result as string | null,
         } : null}
+        compliancePreset={riskClassNote ? compliancePreset : undefined}
       />
     </div>
   )

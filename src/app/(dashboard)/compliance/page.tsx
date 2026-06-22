@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { CompliancePageClient } from './CompliancePageClient'
 import type { Tier } from '@/types'
+import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -22,6 +23,12 @@ export default async function CompliancePage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
+  const { data: checks } = await supabase
+    .from('compliance_checks')
+    .select('regulation, check_type, status, notes, completed_at, updated_at')
+    .eq('user_id', user.id)
+    .order('created_at')
+
   return (
     <div>
       <div className="mb-6">
@@ -30,7 +37,7 @@ export default async function CompliancePage() {
           EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates
         </p>
       </div>
-      <CompliancePageClient />
+      <CompliancePageClient initialChecks={(checks ?? []) as CheckRow[]} />
     </div>
   )
 }

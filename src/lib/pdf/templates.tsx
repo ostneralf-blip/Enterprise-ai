@@ -2,6 +2,7 @@ import React from 'react'
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import type { ReactElement } from 'react'
 import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-data'
+import { EU_AI_ACT_RISK_CLASSES, EU_AI_ACT_OBLIGATIONS, DSGVO_CHECKLIST, RISK_MATRIX, getRiskLevel } from '@/config/compliance-data'
 import { formatDate } from '@/lib/utils'
 
 // ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
@@ -332,52 +333,99 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
 const REG_LABELS: Record<string, string> = { eu_ai_act: 'EU AI Act', dsgvo: 'DSGVO', internal: 'Intern' }
 
 export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
-  const stats = { compliant: 0, non_compliant: 0, partial: 0, pending: 0 }
-  data.checks.forEach(c => { if (c.status in stats) stats[c.status as keyof typeof stats]++ })
+  // Build label lookup from config
+  const labelMap = new Map<string, string>()
+  for (const items of Object.values(EU_AI_ACT_OBLIGATIONS)) {
+    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label}`)
+  }
+  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label}`)
+
+  const byReg = new Map<string, ComplianceCheck[]>()
+  for (const c of data.checks) {
+    if (!byReg.has(c.regulation)) byReg.set(c.regulation, [])
+    byReg.get(c.regulation)!.push(c)
+  }
+
+  const riskClassCheck = data.checks.find(c => c.regulation === 'eu_ai_act' && c.check_type === 'risk_class')
+  const riskClassName = riskClassCheck?.notes
+    ? EU_AI_ACT_RISK_CLASSES.find(r => r.id === riskClassCheck.notes)?.title ?? riskClassCheck.notes
+    : null
+
+  const matrixCheck = data.checks.find(c => c.regulation === 'risk_matrix' && c.check_type === 'position')
+  let matrixSummary: string | null = null
+  if (matrixCheck?.notes) {
+    try {
+      const pos = JSON.parse(matrixCheck.notes) as { impact: number; probability: number }
+      const lvl = getRiskLevel(pos.impact, pos.probability)
+      matrixSummary = `${lvl.label} (Auswirkung ${RISK_MATRIX.impactLabels[pos.impact - 1]}, Wahrscheinlichkeit ${RISK_MATRIX.probabilityLabels[pos.probability - 1]})`
+    } catch { /* ignore */ }
+  }
+
+  const euChecks = byReg.get('eu_ai_act')?.filter(c => c.check_type !== 'risk_class') ?? []
+  const dsgvoChecks = byReg.get('dsgvo') ?? []
+  const euDone = euChecks.filter(c => c.status === 'compliant').length
+  const dsgvoDone = dsgvoChecks.filter(c => c.status === 'compliant').length
+
+  const renderSection = (title: string, items: ComplianceCheck[]) => {
+    if (items.length === 0) return null
+    return (
+      <View style={{ marginBottom: 16 }}>
+        <Text style={s.h2}>{title}</Text>
+        {items.map((c, i) => {
+          const st = STATUS_CFG[c.status] ?? STATUS_CFG.pending
+          const label = labelMap.get(c.check_type) ?? c.check_type
+          return (
+            <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white', alignItems: 'flex-start' }]}>
+              <View style={[s.td, { flex: 3 }]}>
+                <Text style={{ fontSize: 9 }}>{label}</Text>
+              </View>
+              <View style={[s.td, { flex: 1 }]}>
+                <View style={{ backgroundColor: st.bg, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2, alignSelf: 'flex-start' }}>
+                  <Text style={{ fontSize: 8, fontWeight: 'bold', color: st.color }}>{st.label}</Text>
+                </View>
+              </View>
+            </View>
+          )
+        })}
+      </View>
+    )
+  }
 
   return (
     <Document title="Compliance Status Report">
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Compliance Status Report</Text>
-        <Text style={s.sub}>Regulatorische Prüfübersicht · Enterprise AI Navigator</Text>
+        <Text style={s.sub}>EU AI Act · DSGVO · Risikomatrix · Enterprise AI Navigator</Text>
 
+        {/* Summary cards */}
         <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
-          {([
-            { n: stats.compliant,     label: 'Konform',       color: C.green },
-            { n: stats.partial,       label: 'Teilweise',     color: C.amber },
-            { n: stats.non_compliant, label: 'Nicht konform', color: C.red },
-            { n: stats.pending,       label: 'Ausstehend',    color: C.neutral },
-          ] as const).map(({ n, label, color }) => (
-            <View key={label} style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color }}>{n}</Text>
-              <Text style={{ fontSize: 9, color: C.gray, marginTop: 2 }}>{label}</Text>
+          {riskClassName && (
+            <View style={[s.card, { flex: 2, padding: 10, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 8, color: C.gray, marginBottom: 3 }}>EU AI Act Risikoklasse</Text>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark }}>{riskClassName}</Text>
             </View>
-          ))}
+          )}
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: C.brand }}>{euDone}/{euChecks.length}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>EU AI Act Pflichten</Text>
+          </View>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: C.ok }}>{dsgvoDone}/{dsgvoChecks.length}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>DSGVO-Punkte</Text>
+          </View>
         </View>
 
-        <Text style={s.h2}>Alle Prüfpunkte</Text>
-        <View style={s.row}>
-          <Text style={[s.th, { flex: 1 }]}>Regulierung</Text>
-          <Text style={[s.th, { flex: 2 }]}>Prüfbereich</Text>
-          <Text style={[s.th, { flex: 1 }]}>Status</Text>
-          <Text style={[s.th, { flex: 2 }]}>Anmerkungen</Text>
-        </View>
-        {data.checks.map((c, i) => {
-          const st = STATUS_CFG[c.status] ?? STATUS_CFG.pending
-          return (
-            <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
-              <Text style={[s.td, { flex: 1, fontWeight: 'bold' }]}>{REG_LABELS[c.regulation] ?? c.regulation}</Text>
-              <Text style={[s.td, { flex: 2 }]}>{c.check_type}</Text>
-              <View style={[s.td, { flex: 1 }]}>
-                <View style={{ backgroundColor: st.bg, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2, alignSelf: 'flex-start' }}>
-                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: st.color }}>{st.label}</Text>
-                </View>
-              </View>
-              <Text style={[s.td, { flex: 2 }]}>{c.notes ?? '–'}</Text>
-            </View>
-          )
-        })}
+        {matrixSummary && (
+          <View style={[s.card, { marginBottom: 14 }]}>
+            <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Risikoniveau</Text>
+            <Text style={{ fontSize: 10, color: C.dark }}>{matrixSummary}</Text>
+          </View>
+        )}
+
+        {renderSection('EU AI Act — Pflichten-Checkliste', euChecks)}
+        {renderSection('DSGVO-Checkliste', dsgvoChecks)}
+
         <PdfFooter />
       </Page>
     </Document>

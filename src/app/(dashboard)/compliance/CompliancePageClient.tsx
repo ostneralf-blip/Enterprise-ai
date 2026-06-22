@@ -1,43 +1,114 @@
 'use client'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import {
-  EU_AI_ACT_CLASSES,
+  EU_AI_ACT_RISK_CLASSES,
+  EU_AI_ACT_OBLIGATIONS,
   DSGVO_CHECKLIST,
-  RISK_QUADRANTS,
+  RISK_MATRIX,
+  getRiskLevel,
   POLICY_TEMPLATES,
+  type CheckRow,
+  type CheckStatus,
+  type EuAiActRiskClass,
 } from '@/config/compliance-data'
 
-type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'templates'
+type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'euaiact', label: 'EU AI Act' },
-  { id: 'dsgvo', label: 'DSGVO-Checkliste' },
+  { id: 'dsgvo', label: 'DSGVO' },
   { id: 'matrix', label: 'Risikomatrix' },
+  { id: 'summary', label: 'Zusammenfassung' },
   { id: 'templates', label: 'Policy-Templates' },
 ]
 
-function loadChecked(): Set<string> {
-  if (typeof window === 'undefined') return new Set()
-  try {
-    const stored = localStorage.getItem('compliance_dsgvo')
-    return stored ? new Set(JSON.parse(stored)) : new Set()
-  } catch { return new Set() }
+interface Props {
+  initialChecks: CheckRow[]
 }
 
-export function CompliancePageClient() {
+function makeKey(regulation: string, checkType: string) {
+  return `${regulation}::${checkType}`
+}
+
+export function CompliancePageClient({ initialChecks }: Props) {
   const [tab, setTab] = useState<Tab>('euaiact')
-  const [checked, setChecked] = useState<Set<string>>(() => loadChecked())
+  const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
+    const m = new Map<string, CheckRow>()
+    for (const c of initialChecks) m.set(makeKey(c.regulation, c.check_type), c)
+    return m
+  })
+  const [saving, setSaving] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
 
-  const toggleChecked = (id: string) => {
-    setChecked(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) { next.delete(id) } else { next.add(id) }
-      try { localStorage.setItem('compliance_dsgvo', JSON.stringify([...next])) } catch {}
-      return next
-    })
+  const getCheck = (regulation: string, checkType: string): CheckRow | undefined =>
+    checks.get(makeKey(regulation, checkType))
+
+  const upsert = useCallback(async (
+    regulation: string,
+    checkType: string,
+    status: CheckStatus,
+    notes?: string | null
+  ) => {
+    const key = makeKey(regulation, checkType)
+    const optimistic: CheckRow = {
+      regulation,
+      check_type: checkType,
+      status,
+      notes: notes ?? null,
+      completed_at: status === 'compliant' ? new Date().toISOString() : null,
+    }
+    setChecks(prev => new Map(prev).set(key, optimistic))
+    setSaving(prev => new Set(prev).add(key))
+
+    try {
+      await fetch('/api/compliance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regulation, check_type: checkType, status, notes: notes ?? null }),
+      })
+    } finally {
+      setSaving(prev => { const n = new Set(prev); n.delete(key); return n })
+    }
+  }, [])
+
+  const toggleItem = (regulation: string, checkType: string) => {
+    const current = getCheck(regulation, checkType)
+    const next: CheckStatus = current?.status === 'compliant' ? 'pending' : 'compliant'
+    upsert(regulation, checkType, next)
   }
+
+  const setRiskClass = (riskClass: EuAiActRiskClass) => {
+    const current = getCheck('eu_ai_act', 'risk_class')
+    if (current?.notes === riskClass) {
+      upsert('eu_ai_act', 'risk_class', 'pending', null)
+    } else {
+      upsert('eu_ai_act', 'risk_class', 'compliant', riskClass)
+    }
+  }
+
+  const selectedRiskClass = (): EuAiActRiskClass | null => {
+    const c = getCheck('eu_ai_act', 'risk_class')
+    if (c?.status === 'compliant' && c.notes) return c.notes as EuAiActRiskClass
+    return null
+  }
+
+  const getRiskMatrixPos = () => {
+    const c = getCheck('risk_matrix', 'position')
+    if (!c?.notes) return { impact: 2, probability: 2 }
+    try { return JSON.parse(c.notes) as { impact: number; probability: number } }
+    catch { return { impact: 2, probability: 2 } }
+  }
+
+  const setRiskMatrixPos = (impact: number, probability: number) => {
+    upsert('risk_matrix', 'position', 'compliant', JSON.stringify({ impact, probability }))
+  }
+
+  // ─── Progress helpers ────────────────────────────────────────────────────
+  const riskClass = selectedRiskClass()
+  const obligations = riskClass ? EU_AI_ACT_OBLIGATIONS[riskClass] : []
+  const euAiActDone = obligations.filter(o => getCheck('eu_ai_act', o.id)?.status === 'compliant').length
+  const dsgvoDone = DSGVO_CHECKLIST.filter(i => getCheck('dsgvo', i.id)?.status === 'compliant').length
 
   const handleCopy = async (id: string, content: string) => {
     await navigator.clipboard.writeText(content)
@@ -45,21 +116,9 @@ export function CompliancePageClient() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const checkedCount = checked.size
-  const total = DSGVO_CHECKLIST.length
-
   return (
     <div>
-      <div className="flex items-center justify-end mb-4">
-        <a
-          href="/api/export/pdf?module=compliance"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          PDF exportieren
-        </a>
-      </div>
+      {/* Tab bar */}
       <div role="tablist" aria-label="Compliance-Bereiche" className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(t => (
           <button
@@ -81,76 +140,175 @@ export function CompliancePageClient() {
         ))}
       </div>
 
+      {/* ── EU AI ACT ── */}
       {tab === 'euaiact' && (
-        <div role="tabpanel" id="panel-euaiact" aria-labelledby="tab-euaiact" className="space-y-4">
-          {EU_AI_ACT_CLASSES.map(cls => (
-            <section
-              key={cls.id}
-              aria-labelledby={`cls-${cls.id}`}
-              className={cn('rounded-2xl border p-4 sm:p-5', cls.color.bg, cls.color.border)}
-            >
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <h2 id={`cls-${cls.id}`} className={cn('text-sm font-semibold', cls.color.title)}>{cls.title}</h2>
-                <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', cls.color.badge)}>{cls.badge}</span>
+        <div role="tabpanel" id="panel-euaiact" aria-labelledby="tab-euaiact" className="space-y-6">
+          {/* Risk class selection */}
+          <div>
+            <h2 className="text-sm font-semibold text-slate-700 mb-1">Schritt 1: Risikoklasse selbst einordnen</h2>
+            <p className="text-xs text-slate-400 mb-3">
+              Wählen Sie die EU AI Act-Risikoklasse, die auf Ihren primären AI-Use-Case zutrifft.
+              Die passende Pflichten-Checkliste erscheint danach automatisch.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {EU_AI_ACT_RISK_CLASSES.map(cls => {
+                const isSelected = riskClass === cls.id
+                return (
+                  <button
+                    key={cls.id}
+                    onClick={() => setRiskClass(cls.id)}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                      isSelected
+                        ? `${cls.color.bg} ${cls.color.border} ring-2 ring-blue-400`
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={cn('text-xs font-semibold', isSelected ? cls.color.title : 'text-slate-700')}>
+                        {cls.title}
+                      </span>
+                      <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', isSelected ? cls.color.badge : 'bg-slate-100 text-slate-500')}>
+                        {cls.badge}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-1">{cls.articleRef}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed">{cls.summary}</p>
+                    <ul className="mt-2 space-y-0.5">
+                      {cls.examples.slice(0, 3).map((ex, i) => (
+                        <li key={i} className="text-xs text-slate-500 flex gap-1.5">
+                          <span className="flex-shrink-0">·</span><span>{ex}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Obligations checklist */}
+          {riskClass === 'prohibited' && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5">
+              <p className="text-sm font-semibold text-red-800 mb-1">Deployment nicht zulässig</p>
+              <p className="text-xs text-red-600">
+                Systeme dieser Klasse sind nach Art. 5 EU AI Act in der EU verboten. Es gibt kein Übergangsrecht und keine Ausnahmen für gewerbliche Zwecke.
+                Wenden Sie sich an einen Rechtsberater, bevor Sie weitermachen.
+              </p>
+            </div>
+          )}
+
+          {riskClass === 'minimal' && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5">
+              <p className="text-sm font-semibold text-emerald-800 mb-1">Keine gesetzlichen Pflichten nach EU AI Act</p>
+              <p className="text-xs text-emerald-700">
+                Systeme mit minimalem Risiko unterliegen keinen verpflichtenden Anforderungen des EU AI Act.
+                Empfohlen: freiwilliger Code of Practice und interne AI-Governance nach ISO 42001.
+              </p>
+            </div>
+          )}
+
+          {riskClass && obligations.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-slate-700">
+                  Schritt 2: Pflichten-Checkliste ({EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title})
+                </h2>
+                <span className="text-xs text-slate-400">{euAiActDone}/{obligations.length} erledigt</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Beispiele</p>
-                  <ul className="space-y-1" role="list">
-                    {cls.examples.map((ex, i) => (
-                      <li key={i} className="text-xs text-slate-600 flex gap-1.5 min-w-0">
-                        <span aria-hidden="true" className="flex-shrink-0">·</span>
-                        <span>{ex}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Pflichten</p>
-                  <ul className="space-y-1" role="list">
-                    {cls.obligations.map((ob, i) => (
-                      <li key={i} className="text-xs text-slate-600 flex gap-1.5 min-w-0">
-                        <span aria-hidden="true" className="flex-shrink-0">→</span>
-                        <span>{ob}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all"
+                  style={{ width: `${(euAiActDone / obligations.length) * 100}%` }}
+                  role="progressbar"
+                  aria-valuenow={euAiActDone}
+                  aria-valuemin={0}
+                  aria-valuemax={obligations.length}
+                  aria-label="EU AI Act Fortschritt"
+                />
               </div>
-            </section>
-          ))}
+              <ul className="space-y-2">
+                {obligations.map(item => {
+                  const c = getCheck('eu_ai_act', item.id)
+                  const isDone = c?.status === 'compliant'
+                  const isSaving = saving.has(makeKey('eu_ai_act', item.id))
+                  return (
+                    <li key={item.id}>
+                      <label className={cn(
+                        'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors',
+                        isDone ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                        isSaving && 'opacity-60'
+                      )}>
+                        <input
+                          type="checkbox"
+                          checked={isDone}
+                          onChange={() => toggleItem('eu_ai_act', item.id)}
+                          disabled={isSaving}
+                          className="mt-0.5 flex-shrink-0 accent-blue-600"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.article}</p>
+                          <p className={cn('text-sm font-medium', isDone ? 'text-blue-800 line-through' : 'text-slate-800')}>
+                            {item.label}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                          {item.relevance && (
+                            <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1.5">
+                              Warum relevant: {item.relevance}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+
+          {!riskClass && (
+            <p className="text-sm text-slate-400 text-center py-6">
+              Wählen Sie oben eine Risikoklasse, um die passende Pflichten-Checkliste zu sehen.
+            </p>
+          )}
         </div>
       )}
 
+      {/* ── DSGVO ── */}
       {tab === 'dsgvo' && (
         <div role="tabpanel" id="panel-dsgvo" aria-labelledby="tab-dsgvo">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-500">{checkedCount} von {total} erledigt</p>
+            <p className="text-sm text-slate-500">{dsgvoDone} von {DSGVO_CHECKLIST.length} erledigt</p>
             <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all"
-                style={{ width: `${(checkedCount / total) * 100}%` }}
+                style={{ width: `${(dsgvoDone / DSGVO_CHECKLIST.length) * 100}%` }}
                 role="progressbar"
-                aria-valuenow={checkedCount}
+                aria-valuenow={dsgvoDone}
                 aria-valuemin={0}
-                aria-valuemax={total}
-                aria-label="DSGVO-Checkliste Fortschritt"
+                aria-valuemax={DSGVO_CHECKLIST.length}
+                aria-label="DSGVO-Fortschritt"
               />
             </div>
           </div>
-          <ul className="space-y-2" role="list">
+          <ul className="space-y-2">
             {DSGVO_CHECKLIST.map(item => {
-              const isDone = checked.has(item.id)
+              const c = getCheck('dsgvo', item.id)
+              const isDone = c?.status === 'compliant'
+              const isSaving = saving.has(makeKey('dsgvo', item.id))
               return (
                 <li key={item.id}>
                   <label className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors',
-                    isDone ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200 hover:border-slate-300'
+                    isDone ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                    isSaving && 'opacity-60'
                   )}>
                     <input
                       type="checkbox"
                       checked={isDone}
-                      onChange={() => toggleChecked(item.id)}
+                      onChange={() => toggleItem('dsgvo', item.id)}
+                      disabled={isSaving}
                       className="mt-0.5 flex-shrink-0 accent-emerald-600"
                     />
                     <div className="min-w-0">
@@ -159,6 +317,11 @@ export function CompliancePageClient() {
                         {item.label}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                      {item.relevance && (
+                        <p className="text-xs text-blue-700 bg-blue-50 rounded px-2 py-1 mt-1.5">
+                          AI-Relevanz: {item.relevance}
+                        </p>
+                      )}
                     </div>
                   </label>
                 </li>
@@ -168,42 +331,83 @@ export function CompliancePageClient() {
         </div>
       )}
 
+      {/* ── RISIKOMATRIX ── */}
       {tab === 'matrix' && (
         <div role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix">
-          <p className="text-sm text-slate-500 mb-4">Bewertung nach Auswirkung × Eintrittswahrscheinlichkeit</p>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            {RISK_QUADRANTS.map(q => (
-              <section
-                key={q.id}
-                aria-labelledby={`quadrant-${q.id}`}
-                className={cn('rounded-2xl border p-4', q.bg, q.border)}
-              >
-                <span id={`quadrant-${q.id}`} className={cn('inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-2', q.badge)}>
-                  {q.label}
-                </span>
-                <p className="text-xs font-medium text-slate-700 mb-2">{q.action}</p>
-                <ul className="space-y-1" role="list">
-                  {q.examples.map((ex, i) => (
-                    <li key={i} className="text-xs text-slate-500">· {ex}</li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-          <p className="text-xs text-slate-400 text-center">
-            Oben = Hohe Wahrscheinlichkeit · Rechts = Hohe Auswirkung
+          <p className="text-sm text-slate-500 mb-5">
+            Positionieren Sie Ihren AI-Use-Case nach Auswirkung (bei Fehler) und Eintrittswahrscheinlichkeit.
           </p>
+
+          <RiskMatrixSelector
+            value={getRiskMatrixPos()}
+            onChange={({ impact, probability }) => setRiskMatrixPos(impact, probability)}
+          />
         </div>
       )}
 
+      {/* ── ZUSAMMENFASSUNG ── */}
+      {tab === 'summary' && (
+        <div role="tabpanel" id="panel-summary" aria-labelledby="tab-summary" className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+            <SummaryCard
+              label="EU AI Act Risikoklasse"
+              value={riskClass
+                ? EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title ?? '—'
+                : 'Nicht eingestuft'}
+              sub={riskClass ? EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.articleRef : undefined}
+              done={!!riskClass}
+            />
+            <SummaryCard
+              label="EU AI Act Pflichten"
+              value={obligations.length > 0 ? `${euAiActDone} / ${obligations.length}` : riskClass ? 'Keine Pflichten' : '—'}
+              sub={obligations.length > 0 ? `${Math.round((euAiActDone / obligations.length) * 100)}% abgeschlossen` : undefined}
+              done={obligations.length > 0 ? euAiActDone === obligations.length : !!riskClass}
+            />
+            <SummaryCard
+              label="DSGVO-Checkliste"
+              value={`${dsgvoDone} / ${DSGVO_CHECKLIST.length}`}
+              sub={`${Math.round((dsgvoDone / DSGVO_CHECKLIST.length) * 100)}% abgeschlossen`}
+              done={dsgvoDone === DSGVO_CHECKLIST.length}
+            />
+          </div>
+
+          {/* Risk level display */}
+          {(() => {
+            const pos = getRiskMatrixPos()
+            const level = getRiskLevel(pos.impact, pos.probability)
+            return (
+              <div className={cn('rounded-2xl border p-4', level.color.bg, level.color.border)}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', level.color.badge)}>
+                    Risikoniveau: {level.label}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-slate-800">{level.action}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Auswirkung: {RISK_MATRIX.impactLabels[pos.impact - 1]} · Wahrscheinlichkeit: {RISK_MATRIX.probabilityLabels[pos.probability - 1]}
+                </p>
+              </div>
+            )
+          })()}
+
+          <div className="flex justify-end pt-2">
+            <a
+              href="/api/export/pdf?module=compliance"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              PDF exportieren
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* ── POLICY TEMPLATES ── */}
       {tab === 'templates' && (
         <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" className="space-y-4">
           {POLICY_TEMPLATES.map(tpl => (
-            <section
-              key={tpl.id}
-              aria-labelledby={`tpl-${tpl.id}`}
-              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5"
-            >
+            <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
                   <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{tpl.title}</h2>
@@ -224,6 +428,94 @@ export function CompliancePageClient() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SummaryCard({ label, value, sub, done }: { label: string; value: string; sub?: string; done: boolean }) {
+  return (
+    <div className={cn('rounded-xl border p-4', done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200')}>
+      <p className="text-xs text-slate-500 mb-1">{label}</p>
+      <p className={cn('text-base font-semibold', done ? 'text-emerald-800' : 'text-slate-900')}>{value}</p>
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+    </div>
+  )
+}
+
+function RiskMatrixSelector({
+  value,
+  onChange,
+}: {
+  value: { impact: number; probability: number }
+  onChange: (v: { impact: number; probability: number }) => void
+}) {
+  const level = getRiskLevel(value.impact, value.probability)
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 mb-2">
+          Auswirkung bei Fehler <span className="font-normal text-slate-400">(Was passiert wenn das System falsch liegt?)</span>
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {RISK_MATRIX.impactLabels.map((label, i) => (
+            <button
+              key={i}
+              onClick={() => onChange({ ...value, impact: i + 1 })}
+              aria-pressed={value.impact === i + 1}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+                value.impact === i + 1
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+              )}
+            >
+              {i + 1} — {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 mb-2">
+          Eintrittswahrscheinlichkeit <span className="font-normal text-slate-400">(Wie häufig könnte das Fehler passieren?)</span>
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {RISK_MATRIX.probabilityLabels.map((label, i) => (
+            <button
+              key={i}
+              onClick={() => onChange({ ...value, probability: i + 1 })}
+              aria-pressed={value.probability === i + 1}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+                value.probability === i + 1
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+              )}
+            >
+              {i + 1} — {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={cn('rounded-2xl border p-4 sm:p-5', level.color.bg, level.color.border)}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', level.color.badge)}>
+            {level.label}
+          </span>
+        </div>
+        <p className="text-sm font-semibold text-slate-800 mb-1">{level.action}</p>
+        <ul className="space-y-0.5">
+          {level.examples.map((ex, i) => (
+            <li key={i} className="text-xs text-slate-500 flex gap-1.5">
+              <span className="flex-shrink-0">·</span><span>{ex}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

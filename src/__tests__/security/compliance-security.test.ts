@@ -36,11 +36,22 @@ describe('Security: Compliance Center', () => {
       expect(source).not.toContain("from '@/lib/supabase")
     })
 
-    it('CompliancePageClient macht keine fetch()-Aufrufe (rein statische Anzeige)', () => {
+    it('CompliancePageClient nutzt fetch() NUR für /api/compliance (keine anderen Endpunkte)', () => {
       const source = readFileSync(
         join(process.cwd(), 'src/app/(dashboard)/compliance/CompliancePageClient.tsx'), 'utf-8'
       )
-      expect(source).not.toContain('fetch(')
+      // fetch ist erlaubt — aber nur für den eigenen API-Endpunkt
+      const fetchCalls = source.match(/fetch\(['"`][^'"` ]+['"`]/g) ?? []
+      fetchCalls.forEach(call => {
+        expect(call).toContain('/api/compliance')
+      })
+    })
+
+    it('CompliancePageClient nutzt kein localStorage mehr (Persistenz via API)', () => {
+      const source = readFileSync(
+        join(process.cwd(), 'src/app/(dashboard)/compliance/CompliancePageClient.tsx'), 'utf-8'
+      )
+      expect(source).not.toContain('localStorage')
     })
 
     it('Compliance-Inhalte kommen aus config, nicht vom Client', () => {

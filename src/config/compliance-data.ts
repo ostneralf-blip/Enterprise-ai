@@ -1,200 +1,346 @@
-export interface EUAIActClass {
-  id: string
-  title: string
-  badge: string
-  color: { bg: string; border: string; badge: string; title: string }
-  examples: string[]
-  obligations: string[]
+// ─── TYPEN ────────────────────────────────────────────────────────────────────
+
+export type CheckStatus = 'pending' | 'compliant' | 'non_compliant' | 'partial'
+export type Regulation = 'eu_ai_act' | 'dsgvo' | 'risk_matrix'
+export type EuAiActRiskClass = 'prohibited' | 'high' | 'limited' | 'minimal'
+
+export interface ChecklistItem {
+  id: string          // wird als check_type in DB gespeichert
+  article: string
+  label: string
+  description: string
+  relevance?: string  // warum relevant für AI
 }
 
-export const EU_AI_ACT_CLASSES: EUAIActClass[] = [
+export interface CheckRow {
+  regulation: string
+  check_type: string
+  status: CheckStatus
+  notes: string | null
+  completed_at: string | null
+  updated_at?: string | null
+}
+
+// ─── EU AI ACT — RISIKOKLASSEN (Art. 5, 6, 50, Minimal) ─────────────────────
+
+export interface EuAiActRiskClassDef {
+  id: EuAiActRiskClass
+  title: string
+  badge: string
+  articleRef: string
+  summary: string
+  color: { bg: string; border: string; badge: string; title: string }
+  examples: string[]
+}
+
+export const EU_AI_ACT_RISK_CLASSES: EuAiActRiskClassDef[] = [
   {
     id: 'prohibited',
-    title: 'Verboten (Art. 5)',
+    title: 'Verboten',
     badge: 'Keine Ausnahmen',
+    articleRef: 'Art. 5 EU AI Act',
+    summary: 'Systeme dieser Kategorie dürfen in der EU nicht eingesetzt werden. Kein Übergangsrecht, keine Ausnahmen.',
     color: { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700', title: 'text-red-800' },
     examples: [
-      'Social Scoring durch staatliche Stellen',
-      'Biometrische Echtzeit-Fernidentifikation in öffentlichen Räumen',
-      'Manipulation durch unterschwellige oder täuschende Techniken',
-      'Ausnutzung von Schwachstellen (Alter, Behinderung, soziale Lage)',
+      'Social Scoring durch staatliche oder behördliche Stellen',
+      'Biometrische Echtzeit-Fernidentifikation in öffentlichen Räumen (mit engen Ausnahmen)',
+      'Manipulation durch unterschwellige Techniken oder Ausnutzung von Schwachstellen',
       'Predictive Policing auf Basis persönlicher Merkmale',
       'Emotionserkennung am Arbeitsplatz und in Bildungseinrichtungen',
+      'Anlegen biometrischer Datenbanken durch Scraping',
     ],
-    obligations: ['Deployment absolut unzulässig — keine Ausnahmen, kein Übergangsrecht'],
   },
   {
     id: 'high',
-    title: 'Hochrisiko (Art. 6, Anhang III)',
+    title: 'Hochrisiko',
     badge: 'Umfangreiche Pflichten',
+    articleRef: 'Art. 6, Anhang III EU AI Act',
+    summary: 'Einsatz nur mit vollständiger Dokumentation, Konformitätsbewertung und registriertem System. Gilt für KI mit wesentlichen Auswirkungen auf Grundrechte oder Sicherheit.',
     color: { bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700', title: 'text-amber-800' },
     examples: [
-      'HR: Einstellungen, Beförderungen, Leistungsbewertung, Entlassung',
-      'Kredit- und Bonitätsprüfung, Versicherungseinstufung',
-      'Medizinische Diagnose und Behandlungsempfehlung',
-      'Kritische Infrastruktur (Energie, Wasser, Verkehr)',
-      'Strafverfolgung, Grenzkontrolle, Migration',
-      'Bildung: Prüfungsautomatisierung, Zugangsentscheidungen',
-    ],
-    obligations: [
-      'Risikomanagementsystem implementieren (Art. 9)',
-      'Technische Dokumentation nach Anhang IV (Art. 11)',
-      'Konformitätsbewertung + CE-Kennzeichnung (Art. 43)',
-      'Registrierung in EU-AI-Datenbank (Art. 71)',
-      'Post-market Monitoring einrichten (Art. 72)',
-      'Human Oversight verankern (Art. 14)',
+      'HR: Einstellungen, Beförderungen, Leistungsbewertung, Entlassung (Anhang III Nr. 4)',
+      'Kredit- und Bonitätsprüfung, Versicherungseinstufung (Anhang III Nr. 5)',
+      'Medizinische Diagnose als Medizinprodukt (Anhang III Nr. 6)',
+      'Kritische Infrastruktur (Energie, Wasser, Verkehr) (Anhang III Nr. 2)',
+      'Bildung: Prüfungsautomatisierung, Zugangsentscheidungen (Anhang III Nr. 3)',
+      'Strafverfolgung, Grenzkontrolle, Justiz (Anhang III Nr. 6–8)',
     ],
   },
   {
     id: 'limited',
-    title: 'Begrenztes Risiko (Art. 50)',
+    title: 'Begrenztes Risiko',
     badge: 'Transparenzpflichten',
+    articleRef: 'Art. 50 EU AI Act',
+    summary: 'Nutzer müssen wissen, dass sie mit einem KI-System interagieren. KI-generierte Inhalte sind maschinenlesbar zu kennzeichnen.',
     color: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', title: 'text-blue-800' },
     examples: [
       'Chatbots und virtuelle Assistenten mit Kundenkontakt',
       'KI-generierte Texte, Bilder, Videos (Deepfakes, synthetische Medien)',
-      'Emotionserkennung (außer verbotene Kontexte)',
+      'Emotionserkennung (außer in verbotenen Kontexten)',
       'Biometrische Kategorisierungssysteme',
-    ],
-    obligations: [
-      'Nutzer über KI-Interaktion informieren (Art. 50 Abs. 1)',
-      'KI-generierte Inhalte maschinenlesbar kennzeichnen (Art. 50 Abs. 2)',
     ],
   },
   {
     id: 'minimal',
-    title: 'Minimales / kein Risiko',
+    title: 'Minimales Risiko',
     badge: 'Freiwillige Maßnahmen',
+    articleRef: 'Erwägungsgrund 48 EU AI Act',
+    summary: 'Keine gesetzlichen Pflichten. Freiwilliger Code of Practice und interne AI-Governance empfohlen.',
     color: { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700', title: 'text-emerald-800' },
     examples: [
       'Spam-Filter, Empfehlungssysteme, Suchfunktionen',
       'KI in Spielen und Unterhaltungsanwendungen',
       'Einfache Prozessautomatisierung ohne Personenbezug',
     ],
-    obligations: [
-      'Keine gesetzlichen Pflichten',
-      'Freiwillige Code of Practice empfohlen',
-    ],
   },
 ]
 
-export interface DsgvoCheckItem {
-  id: string
-  article: string
-  label: string
-  description: string
+// ─── EU AI ACT — PFLICHTEN-CHECKLISTE (nach Risikoklasse) ────────────────────
+
+export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = {
+  prohibited: [],
+  minimal: [],
+  limited: [
+    {
+      id: 'euaiact_art50_1',
+      article: 'Art. 50 Abs. 1',
+      label: 'Nutzer über KI-Interaktion informieren',
+      description: 'Natürliche Personen müssen bei Chatbots und interaktiven KI-Systemen klar und verständlich informiert werden, dass sie mit einem KI-System interagieren.',
+      relevance: 'Pflicht bei jedem KI-System mit direktem Nutzerkontakt, auch intern.',
+    },
+    {
+      id: 'euaiact_art50_2',
+      article: 'Art. 50 Abs. 2',
+      label: 'KI-generierte Inhalte maschinenlesbar kennzeichnen',
+      description: 'Synthetische Audio-, Bild-, Video- und Textinhalte (Deep Fakes, generierte Medien) müssen mit einem maschinenlesbaren Marker versehen werden.',
+      relevance: 'Gilt für alle Systeme, die synthetische Inhalte erzeugen, unabhängig vom Verwendungszweck.',
+    },
+    {
+      id: 'euaiact_art50_3',
+      article: 'Art. 50 Abs. 3',
+      label: 'Deepfakes und synthetische Medien kennzeichnen (sichtbar)',
+      description: 'Erzeugte Bilder, Videos oder Audios, die reale Personen, Orte oder Ereignisse täuschend nachahmen, müssen für Empfänger erkennbar als KI-generiert markiert sein.',
+      relevance: 'Auch relevant bei internen Kommunikationsmaterialien oder Marketinginhalten.',
+    },
+  ],
+  high: [
+    {
+      id: 'euaiact_art9',
+      article: 'Art. 9',
+      label: 'Risikomanagementsystem implementieren',
+      description: 'Fortlaufendes Risikomanagementsystem für den gesamten Lebenszyklus des Hochrisiko-KI-Systems einrichten. Bekannte und vorhersehbare Risiken identifizieren, analysieren und mitigieren.',
+      relevance: 'Grundvoraussetzung: ohne Art. 9 sind alle weiteren Hochrisiko-Pflichten nicht erfüllbar.',
+    },
+    {
+      id: 'euaiact_art10',
+      article: 'Art. 10',
+      label: 'Daten-Governance: Trainings- und Validierungsdaten dokumentieren',
+      description: 'Datenverwaltungspraktiken festlegen: Herkunft, Erhebungsmethoden, vorgesehene Zwecke, bekannte Lücken. Trainingsdaten müssen hinsichtlich Bias geprüft sein.',
+      relevance: 'Betrifft alle genutzten oder selbst entwickelten ML-Modelle für Hochrisiko-Anwendungen.',
+    },
+    {
+      id: 'euaiact_art11',
+      article: 'Art. 11 + Anhang IV',
+      label: 'Technische Dokumentation nach Anhang IV erstellen',
+      description: 'Vollständige technische Dokumentation vor Inbetriebnahme erstellen und aktuell halten: Zweck, Design, Algorithmen, Daten, Testergebnisse, Risikomaßnahmen.',
+      relevance: 'Muss für Marktüberwachungsbehörden auf Anfrage bereitstehen.',
+    },
+    {
+      id: 'euaiact_art12',
+      article: 'Art. 12',
+      label: 'Automatische Ereignisprotokollierung (Logging) einrichten',
+      description: 'Hochrisiko-KI-Systeme müssen automatisch Ereignisse protokollieren (Log-Level), die Rückverfolgbarkeit über den Lebenszyklus ermöglichen.',
+      relevance: 'Kritisch für Post-Incident-Analysen und Konformitätsnachweise.',
+    },
+    {
+      id: 'euaiact_art13',
+      article: 'Art. 13',
+      label: 'Transparenz und Nutzerinformation sicherstellen',
+      description: 'Nutzende von Hochrisiko-KI-Systemen müssen ausreichende Informationen erhalten: Zweck, Fähigkeiten und Grenzen, Überwachungshinweise.',
+      relevance: 'Betrifft die Gebrauchsanweisung und Nutzer-Onboarding-Dokumentation.',
+    },
+    {
+      id: 'euaiact_art14',
+      article: 'Art. 14',
+      label: 'Human Oversight verankern',
+      description: 'Das System muss so gestaltet sein, dass natürliche Personen Entscheidungen wirksam überwachen, verstehen, eingreifen, stoppen oder überstimmen können.',
+      relevance: 'Human-in-the-Loop ist Pflicht, keine Option.',
+    },
+    {
+      id: 'euaiact_art15',
+      article: 'Art. 15',
+      label: 'Genauigkeit, Robustheit und Cybersicherheit gewährleisten',
+      description: 'System muss ausreichende Genauigkeit, Konsistenz und Widerstandsfähigkeit gegen Angriffe (Adversarial Inputs, Datenmanipulation) während des gesamten Lebenszyklus aufweisen.',
+      relevance: 'Regelmäßige Tests und Monitoring-Prozesse sind erforderlich.',
+    },
+    {
+      id: 'euaiact_art43',
+      article: 'Art. 43',
+      label: 'Konformitätsbewertung durchführen',
+      description: 'Vor Inbetriebnahme: interne Kontrolle (für die meisten Systeme) oder Prüfung durch benannte Stelle (für besonders kritische Systeme wie biometrische Identifikation).',
+      relevance: 'Voraussetzung für CE-Kennzeichnung und Marktzulassung.',
+    },
+    {
+      id: 'euaiact_art46',
+      article: 'Art. 46',
+      label: 'CE-Kennzeichnung anbringen',
+      description: 'Nach bestandener Konformitätsbewertung muss das KI-System mit der CE-Kennzeichnung versehen werden.',
+      relevance: 'Rechtliche Voraussetzung für das Inverkehrbringen in der EU.',
+    },
+    {
+      id: 'euaiact_art71',
+      article: 'Art. 71',
+      label: 'System in EU-AI-Datenbank registrieren',
+      description: 'Betreiber von Hochrisiko-KI-Systemen müssen diese vor Inbetriebnahme in der öffentlichen EU-KI-Datenbank (ai-act.eu) registrieren.',
+      relevance: 'Ausnahme: Behörden in den Bereichen Strafverfolgung und Migration (nicht-öffentliche Datenbank).',
+    },
+    {
+      id: 'euaiact_art72',
+      article: 'Art. 72',
+      label: 'Post-Market Monitoring einrichten',
+      description: 'Fortlaufendes System zur Überwachung der Leistung nach Inbetriebnahme. Wesentliche Änderungen melden; Zwischenfälle (serious incidents) der Marktüberwachungsbehörde berichten.',
+      relevance: 'Gilt auch für eingesetzte Drittanbieter-Modelle, wenn diese für Hochrisiko-Zwecke genutzt werden.',
+    },
+  ],
 }
 
-export const DSGVO_CHECKLIST: DsgvoCheckItem[] = [
+// ─── DSGVO — CHECKLISTE ──────────────────────────────────────────────────────
+
+export const DSGVO_CHECKLIST: ChecklistItem[] = [
   {
-    id: 'art6',
-    article: 'Art. 6',
+    id: 'dsgvo_art6',
+    article: 'Art. 6 DSGVO',
     label: 'Rechtsgrundlage für Datenverarbeitung dokumentiert',
-    description: 'Einwilligung, Vertrag, rechtliche Verpflichtung oder berechtigtes Interesse — schriftlich festgehalten',
+    description: 'Einwilligung, Vertrag, rechtliche Verpflichtung, berechtigte Interessen oder lebenswichtige Interessen — schriftlich festgehalten und im VVT hinterlegt.',
+    relevance: 'KI-Systeme verarbeiten oft große Datenmengen zu neuen Zwecken — Zweckbindung und Rechtsgrundlage müssen explizit für den KI-Use-Case gelten.',
   },
   {
-    id: 'art9',
-    article: 'Art. 9',
-    label: 'Besondere Datenkategorien geprüft',
-    description: 'Gesundheit, Biometrie, Ethnizität, politische Meinung — erhöhte Anforderungen dokumentiert',
+    id: 'dsgvo_art9',
+    article: 'Art. 9 DSGVO',
+    label: 'Besondere Datenkategorien geprüft und dokumentiert',
+    description: 'Gesundheitsdaten, biometrische Daten, ethnische Herkunft, politische Meinungen, Gewerkschaftszugehörigkeit, religiöse Überzeugungen — erhöhte Anforderungen gelten.',
+    relevance: 'Viele ML-Modelle erkennen oder inferieren besondere Datenkategorien indirekt (z. B. Gesundheitsstatus aus Kaufverhalten).',
   },
   {
-    id: 'art13',
-    article: 'Art. 13/14',
+    id: 'dsgvo_art13',
+    article: 'Art. 13 / 14 DSGVO',
     label: 'Informationspflichten erfüllt (Datenschutzhinweis aktuell)',
-    description: 'Zweck, Rechtsgrundlage, Empfänger, Speicherdauer in Datenschutzhinweisen aufgenommen',
+    description: 'Betroffene Personen müssen über Zweck, Rechtsgrundlage, Empfänger, Speicherdauer und ihre Rechte informiert werden — bei Direkterhebung (Art. 13) oder Drittquelle (Art. 14).',
+    relevance: 'Datenschutzhinweis muss explizit auf KI-Verarbeitung und automatisierte Entscheidungsfindung hinweisen.',
   },
   {
-    id: 'art15',
-    article: 'Art. 15–22',
-    label: 'Betroffenenrechte technisch umsetzbar',
-    description: 'Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch und Datenportabilität möglich',
+    id: 'dsgvo_art22',
+    article: 'Art. 22 DSGVO',
+    label: 'Automatisierte Einzelentscheidungen: menschlicher Review verankert',
+    description: 'Entscheidungen mit wesentlicher rechtlicher oder ähnlicher Wirkung (Kredit, Einstellung, Versicherung) dürfen nicht ausschließlich automatisiert getroffen werden.',
+    relevance: 'Gilt direkt für KI-Entscheidungssysteme. Human-in-the-Loop ist DSGVO-Pflicht, nicht nur AI-Act-Anforderung.',
   },
   {
-    id: 'art22',
-    article: 'Art. 22',
-    label: 'Automatisierte Entscheidungen: menschlicher Review verankert',
-    description: 'Bei wesentlichen KI-Entscheidungen ist ein menschlicher Überprüfungsschritt dokumentiert und zugänglich',
-  },
-  {
-    id: 'art25',
-    article: 'Art. 25',
+    id: 'dsgvo_art25',
+    article: 'Art. 25 DSGVO',
     label: 'Privacy by Design & by Default implementiert',
-    description: 'Datensparsamkeit und datenschutzfreundliche Voreinstellungen im System verankert',
+    description: 'Datensparsamkeit und datenschutzfreundliche Voreinstellungen ab dem Zeitpunkt der Systemplanung technisch umgesetzt — nicht nachträglich angehängt.',
+    relevance: 'Muss bei der KI-Systemarchitektur berücksichtigt werden: minimale Daten, keine unnecessäre Datenspeicherung.',
   },
   {
-    id: 'art28',
-    article: 'Art. 28',
+    id: 'dsgvo_art28',
+    article: 'Art. 28 DSGVO',
     label: 'AV-Verträge mit allen Dienstleistern abgeschlossen',
-    description: 'Auftragsverarbeitungsverträge mit Cloud-Anbietern, ML-Plattformen und Datenverarbeitern vorhanden',
+    description: 'Auftragsverarbeitungsverträge (AVV) mit allen Cloud-Anbietern, ML-Plattformanbietern und Datenverarbeitern vorhanden und geprüft.',
+    relevance: 'OpenAI, AWS, Azure, GCP, Snowflake etc. als Auftragsverarbeiter → AVV Pflicht. Daten dürfen nicht für Modelltraining genutzt werden.',
   },
   {
-    id: 'art30',
-    article: 'Art. 30',
-    label: 'Verarbeitungsverzeichnis (VVT) aktuell',
-    description: 'Alle AI-Verarbeitungstätigkeiten im VVT eingetragen und regelmäßig gepflegt',
+    id: 'dsgvo_art30',
+    article: 'Art. 30 DSGVO',
+    label: 'Verarbeitungsverzeichnis (VVT) mit KI-Aktivitäten aktuell',
+    description: 'Alle KI-Verarbeitungstätigkeiten im VVT eingetragen: Zweck, Kategorien, Empfänger, Speicherdauer, technisch-organisatorische Maßnahmen.',
+    relevance: 'KI-Systeme als eigenständige Verarbeitungstätigkeiten eintragen — nicht einfach unter bestehende IT-Prozesse subsumieren.',
   },
   {
-    id: 'art32',
-    article: 'Art. 32',
-    label: 'TOMs dokumentiert (Verschlüsselung, Zugriffskontrollen)',
-    description: 'Technisch-organisatorische Maßnahmen für das AI-System schriftlich festgehalten',
+    id: 'dsgvo_art32',
+    article: 'Art. 32 DSGVO',
+    label: 'TOMs dokumentiert (Verschlüsselung, Zugriffskontrolle, Pseudonymisierung)',
+    description: 'Technisch-organisatorische Maßnahmen dem Stand der Technik entsprechend und dem Risiko angemessen schriftlich festgehalten.',
+    relevance: 'Für KI-Systeme: Pseudonymisierung von Trainingsdaten, Verschlüsselung at-rest und in-transit, rollenbasierte Zugriffskontrollen.',
   },
   {
-    id: 'art35',
-    article: 'Art. 35',
+    id: 'dsgvo_art35',
+    article: 'Art. 35 DSGVO',
     label: 'DPIA durchgeführt (wenn erforderlich)',
-    description: 'Datenschutz-Folgenabschätzung bei hohem Risiko, systematischer Überwachung oder neuen Technologien',
+    description: 'Datenschutz-Folgenabschätzung bei systematischer und umfangreicher Bewertung natürlicher Personen, umfangreicher Verarbeitung besonderer Kategorien oder systematischer Überwachung.',
+    relevance: 'Hochrisiko-KI-Systeme (EU AI Act) erfordern fast immer auch eine DPIA. Beide Anforderungen gleichzeitig beachten.',
   },
   {
-    id: 'drittland',
-    article: 'Art. 44–49',
-    label: 'Drittlandstransfers geregelt',
-    description: 'EU-Datenspeicherung oder gültige SCCs / Angemessenheitsbeschluss für Nicht-EU-Dienste',
+    id: 'dsgvo_art15_22',
+    article: 'Art. 15–22 DSGVO',
+    label: 'Betroffenenrechte technisch und organisatorisch umsetzbar',
+    description: 'Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch und Datenportabilität müssen für Betroffene praktisch zugänglich und innerhalb der Fristen umsetzbar sein.',
+    relevance: 'KI-Systeme müssen "vergessen" können — Daten aus Trainingsdaten und Inferenz-Logs löschbar gestalten.',
+  },
+  {
+    id: 'dsgvo_art44',
+    article: 'Art. 44–49 DSGVO',
+    label: 'Drittlandstransfers geregelt (SCCs oder Angemessenheitsbeschluss)',
+    description: 'Übermittlung von Daten außerhalb des EWR nur mit gültigem Mechanismus: Angemessenheitsbeschluss (z. B. EU-US Data Privacy Framework), SCCs oder Binding Corporate Rules.',
+    relevance: 'US-Cloud-Dienste und KI-APIs (OpenAI, Anthropic, Google AI) = Drittlandstransfer. SCCs prüfen und in AVV verankern.',
   },
 ]
 
-export interface RiskQuadrant {
-  id: string
-  label: string
-  action: string
-  bg: string
-  border: string
-  badge: string
-  examples: string[]
+// ─── RISIKOMATRIX ─────────────────────────────────────────────────────────────
+
+export interface RiskMatrixConfig {
+  impactLabels: string[]
+  probabilityLabels: string[]
+  quadrants: {
+    maxImpact: number
+    maxProbability: number
+    label: string
+    color: { bg: string; border: string; badge: string }
+    action: string
+    examples: string[]
+  }[]
 }
 
-// Reihenfolge: top-left, top-right, bottom-left, bottom-right (Hohe Wahrscheinlichkeit oben, Hohe Auswirkung rechts)
-export const RISK_QUADRANTS: RiskQuadrant[] = [
-  {
-    id: 'moderate',
-    label: 'Moderat',
-    action: 'Monitoring einrichten',
-    bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700',
-    examples: ['Kleine Fehler in Empfehlungen', 'Nutzerbeschwerden', 'Performance-Degradation'],
-  },
-  {
-    id: 'critical',
-    label: 'Kritisch',
-    action: 'Sofortiger Handlungsbedarf',
-    bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700',
-    examples: ['Bias in Hochrisiko-Entscheidung', 'Datenpanne sensibler Daten', 'DSGVO-Verstoß'],
-  },
-  {
-    id: 'low',
-    label: 'Niedrig',
-    action: 'Akzeptieren & beobachten',
-    bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700',
-    examples: ['Unbekannte Edge Cases', 'UI-Inkonsistenzen', 'Dokumentationslücken'],
-  },
-  {
-    id: 'significant',
-    label: 'Signifikant',
-    action: 'Mitigation planen',
-    bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700',
-    examples: ['Modell-Drift unbemerkt', 'Drittanbieter-Ausfall', 'Reputationsrisiko'],
-  },
-]
+export const RISK_MATRIX: RiskMatrixConfig = {
+  impactLabels: ['Vernachlässigbar', 'Gering', 'Signifikant', 'Kritisch'],
+  probabilityLabels: ['Selten', 'Möglich', 'Wahrscheinlich', 'Fast sicher'],
+  quadrants: [
+    {
+      maxImpact: 2, maxProbability: 4,
+      label: 'Niedrig', color: { bg: 'bg-emerald-50', border: 'border-emerald-200', badge: 'bg-emerald-100 text-emerald-700' },
+      action: 'Akzeptieren und beobachten',
+      examples: ['Dokumentationslücken', 'UI-Inkonsistenzen', 'Edge-Case-Fehler ohne Personenbezug'],
+    },
+    {
+      maxImpact: 4, maxProbability: 2,
+      label: 'Moderat', color: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700' },
+      action: 'Monitoring einrichten',
+      examples: ['Performance-Degradation', 'Modell-Drift', 'Nutzerbeschwerden'],
+    },
+    {
+      maxImpact: 3, maxProbability: 3,
+      label: 'Signifikant', color: { bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700' },
+      action: 'Mitigation planen und umsetzen',
+      examples: ['Drittanbieter-Ausfall', 'Reputationsrisiko durch Modellfehler', 'Unbemerkte Bias-Einführung'],
+    },
+    {
+      maxImpact: 4, maxProbability: 4,
+      label: 'Kritisch', color: { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700' },
+      action: 'Sofortiger Handlungsbedarf — System ggf. stoppen',
+      examples: ['Bias in Hochrisiko-Entscheidung', 'Datenpanne mit sensiblen Daten', 'DSGVO-Verstoß mit Meldepflicht'],
+    },
+  ],
+}
+
+export function getRiskLevel(impact: number, probability: number): typeof RISK_MATRIX.quadrants[0] {
+  const score = impact * probability
+  if (impact <= 2) return RISK_MATRIX.quadrants[0]
+  if (probability <= 2) return RISK_MATRIX.quadrants[1]
+  if (score <= 9) return RISK_MATRIX.quadrants[2]
+  return RISK_MATRIX.quadrants[3]
+}
+
+// ─── POLICY TEMPLATES (unverändert) ──────────────────────────────────────────
 
 export interface PolicyTemplate {
   id: string
@@ -225,7 +371,7 @@ Aktuelle Freigabeliste: [Link zum internen Verzeichnis]
 
 ## 4. Pflichten der Nutzenden
 - KI-Ergebnisse kritisch prüfen — keine blinde Übernahme
-- Transparenz gegenüber Kunden bei KI-Einsatz
+- Transparenz gegenüber Kunden bei KI-Einsatz (Art. 50 EU AI Act)
 - Fehler und Auffälligkeiten dem AI-Verantwortlichen melden
 
 ## 5. Verantwortlichkeit
@@ -236,59 +382,63 @@ KI-Outputs bleiben Verantwortung der nutzenden Person oder des Teams.
   {
     id: 'model_card',
     title: 'Model Card Template',
-    subtitle: 'Technische Steckbriefvorlage (EU AI Act Anhang IV)',
+    subtitle: 'Technischer Steckbrief nach EU AI Act Anhang IV',
     content: `# Model Card — [Modellname]
 Stand: [Datum] | Eigentümer: [Team/Person]
 
 ## Modell-Übersicht
 - Aufgabe: [z. B. Dokumentenklassifikation, Prognose]
 - Typ: [z. B. Supervised, LLM, Regelbasiert]
-- Framework: [z. B. PyTorch, Azure ML]
+- EU AI Act Risikoklasse: [ ] Hochrisiko  [ ] Begrenztes Risiko  [ ] Minimal
 
 ## Anwendungsfall & Grenzen
 - Vorgesehen für: [Konkrete Beschreibung]
 - Nicht vorgesehen für: [Ausschlüsse]
-- Bekannte Limitierungen: [Schwächen]
+- Bekannte Limitierungen: [Schwächen, Bias, Datenlücken]
 
-## Trainingsdaten
+## Trainingsdaten (Art. 10 EU AI Act)
 - Quellen: [Beschreibung] | Zeitraum: [von–bis]
-- Vorverarbeitung: [Schritte] | Bekannte Biases: [Dokumentation]
+- Besondere Datenkategorien (Art. 9 DSGVO): [ ] Ja  [ ] Nein
+- Bias-Prüfung durchgeführt: [ ] Ja  [ ] Nein | Methode: [Beschreibung]
 
 ## Performance-Metriken
-| Metrik | Trainingsdaten | Testdaten |
-|--------|----------------|-----------|
-| [z. B. F1] | [Wert] | [Wert] |
+| Metrik | Trainingsdaten | Testdaten | Produktiv |
+|--------|----------------|-----------|-----------|
+| [z. B. F1] | [Wert] | [Wert] | [Wert] |
 
-## Risikoklasse (EU AI Act)
-[ ] Verboten  [ ] Hochrisiko  [ ] Begrenztes Risiko  [ ] Minimal
+## Human Oversight (Art. 14 EU AI Act)
+Überprüfungsschritt: [Beschreibung wer, wann, wie überprüft]
 
 ## Monitoring: Intervall [wöchentlich/monatlich] | Verantwortlich: [Name]`,
   },
   {
     id: 'incident_response',
     title: 'AI Incident Response Plan',
-    subtitle: 'Eskalationsprozess für KI-Fehler und -Vorfälle',
+    subtitle: 'Eskalationsprozess — inkl. Art. 73 EU AI Act Meldepflicht',
     content: `# AI Incident Response Plan — [Unternehmen]
 
 ## Stufe 1 — Geringfügig (keine Personenbeeinträchtigung)
-Beispiele: Performance-Degradation, Empfehlungsfehler, UI-Fehler
+Beispiele: Performance-Degradation, Empfehlungsfehler
 Reaktionszeit: 5 Werktage | Verantwortlich: Produktteam
 
 ## Stufe 2 — Erheblich (Beeinträchtigung von Entscheidungen)
-Beispiele: Falschklassifikation mit Konsequenzen, Datenpanne
+Beispiele: Falschklassifikation mit Konsequenzen, Datenpanne ohne Meldepflicht
 Reaktionszeit: 24 Stunden | Verantwortlich: AI-Verantwortlicher + IT-Security
 
-## Stufe 3 — Kritisch (DSGVO-Verletzung, Grundrechte betroffen)
-Beispiele: Datenschutzvorfall, diskriminierende Entscheidungen
-Reaktionszeit: < 2 Stunden | Verantwortlich: Geschäftsführung + DSB
-DSGVO: Meldepflicht an Aufsichtsbehörde binnen 72h (Art. 33 DSGVO)
+## Stufe 3 — Kritisch (EU AI Act Art. 73 / DSGVO Art. 33 Meldepflicht)
+Beispiele: Ernsthafter Zwischenfall (serious incident) Hochrisiko-KI, DSGVO-Datenpanne
+Reaktionszeit: < 2 Stunden
+- DSGVO Art. 33: Meldung an Aufsichtsbehörde binnen 72h
+- EU AI Act Art. 73: Meldung an Marktüberwachungsbehörde (schwerwiegende Vorfälle)
+Verantwortlich: Geschäftsführung + Datenschutzbeauftragter
 
 ## Incident-Dokumentation
-Für jeden Vorfall: Datum, Beschreibung, betroffene Systeme, Ursache, Maßnahmen, Lessons Learned.
+Für jeden Vorfall: Datum, System, betroffene Personen, Ursache, Maßnahmen, Lessons Learned.
 
 ## Kontakte
 - AI-Verantwortlicher: [Name, E-Mail]
-- Datenschutzbeauftragter: [Name, E-Mail]`,
+- Datenschutzbeauftragter (DSB): [Name, E-Mail]
+- Marktüberwachungsbehörde: BNetzA / BSI [je nach Sektor]`,
   },
   {
     id: 'supplier_checklist',
@@ -297,26 +447,29 @@ Für jeden Vorfall: Datum, Beschreibung, betroffene Systeme, Ursache, Maßnahmen
     content: `# AI Supplier Due Diligence — [Anbieter] | [Datum]
 
 ## Datenschutz & DSGVO
-[ ] AVV vorhanden
-[ ] Datenspeicherort: EU/EWR oder gültige SCCs
-[ ] Daten werden NICHT für Modelltraining genutzt
-[ ] Löschfristen definiert
+[ ] AVV vorhanden und unterschrieben
+[ ] Datenspeicherort: EU/EWR oder gültige SCCs für Drittlandstransfer
+[ ] Daten werden NICHT für Modelltraining genutzt (vertraglich)
+[ ] Löschfristen definiert und technisch umgesetzt
 
 ## Sicherheit
-[ ] ISO 27001 oder SOC 2 vorhanden
-[ ] Penetrationstests < 12 Monate
-[ ] SLA mit Verfügbarkeitsgarantie
+[ ] ISO 27001 Zertifizierung oder SOC 2 Type II vorhanden
+[ ] Penetrationstests < 12 Monate alt
+[ ] SLA mit Verfügbarkeitsgarantie ≥ 99,5%
+[ ] Verschlüsselung at-rest und in-transit
 
 ## EU AI Act
-[ ] AI Act Compliance-Roadmap vorhanden
-[ ] Risikoklasse des Systems dokumentiert
-[ ] Technische Dokumentation auf Anfrage verfügbar
+[ ] AI Act Compliance-Roadmap des Anbieters vorhanden
+[ ] Risikoklasse des angebotenen Systems dokumentiert
+[ ] Technische Dokumentation nach Anhang IV auf Anfrage verfügbar
+[ ] Registrierung in EU-AI-Datenbank (wenn Hochrisiko)
 
 ## Vertragsrecht
-[ ] Haftungsregelungen für AI-Fehler geklärt
-[ ] Exit-Strategie und Datenrückgabe vereinbart
+[ ] Haftungsregelungen für AI-Fehler und Diskriminierung geklärt
+[ ] Exit-Strategie und vollständige Datenrückgabe vereinbart
 [ ] Audit-Rechte vertraglich gesichert
+[ ] Sub-Auftragsverarbeiter transparent und genehmigt
 
-Bewertung: [ ] Freigegeben  [ ] Bedingt  [ ] Abgelehnt`,
+Bewertung: [ ] Freigegeben  [ ] Bedingt freigegeben (mit Auflagen)  [ ] Abgelehnt`,
   },
 ]
