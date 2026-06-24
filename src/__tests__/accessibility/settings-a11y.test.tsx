@@ -10,6 +10,11 @@ const FREE_PROFILE = {
   role: 'CTO',
   tier: 'free' as const,
   stripe_customer_id: null,
+  phone: null,
+  mobile: null,
+  street: null,
+  zip: null,
+  city: null,
 }
 
 const PRO_PROFILE = {

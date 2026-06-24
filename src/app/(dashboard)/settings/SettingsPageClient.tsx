@@ -12,6 +12,11 @@ interface Props {
     role: string | null
     tier: Tier
     stripe_customer_id: string | null
+    phone: string | null
+    mobile: string | null
+    street: string | null
+    zip: string | null
+    city: string | null
   }
   email: string
 }
@@ -35,6 +40,11 @@ export function SettingsPageClient({ profile, email }: Props) {
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [company, setCompany] = useState(profile.company ?? '')
   const [role, setRole] = useState(profile.role ?? '')
+  const [phone, setPhone] = useState(profile.phone ?? '')
+  const [mobile, setMobile] = useState(profile.mobile ?? '')
+  const [street, setStreet] = useState(profile.street ?? '')
+  const [zip, setZip] = useState(profile.zip ?? '')
+  const [city, setCity] = useState(profile.city ?? '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +109,16 @@ export function SettingsPageClient({ profile, email }: Props) {
     const res = await fetch('/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ full_name: fullName.trim(), company: company.trim() || null, role: role.trim() || null }),
+      body: JSON.stringify({
+        full_name: fullName.trim(),
+        company: company.trim() || null,
+        role: role.trim() || null,
+        phone: phone.trim() || null,
+        mobile: mobile.trim() || null,
+        street: street.trim() || null,
+        zip: zip.trim() || null,
+        city: city.trim() || null,
+      }),
     })
     const json = await res.json()
     setSaving(false)
@@ -165,6 +184,78 @@ export function SettingsPageClient({ profile, email }: Props) {
               className={inputClass}
               disabled={saving}
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="phone" className={labelClass}>Telefon</label>
+              <input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                maxLength={50}
+                placeholder="+49 89 123456"
+                className={inputClass}
+                disabled={saving}
+              />
+            </div>
+            <div>
+              <label htmlFor="mobile" className={labelClass}>Mobil</label>
+              <input
+                id="mobile"
+                type="tel"
+                value={mobile}
+                onChange={e => setMobile(e.target.value)}
+                maxLength={50}
+                placeholder="+49 170 1234567"
+                className={inputClass}
+                disabled={saving}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="street" className={labelClass}>Straße & Hausnummer</label>
+            <input
+              id="street"
+              type="text"
+              value={street}
+              onChange={e => setStreet(e.target.value)}
+              maxLength={200}
+              placeholder="Musterstraße 1"
+              className={inputClass}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="grid grid-cols-[120px_1fr] gap-4">
+            <div>
+              <label htmlFor="zip" className={labelClass}>PLZ</label>
+              <input
+                id="zip"
+                type="text"
+                value={zip}
+                onChange={e => setZip(e.target.value)}
+                maxLength={20}
+                placeholder="80331"
+                className={inputClass}
+                disabled={saving}
+              />
+            </div>
+            <div>
+              <label htmlFor="city" className={labelClass}>Stadt</label>
+              <input
+                id="city"
+                type="text"
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                maxLength={100}
+                placeholder="München"
+                className={inputClass}
+                disabled={saving}
+              />
+            </div>
           </div>
 
           {error && (

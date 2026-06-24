@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('full_name, company, role, tier, stripe_customer_id')
+    .select('full_name, company, role, tier, stripe_customer_id, phone, mobile, street, zip, city')
     .eq('id', user.id)
     .single() as {
       data: {
@@ -23,6 +23,11 @@ export default async function SettingsPage() {
         role: string | null
         tier: string
         stripe_customer_id: string | null
+        phone: string | null
+        mobile: string | null
+        street: string | null
+        zip: string | null
+        city: string | null
       } | null
     }
 
@@ -32,6 +37,11 @@ export default async function SettingsPage() {
     role: profileData?.role ?? null,
     tier: (profileData?.tier ?? 'free') as Tier,
     stripe_customer_id: profileData?.stripe_customer_id ?? null,
+    phone: profileData?.phone ?? null,
+    mobile: profileData?.mobile ?? null,
+    street: profileData?.street ?? null,
+    zip: profileData?.zip ?? null,
+    city: profileData?.city ?? null,
   }
 
   return (

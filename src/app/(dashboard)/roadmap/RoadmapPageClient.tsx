@@ -7,6 +7,7 @@ import type { Archetype, Tier } from '@/types'
 
 type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }
 type MilestoneStatus = 'not_started' | 'in_progress' | 'done'
+type SavedRoadmap = { id: string; archetype: string; phases: unknown[] }
 
 const MILESTONE_NEXT: Record<MilestoneStatus, MilestoneStatus> = {
   not_started: 'in_progress',
@@ -29,16 +30,35 @@ interface Props {
   fromAssessment: boolean
   tier: Tier
   topUseCases: TopUseCase[]
+  savedRoadmap: SavedRoadmap | null
 }
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
 const PHASES = ['phase1', 'phase2', 'phase3'] as const
 
-export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases }: Props) {
-  const [archetype, setArchetype] = useState<Archetype>(initialArchetype ?? 'starter')
-  const [milestones, setMilestones] = useState<Record<string, MilestoneStatus>>({})
+function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus> {
+  const result: Record<string, MilestoneStatus> = {}
+  for (const phase of phases) {
+    const p = phase as { phase?: string; milestones?: Record<string, string> }
+    if (p.phase && p.milestones) {
+      for (const [key, val] of Object.entries(p.milestones)) {
+        result[`${p.phase}_${key}`] = val as MilestoneStatus
+      }
+    }
+  }
+  return result
+}
+
+export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap }: Props) {
+  const [archetype, setArchetype] = useState<Archetype>(
+    (savedRoadmap?.archetype as Archetype | undefined) ?? initialArchetype ?? 'starter'
+  )
+  const [milestones, setMilestones] = useState<Record<string, MilestoneStatus>>(
+    savedRoadmap?.phases ? milestonesFromPhases(savedRoadmap.phases) : {}
+  )
+  const [savedId, setSavedId] = useState<string | null>(savedRoadmap?.id ?? null)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [saved, setSaved] = useState(!!savedRoadmap)
 
   const handleArchetypeChange = (a: Archetype) => { setArchetype(a); setSaved(false) }
 
@@ -59,12 +79,19 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
     })
     setSaving(true)
     try {
-      const res = await fetch('/api/roadmap', {
-        method: 'POST',
+      const [url, method] = savedId
+        ? [`/api/roadmap/${savedId}`, 'PATCH']
+        : ['/api/roadmap', 'POST']
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ archetype, phases }),
       })
-      if (res.ok) setSaved(true)
+      if (res.ok) {
+        const { data } = await res.json()
+        if (data?.id && !savedId) setSavedId(data.id)
+        setSaved(true)
+      }
     } finally {
       setSaving(false)
     }

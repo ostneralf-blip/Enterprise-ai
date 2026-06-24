@@ -29,7 +29,7 @@ describe('Security: Roadmap-Generator', () => {
       const source = readFileSync(
         join(process.cwd(), 'src/app/(dashboard)/roadmap/RoadmapPageClient.tsx'), 'utf-8'
       )
-      expect(source).toContain("fetch('/api/roadmap'")
+      expect(source).toContain('/api/roadmap')
       expect(source).not.toContain("from '@/lib/supabase")
     })
   })
