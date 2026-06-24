@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 import type { Tier } from '@/types'
 
 interface Props {
@@ -40,9 +41,37 @@ export function SettingsPageClient({ profile, email }: Props) {
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
 
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwSaved, setPwSaved] = useState(false)
+  const [pwError, setPwError] = useState<string | null>(null)
+
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const pwRules = {
+    length: newPassword.length >= 8,
+    uppercase: /[A-Z]/.test(newPassword),
+    number: /[0-9\W]/.test(newPassword),
+  }
+  const pwValid = Object.values(pwRules).every(Boolean) && newPassword === confirmPassword && newPassword.length > 0
+
+  const handlePasswordChange = async () => {
+    if (!pwValid) { setPwError('Bitte alle Passwort-Anforderungen erfüllen.'); return }
+    if (newPassword !== confirmPassword) { setPwError('Passwörter stimmen nicht überein.'); return }
+    setPwSaving(true)
+    setPwError(null)
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    setPwSaving(false)
+    if (error) { setPwError(error.message); return }
+    setPwSaved(true)
+    setNewPassword('')
+    setConfirmPassword('')
+    setTimeout(() => setPwSaved(false), 4000)
+  }
 
   const hasBilling = profile.tier !== 'free' && !!profile.stripe_customer_id
 
@@ -177,6 +206,50 @@ export function SettingsPageClient({ profile, email }: Props) {
             </dd>
           </div>
         </dl>
+      </section>
+
+      {/* Sicherheit */}
+      <section aria-labelledby="security-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+        <h2 id="security-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">Sicherheit</h2>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="new-password" className={labelClass}>Neues Passwort</label>
+            <input id="new-password" type="password" value={newPassword}
+              onChange={e => { setNewPassword(e.target.value); setPwSaved(false) }}
+              placeholder="Neues Passwort eingeben"
+              className={inputClass} disabled={pwSaving} />
+            {newPassword.length > 0 && (
+              <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
+                {([
+                  { ok: pwRules.length, label: 'Mindestens 8 Zeichen' },
+                  { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
+                  { ok: pwRules.number, label: 'Mindestens 1 Zahl oder Sonderzeichen' },
+                ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
+                  <li key={label} className={cn('text-xs flex items-center gap-1.5 transition-colors', ok ? 'text-emerald-600' : 'text-slate-400')}>
+                    <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <label htmlFor="confirm-password" className={labelClass}>Passwort bestätigen</label>
+            <input id="confirm-password" type="password" value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Passwort wiederholen"
+              className={cn(inputClass, confirmPassword.length > 0 && newPassword !== confirmPassword ? 'border-red-300 focus:ring-red-400' : '')}
+              disabled={pwSaving} />
+            {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+              <p className="text-xs text-red-500 mt-1">Passwörter stimmen nicht überein.</p>
+            )}
+          </div>
+          {pwError && <p role="alert" className="text-sm text-red-600">{pwError}</p>}
+          {pwSaved && <p role="status" className="text-sm text-emerald-600 font-medium">✓ Passwort erfolgreich geändert</p>}
+          <button type="button" onClick={handlePasswordChange} disabled={!pwValid || pwSaving}
+            className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            {pwSaving ? 'Wird gespeichert…' : 'Passwort ändern'}
+          </button>
+        </div>
       </section>
 
       {/* Abrechnung — nur Pro/Enterprise */}

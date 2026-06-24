@@ -126,22 +126,6 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
         </div>
       )}
 
-      {/* Aktions-Leiste */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        {!saved && (
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
-          </button>
-        )}
-        {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
-        <a href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
-          {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5">
-          PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
-        </a>
-      </div>
-
       {/* 3-Phasen-Roadmap */}
       <div className="space-y-4">
         {PHASES.map(phaseId => {
@@ -213,6 +197,22 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             </section>
           )
         })}
+      </div>
+
+      {/* Aktions-Leiste — unterhalb der Phasen */}
+      <div className="flex flex-wrap items-center gap-3 mt-6">
+        {!saved && (
+          <button onClick={handleSave} disabled={saving}
+            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
+          </button>
+        )}
+        {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
+        <a href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
+          {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5">
+          PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+        </a>
       </div>
     </div>
   )

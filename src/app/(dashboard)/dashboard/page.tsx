@@ -184,9 +184,17 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
         <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
-          <div className="text-slate-400 text-lg mb-1">⬡</div>
-          <div className="text-2xl font-semibold text-slate-900">{accessibleToolCount}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Verfügbare Tools</div>
+          <div className="text-slate-400 text-lg mb-1.5">◈</div>
+          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+            tier === 'pro' ? 'bg-blue-100 text-blue-700' :
+            tier === 'enterprise' ? 'bg-violet-100 text-violet-700' :
+            'bg-slate-100 text-slate-600'
+          }`}>
+            {tier === 'pro' ? 'Pro' : tier === 'enterprise' ? 'Enterprise' : 'Free'}
+          </span>
+          <div className="text-xs text-slate-500 mt-1.5">
+            {tier === 'free' ? `${accessibleToolCount} von 7 Tools verfügbar` : 'Alle 7 Tools verfügbar'}
+          </div>
         </div>
         <Link href="/ergebnisse" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-4 sm:p-5 block transition-all">
           <div className="text-slate-400 text-lg mb-1">□</div>
@@ -230,19 +238,19 @@ export default async function DashboardPage() {
           const locked = !hasAccess(tier, mod.requiredTier)
           return (
             <Link key={mod.id} href={locked ? '/upgrade' : `/${mod.id}`}
-              className="group bg-white border border-slate-200 hover:border-blue-300 rounded-xl p-6 transition-all hover:shadow-sm block">
+              className={`group bg-white border border-slate-200 rounded-xl p-6 transition-all block ${locked ? 'opacity-60' : 'hover:border-blue-300 hover:shadow-sm'}`}>
               <div className="flex items-start justify-between mb-4">
                 <span className="text-2xl">{mod.icon}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5">{mod.duration}</span>
-                  {locked && <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5">Pro</span>}
+                  {locked && <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 font-medium">Pro</span>}
                 </div>
               </div>
-              <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-blue-700 transition-colors">{mod.title}</h3>
+              <h3 className={`font-semibold text-slate-900 mb-1 transition-colors ${!locked ? 'group-hover:text-blue-700' : ''}`}>{mod.title}</h3>
               <p className="text-xs text-slate-500 mb-1">{(tier !== 'free' && mod.subtitlePro) ? mod.subtitlePro : mod.subtitle}</p>
               <p className="text-sm text-slate-600 leading-relaxed mt-3">{mod.description}</p>
-              <div className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700">
-                {locked ? 'Upgrade für Zugang →' : 'Starten →'}
+              <div className={`mt-4 text-xs font-medium ${locked ? 'text-slate-400' : 'text-blue-600 group-hover:text-blue-700'}`}>
+                {locked ? '🔒 Pro erforderlich →' : 'Starten →'}
               </div>
             </Link>
           )
@@ -250,7 +258,34 @@ export default async function DashboardPage() {
       </div>
 
       {tier === 'free' && (
-        <div className="mt-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
+        <div className="mt-8 mb-4">
+          <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Free vs. Pro</h2>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="grid grid-cols-[1fr_60px_60px] bg-slate-50 border-b border-slate-100">
+              <div className="px-4 py-2.5 text-xs font-medium text-slate-500">Feature</div>
+              <div className="px-3 py-2.5 text-xs font-medium text-slate-500 text-center">Free</div>
+              <div className="px-3 py-2.5 text-xs font-medium text-blue-600 text-center">Pro</div>
+            </div>
+            {([
+              { label: '5 Basis-Tools (Assessment, Scoring, Governance, Roadmap, Canvas)', free: true, pro: true },
+              { label: 'Compliance Center (EU AI Act + DSGVO)', free: false, pro: true },
+              { label: 'Architektur-Generator', free: false, pro: true },
+              { label: 'PDF-Export für alle Module', free: false, pro: true },
+              { label: 'Ergebnisse speichern & laden', free: false, pro: true },
+              { label: 'Versionierung & Link-Sharing', free: false, pro: true },
+            ] as { label: string; free: boolean; pro: boolean }[]).map(({ label, free, pro }) => (
+              <div key={label} className="grid grid-cols-[1fr_60px_60px] border-t border-slate-100">
+                <div className="px-4 py-2.5 text-sm text-slate-700">{label}</div>
+                <div className="px-3 py-2.5 text-center text-sm">{free ? <span className="text-emerald-600 font-medium">✓</span> : <span className="text-slate-300">—</span>}</div>
+                <div className="px-3 py-2.5 text-center text-sm">{pro ? <span className="text-blue-600 font-medium">✓</span> : <span className="text-slate-300">—</span>}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tier === 'free' && (
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div>
             <div className="text-white font-semibold mb-1">Auf Professional upgraden</div>
             <div className="text-blue-200 text-sm">PDF-Export, Ergebnisse speichern, Versionierung und alle 7 Tools.</div>

@@ -16,8 +16,16 @@ export function RegisterForm() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
+  const pwRules = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    number: /[0-9\W]/.test(password),
+  }
+  const pwValid = Object.values(pwRules).every(Boolean)
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!pwValid) { setError('Bitte alle Passwort-Anforderungen erfüllen.'); return }
     setLoading(true)
     setError('')
     track('register_started')
@@ -99,8 +107,21 @@ export function RegisterForm() {
         </div>
         <div>
           <label className="block text-slate-400 text-xs mb-1.5 font-medium">PASSWORT</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} placeholder="Mindestens 8 Zeichen"
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Mindestens 8 Zeichen"
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
+          {password.length > 0 && (
+            <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
+              {([
+                { ok: pwRules.length,    label: 'Mindestens 8 Zeichen' },
+                { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
+                { ok: pwRules.number,    label: 'Mindestens 1 Zahl oder Sonderzeichen' },
+              ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
+                <li key={label} className={`text-xs flex items-center gap-1.5 transition-colors ${ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <button type="submit" disabled={loading}
           className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
