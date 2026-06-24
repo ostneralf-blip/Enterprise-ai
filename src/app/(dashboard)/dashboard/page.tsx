@@ -142,6 +142,26 @@ export default async function DashboardPage() {
   const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0) + (assessmentCount ?? 0)
   const accessibleToolCount = MODULES.filter(mod => hasAccess(tier, mod.requiredTier)).length
 
+  const moduleDone: Record<string, boolean> = {
+    assessment:  (assessmentCount ?? 0) > 0,
+    usecase:     (usecaseCount ?? 0) > 0,
+    canvas:      (canvasCount ?? 0) > 0,
+    governance:  (governanceCount ?? 0) > 0,
+    compliance:  (complianceCount ?? 0) > 0,
+    architecture:(architectureCount ?? 0) > 0,
+    roadmap:     (roadmapCount ?? 0) > 0,
+  }
+
+  const moduleHint: Record<string, string | null> = {
+    usecase:     !moduleDone.assessment ? 'Tipp: zuerst Assessment →' : null,
+    canvas:      !moduleDone.usecase ? 'Tipp: zuerst Use-Case Scoring →' : null,
+    governance:  !moduleDone.canvas ? 'Tipp: zuerst Canvas →' : null,
+    compliance:  null,
+    architecture:!moduleDone.governance ? 'Tipp: zuerst Governance →' : null,
+    roadmap:     !moduleDone.assessment ? 'Tipp: zuerst Assessment →' : null,
+    assessment:  null,
+  }
+
   const guidedSteps: PathStep[] = [
     {
       step: 1, icon: '◎', title: 'AI-Readiness Assessment', desc: 'Archetype & Reifegrad bestimmen',
@@ -236,12 +256,23 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {MODULES.map(mod => {
           const locked = !hasAccess(tier, mod.requiredTier)
+          const done = moduleDone[mod.id] ?? false
+          const hint = !locked ? (moduleHint[mod.id] ?? null) : null
           return (
             <Link key={mod.id} href={locked ? '/upgrade' : `/${mod.id}`}
-              className={`group bg-white border border-slate-200 rounded-xl p-6 transition-all block ${locked ? 'opacity-60' : 'hover:border-blue-300 hover:shadow-sm'}`}>
+              className={`group bg-white rounded-xl p-6 transition-all block ${
+                locked
+                  ? 'opacity-60 border border-slate-200'
+                  : done
+                    ? 'border border-emerald-200 hover:border-emerald-300 hover:shadow-sm'
+                    : 'border border-slate-200 hover:border-blue-300 hover:shadow-sm'
+              }`}>
               <div className="flex items-start justify-between mb-4">
                 <span className="text-2xl">{mod.icon}</span>
                 <div className="flex items-center gap-2">
+                  {done && !locked && (
+                    <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 font-medium">✓ Erledigt</span>
+                  )}
                   <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5">{mod.duration}</span>
                   {locked && <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 font-medium">Pro</span>}
                 </div>
@@ -249,9 +280,12 @@ export default async function DashboardPage() {
               <h3 className={`font-semibold text-slate-900 mb-1 transition-colors ${!locked ? 'group-hover:text-blue-700' : ''}`}>{mod.title}</h3>
               <p className="text-xs text-slate-500 mb-1">{(tier !== 'free' && mod.subtitlePro) ? mod.subtitlePro : mod.subtitle}</p>
               <p className="text-sm text-slate-600 leading-relaxed mt-3">{mod.description}</p>
-              <div className={`mt-4 text-xs font-medium ${locked ? 'text-slate-400' : 'text-blue-600 group-hover:text-blue-700'}`}>
-                {locked ? '🔒 Pro erforderlich →' : 'Starten →'}
+              <div className={`mt-4 text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600 group-hover:text-emerald-700' : 'text-blue-600 group-hover:text-blue-700'}`}>
+                {locked ? '🔒 Pro erforderlich →' : done ? 'Ergebnis ansehen →' : 'Starten →'}
               </div>
+              {hint && (
+                <p className="mt-2 text-xs text-amber-600 font-medium">{hint}</p>
+              )}
             </Link>
           )
         })}

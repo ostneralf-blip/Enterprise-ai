@@ -63,11 +63,38 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Trust Bar */}
+      <div className="border-t border-slate-800 bg-slate-900/60 py-5">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wide font-medium">Sicherheit & Compliance</p>
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+            {[
+              { icon: '🇩🇪', label: 'Hosting: Frankfurt EU' },
+              { icon: '🔒', label: 'DSGVO-konform' },
+              { icon: '🛡', label: 'Row-Level-Security' },
+              { icon: '💳', label: 'Stripe PCI-DSS' },
+              { icon: '👁', label: 'Cookieless Analytics' },
+            ].map(b => (
+              <div key={b.label} className="flex items-center gap-1.5 text-xs text-slate-400">
+                <span>{b.icon}</span>
+                <span>{b.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-center mt-3">
+            <Link href="/trust" className="text-xs text-slate-500 hover:text-slate-300 underline transition-colors">
+              Details zur Sicherheit & Datenschutz →
+            </Link>
+          </p>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-slate-800 py-6 text-center text-slate-600 text-xs">
         © 2026 AI Navigator · enterprise-ai.biz ·{' '}
         <Link href="/datenschutz" className="hover:text-slate-400">Datenschutz</Link> ·{' '}
-        <Link href="/impressum" className="hover:text-slate-400">Impressum</Link>
+        <Link href="/impressum" className="hover:text-slate-400">Impressum</Link> ·{' '}
+        <Link href="/trust" className="hover:text-slate-400">Sicherheit</Link>
       </footer>
     </div>
   )

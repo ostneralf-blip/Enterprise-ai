@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { QUADRANT_META } from '@/config/usecase-data'
 import type { UseCase } from '@/types'
 
@@ -23,6 +24,8 @@ const quadrantBadge = (q: UseCase['quadrant']) => {
 }
 
 export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) {
+  const [search, setSearch] = useState('')
+
   if (useCases.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
@@ -32,8 +35,29 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
     )
   }
 
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? useCases.filter(uc =>
+        uc.name.toLowerCase().includes(q) ||
+        (uc.domain ?? '').toLowerCase().includes(q) ||
+        (uc.description ?? '').toLowerCase().includes(q)
+      )
+    : useCases
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      {useCases.length > 3 && (
+        <div className="px-4 pt-3 pb-2 border-b border-slate-100">
+          <input
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Use Cases suchen…"
+            aria-label="Use Cases suchen"
+            className="w-full sm:w-64 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="table">
           <thead>
@@ -51,7 +75,14 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {useCases.map(uc => (
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={10} className="px-4 py-8 text-center text-sm text-slate-400">
+                  Keine Use Cases für „{search}" gefunden.
+                </td>
+              </tr>
+            )}
+            {filtered.map(uc => (
               <tr key={uc.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3">
                   <div className="font-medium text-slate-900 min-w-0 max-w-[200px] truncate">{uc.name}</div>

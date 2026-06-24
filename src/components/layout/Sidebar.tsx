@@ -87,10 +87,16 @@ export function Sidebar({ profile }: SidebarProps) {
       )}
 
       {/* Legal-Footer */}
-      <div className="px-4 py-3 border-t border-slate-800 flex gap-3">
-        <Link href="/impressum" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Impressum</Link>
-        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Datenschutz</Link>
-        <Link href="/agb" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">AGB</Link>
+      <div className="px-4 py-3 border-t border-slate-800 space-y-2">
+        <div className="flex gap-3">
+          <Link href="/impressum" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Impressum</Link>
+          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Datenschutz</Link>
+          <Link href="/agb" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">AGB</Link>
+        </div>
+        <div className="flex items-center justify-between">
+          <Link href="/trust" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
+          <span className="text-xs text-slate-700">v0.5.0</span>
+        </div>
       </div>
     </>
   )
