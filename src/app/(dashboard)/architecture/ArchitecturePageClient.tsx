@@ -6,6 +6,7 @@ import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import { recommendFromWizard, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent } from '@/types'
+import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 
 const LAYER_ICONS = ['◎', '◐', '▷', '□']
 
@@ -387,6 +388,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             ))}
           </div>
         </div>
+
+        {/* Architecture diagram */}
+        {catalogRecs && (
+          <ArchitectureDiagram recs={catalogRecs} components={recComponents} tier={tier} />
+        )}
 
         {/* Catalog recommendations */}
         {catalogRecs && (
