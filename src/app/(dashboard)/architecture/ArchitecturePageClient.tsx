@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import { recommendFromWizard, type CatalogRecommendations } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent } from '@/types'
 
 const LAYER_ICONS = ['◎', '◐', '▷', '□']
@@ -115,6 +115,40 @@ const LAYER_LABEL: Record<string, string> = {
   governance: 'Governance', security: 'Security', application: 'Anwendung',
 }
 
+const JOULE_DOMAIN_BADGE: Record<string, string> = {
+  Finance: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'Supply Chain': 'bg-blue-50 text-blue-700 border-blue-200',
+  HR: 'bg-violet-50 text-violet-700 border-violet-200',
+  Procurement: 'bg-amber-50 text-amber-700 border-amber-200',
+  CX: 'bg-pink-50 text-pink-700 border-pink-200',
+  Transformation: 'bg-slate-100 text-slate-700 border-slate-200',
+}
+
+function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
+  if (useCases.length === 0) return null
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">SAP</span>
+        <h3 className="text-sm font-semibold text-slate-900">Joule Use Cases für Ihre Branche</h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {useCases.map(uc => (
+          <div key={uc.name} className="border border-slate-100 rounded-xl p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', JOULE_DOMAIN_BADGE[uc.domain] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+                {uc.domain}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-slate-800">{uc.name}</p>
+            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{uc.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecommendations; components: CatalogComponent[] }) {
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
   return (
@@ -170,6 +204,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
+  const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
 
   const totalSteps = WIZARD_STEPS.length
@@ -184,6 +219,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
   function applyRecs(wizardAnswers: WizardAnswers) {
     setCatalogRecs(recommendFromWizard(wizardAnswers))
+    setJouleUseCases(recommendJouleUseCases(wizardAnswers))
     if (!catalogFetched.current) {
       catalogFetched.current = true
       fetch('/api/catalog/components')
@@ -215,6 +251,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSaved(false)
     setSavedId(null)
     setCatalogRecs(null)
+    setJouleUseCases([])
     setView('wizard')
   }
 
@@ -356,6 +393,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} />
         )}
 
+        {/* SAP Joule use cases */}
+        <JouleUseCasesCard useCases={jouleUseCases} />
+
         {/* Key decisions + Next steps */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
@@ -433,6 +473,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               Alle Architekturen
             </button>
           )}
+        </div>
+
+        {/* Canvas CTA */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-blue-900">Nächster Schritt: AI Business Canvas</p>
+            <p className="text-xs text-blue-700 mt-0.5">Übersetzen Sie Ihre Architektur in einen konkreten Business Case — mit Problem, Lösung, KPIs und Stakeholdern.</p>
+          </div>
+          <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Canvas öffnen →
+          </a>
         </div>
       </div>
     )

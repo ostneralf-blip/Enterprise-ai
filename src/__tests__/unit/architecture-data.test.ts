@@ -3,8 +3,8 @@ import { WIZARD_STEPS, generateArchitecture, selectPattern, type WizardAnswers }
 describe('Architektur-Daten: Integrität', () => {
 
   describe('Wizard-Schritte', () => {
-    it('genau 8 Wizard-Schritte sind definiert (5 Basis + 3 Technologie-Spezifikation)', () => {
-      expect(WIZARD_STEPS).toHaveLength(8)
+    it('genau 12 Wizard-Schritte sind definiert', () => {
+      expect(WIZARD_STEPS).toHaveLength(12)
     })
 
     it('jeder Schritt hat id, step, question, context und options', () => {
@@ -17,31 +17,60 @@ describe('Architektur-Daten: Integrität', () => {
       })
     })
 
-    it('Schritte sind von 1–8 durchnummeriert', () => {
+    it('Schritte sind von 1–12 durchnummeriert', () => {
       WIZARD_STEPS.forEach((step, i) => {
         expect(step.step).toBe(i + 1)
       })
     })
 
-    it('Schritt 6 fragt nach Data-Plattform', () => {
-      const step6 = WIZARD_STEPS[5]
-      expect(step6.id).toBe('data_platform')
-      expect(step6.options.some(o => o.id === 'sap_bw')).toBe(true)
-      expect(step6.options.some(o => o.id === 'snowflake')).toBe(true)
+    it('Schritt 5 fragt nach SAP-Landschaft', () => {
+      const step = WIZARD_STEPS[4]
+      expect(step.id).toBe('sap_landscape')
+      expect(step.options.some(o => o.id === 'full')).toBe(true)
+      expect(step.options.some(o => o.id === 'none')).toBe(true)
     })
 
-    it('Schritt 7 fragt nach Model-Plattform', () => {
-      const step7 = WIZARD_STEPS[6]
-      expect(step7.id).toBe('model_platform')
-      expect(step7.options.some(o => o.id === 'sap_ai_core')).toBe(true)
-      expect(step7.options.some(o => o.id === 'cloud_ml')).toBe(true)
+    it('Schritt 6 fragt nach Cloud-Anbieter', () => {
+      const step = WIZARD_STEPS[5]
+      expect(step.id).toBe('cloud_provider_hint')
+      expect(step.options.some(o => o.id === 'azure')).toBe(true)
+      expect(step.options.some(o => o.id === 'aws')).toBe(true)
+      expect(step.options.some(o => o.id === 'sap_btp')).toBe(true)
     })
 
-    it('Schritt 8 fragt nach Monitoring-Ansatz', () => {
-      const step8 = WIZARD_STEPS[7]
-      expect(step8.id).toBe('monitoring')
-      expect(step8.options.some(o => o.id === 'enterprise')).toBe(true)
-      expect(step8.options.some(o => o.id === 'open_source_monitor')).toBe(true)
+    it('Schritt 7 fragt nach Branche', () => {
+      const step = WIZARD_STEPS[6]
+      expect(step.id).toBe('industry')
+      expect(step.options.some(o => o.id === 'finance')).toBe(true)
+      expect(step.options.some(o => o.id === 'manufacturing')).toBe(true)
+    })
+
+    it('Schritt 8 fragt nach Unternehmensgröße', () => {
+      const step = WIZARD_STEPS[7]
+      expect(step.id).toBe('company_size')
+      expect(step.options.some(o => o.id === 'small')).toBe(true)
+      expect(step.options.some(o => o.id === 'enterprise')).toBe(true)
+    })
+
+    it('Schritt 10 fragt nach Data-Plattform', () => {
+      const step = WIZARD_STEPS[9]
+      expect(step.id).toBe('data_platform')
+      expect(step.options.some(o => o.id === 'sap_bw')).toBe(true)
+      expect(step.options.some(o => o.id === 'snowflake')).toBe(true)
+    })
+
+    it('Schritt 11 fragt nach Model-Plattform', () => {
+      const step = WIZARD_STEPS[10]
+      expect(step.id).toBe('model_platform')
+      expect(step.options.some(o => o.id === 'sap_ai_core')).toBe(true)
+      expect(step.options.some(o => o.id === 'cloud_ml')).toBe(true)
+    })
+
+    it('Schritt 12 fragt nach Monitoring-Ansatz', () => {
+      const step = WIZARD_STEPS[11]
+      expect(step.id).toBe('monitoring')
+      expect(step.options.some(o => o.id === 'enterprise')).toBe(true)
+      expect(step.options.some(o => o.id === 'open_source_monitor')).toBe(true)
     })
 
     it('jede Option hat id, label und description', () => {

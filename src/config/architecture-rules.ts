@@ -1,5 +1,8 @@
 import type { WizardAnswers } from './architecture-data'
 import type { ArchLayer } from '@/types'
+import { SEED_JOULE_USE_CASES, type JouleUseCase } from './catalog-seed'
+
+export type { JouleUseCase }
 
 export interface LayerRecommendation {
   layer: ArchLayer
@@ -11,11 +14,36 @@ export interface CatalogRecommendations {
   roleNames: string[]
 }
 
-function isSAP(a: WizardAnswers)   { return a.data_platform === 'sap_bw' || a.model_platform === 'sap_ai_core' }
-function isAzure(a: WizardAnswers) { return a.data_platform === 'azure_fabric' }
-function isAWS(a: WizardAnswers)   { return !isSAP(a) && !isAzure(a) && (a.infra === 'cloud' || a.infra === 'multicloud') }
+function isSAP(a: WizardAnswers) {
+  return a.cloud_provider_hint === 'sap_btp'
+      || a.data_platform === 'sap_bw'
+      || a.model_platform === 'sap_ai_core'
+      || (a.sap_landscape !== undefined && a.sap_landscape !== 'none')
+}
+function isAzure(a: WizardAnswers) {
+  return a.cloud_provider_hint === 'azure' || a.data_platform === 'azure_fabric'
+}
+function isAWS(a: WizardAnswers) {
+  return a.cloud_provider_hint === 'aws'
+      || (!isSAP(a) && !isAzure(a) && a.cloud_provider_hint !== 'gcp'
+          && (a.infra === 'cloud' || a.infra === 'multicloud'))
+}
 function isOnprem(a: WizardAnswers){ return a.infra === 'onprem' }
 function isHybrid(a: WizardAnswers){ return a.infra === 'hybrid' }
+
+const INDUSTRY_DOMAINS: Record<string, string[]> = {
+  finance:            ['Finance', 'Procurement'],
+  manufacturing:      ['Supply Chain', 'Finance'],
+  healthcare_public:  ['HR', 'Finance'],
+  retail_consumer:    ['CX', 'Procurement', 'Supply Chain'],
+  other:              ['Finance', 'Supply Chain', 'HR', 'Procurement', 'CX', 'Transformation'],
+}
+
+export function recommendJouleUseCases(answers: WizardAnswers): JouleUseCase[] {
+  if (!isSAP(answers) || answers.sap_landscape === 'none') return []
+  const domains = answers.industry ? INDUSTRY_DOMAINS[answers.industry] : INDUSTRY_DOMAINS.other
+  return SEED_JOULE_USE_CASES.filter(uc => domains.includes(uc.domain)).slice(0, 6)
+}
 
 export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendations {
   const sap    = isSAP(answers)
@@ -28,7 +56,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   // ── DATA ─────────────────────────────────────────────────────────────────
   const data: string[] = []
-  if (answers.data_platform === 'sap_bw') {
+  if (answers.data_platform === 'sap_bw' || (sap && !answers.data_platform)) {
     data.push('SAP Datasphere', 'SAP HANA Cloud')
     if (!onprem) data.push('Apache Kafka')
   } else if (answers.data_platform === 'azure_fabric') {
@@ -46,7 +74,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   // ── MODEL ─────────────────────────────────────────────────────────────────
   const model: string[] = []
-  if (answers.model_platform === 'sap_ai_core') {
+  if (answers.model_platform === 'sap_ai_core' || (sap && !answers.model_platform)) {
     model.push('SAP AI Core')
     if (gen) model.push('SAP GenAI Hub')
   } else if (answers.model_platform === 'cloud_ml') {
@@ -59,6 +87,10 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
     if (azure) model.push('Azure OpenAI Service')
     else if (sap) model.push('SAP GenAI Hub')
     else model.push('AWS Bedrock')
+  } else if (azure) {
+    model.push('Azure Machine Learning')
+  } else if (aws) {
+    model.push('Amazon SageMaker')
   }
   if (gen) {
     if (strict || onprem) {

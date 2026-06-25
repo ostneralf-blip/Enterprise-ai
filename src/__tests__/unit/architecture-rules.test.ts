@@ -1,4 +1,4 @@
-import { recommendFromWizard } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendJouleUseCases } from '@/config/architecture-rules'
 
 describe('architecture-rules: recommendFromWizard', () => {
   it('SAP-Stack empfiehlt SAP-Komponenten', () => {
@@ -74,5 +74,58 @@ describe('architecture-rules: recommendFromWizard', () => {
     const recs = recommendFromWizard({ skills: 'team', compliance: 'strict', usecase: 'generative', data_platform: 'sap_bw' })
     const unique = new Set(recs.roleNames)
     expect(unique.size).toBe(recs.roleNames.length)
+  })
+
+  it('cloud_provider_hint=azure → Azure-Komponenten auch ohne data_platform', () => {
+    const recs = recommendFromWizard({ infra: 'cloud', cloud_provider_hint: 'azure' })
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).toContain('Azure Machine Learning')
+  })
+
+  it('cloud_provider_hint=sap_btp → SAP-Pfad auch ohne data_platform', () => {
+    const recs = recommendFromWizard({ cloud_provider_hint: 'sap_btp' })
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).toContain('SAP Integration Suite')
+  })
+
+  it('sap_landscape=full → SAP-Pfad erkannt', () => {
+    const recs = recommendFromWizard({ sap_landscape: 'full', usecase: 'generative' })
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).toContain('SAP Datasphere')
+    expect(allNames).toContain('SAP Integration Suite')
+  })
+})
+
+describe('architecture-rules: recommendJouleUseCases', () => {
+  it('kein SAP → leere Liste', () => {
+    expect(recommendJouleUseCases({ sap_landscape: 'none' })).toHaveLength(0)
+    expect(recommendJouleUseCases({ infra: 'cloud' })).toHaveLength(0)
+  })
+
+  it('SAP full → Use Cases zurückgegeben', () => {
+    const ucs = recommendJouleUseCases({ sap_landscape: 'full' })
+    expect(ucs.length).toBeGreaterThan(0)
+    expect(ucs.length).toBeLessThanOrEqual(6)
+  })
+
+  it('Finance-Branche → Finance/Procurement-Use-Cases', () => {
+    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'finance' })
+    expect(ucs.every(uc => ['Finance', 'Procurement'].includes(uc.domain))).toBe(true)
+  })
+
+  it('Manufacturing-Branche → Supply Chain/Finance-Use-Cases', () => {
+    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'manufacturing' })
+    expect(ucs.every(uc => ['Supply Chain', 'Finance'].includes(uc.domain))).toBe(true)
+  })
+
+  it('cloud_provider_hint=sap_btp → Use Cases auch ohne sap_landscape', () => {
+    const ucs = recommendJouleUseCases({ cloud_provider_hint: 'sap_btp', industry: 'retail_consumer' })
+    expect(ucs.length).toBeGreaterThan(0)
+    expect(ucs.every(uc => ['CX', 'Procurement', 'Supply Chain'].includes(uc.domain))).toBe(true)
+  })
+
+  it('max 6 Use Cases zurückgegeben', () => {
+    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'other' })
+    expect(ucs.length).toBeLessThanOrEqual(6)
   })
 })

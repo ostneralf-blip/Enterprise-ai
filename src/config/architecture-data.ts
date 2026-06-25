@@ -2,6 +2,10 @@ export type InfraOption = 'cloud' | 'hybrid' | 'onprem' | 'multicloud'
 export type DataOption = 'centralized' | 'distributed' | 'silos' | 'to_build'
 export type SkillsOption = 'team' | 'individuals' | 'business' | 'external'
 export type UseCaseOption = 'predictive' | 'generative' | 'vision' | 'automation'
+export type SapLandscapeOption = 'full' | 'partial' | 'planned' | 'none'
+export type CloudProviderHintOption = 'azure' | 'aws' | 'gcp' | 'sap_btp' | 'none_or_multi'
+export type IndustryOption = 'finance' | 'manufacturing' | 'healthcare_public' | 'retail_consumer' | 'other'
+export type CompanySizeOption = 'small' | 'medium' | 'large' | 'enterprise'
 export type ComplianceOption = 'strict' | 'moderate' | 'low' | 'undefined'
 export type DataPlatformOption = 'sap_bw' | 'snowflake' | 'azure_fabric' | 'open_source'
 export type ModelPlatformOption = 'sap_ai_core' | 'cloud_ml' | 'open_mlops' | 'no_code'
@@ -13,6 +17,10 @@ export interface WizardAnswers {
   data?: DataOption
   skills?: SkillsOption
   usecase?: UseCaseOption
+  sap_landscape?: SapLandscapeOption
+  cloud_provider_hint?: CloudProviderHintOption
+  industry?: IndustryOption
+  company_size?: CompanySizeOption
   compliance?: ComplianceOption
   data_platform?: DataPlatformOption
   model_platform?: ModelPlatformOption
@@ -83,8 +91,58 @@ export const WIZARD_STEPS: WizardStep[] = [
     ],
   },
   {
-    id: 'compliance',
+    id: 'sap_landscape',
     step: 5,
+    question: 'Ist SAP Bestandteil Ihrer aktuellen Systemlandschaft?',
+    context: 'SAP-Systeme haben dedizierte AI-Integrationspfade (BTP, Joule, AI Core) — relevant für die Komponenten- und Plattformauswahl.',
+    options: [
+      { id: 'full', label: 'Ja, SAP-Kernsystem (S/4HANA / ERP)', description: 'SAP ist das zentrale Geschäftssystem — enge AI-Integration auf SAP BTP geplant' },
+      { id: 'partial', label: 'Teilweise (einzelne SAP-Produkte)', description: 'Einige SAP-Komponenten im Einsatz, kein vollständiger SAP-Stack' },
+      { id: 'planned', label: 'SAP-Migration ist in Planung', description: 'Aktuell kein SAP, aber S/4HANA- oder BTP-Einführung geplant' },
+      { id: 'none', label: 'Nein, kein SAP', description: 'SAP spielt in der AI-Architektur keine Rolle' },
+    ],
+  },
+  {
+    id: 'cloud_provider_hint',
+    step: 6,
+    question: 'Welchen Cloud-Anbieter nutzen oder evaluieren Sie primär?',
+    context: 'Der Cloud-Anbieter entscheidet konkret über verfügbare Managed Services, ML-Plattformen und Compliance-Optionen.',
+    options: [
+      { id: 'azure', label: 'Microsoft Azure', description: 'Azure als primäre Cloud — Azure ML, Azure OpenAI, Fabric, Entra ID' },
+      { id: 'aws', label: 'Amazon Web Services (AWS)', description: 'AWS als primäre Cloud — SageMaker, Bedrock, Redshift, DataZone' },
+      { id: 'gcp', label: 'Google Cloud Platform (GCP)', description: 'GCP als primäre Cloud — Vertex AI, BigQuery, Gemini' },
+      { id: 'sap_btp', label: 'SAP Business Technology Platform', description: 'SAP BTP als zentrale Plattform — AI Core, GenAI Hub, Integration Suite, Joule' },
+      { id: 'none_or_multi', label: 'Kein primärer Anbieter / Multi-Cloud', description: 'Mehrere Anbieter parallel oder noch keine Cloud-Strategie festgelegt' },
+    ],
+  },
+  {
+    id: 'industry',
+    step: 7,
+    question: 'In welcher Branche ist Ihr Unternehmen hauptsächlich tätig?',
+    context: 'Branchenspezifische AI-Use-Cases, regulatorische Anforderungen und Datenstrukturen unterscheiden sich erheblich.',
+    options: [
+      { id: 'finance', label: 'Finance, Banking & Versicherung', description: 'Finanzdienstleistungen — reguliert (BaFin, EZB), Betrugseerkennung, Kreditrisiko, Compliance' },
+      { id: 'manufacturing', label: 'Industrie & Produktion', description: 'Fertigung, Supply Chain — Predictive Maintenance, Qualitätskontrolle, Prozessoptimierung' },
+      { id: 'healthcare_public', label: 'Gesundheit & Öffentlicher Sektor', description: 'Kliniken, Behörden — hohe Datenschutzanforderungen, sensible Patientendaten' },
+      { id: 'retail_consumer', label: 'Handel & Konsumgüter', description: 'Retail, E-Commerce, FMCG — Personalisierung, Demand Forecasting, Customer Analytics' },
+      { id: 'other', label: 'Andere Branche', description: 'IT-Dienstleistung, Energie, Transport, Chemie oder sonstiges' },
+    ],
+  },
+  {
+    id: 'company_size',
+    step: 8,
+    question: 'Wie groß ist Ihr Unternehmen?',
+    context: 'Die Unternehmensgröße bestimmt den empfohlenen Reifegrad-Pfad, die Teamstruktur und den Plattform-Umfang.',
+    options: [
+      { id: 'small', label: 'Bis 500 Mitarbeitende', description: 'Mittelstand — pragmatischer Start mit Managed Services, schlankes Team' },
+      { id: 'medium', label: '500–5.000 Mitarbeitende', description: 'Wachsender Mittelstand — erstes AI-Team aufbauen, Plattform skalieren' },
+      { id: 'large', label: '5.000–10.000 Mitarbeitende', description: 'Großunternehmen — AI CoE sinnvoll, mehrere parallele Use Cases' },
+      { id: 'enterprise', label: 'Über 10.000 Mitarbeitende (Konzern)', description: 'Konzern — dezentrale AI-Teams, Enterprise-Plattform, starke Governance' },
+    ],
+  },
+  {
+    id: 'compliance',
+    step: 9,
     question: 'Welche Compliance- und Datenschutz-Anforderungen gelten?',
     context: 'Regulatorische Anforderungen begrenzen manche Architektur-Optionen und beeinflussen die Datenhaltung.',
     options: [
@@ -96,7 +154,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   },
   {
     id: 'data_platform',
-    step: 6,
+    step: 10,
     question: 'Welche Datenplattform nutzen oder planen Sie?',
     context: 'Die Wahl der Data-Plattform bestimmt konkrete Tooling-Empfehlungen für Ihre Architektur.',
     options: [
@@ -108,7 +166,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   },
   {
     id: 'model_platform',
-    step: 7,
+    step: 11,
     question: 'Wie sollen KI-Modelle entwickelt und betrieben werden?',
     context: 'Die MLOps-Plattform bestimmt, wie effizient Modelle entwickelt, versioniert und in Produktion gebracht werden.',
     options: [
@@ -120,7 +178,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   },
   {
     id: 'monitoring',
-    step: 8,
+    step: 12,
     question: 'Wie wollen Sie KI-Systeme überwachen und deren Qualität sichern?',
     context: 'KI-spezifisches Monitoring (Drift, Fairness, Performance) geht über klassisches IT-Monitoring hinaus.',
     options: [
