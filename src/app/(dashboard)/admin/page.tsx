@@ -42,7 +42,7 @@ export default async function AdminPage() {
       .eq('is_active', true),
     adminClient
       .from('catalog_sources')
-      .select('id, name, type, url, sync_interval_days, last_synced_at, last_sync_added, last_sync_updated, sync_status, last_sync_error, is_active, created_at')
+      .select('id, name, type, url, sync_interval_days, last_synced_at, last_sync_added, last_sync_updated, sync_status, last_sync_error, config, is_active, created_at')
       .order('name', { ascending: true }),
   ])
 

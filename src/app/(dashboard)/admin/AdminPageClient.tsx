@@ -62,6 +62,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [syncMessages, setSyncMessages] = useState<Record<string, string>>({})
   const [editingSourceId, setEditingSourceId] = useState<string | null>(null)
   const [editingSourceUrl, setEditingSourceUrl] = useState('')
+  const [editingSourceConfig, setEditingSourceConfig] = useState<Record<string, string>>({})
   const [savingSourceUrl, setSavingSourceUrl] = useState(false)
 
   // ── Content Library handlers ────────────────────────────────────────────────
@@ -193,11 +194,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   function startEditUrl(src: CatalogSource) {
     setEditingSourceId(src.id)
     setEditingSourceUrl(src.url ?? '')
+    setEditingSourceConfig({ ...src.config })
   }
 
   function cancelEditUrl() {
     setEditingSourceId(null)
     setEditingSourceUrl('')
+    setEditingSourceConfig({})
   }
 
   async function handleSaveUrl(sourceId: string) {
@@ -206,11 +209,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       const res = await fetch(`/api/admin/catalog/sources/${sourceId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: editingSourceUrl.trim() || null }),
+        body: JSON.stringify({
+          url: editingSourceUrl.trim() || null,
+          config: editingSourceConfig,
+        }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler')
       const { data } = await res.json()
-      setSources(prev => prev.map(s => s.id === sourceId ? { ...s, url: data.url } : s))
+      setSources(prev => prev.map(s => s.id === sourceId ? { ...s, url: data.url, config: data.config ?? {} } : s))
       cancelEditUrl()
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
@@ -520,40 +526,68 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         </button>
                       </div>
 
-                      {/* URL-Konfiguration */}
+                      {/* URL + Konfiguration */}
                       {editingSourceId === src.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="url"
-                            value={editingSourceUrl}
-                            onChange={e => setEditingSourceUrl(e.target.value)}
-                            placeholder="https://…"
-                            className="flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <button
-                            onClick={() => handleSaveUrl(src.id)}
-                            disabled={savingSourceUrl}
-                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded-lg transition-colors"
-                          >
-                            {savingSourceUrl ? 'Speichert…' : 'Speichern'}
-                          </button>
-                          <button
-                            onClick={cancelEditUrl}
-                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
-                          >
-                            Abbrechen
-                          </button>
+                        <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-slate-50">
+                          <div>
+                            <label className="block text-[10px] font-medium text-slate-500 mb-1">Endpunkt-URL</label>
+                            <input
+                              type="url"
+                              value={editingSourceUrl}
+                              onChange={e => setEditingSourceUrl(e.target.value)}
+                              placeholder="https://…"
+                              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            />
+                          </div>
+                          {/* SAP-spezifisch: API Key */}
+                          {src.type === 'sap_api' && (
+                            <div>
+                              <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                                SAP API Hub — API Key
+                                <a href="https://api.sap.com" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">api.sap.com ↗</a>
+                              </label>
+                              <input
+                                type="password"
+                                value={editingSourceConfig.api_key ?? ''}
+                                onChange={e => setEditingSourceConfig(c => ({ ...c, api_key: e.target.value }))}
+                                placeholder="Ihren API Key hier eintragen"
+                                autoComplete="off"
+                                className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-0.5">Kostenlosen Key unter api.sap.com → Profil → Einstellungen erstellen.</p>
+                            </div>
+                          )}
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={() => handleSaveUrl(src.id)}
+                              disabled={savingSourceUrl}
+                              className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+                            >
+                              {savingSourceUrl ? 'Speichert…' : 'Speichern'}
+                            </button>
+                            <button
+                              onClick={cancelEditUrl}
+                              className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                            >
+                              Abbrechen
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-slate-400 truncate flex-1 min-w-0">
                             {src.url ?? <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
+                            {src.type === 'sap_api' && (
+                              <span className={cn('ml-2 not-italic', src.config.api_key ? 'text-emerald-600' : 'text-amber-600')}>
+                                {src.config.api_key ? '· API Key ✓' : '· Kein API Key'}
+                              </span>
+                            )}
                           </span>
                           <button
                             onClick={() => startEditUrl(src)}
                             className="whitespace-nowrap text-xs text-blue-600 hover:text-blue-500 font-medium flex-shrink-0"
                           >
-                            ✎ URL ändern
+                            ✎ Konfigurieren
                           </button>
                         </div>
                       )}

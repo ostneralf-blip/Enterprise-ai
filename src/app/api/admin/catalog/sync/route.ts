@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   const { data: source, error: srcErr } = await supabase
     .from('catalog_sources')
-    .select('id, name, type, url, is_active')
+    .select('id, name, type, url, is_active, config')
     .eq('id', parsed.data.sourceId)
     .single()
 
@@ -34,14 +34,15 @@ export async function POST(request: Request) {
   }
 
   // Run the adapter for this source type
+  const sourceConfig = (source.config ?? {}) as Record<string, string>
   let syncResult: Awaited<ReturnType<typeof syncHuggingFace>>
 
   if (source.type === 'huggingface') {
     syncResult = await syncHuggingFace(source.url ?? 'https://huggingface.co/api/models')
   } else if (source.type === 'cncf_landscape') {
-    syncResult = await syncCNCF(source.url ?? 'https://landscape.cncf.io/data/landscape.json')
+    syncResult = await syncCNCF(source.url ?? 'https://raw.githubusercontent.com/cncf/landscape/HEAD/landscape.yml')
   } else if (source.type === 'sap_api') {
-    syncResult = syncSAP()
+    syncResult = await syncSAP(sourceConfig)
   } else {
     return NextResponse.json({ error: `Unbekannter Quell-Typ: ${source.type}` }, { status: 422 })
   }

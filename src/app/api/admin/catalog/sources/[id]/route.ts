@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/utils/admin-check'
 
 const BodySchema = z.object({
-  url: z.string().url('Ungültige URL').nullable(),
+  url: z.string().url().nullable().optional(),
+  config: z.record(z.string(), z.string()).optional(),
 })
 
 export async function PATCH(
@@ -24,12 +25,16 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Ungültige Eingabe' }, { status: 400 })
   }
 
+  const patch: Record<string, unknown> = {}
+  if (parsed.data.url !== undefined) patch.url = parsed.data.url
+  if (parsed.data.config !== undefined) patch.config = parsed.data.config
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('catalog_sources')
-    .update({ url: parsed.data.url })
+    .update(patch)
     .eq('id', id)
-    .select('id, name, type, url')
+    .select('id, name, type, url, config')
     .single()
 
   if (error) {

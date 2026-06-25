@@ -1,3 +1,4 @@
+import { parse as parseYaml } from 'yaml'
 import type { ArchLayer } from '@/types'
 
 export interface ComponentUpsert {
@@ -118,21 +119,30 @@ export async function syncCNCF(url: string): Promise<SyncResult> {
   try {
     const res = await fetch(url, {
       headers: {
-        Accept: 'application/json',
+        Accept: 'text/plain, application/json, application/x-yaml',
         'User-Agent': 'AI-Navigator-Catalog-Sync/1.0',
       },
       signal: AbortSignal.timeout(30_000),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const ct = res.headers.get('content-type') ?? ''
-    if (!ct.includes('application/json') && !ct.includes('text/json')) {
+    const text = await res.text()
+
+    // Schutz gegen HTML-Antwort (z.B. Cloudflare-Challenge)
+    if (text.trimStart().startsWith('<')) {
       return {
         components: [],
         skipped: 0,
-        error: `CNCF-Endpunkt liefert kein JSON (Content-Type: ${ct}). Bitte URL im Admin-Panel prüfen.`,
+        error: 'CNCF-Endpunkt liefert HTML statt Daten. Bitte URL im Admin-Panel prüfen.',
       }
     }
-    landscape = await res.json() as CNCFLandscape
+
+    // YAML oder JSON parsen
+    const ct = res.headers.get('content-type') ?? ''
+    if (ct.includes('application/json') || url.endsWith('.json')) {
+      landscape = JSON.parse(text) as CNCFLandscape
+    } else {
+      landscape = parseYaml(text) as CNCFLandscape
+    }
   } catch (err) {
     return { components: [], skipped: 0, error: String(err) }
   }
@@ -187,11 +197,58 @@ function mapCNCFToLayer(cat: string, sub: string): ArchLayer | null {
   return 'mlops'
 }
 
-// ── SAP (skip if no API key) ───────────────────────────────────────────────────
-export function syncSAP(): SyncResult {
-  return {
-    components: [],
-    skipped: 0,
-    skipped_source: true,
+// ── SAP API Hub ───────────────────────────────────────────────────────────────
+export async function syncSAP(config: Record<string, string> = {}): Promise<SyncResult> {
+  const apiKey = config.api_key
+  if (!apiKey) {
+    return { components: [], skipped: 0, skipped_source: true }
+  }
+
+  try {
+    const res = await fetch(
+      'https://api.sap.com/api/1.0/catalogs/services?search=AI&pageSize=30&orderBy=title&orderDesc=false',
+      {
+        headers: {
+          APIKey: apiKey,
+          Accept: 'application/json',
+          'User-Agent': 'AI-Navigator-Catalog-Sync/1.0',
+        },
+        signal: AbortSignal.timeout(20_000),
+      }
+    )
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const ct = res.headers.get('content-type') ?? ''
+    if (!ct.includes('application/json')) {
+      throw new Error('SAP API liefert kein JSON — API-Key möglicherweise ungültig')
+    }
+    const json = await res.json() as { services?: { name?: string; title?: string; shortText?: string; url?: string }[] }
+    const items = json.services ?? []
+
+    const components: ComponentUpsert[] = items
+      .filter(s => s.name)
+      .map(s => ({
+        name: s.title ?? s.name ?? 'Unbekannt',
+        vendor: 'SAP',
+        category: 'platform',
+        architecture_layer: 'application' as ArchLayer,
+        hosting: ['cloud'],
+        dsgvo_status: 'compliant',
+        eu_ai_act_risk: 'limited',
+        sap_compatible: true,
+        sap_components: ['btp'],
+        use_case_types: ['predictive', 'generative', 'automation'],
+        infra_types: ['cloud'],
+        cloud_provider: 'sap',
+        icon_name: 'simple-icons:sap',
+        website_url: s.url ? `https://api.sap.com${s.url}` : 'https://api.sap.com',
+        description: s.shortText ?? `SAP AI Service: ${s.title ?? s.name}`,
+        tags: ['sap', 'btp', 'api-hub'],
+        source: 'sap_api',
+        is_active: true,
+      }))
+
+    return { components, skipped: items.length - components.length }
+  } catch (err) {
+    return { components: [], skipped: 0, error: String(err) }
   }
 }
