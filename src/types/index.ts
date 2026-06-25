@@ -29,6 +29,64 @@ export interface ContentLibraryEntry {
   updated_at: string
 }
 
+// ─── CATALOG ─────────────────────────────────────────────────────────────────
+export type DsgvoStatus  = 'compliant' | 'conditional' | 'non_compliant'
+export type EuAiActRisk  = 'minimal' | 'limited' | 'high' | 'prohibited'
+export type CloudProvider = 'aws' | 'azure' | 'gcp' | 'sap' | 'independent'
+export type ArchLayer    = 'data' | 'model' | 'serving' | 'mlops' | 'application' | 'governance' | 'security'
+export type RoleCategory = 'strategic' | 'technical' | 'governance' | 'operational'
+
+export interface CatalogComponent {
+  id: string
+  name: string
+  vendor: string | null
+  category: string | null
+  architecture_layer: ArchLayer | null
+  hosting: string[]
+  dsgvo_status: DsgvoStatus | null
+  eu_ai_act_risk: EuAiActRisk | null
+  sap_compatible: boolean
+  sap_components: string[]
+  use_case_types: string[]
+  infra_types: string[]
+  cloud_provider: CloudProvider | null
+  icon_name: string | null
+  website_url: string | null
+  description: string | null
+  tags: string[]
+  source: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CatalogRole {
+  id: string
+  role_name: string
+  role_category: RoleCategory | null
+  archetype_levels: string[]
+  description: string | null
+  responsibilities: string[]
+  skills_required: string[]
+  fte_range: string | null
+  priority_per_archetype: Record<string, string> | null
+  is_active: boolean
+  created_at: string
+}
+
+export interface CatalogSource {
+  id: string
+  name: string
+  type: string
+  url: string | null
+  sync_interval_days: number
+  last_synced_at: string | null
+  last_sync_added: number | null
+  last_sync_updated: number | null
+  is_active: boolean
+  created_at: string
+}
+
 // ─── ARCHETYPES ──────────────────────────────────────────────────────────────
 export type Archetype = 'starter' | 'scaler' | 'transformer'
 

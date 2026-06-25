@@ -1,18 +1,22 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent } from '@/types'
 import { cn } from '@/lib/utils'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
 const KNOWN_FLAGS = ['early_access', 'pdf_export', 'sharing', 'api_access']
+const ARCH_LAYERS = ['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']
+const CLOUD_PROVIDERS = ['aws', 'azure', 'gcp', 'sap', 'independent']
 
 interface Props {
   initialEntries: ContentLibraryEntry[]
   initialUsers?: UserProfile[]
+  initialComponents?: CatalogComponent[]
+  componentCount?: number
 }
 
-type Tab = 'content' | 'users'
+type Tab = 'content' | 'users' | 'catalog'
 
 type FormState = {
   module: string
@@ -25,7 +29,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0 }: Props) {
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -42,6 +46,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
   const [userSearch, setUserSearch] = useState('')
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+
+  // ── Catalog state ───────────────────────────────────────────────────────────
+  const [components, setComponents] = useState<CatalogComponent[]>(initialComponents)
+  const [catalogSearch, setCatalogSearch] = useState('')
+  const [catalogLayer, setCatalogLayer] = useState('all')
+  const [catalogCloud, setCatalogCloud] = useState('all')
+  const [seeding, setSeeding] = useState(false)
+  const [seedResult, setSeedResult] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -146,6 +158,37 @@ export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
     patchUser(user.id, { feature_flags: { ...current, [flag]: !current[flag] } })
   }
 
+  // ── Catalog handlers ────────────────────────────────────────────────────────
+  async function handleSeed() {
+    if (!confirm('Alle Seed-Daten (Komponenten + Rollen) in die DB schreiben? Bestehende Einträge werden aktualisiert.')) return
+    setSeeding(true)
+    setSeedResult(null)
+    try {
+      const res = await fetch('/api/admin/catalog/seed', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Fehler beim Seeden')
+      setSeedResult(`✓ ${json.data.components_upserted} Komponenten, ${json.data.roles_upserted} Rollen eingetragen.`)
+      // Refresh component list
+      const listRes = await fetch('/api/catalog/components')
+      if (listRes.ok) {
+        const { data } = await listRes.json()
+        setComponents(data ?? [])
+      }
+    } catch (e) {
+      setSeedResult(`✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`)
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  const filteredCatalog = components.filter(c => {
+    const q = catalogSearch.toLowerCase()
+    const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.vendor ?? '').toLowerCase().includes(q)
+    const matchLayer = catalogLayer === 'all' || c.architecture_layer === catalogLayer
+    const matchCloud = catalogCloud === 'all' || c.cloud_provider === catalogCloud
+    return matchSearch && matchLayer && matchCloud
+  })
+
   const filtered = filterModule === 'all' ? entries : entries.filter(e => e.module === filterModule)
   const filteredUsers = userSearch.trim()
     ? users.filter(u =>
@@ -164,7 +207,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-slate-200" role="tablist">
-        {([['content', 'Content Library'], ['users', 'Nutzer-Verwaltung']] as [Tab, string][]).map(([id, label]) => (
+        {([
+          ['content', 'Content Library', entries.length],
+          ['users', 'Nutzer-Verwaltung', users.length],
+          ['catalog', 'Komponenten-Katalog', componentCount],
+        ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
             role="tab"
@@ -178,8 +225,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
             )}
           >
             {label}
-            {id === 'content' && <span className="ml-1.5 text-xs text-slate-400">({entries.length})</span>}
-            {id === 'users' && <span className="ml-1.5 text-xs text-slate-400">({users.length})</span>}
+            <span className="ml-1.5 text-xs text-slate-400">({count})</span>
           </button>
         ))}
       </div>
@@ -334,6 +380,130 @@ export function AdminPageClient({ initialEntries, initialUsers = [] }: Props) {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Catalog tab ─────────────────────────────────────────────────────── */}
+      {tab === 'catalog' && (
+        <div className="space-y-5">
+          {/* Actions row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-sm text-slate-500">
+              {filteredCatalog.length} von {components.length} Komponenten
+              {components.length === 0 && componentCount > 0 && ` (${componentCount} in DB — Seite neu laden)`}
+            </p>
+            <div className="flex items-center gap-3">
+              {seedResult && (
+                <span className={cn(
+                  'text-xs font-medium',
+                  seedResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'
+                )}>{seedResult}</span>
+              )}
+              <button
+                onClick={handleSeed}
+                disabled={seeding}
+                className="whitespace-nowrap px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                {seeding ? 'Lädt…' : '↑ Seed-Daten einspielen'}
+              </button>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            <input
+              type="search"
+              value={catalogSearch}
+              onChange={e => setCatalogSearch(e.target.value)}
+              placeholder="Name oder Vendor suchen…"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
+            />
+            <select
+              value={catalogLayer}
+              onChange={e => setCatalogLayer(e.target.value)}
+              aria-label="Nach Layer filtern"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Alle Layer</option>
+              {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+            <select
+              value={catalogCloud}
+              onChange={e => setCatalogCloud(e.target.value)}
+              aria-label="Nach Cloud-Provider filtern"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">Alle Provider</option>
+              {CLOUD_PROVIDERS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          {/* Table */}
+          {filteredCatalog.length === 0 ? (
+            <div className="text-center py-16 text-slate-400 text-sm">
+              {components.length === 0
+                ? 'Noch keine Komponenten in der DB — Seed-Daten einspielen, um zu starten.'
+                : 'Keine Komponenten für diese Filter.'}
+            </div>
+          ) : (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" aria-label="Komponenten-Katalog">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Name</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden sm:table-cell">Vendor</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Layer</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Cloud</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">DSGVO</th>
+                      <th className="text-center px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">SAP</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden xl:table-cell">Tags</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredCatalog.map(c => (
+                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 min-w-0">
+                          <div className="font-medium text-slate-900 truncate max-w-[180px]">{c.name}</div>
+                          {c.description && (
+                            <div className="text-xs text-slate-400 truncate max-w-[180px]">{c.description}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap hidden sm:table-cell">{c.vendor ?? '—'}</td>
+                        <td className="px-4 py-3 hidden md:table-cell">
+                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">{c.architecture_layer ?? '—'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap hidden md:table-cell">{c.cloud_provider ?? '—'}</td>
+                        <td className="px-4 py-3 hidden lg:table-cell">
+                          <span className={cn(
+                            'text-xs px-2 py-0.5 rounded-full font-medium',
+                            c.dsgvo_status === 'compliant'     ? 'bg-emerald-50 text-emerald-700' :
+                            c.dsgvo_status === 'conditional'   ? 'bg-amber-50 text-amber-700' :
+                            'bg-red-50 text-red-700'
+                          )}>
+                            {c.dsgvo_status ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center hidden lg:table-cell">
+                          {c.sap_compatible ? '✓' : '—'}
+                        </td>
+                        <td className="px-4 py-3 hidden xl:table-cell">
+                          <div className="flex gap-1 flex-wrap max-w-[200px]">
+                            {c.tags.slice(0, 3).map(tag => (
+                              <span key={tag} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">{tag}</span>
+                            ))}
+                            {c.tags.length > 3 && (
+                              <span className="text-xs text-slate-400">+{c.tags.length - 3}</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

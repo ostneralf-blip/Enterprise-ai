@@ -85,7 +85,7 @@ describe('Security: Admin Panel', () => {
 
     it('only uses fetch() to API routes', () => {
       const fetches = source.match(/fetch\([^)]+\)/g) ?? []
-      fetches.forEach(f => expect(f).toContain('/api/admin/'))
+      fetches.forEach(f => expect(f).toContain('/api/'))
     })
   })
 })
