@@ -226,6 +226,29 @@ export default async function DashboardPage() {
       {/* Guided path */}
       <GuidedPath steps={guidedSteps} tier={tier} />
 
+      {/* Quarterly Review Reminder */}
+      {latestAssessment && (() => {
+        const daysSince = Math.floor((Date.now() - new Date(latestAssessment.created_at as string).getTime()) / 86_400_000)
+        const weeksSince = Math.floor(daysSince / 7)
+        if (daysSince < 90) return null
+        return (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-900">Zeit für Ihren Quarterly AI Health Review</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Ihr letztes Assessment ist {weeksSince} Wochen alt. Regelmäßige Reviews sichern Ihren AI-Fortschritt.
+              </p>
+            </div>
+            <a
+              href="/assessment"
+              className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0"
+            >
+              Assessment neu starten →
+            </a>
+          </div>
+        )
+      })()}
+
       {/* Latest Assessment result */}
       {latestAssessment && (
         <div className="mb-8">

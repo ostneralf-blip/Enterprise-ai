@@ -28,7 +28,7 @@ export default async function AdminPage() {
       .order('created_at', { ascending: false }),
     adminClient
       .from('profiles')
-      .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, created_at')
+      .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, stripe_customer_id, subscription_status, subscription_period_end, created_at')
       .order('created_at', { ascending: false }),
     adminClient
       .from('component_catalog')

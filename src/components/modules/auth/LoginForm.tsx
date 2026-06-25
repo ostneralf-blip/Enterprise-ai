@@ -18,10 +18,14 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   const [error, setError] = useState('')
   const [redirectTo, setRedirectTo] = useState('/dashboard')
 
+  const MESSAGE_LABELS: Record<string, string> = {
+    account_suspended: 'Ihr Konto wurde gesperrt. Bitte wenden Sie sich an den Support.',
+  }
+
   useEffect(() => {
     searchParams.then(params => {
       if (params.redirect) setRedirectTo(params.redirect)
-      if (params.message) setError(params.message)
+      if (params.message) setError(MESSAGE_LABELS[params.message] ?? params.message)
     })
   }, [searchParams])
 

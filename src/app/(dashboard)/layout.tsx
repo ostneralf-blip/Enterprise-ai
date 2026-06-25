@@ -20,6 +20,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single()
 
+  if (profile?.is_banned) redirect('/login?message=account_suspended')
+
   return (
     <MobileNavProvider>
       {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt (dynamische Viewport-Höhe) */}

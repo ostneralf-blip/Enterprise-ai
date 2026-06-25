@@ -683,32 +683,65 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       )}
                     </div>
 
-                    {/* Feature flags panel */}
+                    {/* Feature flags + subscription panel */}
                     {isExpanded && (
-                      <div id={`flags-${u.id}`} className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                        <p className="text-xs font-medium text-slate-500 mb-2">Feature-Flags</p>
-                        <div className="flex flex-wrap gap-2">
-                          {KNOWN_FLAGS.map(flag => {
-                            const active = !!flags[flag]
-                            return (
-                              <button
-                                key={flag}
-                                onClick={() => toggleFlag(u, flag)}
-                                disabled={isUpdating}
-                                aria-pressed={active}
-                                className={cn(
-                                  'px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50',
-                                  active
-                                    ? 'bg-blue-600 border-blue-600 text-white'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-                                )}
-                              >
-                                {flag}
-                              </button>
-                            )
-                          })}
+                      <div id={`flags-${u.id}`} className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                        {/* Subscription info */}
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-1.5">Abo & Zahlung</p>
+                          <div className="text-xs text-slate-600 space-y-0.5">
+                            <p>
+                              <span className="text-slate-400">Status:</span>{' '}
+                              <span className={cn('font-medium', {
+                                'text-emerald-700': u.subscription_status === 'active',
+                                'text-amber-700': u.subscription_status === 'past_due' || u.subscription_status === 'trialing',
+                                'text-red-700': u.subscription_status === 'canceled' || u.subscription_status === 'unpaid',
+                                'text-slate-500': !u.subscription_status,
+                              })}>
+                                {u.subscription_status ?? 'Kein Abo'}
+                              </span>
+                            </p>
+                            {u.subscription_period_end && (
+                              <p>
+                                <span className="text-slate-400">Läuft bis:</span>{' '}
+                                {new Date(u.subscription_period_end).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </p>
+                            )}
+                            {u.stripe_customer_id && (
+                              <p className="font-mono text-[10px] text-slate-400 truncate">
+                                Stripe: {u.stripe_customer_id}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-400 mt-2">
+
+                        {/* Feature flags */}
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-1.5">Feature-Flags</p>
+                          <div className="flex flex-wrap gap-2">
+                            {KNOWN_FLAGS.map(flag => {
+                              const active = !!flags[flag]
+                              return (
+                                <button
+                                  key={flag}
+                                  onClick={() => toggleFlag(u, flag)}
+                                  disabled={isUpdating}
+                                  aria-pressed={active}
+                                  className={cn(
+                                    'px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50',
+                                    active
+                                      ? 'bg-blue-600 border-blue-600 text-white'
+                                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                  )}
+                                >
+                                  {flag}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-400">
                           Registriert: {new Date(u.created_at).toLocaleDateString('de-DE')}
                           {u.company && ` · ${u.company}`}
                         </p>

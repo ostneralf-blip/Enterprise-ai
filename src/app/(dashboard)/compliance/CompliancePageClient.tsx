@@ -116,8 +116,26 @@ export function CompliancePageClient({ initialChecks }: Props) {
     setTimeout(() => setCopied(null), 2000)
   }
 
+  // Update this date whenever compliance content is reviewed
+  const CONTENT_REVIEWED_AT = '2026-06-25'
+  const reviewedDays = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
+
   return (
     <div>
+      {/* Content freshness badge */}
+      <div className={cn(
+        'mb-4 flex items-center gap-2 text-xs px-3 py-2 rounded-lg border w-fit',
+        reviewedDays > 90
+          ? 'bg-amber-50 border-amber-200 text-amber-700'
+          : 'bg-slate-50 border-slate-200 text-slate-500'
+      )}>
+        {reviewedDays > 90 ? '⚠' : '✓'}
+        <span>
+          Inhalt zuletzt geprüft: {new Date(CONTENT_REVIEWED_AT).toLocaleDateString('de-DE')}
+          {reviewedDays > 90 && ' — Review empfohlen'}
+        </span>
+      </div>
+
       {/* Tab bar */}
       <div role="tablist" aria-label="Compliance-Bereiche" className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(t => (

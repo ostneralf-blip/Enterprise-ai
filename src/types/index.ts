@@ -10,6 +10,8 @@ export interface UserProfile {
   role: string | null
   tier: Tier
   stripe_customer_id: string | null
+  subscription_status: string | null
+  subscription_period_end: string | null
   is_admin: boolean
   is_banned: boolean
   feature_flags: Record<string, boolean>
