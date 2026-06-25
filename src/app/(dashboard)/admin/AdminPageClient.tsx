@@ -4,6 +4,14 @@ import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogS
 import { cn } from '@/lib/utils'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
+
+const API_KEY_SOURCE_CONFIG = {
+  sap_api:       { label: 'SAP API Hub — API Key', link: 'https://api.sap.com', linkLabel: 'api.sap.com', hint: 'Kostenlosen Key unter api.sap.com → Profil → Einstellungen erstellen.' },
+  openai_api:    { label: 'OpenAI — API Key',      link: 'https://platform.openai.com/api-keys', linkLabel: 'platform.openai.com', hint: 'Key unter platform.openai.com → API keys erstellen. Kostenpflichtig (Pay-per-Use).' },
+  anthropic_api: { label: 'Anthropic — API Key',   link: 'https://console.anthropic.com',        linkLabel: 'console.anthropic.com', hint: 'Key unter console.anthropic.com → API Keys. Kostenpflichtig (Pay-per-Use).' },
+  mistral_api:   { label: 'Mistral AI — API Key',  link: 'https://console.mistral.ai',           linkLabel: 'console.mistral.ai', hint: 'Key unter console.mistral.ai → API Keys. EU-gehostet, kostenpflichtig.' },
+  nvidia_ngc:    { label: 'NVIDIA NGC — API Key',  link: 'https://ngc.nvidia.com',               linkLabel: 'ngc.nvidia.com', hint: 'Key unter ngc.nvidia.com → Setup → Generate API Key (kostenloses Konto).' },
+} as const
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
 const KNOWN_FLAGS = ['early_access', 'pdf_export', 'sharing', 'api_access']
 const ARCH_LAYERS = ['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']
@@ -539,24 +547,29 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             />
                           </div>
-                          {/* SAP-spezifisch: API Key */}
-                          {src.type === 'sap_api' && (
-                            <div>
-                              <label className="block text-[10px] font-medium text-slate-500 mb-1">
-                                SAP API Hub — API Key
-                                <a href="https://api.sap.com" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">api.sap.com ↗</a>
-                              </label>
-                              <input
-                                type="password"
-                                value={editingSourceConfig.api_key ?? ''}
-                                onChange={e => setEditingSourceConfig(c => ({ ...c, api_key: e.target.value }))}
-                                placeholder="Ihren API Key hier eintragen"
-                                autoComplete="off"
-                                className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                              />
-                              <p className="text-[10px] text-slate-400 mt-0.5">Kostenlosen Key unter api.sap.com → Profil → Einstellungen erstellen.</p>
-                            </div>
-                          )}
+                          {/* API-Key-Konfiguration je Quell-Typ */}
+                          {API_KEY_SOURCE_CONFIG[src.type as keyof typeof API_KEY_SOURCE_CONFIG] && (() => {
+                            const cfg = API_KEY_SOURCE_CONFIG[src.type as keyof typeof API_KEY_SOURCE_CONFIG]!
+                            return (
+                              <div>
+                                <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                                  {cfg.label}
+                                  {cfg.link && (
+                                    <a href={cfg.link} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">{cfg.linkLabel} ↗</a>
+                                  )}
+                                </label>
+                                <input
+                                  type="password"
+                                  value={editingSourceConfig.api_key ?? ''}
+                                  onChange={e => setEditingSourceConfig(c => ({ ...c, api_key: e.target.value }))}
+                                  placeholder="API Key hier eintragen"
+                                  autoComplete="off"
+                                  className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-0.5">{cfg.hint}</p>
+                              </div>
+                            )
+                          })()}
                           <div className="flex gap-2 pt-1">
                             <button
                               onClick={() => handleSaveUrl(src.id)}
@@ -576,8 +589,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-slate-400 truncate flex-1 min-w-0">
-                            {src.url ?? <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
-                            {src.type === 'sap_api' && (
+                            {src.url ?? <em className="not-italic text-slate-400">—</em>}
+                            {src.type in API_KEY_SOURCE_CONFIG && (
                               <span className={cn('ml-2 not-italic', src.config.api_key ? 'text-emerald-600' : 'text-amber-600')}>
                                 {src.config.api_key ? '· API Key ✓' : '· Kein API Key'}
                               </span>
