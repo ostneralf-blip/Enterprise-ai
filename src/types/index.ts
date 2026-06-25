@@ -83,6 +83,8 @@ export interface CatalogSource {
   last_synced_at: string | null
   last_sync_added: number | null
   last_sync_updated: number | null
+  sync_status: 'idle' | 'success' | 'error'
+  last_sync_error: string | null
   is_active: boolean
   created_at: string
 }

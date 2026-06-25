@@ -396,7 +396,21 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Catalog recommendations */}
         {catalogRecs && (
-          <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} />
+          <>
+            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} />
+            {recComponents.length > 0 && (() => {
+              const latest = recComponents.reduce((a, b) => a.updated_at > b.updated_at ? a : b)
+              const days = Math.floor((Date.now() - new Date(latest.updated_at).getTime()) / 86_400_000)
+              return (
+                <p className={cn('text-xs mt-1', days > 30 ? 'text-amber-600' : 'text-slate-400')}>
+                  {days > 30
+                    ? `⚠ Katalog zuletzt aktualisiert vor ${days} Tagen — Admin-Panel → Sync empfohlen`
+                    : `Katalog aktualisiert: ${new Date(latest.updated_at).toLocaleDateString('de-DE')}`
+                  }
+                </p>
+              )
+            })()}
+          </>
         )}
 
         {/* SAP Joule use cases */}

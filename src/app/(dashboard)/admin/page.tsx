@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { AdminPageClient } from './AdminPageClient'
-import type { ContentLibraryEntry, UserProfile, CatalogComponent } from '@/types'
+import type { ContentLibraryEntry, UserProfile, CatalogComponent, CatalogSource } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +20,7 @@ export default async function AdminPage() {
 
   // Service-role client bypasses RLS to load all user profiles
   const adminClient = await createAdminClient()
-  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }] = await Promise.all([
+  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }] = await Promise.all([
     adminClient
       .from('content_library')
       .select('*')
@@ -40,6 +40,10 @@ export default async function AdminPage() {
       .from('component_catalog')
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true),
+    adminClient
+      .from('catalog_sources')
+      .select('id, name, type, url, sync_interval_days, last_synced_at, last_sync_added, last_sync_updated, sync_status, last_sync_error, is_active, created_at')
+      .order('name', { ascending: true }),
   ])
 
   return (
@@ -48,6 +52,7 @@ export default async function AdminPage() {
       initialUsers={(users ?? []) as UserProfile[]}
       initialComponents={(components ?? []) as CatalogComponent[]}
       componentCount={componentCount ?? 0}
+      initialSources={(sources ?? []) as CatalogSource[]}
     />
   )
 }

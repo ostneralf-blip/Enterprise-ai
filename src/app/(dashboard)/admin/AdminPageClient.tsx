@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource } from '@/types'
 import { cn } from '@/lib/utils'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
@@ -14,6 +14,7 @@ interface Props {
   initialUsers?: UserProfile[]
   initialComponents?: CatalogComponent[]
   componentCount?: number
+  initialSources?: CatalogSource[]
 }
 
 type Tab = 'content' | 'users' | 'catalog'
@@ -29,7 +30,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0 }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [] }: Props) {
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -54,6 +55,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [catalogCloud, setCatalogCloud] = useState('all')
   const [seeding, setSeeding] = useState(false)
   const [seedResult, setSeedResult] = useState<string | null>(null)
+
+  // ── Catalog sources state ───────────────────────────────────────────────────
+  const [sources, setSources] = useState<CatalogSource[]>(initialSources)
+  const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [syncMessages, setSyncMessages] = useState<Record<string, string>>({})
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -178,6 +184,43 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       setSeedResult(`✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`)
     } finally {
       setSeeding(false)
+    }
+  }
+
+  async function handleSync(sourceId: string) {
+    setSyncingId(sourceId)
+    setSyncMessages(prev => ({ ...prev, [sourceId]: '' }))
+    try {
+      const res = await fetch('/api/admin/catalog/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceId }),
+      })
+      const json = await res.json()
+      const d = json.data
+      if (!res.ok) throw new Error(json.error ?? 'Fehler beim Sync')
+      const msg = d.error
+        ? `⚠ ${d.error}`
+        : `✓ ${d.added} eingetragen${d.skipped ? `, ${d.skipped} übersprungen` : ''}`
+      setSyncMessages(prev => ({ ...prev, [sourceId]: msg }))
+      setSources(prev => prev.map(s =>
+        s.id === sourceId
+          ? { ...s, sync_status: d.error ? 'error' : 'success', last_synced_at: new Date().toISOString(), last_sync_added: d.added ?? 0, last_sync_error: d.error ?? null }
+          : s
+      ))
+      // Refresh component list after successful sync
+      if (!d.error && d.added > 0) {
+        const listRes = await fetch('/api/catalog/components')
+        if (listRes.ok) {
+          const { data } = await listRes.json()
+          setComponents(data ?? [])
+        }
+      }
+    } catch (e) {
+      const msg = `✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`
+      setSyncMessages(prev => ({ ...prev, [sourceId]: msg }))
+    } finally {
+      setSyncingId(null)
     }
   }
 
@@ -388,6 +431,57 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {/* ─── Catalog tab ─────────────────────────────────────────────────────── */}
       {tab === 'catalog' && (
         <div className="space-y-5">
+
+          {/* Katalog-Quellen */}
+          {sources.length > 0 && (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-800">Katalog-Quellen</h3>
+                <span className="text-xs text-slate-400">{sources.length} Quellen konfiguriert</span>
+              </div>
+              <ul className="divide-y divide-slate-100">
+                {sources.map(src => {
+                  const isSyncing = syncingId === src.id
+                  const msg = syncMessages[src.id]
+                  const lastSync = src.last_synced_at
+                    ? new Date(src.last_synced_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : 'Noch nie'
+                  return (
+                    <li key={src.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
+                          {src.sync_status === 'success' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
+                          {src.sync_status === 'error'   && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700">✗ Fehler</span>}
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          Letzter Sync: {lastSync}
+                          {src.last_sync_added != null && src.last_sync_added > 0 && ` · ${src.last_sync_added} eingetragen`}
+                        </p>
+                        {src.last_sync_error && src.sync_status === 'error' && (
+                          <p className="text-xs text-red-600 truncate max-w-sm">{src.last_sync_error}</p>
+                        )}
+                        {msg && (
+                          <p className={cn('text-xs font-medium', msg.startsWith('✓') ? 'text-emerald-700' : msg.startsWith('⚠') ? 'text-amber-700' : 'text-red-700')}>
+                            {msg}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleSync(src.id)}
+                        disabled={isSyncing || syncingId !== null}
+                        className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors flex-shrink-0"
+                      >
+                        {isSyncing ? 'Synct…' : '↻ Sync'}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+
           {/* Actions row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-sm text-slate-500">
