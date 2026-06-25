@@ -1,10 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import type { Archetype } from '@/types'
+import { recommendFromWizard, type CatalogRecommendations } from '@/config/architecture-rules'
+import type { Archetype, CatalogComponent } from '@/types'
 
 const LAYER_ICONS = ['◎', '◐', '▷', '□']
 
@@ -101,6 +102,60 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset 
 
 type View = 'list' | 'wizard' | 'result'
 
+const DSGVO_BADGE: Record<string, string> = {
+  compliant:     'bg-emerald-50 text-emerald-700 border-emerald-200',
+  conditional:   'bg-amber-50 text-amber-700 border-amber-200',
+  non_compliant: 'bg-red-50 text-red-700 border-red-200',
+}
+const DSGVO_LABEL: Record<string, string> = {
+  compliant: 'DSGVO ✓', conditional: 'DSGVO ~', non_compliant: 'DSGVO ✗',
+}
+const LAYER_LABEL: Record<string, string> = {
+  data: 'Daten', model: 'Modell', mlops: 'MLOps', serving: 'Serving',
+  governance: 'Governance', security: 'Security', application: 'Anwendung',
+}
+
+function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecommendations; components: CatalogComponent[] }) {
+  const byName = Object.fromEntries(components.map(c => [c.name, c]))
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-5">
+      <h3 className="text-sm font-semibold text-slate-900">Empfohlene Katalog-Komponenten</h3>
+      <div className="space-y-3">
+        {recs.layers.map(lr => (
+          <div key={lr.layer}>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
+              {LAYER_LABEL[lr.layer] ?? lr.layer}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {lr.componentNames.map(name => {
+                const comp = byName[name]
+                return (
+                  <span key={name} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
+                    <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
+                    {comp?.dsgvo_status && (
+                      <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
+                        {DSGVO_LABEL[comp.dsgvo_status]}
+                      </span>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Empfohlene Rollen</p>
+        <div className="flex flex-wrap gap-1.5">
+          {recs.roleNames.map(role => (
+            <span key={role} className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">{role}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free' }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
@@ -113,6 +168,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [saved, setSaved] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
+  const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
+  const catalogFetched = useRef(false)
 
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
@@ -124,11 +182,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAnswers(prev => ({ ...prev, [step.id]: optionId }))
   }
 
+  function applyRecs(wizardAnswers: WizardAnswers) {
+    setCatalogRecs(recommendFromWizard(wizardAnswers))
+    if (!catalogFetched.current) {
+      catalogFetched.current = true
+      fetch('/api/catalog/components')
+        .then(r => r.json())
+        .then(({ data }) => setRecComponents(data ?? []))
+        .catch(() => { catalogFetched.current = false })
+    }
+  }
+
   const handleNext = () => {
     if (isLastStep) {
       setResult(generateArchitecture(answers))
       setView('result')
       setSaved(false)
+      applyRecs(answers)
     } else {
       setCurrentStep(s => s + 1)
     }
@@ -144,6 +214,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setResult(null)
     setSaved(false)
     setSavedId(null)
+    setCatalogRecs(null)
     setView('wizard')
   }
 
@@ -153,6 +224,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSaved(true)
     setSavedId(arch.id)
     setView('result')
+    applyRecs(arch.wizard_data)
   }
 
   const handleSave = async () => {
@@ -278,6 +350,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             ))}
           </div>
         </div>
+
+        {/* Catalog recommendations */}
+        {catalogRecs && (
+          <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} />
+        )}
 
         {/* Key decisions + Next steps */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
