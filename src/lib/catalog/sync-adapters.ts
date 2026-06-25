@@ -197,6 +197,120 @@ function mapCNCFToLayer(cat: string, sub: string): ArchLayer | null {
   return 'mlops'
 }
 
+// ── Papers With Code ─────────────────────────────────────────────────────────
+interface PWCMethod {
+  name?: string
+  full_name?: string
+  description?: string
+  paper?: { title?: string; url_pdf?: string }
+  url?: string
+}
+
+export async function syncPapersWithCode(baseUrl: string): Promise<SyncResult> {
+  let items: PWCMethod[]
+  try {
+    const res = await fetch(`${baseUrl}/methods/?items_per_page=50&ordering=-paper_count`, {
+      headers: { Accept: 'application/json', 'User-Agent': 'AI-Navigator-Catalog-Sync/1.0' },
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const ct = res.headers.get('content-type') ?? ''
+    if (!ct.includes('application/json')) throw new Error('Kein JSON erhalten')
+    const json = await res.json() as { results?: PWCMethod[]; count?: number }
+    items = json.results ?? []
+  } catch (err) {
+    return { components: [], skipped: 0, error: String(err) }
+  }
+
+  const layerMap: Record<string, ArchLayer> = {
+    'attention': 'model', 'transformer': 'model', 'bert': 'model', 'gpt': 'model',
+    'diffusion': 'model', 'vae': 'model', 'gan': 'model', 'cnn': 'model',
+    'reinforcement': 'model', 'optimizer': 'model', 'normalization': 'model',
+    'regularization': 'model', 'training': 'mlops', 'data': 'data', 'augmentation': 'data',
+  }
+
+  const components: ComponentUpsert[] = items
+    .filter(m => m.name || m.full_name)
+    .map(m => {
+      const name = m.full_name ?? m.name ?? 'Unbekannt'
+      const lower = name.toLowerCase()
+      const layer: ArchLayer = Object.entries(layerMap).find(([k]) => lower.includes(k))?.[1] ?? 'model'
+      return {
+        name,
+        vendor: null,
+        category: 'ml_method',
+        architecture_layer: layer,
+        hosting: ['cloud', 'onprem'],
+        dsgvo_status: 'compliant',
+        eu_ai_act_risk: 'minimal',
+        sap_compatible: false,
+        sap_components: [],
+        use_case_types: ['predictive', 'generative'],
+        infra_types: ['cloud', 'onprem'],
+        cloud_provider: 'independent',
+        icon_name: null,
+        website_url: m.url ?? 'https://paperswithcode.com',
+        description: m.description ?? `ML-Methode aus Papers With Code: ${name}`,
+        tags: ['papers-with-code', 'research', 'open-source'],
+        source: 'papers_with_code',
+        is_active: true,
+      }
+    })
+
+  return { components, skipped: items.length - components.length }
+}
+
+// ── NVIDIA NGC ────────────────────────────────────────────────────────────────
+interface NGCModel {
+  name?: string
+  displayName?: string
+  description?: string
+  latestVersionIdStr?: string
+  publisher?: string
+}
+
+export async function syncNVIDIANGC(baseUrl: string): Promise<SyncResult> {
+  let models: NGCModel[]
+  try {
+    const res = await fetch(`${baseUrl}/orgs/nvidia/models?pageSize=30&orderByField=lastModifiedDate&orderByValue=DESC`, {
+      headers: { Accept: 'application/json', 'User-Agent': 'AI-Navigator-Catalog-Sync/1.0' },
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const ct = res.headers.get('content-type') ?? ''
+    if (!ct.includes('application/json')) throw new Error('Kein JSON erhalten')
+    const json = await res.json() as { models?: NGCModel[] }
+    models = json.models ?? []
+  } catch (err) {
+    return { components: [], skipped: 0, error: String(err) }
+  }
+
+  const components: ComponentUpsert[] = models
+    .filter(m => m.name)
+    .map(m => ({
+      name: m.displayName ?? m.name ?? 'Unbekannt',
+      vendor: 'NVIDIA',
+      category: 'model',
+      architecture_layer: 'model' as ArchLayer,
+      hosting: ['cloud', 'onprem'],
+      dsgvo_status: 'conditional',
+      eu_ai_act_risk: 'limited',
+      sap_compatible: false,
+      sap_components: [],
+      use_case_types: ['predictive', 'generative', 'vision'],
+      infra_types: ['cloud', 'onprem'],
+      cloud_provider: 'independent',
+      icon_name: null,
+      website_url: `https://catalog.ngc.nvidia.com/orgs/nvidia/models/${m.name}`,
+      description: m.description ?? `NVIDIA NGC Modell: ${m.displayName ?? m.name}`,
+      tags: ['nvidia', 'ngc', 'gpu', 'model'],
+      source: 'nvidia_ngc',
+      is_active: true,
+    }))
+
+  return { components, skipped: models.length - components.length }
+}
+
 // ── SAP API Hub ───────────────────────────────────────────────────────────────
 export async function syncSAP(config: Record<string, string> = {}): Promise<SyncResult> {
   const apiKey = config.api_key

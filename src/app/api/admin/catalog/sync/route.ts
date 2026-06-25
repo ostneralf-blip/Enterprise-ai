@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/utils/admin-check'
-import { syncHuggingFace, syncCNCF, syncSAP } from '@/lib/catalog/sync-adapters'
+import { syncHuggingFace, syncCNCF, syncSAP, syncPapersWithCode, syncNVIDIANGC } from '@/lib/catalog/sync-adapters'
 
 const BodySchema = z.object({
   sourceId: z.string().uuid(),
@@ -41,8 +41,18 @@ export async function POST(request: Request) {
     syncResult = await syncHuggingFace(source.url ?? 'https://huggingface.co/api/models')
   } else if (source.type === 'cncf_landscape') {
     syncResult = await syncCNCF(source.url ?? 'https://raw.githubusercontent.com/cncf/landscape/HEAD/landscape.yml')
+  } else if (source.type === 'papers_with_code') {
+    syncResult = await syncPapersWithCode(source.url ?? 'https://paperswithcode.com/api/v1')
+  } else if (source.type === 'nvidia_ngc') {
+    syncResult = await syncNVIDIANGC(source.url ?? 'https://api.ngc.nvidia.com/v2')
   } else if (source.type === 'sap_api') {
     syncResult = await syncSAP(sourceConfig)
+  } else if (['openai_models','anthropic_models','google_gemini','mistral_ai','aws_service_catalog',
+               'azure_resource_graph','google_cloud_discovery','oracle_cloud','digitalocean','vultr',
+               'meta_llama','langchain_hub','pinecone','kaggle','pypi','anaconda','weaviate',
+               'mlperf','github_search','openml'].includes(source.type)) {
+    // API-Key-pflichtige oder noch nicht implementierte Quellen
+    syncResult = { components: [], skipped: 0, skipped_source: true }
   } else {
     return NextResponse.json({ error: `Unbekannter Quell-Typ: ${source.type}` }, { status: 422 })
   }

@@ -194,7 +194,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   function startEditUrl(src: CatalogSource) {
     setEditingSourceId(src.id)
     setEditingSourceUrl(src.url ?? '')
-    setEditingSourceConfig({ ...src.config })
+    setEditingSourceConfig({ ...(src.config ?? {}) })
   }
 
   function cancelEditUrl() {
@@ -578,8 +578,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           <span className="text-xs font-mono text-slate-400 truncate flex-1 min-w-0">
                             {src.url ?? <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
                             {src.type === 'sap_api' && (
-                              <span className={cn('ml-2 not-italic', src.config.api_key ? 'text-emerald-600' : 'text-amber-600')}>
-                                {src.config.api_key ? '· API Key ✓' : '· Kein API Key'}
+                              <span className={cn('ml-2 not-italic', src.config?.api_key ? 'text-emerald-600' : 'text-amber-600')}>
+                                {src.config?.api_key ? '· API Key ✓' : '· Kein API Key'}
                               </span>
                             )}
                           </span>
