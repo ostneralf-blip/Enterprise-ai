@@ -46,14 +46,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Unbekannter Quell-Typ: ${source.type}` }, { status: 422 })
   }
 
+  // Quelle bewusst übersprungen (kein API-Key o.ä.) → neutraler Status
+  if (syncResult.skipped_source) {
+    await supabase
+      .from('catalog_sources')
+      .update({
+        sync_status:     'skipped',
+        last_sync_error: null,
+        last_synced_at:  new Date().toISOString(),
+      })
+      .eq('id', source.id)
+
+    return NextResponse.json({
+      data: { added: 0, skipped: 0, skipped_source: true },
+    })
+  }
+
   // If adapter returned an error (no components), persist the error state
   if (syncResult.error && syncResult.components.length === 0) {
     await supabase
       .from('catalog_sources')
       .update({
-        sync_status:    'error',
+        sync_status:     'error',
         last_sync_error: syncResult.error,
-        last_synced_at: new Date().toISOString(),
+        last_synced_at:  new Date().toISOString(),
       })
       .eq('id', source.id)
 

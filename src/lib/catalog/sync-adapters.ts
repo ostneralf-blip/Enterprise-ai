@@ -25,6 +25,8 @@ export interface SyncResult {
   components: ComponentUpsert[]
   skipped: number
   error?: string
+  /** true wenn die Quelle bewusst übersprungen wird (kein API-Key etc.) */
+  skipped_source?: boolean
 }
 
 // ── HuggingFace ───────────────────────────────────────────────────────────────
@@ -115,10 +117,21 @@ export async function syncCNCF(url: string): Promise<SyncResult> {
   let landscape: CNCFLandscape
   try {
     const res = await fetch(url, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'AI-Navigator-Catalog-Sync/1.0',
+      },
       signal: AbortSignal.timeout(30_000),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const ct = res.headers.get('content-type') ?? ''
+    if (!ct.includes('application/json') && !ct.includes('text/json')) {
+      return {
+        components: [],
+        skipped: 0,
+        error: `CNCF-Endpunkt liefert kein JSON (Content-Type: ${ct}). Bitte URL im Admin-Panel prüfen.`,
+      }
+    }
     landscape = await res.json() as CNCFLandscape
   } catch (err) {
     return { components: [], skipped: 0, error: String(err) }
@@ -179,6 +192,6 @@ export function syncSAP(): SyncResult {
   return {
     components: [],
     skipped: 0,
-    error: 'SAP API Key nicht konfiguriert — Quelle übersprungen.',
+    skipped_source: true,
   }
 }

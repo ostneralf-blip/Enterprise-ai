@@ -60,6 +60,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [sources, setSources] = useState<CatalogSource[]>(initialSources)
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [syncMessages, setSyncMessages] = useState<Record<string, string>>({})
+  const [editingSourceId, setEditingSourceId] = useState<string | null>(null)
+  const [editingSourceUrl, setEditingSourceUrl] = useState('')
+  const [savingSourceUrl, setSavingSourceUrl] = useState(false)
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -187,6 +190,35 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     }
   }
 
+  function startEditUrl(src: CatalogSource) {
+    setEditingSourceId(src.id)
+    setEditingSourceUrl(src.url ?? '')
+  }
+
+  function cancelEditUrl() {
+    setEditingSourceId(null)
+    setEditingSourceUrl('')
+  }
+
+  async function handleSaveUrl(sourceId: string) {
+    setSavingSourceUrl(true)
+    try {
+      const res = await fetch(`/api/admin/catalog/sources/${sourceId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: editingSourceUrl.trim() || null }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler')
+      const { data } = await res.json()
+      setSources(prev => prev.map(s => s.id === sourceId ? { ...s, url: data.url } : s))
+      cancelEditUrl()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setSavingSourceUrl(false)
+    }
+  }
+
   async function handleSync(sourceId: string) {
     setSyncingId(sourceId)
     setSyncMessages(prev => ({ ...prev, [sourceId]: '' }))
@@ -199,13 +231,16 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       const json = await res.json()
       const d = json.data
       if (!res.ok) throw new Error(json.error ?? 'Fehler beim Sync')
-      const msg = d.error
-        ? `⚠ ${d.error}`
-        : `✓ ${d.added} eingetragen${d.skipped ? `, ${d.skipped} übersprungen` : ''}`
+      const newStatus: CatalogSource['sync_status'] = d.skipped_source ? 'skipped' : d.error ? 'error' : 'success'
+      const msg = d.skipped_source
+        ? `— Quelle übersprungen (kein API-Key konfiguriert)`
+        : d.error
+          ? `⚠ ${d.error}`
+          : `✓ ${d.added} eingetragen${d.skipped ? `, ${d.skipped} übersprungen` : ''}`
       setSyncMessages(prev => ({ ...prev, [sourceId]: msg }))
       setSources(prev => prev.map(s =>
         s.id === sourceId
-          ? { ...s, sync_status: d.error ? 'error' : 'success', last_synced_at: new Date().toISOString(), last_sync_added: d.added ?? 0, last_sync_error: d.error ?? null }
+          ? { ...s, sync_status: newStatus, last_synced_at: new Date().toISOString(), last_sync_added: d.added ?? 0, last_sync_error: d.error ?? null }
           : s
       ))
       // Refresh component list after successful sync
@@ -447,34 +482,81 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     ? new Date(src.last_synced_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                     : 'Noch nie'
                   return (
-                    <li key={src.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex-1 min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
-                          {src.sync_status === 'success' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
-                          {src.sync_status === 'error'   && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700">✗ Fehler</span>}
-                        </div>
-                        <p className="text-xs text-slate-400">
-                          Letzter Sync: {lastSync}
-                          {src.last_sync_added != null && src.last_sync_added > 0 && ` · ${src.last_sync_added} eingetragen`}
-                        </p>
-                        {src.last_sync_error && src.sync_status === 'error' && (
-                          <p className="text-xs text-red-600 truncate max-w-sm">{src.last_sync_error}</p>
-                        )}
-                        {msg && (
-                          <p className={cn('text-xs font-medium', msg.startsWith('✓') ? 'text-emerald-700' : msg.startsWith('⚠') ? 'text-amber-700' : 'text-red-700')}>
-                            {msg}
+                    <li key={src.id} className="px-4 py-3 space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-2">
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
+                            {src.sync_status === 'success'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
+                            {src.sync_status === 'error'    && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700">✗ Fehler</span>}
+                            {src.sync_status === 'skipped'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">— Übersprungen</span>}
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            Letzter Sync: {lastSync}
+                            {src.last_sync_added != null && src.last_sync_added > 0 && ` · ${src.last_sync_added} eingetragen`}
                           </p>
-                        )}
+                          {src.last_sync_error && src.sync_status === 'error' && (
+                            <p className="text-xs text-red-600 truncate max-w-sm">{src.last_sync_error}</p>
+                          )}
+                          {msg && (
+                            <p className={cn(
+                              'text-xs font-medium',
+                              msg.startsWith('✓') ? 'text-emerald-700'
+                              : msg.startsWith('⚠') ? 'text-amber-700'
+                              : msg.startsWith('—') ? 'text-slate-500'
+                              : 'text-red-700'
+                            )}>
+                              {msg}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleSync(src.id)}
+                          disabled={isSyncing || syncingId !== null}
+                          className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors flex-shrink-0"
+                        >
+                          {isSyncing ? 'Synct…' : '↻ Sync'}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleSync(src.id)}
-                        disabled={isSyncing || syncingId !== null}
-                        className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors flex-shrink-0"
-                      >
-                        {isSyncing ? 'Synct…' : '↻ Sync'}
-                      </button>
+
+                      {/* URL-Konfiguration */}
+                      {editingSourceId === src.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            value={editingSourceUrl}
+                            onChange={e => setEditingSourceUrl(e.target.value)}
+                            placeholder="https://…"
+                            className="flex-1 min-w-0 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            onClick={() => handleSaveUrl(src.id)}
+                            disabled={savingSourceUrl}
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+                          >
+                            {savingSourceUrl ? 'Speichert…' : 'Speichern'}
+                          </button>
+                          <button
+                            onClick={cancelEditUrl}
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                          >
+                            Abbrechen
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-slate-400 truncate flex-1 min-w-0">
+                            {src.url ?? <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
+                          </span>
+                          <button
+                            onClick={() => startEditUrl(src)}
+                            className="whitespace-nowrap text-xs text-blue-600 hover:text-blue-500 font-medium flex-shrink-0"
+                          >
+                            ✎ URL ändern
+                          </button>
+                        </div>
+                      )}
                     </li>
                   )
                 })}
