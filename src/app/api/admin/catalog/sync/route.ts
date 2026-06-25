@@ -2,7 +2,17 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/utils/admin-check'
-import { syncHuggingFace, syncCNCF, syncSAP } from '@/lib/catalog/sync-adapters'
+import {
+  syncHuggingFace,
+  syncCNCF,
+  syncSAP,
+  syncOpenAI,
+  syncAnthropic,
+  syncMistralAI,
+  syncNVIDIA,
+  syncPyPI,
+  syncOpenML,
+} from '@/lib/catalog/sync-adapters'
 
 const BodySchema = z.object({
   sourceId: z.string().uuid(),
@@ -43,6 +53,18 @@ export async function POST(request: Request) {
     syncResult = await syncCNCF(source.url ?? 'https://raw.githubusercontent.com/cncf/landscape/HEAD/landscape.yml')
   } else if (source.type === 'sap_api') {
     syncResult = await syncSAP(sourceConfig)
+  } else if (source.type === 'openai_api') {
+    syncResult = await syncOpenAI(sourceConfig)
+  } else if (source.type === 'anthropic_api') {
+    syncResult = await syncAnthropic(sourceConfig)
+  } else if (source.type === 'mistral_api') {
+    syncResult = await syncMistralAI(sourceConfig)
+  } else if (source.type === 'nvidia_ngc') {
+    syncResult = await syncNVIDIA(sourceConfig)
+  } else if (source.type === 'pypi') {
+    syncResult = await syncPyPI()
+  } else if (source.type === 'openml') {
+    syncResult = await syncOpenML()
   } else {
     return NextResponse.json({ error: `Unbekannter Quell-Typ: ${source.type}` }, { status: 422 })
   }

@@ -317,6 +317,170 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: false, use_case_types: ['generative','automation'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
     icon_name: 'logos:kong', website_url: 'https://konghq.com', description: 'Open-Source API Gateway mit AI-Plugin-Ökosystem und LLM-Proxy-Funktionalität.',
     tags: ['api','gateway','oss','llm-proxy'] },
+
+  // ── DATA LAYER — GCP ──────────────────────────────────────────────────────
+  { name: 'Google BigQuery', vendor: 'Google', category: 'data_platform', architecture_layer: 'data',
+    hosting: ['eu','us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive','generative'], infra_types: ['cloud'], cloud_provider: 'gcp',
+    icon_name: 'logos:google-cloud', website_url: 'https://cloud.google.com/bigquery',
+    description: 'Serverloser Cloud-Data-Warehouse auf GCP — integrierte BigQuery ML-Funktionen und nativer Vertex AI Connector.',
+    tags: ['gcp','dw','analytics','bigquery','ml'] },
+
+  { name: 'Google Cloud Storage', vendor: 'Google', category: 'data_platform', architecture_layer: 'data',
+    hosting: ['eu','us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive','generative','vision'], infra_types: ['cloud'], cloud_provider: 'gcp',
+    icon_name: 'logos:google-cloud', website_url: 'https://cloud.google.com/storage',
+    description: 'Objektspeicher auf GCP für Data Lakes, ML-Datasets und Trainingsartefakte.',
+    tags: ['gcp','storage','data-lake','ml'] },
+
+  // ── DATA LAYER — Vektor-Datenbanken ───────────────────────────────────────
+  { name: 'Pinecone', vendor: 'Pinecone', category: 'vector_db', architecture_layer: 'data',
+    hosting: ['eu','us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://pinecone.io',
+    description: 'Vollständig verwaltete Vektor-Datenbank für semantische Suche und RAG-Systeme — serverlos, automatisch skalierend.',
+    tags: ['vector-db','rag','search','genai','embeddings'] },
+
+  { name: 'Weaviate', vendor: 'Weaviate', category: 'vector_db', architecture_layer: 'data',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://weaviate.io',
+    description: 'Open-Source Vektor-Datenbank mit eingebetteten ML-Modellen, GraphQL-API und DSGVO-konformem EU-Cloud-Hosting.',
+    tags: ['vector-db','rag','oss','search','graphql'] },
+
+  { name: 'Milvus', vendor: 'Zilliz', category: 'vector_db', architecture_layer: 'data',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative','vision'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://milvus.io',
+    description: 'Open-Source Vektor-Datenbank für milliardenskalige Embeddings — unterstützt Bild-, Text- und Multimodale Suche.',
+    tags: ['vector-db','rag','oss','search','cncf'] },
+
+  { name: 'Qdrant', vendor: 'Qdrant', category: 'vector_db', architecture_layer: 'data',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://qdrant.tech',
+    description: 'Open-Source Vektor-Suchmaschine (Berlin, DE) — DSGVO-konform, selbst-hostbar, EU-Cloud-Option verfügbar.',
+    tags: ['vector-db','rag','oss','eu','germany','search'] },
+
+  { name: 'pgvector', vendor: 'PostgreSQL', category: 'vector_db', architecture_layer: 'data',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: 'logos:postgresql', website_url: 'https://github.com/pgvector/pgvector',
+    description: 'PostgreSQL-Erweiterung für Vektorsuche — einfachste Lösung, wenn PostgreSQL bereits im Stack vorhanden.',
+    tags: ['vector-db','rag','oss','postgres','embeddings'] },
+
+  // ── DATA LAYER — Forschungs- und Datenplattformen ─────────────────────────
+  { name: 'OpenML', vendor: 'OpenML', category: 'data_platform', architecture_layer: 'data',
+    hosting: ['eu'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://openml.org',
+    description: 'Offene Plattform für ML-Datasets, Experimente und Benchmarks — Eindhoven University, öffentliche API.',
+    tags: ['datasets','benchmarks','ml','research','eu','oss'] },
+
+  { name: 'Kaggle Datasets', vendor: 'Google', category: 'data_platform', architecture_layer: 'data',
+    hosting: ['us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive','vision'], infra_types: ['cloud'], cloud_provider: 'gcp',
+    icon_name: null, website_url: 'https://kaggle.com',
+    description: 'Größte ML-Wettbewerbs- und Datensatz-Plattform — Zugang zu tausenden öffentlichen Datasets via Kaggle API.',
+    tags: ['datasets','competitions','ml','research'] },
+
+  // ── MODEL LAYER — GCP ─────────────────────────────────────────────────────
+  { name: 'Google Vertex AI', vendor: 'Google', category: 'ml_platform', architecture_layer: 'model',
+    hosting: ['eu','us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['predictive','generative','vision'], infra_types: ['cloud'], cloud_provider: 'gcp',
+    icon_name: 'logos:google-cloud', website_url: 'https://cloud.google.com/vertex-ai',
+    description: 'Einheitliche ML-Plattform auf GCP — AutoML, Custom Training, Feature Store, Model Garden und Gemini-API.',
+    tags: ['gcp','ml','mlops','vertex','automl','gemini'] },
+
+  // ── MODEL LAYER — Foundation Models ───────────────────────────────────────
+  { name: 'OpenAI API', vendor: 'OpenAI', category: 'llm', architecture_layer: 'model',
+    hosting: ['us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://platform.openai.com',
+    description: 'GPT-4o, o1, o3 und weitere OpenAI-Modelle direkt via API — Datenschutz-Prüfung und DPA erforderlich, kein EU-Hosting.',
+    tags: ['llm','gpt','openai','genai','rag'] },
+
+  { name: 'Anthropic Claude API', vendor: 'Anthropic', category: 'llm', architecture_layer: 'model',
+    hosting: ['us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://www.anthropic.com',
+    description: 'Claude Opus, Sonnet, Haiku — Anthropic LLMs mit starkem Safety-Fokus und großem Kontextfenster.',
+    tags: ['llm','claude','anthropic','genai','safety'] },
+
+  { name: 'Google Gemini API', vendor: 'Google', category: 'llm', architecture_layer: 'model',
+    hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative','vision'], infra_types: ['cloud'], cloud_provider: 'gcp',
+    icon_name: 'logos:google-cloud', website_url: 'https://ai.google.dev',
+    description: 'Gemini 2.0 Flash/Pro/Ultra — Googles multimodales LLM für Text, Bild und Code. Via Vertex AI oder Google AI Studio.',
+    tags: ['llm','gemini','google','multimodal','vision'] },
+
+  { name: 'Meta Llama', vendor: 'Meta', category: 'llm', architecture_layer: 'model',
+    hosting: ['onprem','hybrid','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://llama.meta.com',
+    description: 'Open-Weights LLM von Meta — Llama 3.x lokal deploybar via Ollama, vLLM oder Triton. Volle Datenkontrolle, keine API-Abhängigkeit.',
+    tags: ['llm','open-source','open-weights','meta','onprem','self-hosted'] },
+
+  { name: 'HuggingFace Hub', vendor: 'HuggingFace', category: 'model_registry', architecture_layer: 'model',
+    hosting: ['eu','us','onprem'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['predictive','generative','vision'], infra_types: ['cloud','onprem'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://huggingface.co',
+    description: 'Größte Plattform für vortrainierte Modelle — Transformers, Datasets, Spaces und Inference API. De-facto-Standard für Open-Source-Modelle.',
+    tags: ['model-hub','transformers','oss','nlp','computer-vision'] },
+
+  // ── SERVING LAYER — NVIDIA ────────────────────────────────────────────────
+  { name: 'NVIDIA Triton Inference Server', vendor: 'NVIDIA', category: 'serving', architecture_layer: 'serving',
+    hosting: ['onprem','hybrid','eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive','generative','vision'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://developer.nvidia.com/triton-inference-server',
+    description: 'Hochperformanter Modell-Server für GPU-Inference — unterstützt TensorRT, PyTorch, ONNX und TensorFlow auf NVIDIA-Hardware.',
+    tags: ['serving','gpu','nvidia','inference','onprem','triton'] },
+
+  { name: 'NVIDIA NIM', vendor: 'NVIDIA', category: 'serving', architecture_layer: 'serving',
+    hosting: ['onprem','hybrid','eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['generative','vision'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://developer.nvidia.com/nim',
+    description: 'NVIDIA Inference Microservices — produktionsreife, containerisierte LLM- und Vision-Modelle mit TensorRT-LLM-Optimierung.',
+    tags: ['serving','gpu','nvidia','llm','nim','containers'] },
+
+  // ── MODEL LAYER — LLM-Frameworks ──────────────────────────────────────────
+  { name: 'LangChain', vendor: 'LangChain', category: 'llm_framework', architecture_layer: 'model',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative','automation'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://langchain.com',
+    description: 'Framework für LLM-Anwendungen — Chains, Agents, RAG und Tool-Integration mit 100+ LLM-Providern und Vektordatenbanken.',
+    tags: ['llm','rag','agents','framework','oss','python'] },
+
+  { name: 'LlamaIndex', vendor: 'LlamaIndex', category: 'llm_framework', architecture_layer: 'model',
+    hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://llamaindex.ai',
+    description: 'Spezialisiertes RAG-Framework für Enterprise-Wissensmanagement — optimiert für Dokumenten-Indexierung und strukturierte Abfragen.',
+    tags: ['rag','llm','framework','oss','knowledge','documents'] },
+
+  // ── MLOPS LAYER — Experiment Tracking ────────────────────────────────────
+  { name: 'Weights & Biases', vendor: 'Weights & Biases', category: 'mlops', architecture_layer: 'mlops',
+    hosting: ['eu','us','onprem'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
+    sap_compatible: false, use_case_types: ['predictive','generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://wandb.ai',
+    description: 'ML Experiment Tracking, Hyperparameter-Optimierung und Modell-Visualisierung — Standard-Tool für Research und Produktion.',
+    tags: ['mlops','tracking','experiments','visualization','sweep'] },
+
+  // ── MODEL LAYER — Oracle ──────────────────────────────────────────────────
+  { name: 'Oracle OCI Data Science', vendor: 'Oracle', category: 'ml_platform', architecture_layer: 'model',
+    hosting: ['eu','us'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['predictive','generative'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: null, website_url: 'https://www.oracle.com/artificial-intelligence/data-science/',
+    description: 'ML-Plattform auf Oracle Cloud Infrastructure — Notebooks, AutoML, Model Deployment und AI Quick Actions für LLMs.',
+    tags: ['oracle','oci','ml','mlops','automl'] },
+
+  // ── APPLICATION LAYER — Entwickler-Tools ─────────────────────────────────
+  { name: 'GitHub Copilot', vendor: 'GitHub', category: 'application', architecture_layer: 'application',
+    hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
+    sap_compatible: false, use_case_types: ['automation','generative'], infra_types: ['cloud'], cloud_provider: 'independent',
+    icon_name: 'logos:github-octocat', website_url: 'https://github.com/features/copilot',
+    description: 'KI-gestützter Code-Assistent (GPT-4o-basiert) für VS Code, JetBrains und CLI — beschleunigt ML/AI-Entwicklung.',
+    tags: ['developer-tools','copilot','coding-ai','github','ide'] },
 ]
 
 // ── SEED: Roles Catalog ────────────────────────────────────────────────────────
