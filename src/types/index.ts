@@ -163,6 +163,7 @@ export interface UseCase {
   scores: Record<string, number>
   weighted_score: number
   quadrant: 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid'
+  canvas_id: string | null
   created_at: string
   updated_at: string
 }

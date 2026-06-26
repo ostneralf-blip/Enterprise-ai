@@ -14,12 +14,12 @@ const MOCK_CASES: UseCase[] = [
   {
     id: '1', portfolio_id: 'p1', name: 'CRM Chatbot', domain: 'Kundenservice',
     description: null, scores: { value: 4, feasibility: 4, data_readiness: 3, risk: 4, speed: 3 },
-    weighted_score: 3.8, quadrant: 'quick_win', created_at: '', updated_at: '',
+    weighted_score: 3.8, quadrant: 'quick_win', canvas_id: null, created_at: '', updated_at: '',
   },
   {
     id: '2', portfolio_id: 'p1', name: 'Predictive Maintenance', domain: 'Operations & Logistik',
     description: null, scores: { value: 5, feasibility: 2, data_readiness: 3, risk: 3, speed: 2 },
-    weighted_score: 3.4, quadrant: 'strategic_bet', created_at: '', updated_at: '',
+    weighted_score: 3.4, quadrant: 'strategic_bet', canvas_id: null, created_at: '', updated_at: '',
   },
 ]
 

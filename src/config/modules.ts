@@ -13,6 +13,16 @@ export const MODULES: ModuleConfig[] = [
     description: 'Ermitteln Sie Ihren AI-Reifegrad in 6 Dimensionen: Daten, Skills, Governance, Technologie, Strategie und Kultur. Mit Radar-Chart und priorisierten Handlungsfeldern.',
   },
   {
+    id: 'canvas',
+    title: 'AI Use-Case Canvas',
+    subtitle: '8 Felder · Vollständiges Template · ~15 Min',
+    icon: '□',
+    href: '/canvas',
+    duration: '15 Min',
+    requiredTier: 'free',
+    description: 'Strukturiertes Canvas-Template für neue AI-Use-Cases: Problem, Lösung, Datenquellen, Stakeholder, KPIs, Risiken, Architektur und nächste Schritte.',
+  },
+  {
     id: 'usecase',
     title: 'Use-Case Scoring',
     subtitle: '5 Kriterien · Portfolio-Matrix · ~5 Min',
@@ -41,16 +51,6 @@ export const MODULES: ModuleConfig[] = [
     duration: '2 Min',
     requiredTier: 'free',
     description: 'Ihr AI-Umsetzungsplan in 3 Phasen (0–3 / 3–12 / 12+ Monate), automatisch angepasst an Ihren Unternehmensarchetyp mit KPIs und Budgetorientierung.',
-  },
-  {
-    id: 'canvas',
-    title: 'AI Use-Case Canvas',
-    subtitle: '8 Felder · Vollständiges Template · ~15 Min',
-    icon: '□',
-    href: '/canvas',
-    duration: '15 Min',
-    requiredTier: 'free',
-    description: 'Strukturiertes Canvas-Template für neue AI-Use-Cases: Problem, Lösung, Datenquellen, Stakeholder, KPIs, Risiken, Architektur und nächste Schritte.',
   },
   {
     id: 'compliance',
