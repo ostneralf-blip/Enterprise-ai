@@ -1,0 +1,2 @@
+ALTER TABLE use_cases
+  ADD COLUMN canvas_id UUID REFERENCES canvases(id) ON DELETE SET NULL;
