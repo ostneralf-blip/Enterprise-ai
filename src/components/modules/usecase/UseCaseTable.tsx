@@ -102,6 +102,13 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
                 <td className="px-4 py-3">{quadrantBadge(uc.quadrant)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 justify-end">
+                    <a
+                      href={`/architecture?from=usecase&id=${uc.id}`}
+                      className="text-xs text-violet-600 hover:text-violet-800 font-medium whitespace-nowrap"
+                      title="Im Architektur-Generator öffnen"
+                    >
+                      ◈ Architektur
+                    </a>
                     <button onClick={() => onEdit(uc)} aria-label="Bearbeiten"
                       className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50">✏️</button>
                     <button onClick={() => onDelete(uc.id)} aria-label="Löschen"

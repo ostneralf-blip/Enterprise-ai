@@ -5,8 +5,9 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
-import type { Archetype, CatalogComponent } from '@/types'
+import type { Archetype, CatalogComponent, Canvas, UseCase } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
+import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
 const LAYER_ICONS = ['◎', '◐', '▷', '□']
 
@@ -55,6 +56,7 @@ interface Props {
   governanceContext?: GovernanceContext | null
   compliancePreset?: 'strict' | 'moderate' | 'low' | 'undefined'
   tier?: string
+  canvasContext?: { canvas: Canvas; useCase: UseCase } | null
 }
 
 const COMPLIANCE_PRESET_LABELS: Record<string, string> = {
@@ -96,6 +98,70 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset 
           <span className="font-medium">Compliance (vorausgefüllt):</span>{' '}
           {COMPLIANCE_PRESET_LABELS[compliancePreset] ?? compliancePreset}
         </p>
+      )}
+    </div>
+  )
+}
+
+const TAG_COLORS: Record<DetectedTag['type'], string> = {
+  score:      'bg-emerald-50 text-emerald-700 border-emerald-200',
+  industry:   'bg-slate-100 text-slate-700 border-slate-200',
+  usecase:    'bg-blue-50 text-blue-700 border-blue-200',
+  platform:   'bg-violet-50 text-violet-700 border-violet-200',
+  compliance: 'bg-amber-50 text-amber-700 border-amber-200',
+}
+
+function CanvasContextBanner({
+  canvasTitle,
+  useCaseName,
+  context,
+  onDismiss,
+}: {
+  canvasTitle: string
+  useCaseName: string
+  context: CanvasContext
+  onDismiss: () => void
+}) {
+  const [collapsed, setCollapsed] = useState(false)
+  const filledCount = Object.keys(context.wizard_prefill).length
+  return (
+    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-emerald-700 font-semibold text-xs shrink-0">◧ Kontext aus Canvas &amp; Scoring</span>
+          <span className="text-xs text-emerald-600 truncate">{canvasTitle} · {useCaseName}</span>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => setCollapsed(v => !v)}
+            aria-label={collapsed ? 'Ausklappen' : 'Einklappen'}
+            className="text-xs text-emerald-700 hover:text-emerald-900 p-1"
+          >
+            {collapsed ? '▾' : '▴'}
+          </button>
+          <button
+            onClick={onDismiss}
+            aria-label="Banner schließen"
+            className="text-xs text-emerald-600 hover:text-emerald-900 p-1"
+          >✕</button>
+        </div>
+      </div>
+      {!collapsed && (
+        <>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {context.detected_tags.map(tag => (
+              <span
+                key={tag.label}
+                className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full border', TAG_COLORS[tag.type])}
+              >
+                {tag.label}
+              </span>
+            ))}
+          </div>
+          <p className="text-[10px] text-emerald-600 mt-1.5">
+            {filledCount} von 12 Wizard-Schritten vorausgefüllt · Alle Felder können überschrieben werden
+          </p>
+        </>
       )}
     </div>
   )
@@ -191,13 +257,23 @@ function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecomme
   )
 }
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free' }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [currentStep, setCurrentStep] = useState(0)
-  const [answers, setAnswers] = useState<WizardAnswers>(() =>
-    compliancePreset ? { compliance: compliancePreset } : {}
-  )
+  const [answers, setAnswers] = useState<WizardAnswers>(() => {
+    const base = compliancePreset ? { compliance: compliancePreset } : {}
+    if (canvasContext) {
+      const ctx = extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [])
+      return { ...base, ...ctx.wizard_prefill }
+    }
+    return base as WizardAnswers
+  })
+  const [canvasCtx, setCanvasCtx] = useState<CanvasContext | null>(() => {
+    if (!canvasContext) return null
+    return extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [])
+  })
+  const [showCanvasBanner, setShowCanvasBanner] = useState(!!canvasContext)
   const [result, setResult] = useState<ArchitectureResult | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -234,6 +310,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const loaded = data ?? []
           setRecComponents(loaded)
           setCatalogRecs(recommendFromCatalog(wizardAnswers, loaded))
+          if (canvasContext) {
+            setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded))
+          }
         })
         .catch(() => { catalogFetched.current = false })
     }
@@ -262,6 +341,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSavedId(null)
     setCatalogRecs(null)
     setJouleUseCases([])
+    setCanvasCtx(null)
+    setShowCanvasBanner(false)
     setView('wizard')
   }
 
@@ -522,6 +603,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   return (
     <div className="max-w-2xl">
       <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} />
+      {showCanvasBanner && canvasCtx && canvasContext && (
+        <CanvasContextBanner
+          canvasTitle={canvasContext.canvas.title}
+          useCaseName={canvasContext.useCase.name}
+          context={canvasCtx}
+          onDismiss={() => setShowCanvasBanner(false)}
+        />
+      )}
 
       {/* Progress */}
       <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={`Schritt ${currentStep + 1} von ${totalSteps}`}>

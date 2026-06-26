@@ -8,10 +8,41 @@ import type { Metadata } from 'next'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Architektur-Generator' }
 
-export default async function ArchitecturePage() {
+export default async function ArchitecturePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; id?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const params = await searchParams
+  let canvasContext: {
+    canvas: import('@/types').Canvas
+    useCase: import('@/types').UseCase
+  } | null = null
+
+  if (params.from === 'usecase' && params.id) {
+    const { data: useCase } = await supabase
+      .from('use_cases')
+      .select('*, uc_portfolios!inner(user_id)')
+      .eq('id', params.id)
+      .single() as { data: (import('@/types').UseCase & { uc_portfolios: { user_id: string } }) | null }
+
+    if (useCase && useCase.uc_portfolios.user_id === user.id && useCase.canvas_id) {
+      const { data: canvas } = await supabase
+        .from('canvases')
+        .select('*')
+        .eq('id', useCase.canvas_id)
+        .eq('user_id', user.id)
+        .single() as { data: import('@/types').Canvas | null }
+
+      if (canvas) {
+        canvasContext = { canvas, useCase }
+      }
+    }
+  }
 
   const { data: profileData } = await supabase
     .from('profiles')
@@ -77,6 +108,7 @@ export default async function ArchitecturePage() {
         } : null}
         compliancePreset={riskClassNote ? compliancePreset : undefined}
         tier={tier}
+        canvasContext={canvasContext}
       />
     </div>
   )
