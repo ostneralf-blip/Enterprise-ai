@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource } from '@/types'
 import { cn } from '@/lib/utils'
+import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
@@ -64,6 +65,10 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [editingSourceUrl, setEditingSourceUrl] = useState('')
   const [editingSourceConfig, setEditingSourceConfig] = useState<Record<string, string>>({})
   const [savingSourceUrl, setSavingSourceUrl] = useState(false)
+  const [showAddSource, setShowAddSource] = useState(false)
+  const [newSourceForm, setNewSourceForm] = useState({ name: '', type: 'huggingface', url: '', config: {} as Record<string, string> })
+  const [addingSource, setAddingSource] = useState(false)
+  const [addSourceError, setAddSourceError] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -166,6 +171,57 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   function toggleFlag(user: UserProfile, flag: string) {
     const current = user.feature_flags ?? {}
     patchUser(user.id, { feature_flags: { ...current, [flag]: !current[flag] } })
+  }
+
+  // ── Source add/delete handlers ──────────────────────────────────────────────
+  function openAddSource() {
+    const schema = SOURCE_TYPE_SCHEMAS['huggingface']
+    setNewSourceForm({ name: '', type: 'huggingface', url: schema?.defaultUrl ?? '', config: {} })
+    setAddSourceError(null)
+    setShowAddSource(true)
+  }
+
+  function changeNewSourceType(type: string) {
+    const schema = SOURCE_TYPE_SCHEMAS[type]
+    setNewSourceForm(f => ({ ...f, type, url: schema?.defaultUrl ?? '', config: {} }))
+  }
+
+  async function handleAddSource() {
+    if (!newSourceForm.name.trim()) { setAddSourceError('Name ist erforderlich.'); return }
+    setAddingSource(true)
+    setAddSourceError(null)
+    try {
+      const res = await fetch('/api/admin/catalog/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newSourceForm.name.trim(),
+          type: newSourceForm.type,
+          url: newSourceForm.url.trim() || null,
+          config: newSourceForm.config,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Fehler beim Erstellen')
+      setSources(prev => [...prev, json.data])
+      setShowAddSource(false)
+      setNewSourceForm({ name: '', type: 'huggingface', url: '', config: {} })
+    } catch (e) {
+      setAddSourceError(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setAddingSource(false)
+    }
+  }
+
+  async function handleDeleteSource(sourceId: string, sourceName: string) {
+    if (!confirm(`Quelle "${sourceName}" wirklich löschen?`)) return
+    try {
+      const res = await fetch(`/api/admin/catalog/sources?id=${sourceId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler')
+      setSources(prev => prev.filter(s => s.id !== sourceId))
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    }
   }
 
   // ── Catalog handlers ────────────────────────────────────────────────────────
@@ -474,30 +530,131 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         <div className="space-y-5">
 
           {/* Katalog-Quellen */}
-          {sources.length > 0 && (
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-800">Katalog-Quellen</h3>
-                <span className="text-xs text-slate-400">{sources.length} Quellen konfiguriert</span>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-slate-800">Katalog-Quellen ({sources.length})</h3>
+              <button
+                onClick={openAddSource}
+                className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+              >
+                + Neue Quelle
+              </button>
+            </div>
+
+            {/* "Neue Quelle" Formular */}
+            {showAddSource && (
+              <div className="px-4 py-4 border-b border-slate-100 bg-slate-50 space-y-3">
+                <h4 className="text-xs font-semibold text-slate-700">Neue Datenquelle hinzufügen</h4>
+                {addSourceError && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">{addSourceError}</p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-500 mb-1">Name (eindeutig)</label>
+                    <input
+                      type="text"
+                      value={newSourceForm.name}
+                      onChange={e => setNewSourceForm(f => ({ ...f, name: e.target.value }))}
+                      placeholder="z. B. Meine OpenAI Integration"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-500 mb-1">Typ</label>
+                    <select
+                      value={newSourceForm.type}
+                      onChange={e => changeNewSourceType(e.target.value)}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      {KNOWN_SOURCE_TYPES.map(t => (
+                        <option key={t} value={t}>
+                          {SOURCE_TYPE_SCHEMAS[t]?.label ?? t} ({SOURCE_TYPE_SCHEMAS[t]?.technology ?? '?'})
+                        </option>
+                      ))}
+                    </select>
+                    {SOURCE_TYPE_SCHEMAS[newSourceForm.type]?.description && (
+                      <p className="text-[10px] text-slate-400 mt-0.5">{SOURCE_TYPE_SCHEMAS[newSourceForm.type].description}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-slate-500 mb-1">Endpunkt-URL</label>
+                  <input
+                    type="url"
+                    value={newSourceForm.url}
+                    onChange={e => setNewSourceForm(f => ({ ...f, url: e.target.value }))}
+                    placeholder="https://…"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  />
+                </div>
+                {(SOURCE_TYPE_SCHEMAS[newSourceForm.type]?.fields ?? []).map(field => (
+                  <div key={field.key}>
+                    <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                      {field.helpUrl && (
+                        <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">↗</a>
+                      )}
+                    </label>
+                    <input
+                      type={field.type === 'password' ? 'password' : field.type === 'url' ? 'url' : 'text'}
+                      value={newSourceForm.config[field.key] ?? ''}
+                      onChange={e => setNewSourceForm(f => ({ ...f, config: { ...f.config, [field.key]: e.target.value } }))}
+                      placeholder={field.placeholder}
+                      autoComplete="off"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                    {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handleAddSource}
+                    disabled={addingSource}
+                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                  >
+                    {addingSource ? 'Speichert…' : 'Quelle hinzufügen'}
+                  </button>
+                  <button
+                    onClick={() => { setShowAddSource(false); setAddSourceError(null) }}
+                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
               </div>
+            )}
+
+            {sources.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-slate-400">Noch keine Quellen — Neue Quelle hinzufügen.</p>
+            ) : (
               <ul className="divide-y divide-slate-100">
                 {sources.map(src => {
+                  const schema = SOURCE_TYPE_SCHEMAS[src.type]
                   const isSyncing = syncingId === src.id
                   const msg = syncMessages[src.id]
                   const lastSync = src.last_synced_at
                     ? new Date(src.last_synced_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                     : 'Noch nie'
+                  const requiredFields = (schema?.fields ?? []).filter(f => f.required)
+                  const missingRequired = requiredFields.filter(f => !src.config?.[f.key])
                   return (
                     <li key={src.id} className="px-4 py-3 space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                         <div className="flex-1 min-w-0 space-y-0.5">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
+                            {schema && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium whitespace-nowrap">{schema.technology}</span>
+                            )}
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
                             {src.sync_status === 'success'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
                             {src.sync_status === 'error'    && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700">✗ Fehler</span>}
-                            {src.sync_status === 'skipped'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">— Übersprungen</span>}
+                            {src.sync_status === 'skipped'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">⚠ Key fehlt</span>}
                           </div>
+                          {schema?.description && (
+                            <p className="text-[10px] text-slate-400">{schema.description}</p>
+                          )}
                           <p className="text-xs text-slate-400">
                             Letzter Sync: {lastSync}
                             {src.last_sync_added != null && src.last_sync_added > 0 && ` · ${src.last_sync_added} eingetragen`}
@@ -517,13 +674,23 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleSync(src.id)}
-                          disabled={isSyncing || syncingId !== null}
-                          className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors flex-shrink-0"
-                        >
-                          {isSyncing ? 'Synct…' : '↻ Sync'}
-                        </button>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => handleSync(src.id)}
+                            disabled={isSyncing || syncingId !== null || missingRequired.length > 0}
+                            title={missingRequired.length > 0 ? `Konfigurieren: ${missingRequired.map(f => f.label).join(', ')}` : undefined}
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors"
+                          >
+                            {isSyncing ? 'Synct…' : '↻ Sync'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSource(src.id, src.name)}
+                            className="whitespace-nowrap px-2 py-1.5 text-xs font-medium border border-slate-200 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Quelle löschen"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
 
                       {/* URL + Konfiguration */}
@@ -539,24 +706,27 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             />
                           </div>
-                          {/* SAP-spezifisch: API Key */}
-                          {src.type === 'sap_api' && (
-                            <div>
+                          {/* Schema-gesteuerte Config-Felder */}
+                          {(schema?.fields ?? []).map(field => (
+                            <div key={field.key}>
                               <label className="block text-[10px] font-medium text-slate-500 mb-1">
-                                SAP API Hub — API Key
-                                <a href="https://api.sap.com" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">api.sap.com ↗</a>
+                                {field.label}
+                                {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                                {field.helpUrl && (
+                                  <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">↗</a>
+                                )}
                               </label>
                               <input
-                                type="password"
-                                value={editingSourceConfig.api_key ?? ''}
-                                onChange={e => setEditingSourceConfig(c => ({ ...c, api_key: e.target.value }))}
-                                placeholder="Ihren API Key hier eintragen"
+                                type={field.type === 'password' ? 'password' : field.type === 'url' ? 'url' : 'text'}
+                                value={editingSourceConfig[field.key] ?? ''}
+                                onChange={e => setEditingSourceConfig(c => ({ ...c, [field.key]: e.target.value }))}
+                                placeholder={field.placeholder}
                                 autoComplete="off"
                                 className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                               />
-                              <p className="text-[10px] text-slate-400 mt-0.5">Kostenlosen Key unter api.sap.com → Profil → Einstellungen erstellen.</p>
+                              {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
                             </div>
-                          )}
+                          ))}
                           <div className="flex gap-2 pt-1">
                             <button
                               onClick={() => handleSaveUrl(src.id)}
@@ -575,14 +745,24 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-slate-400 truncate flex-1 min-w-0">
-                            {src.url ?? <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
-                            {src.type === 'sap_api' && (
-                              <span className={cn('ml-2 not-italic', src.config?.api_key ? 'text-emerald-600' : 'text-amber-600')}>
-                                {src.config?.api_key ? '· API Key ✓' : '· Kein API Key'}
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-mono text-slate-400 truncate block">
+                              {src.url || <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
+                            </span>
+                            {/* Config-Status für alle Quellen mit pflichtigen Feldern */}
+                            {(schema?.fields ?? []).length > 0 && (
+                              <div className="flex gap-2 flex-wrap mt-0.5">
+                                {(schema?.fields ?? []).map(f => (
+                                  <span key={f.key} className={cn(
+                                    'text-[10px]',
+                                    src.config?.[f.key] ? 'text-emerald-600' : f.required ? 'text-amber-600 font-medium' : 'text-slate-400'
+                                  )}>
+                                    {f.required ? '●' : '○'} {f.label}: {src.config?.[f.key] ? '✓' : f.required ? 'fehlt' : 'nicht gesetzt'}
+                                  </span>
+                                ))}
+                              </div>
                             )}
-                          </span>
+                          </div>
                           <button
                             onClick={() => startEditUrl(src)}
                             className="whitespace-nowrap text-xs text-blue-600 hover:text-blue-500 font-medium flex-shrink-0"
@@ -595,8 +775,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   )
                 })}
               </ul>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Actions row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
