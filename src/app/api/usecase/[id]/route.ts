@@ -15,6 +15,7 @@ const UpdateSchema = z.object({
     risk: z.number().int().min(1).max(5),
     speed: z.number().int().min(1).max(5),
   }),
+  canvas_id: z.string().uuid().nullable().optional(),
 })
 
 export async function PUT(
@@ -41,17 +42,38 @@ export async function PUT(
     }
 
     const body = await req.json()
+
+    // Canvas-Ownership prüfen wenn canvas_id übergeben wird
+    if (body.canvas_id) {
+      const { data: canvasOwner } = await supabase
+        .from('canvases')
+        .select('user_id')
+        .eq('id', body.canvas_id)
+        .single()
+      if (!canvasOwner || canvasOwner.user_id !== user.id) {
+        return NextResponse.json({ error: 'Canvas nicht gefunden' }, { status: 403 })
+      }
+    }
+
     const parse = UpdateSchema.safeParse(body)
     if (!parse.success) return NextResponse.json({ error: 'Ungültige Eingabe' }, { status: 400 })
 
-    const { name, domain, description, scores } = parse.data
+    const { name, domain, description, scores, canvas_id } = parse.data
     const weights = existing.uc_portfolios.weights ?? DEFAULT_WEIGHTS
     const weighted_score = calcWeightedScore(scores, weights)
     const quadrant = deriveQuadrant(scores)
 
     const { data, error } = await supabase
       .from('use_cases')
-      .update({ name, domain: domain ?? null, description: description ?? null, scores, weighted_score, quadrant })
+      .update({
+        name,
+        domain: domain ?? null,
+        description: description ?? null,
+        scores,
+        weighted_score,
+        quadrant,
+        ...(canvas_id !== undefined ? { canvas_id: canvas_id ?? null } : {}),
+      })
       .eq('id', id)
       .select()
       .single()
