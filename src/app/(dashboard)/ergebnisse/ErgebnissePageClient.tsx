@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap'
 
@@ -82,6 +83,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const [architectures, setArchitectures] = useState(initArch)
   const [governance,    setGovernance]    = useState(initG)
   const [roadmaps,      setRoadmaps]      = useState(initR)
+  const [compareMode,   setCompareMode]   = useState(false)
+  const [compareIds,    setCompareIds]    = useState<string[]>([])
 
   const setPrimary = async (category: Tab, id: string) => {
     const key = PREF_KEY[category]
@@ -108,6 +111,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
   const toggle = (id: string) => setExpanded(e => e === id ? null : id)
 
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 2 ? [...prev, id] : [prev[1], id]
+    )
+  }
+
+  const exitCompare = () => { setCompareMode(false); setCompareIds([]) }
+
   const TABS = [
     { key: 'assessment'   as Tab, label: 'Assessment',  count: assessments.length },
     { key: 'architecture' as Tab, label: 'Architektur', count: architectures.length },
@@ -117,49 +128,132 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
   return (
     <div>
-      <div className="flex gap-1 mb-6 border-b border-slate-200 overflow-x-auto">
+      <div className="flex items-center gap-1 mb-6 border-b border-slate-200 overflow-x-auto">
         {TABS.map(t => (
-          <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null) }}
+          <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null); exitCompare() }}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             {t.label}
             {t.count > 0 && <span className="ml-1.5 text-xs bg-slate-100 text-slate-500 rounded-full px-1.5">{t.count}</span>}
           </button>
         ))}
+        <div className="flex-1" />
+        {TABS.find(t => t.key === tab)!.count >= 2 && (
+          compareMode ? (
+            <button onClick={exitCompare}
+              className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap mb-px">
+              Vergleich beenden
+            </button>
+          ) : (
+            <button onClick={() => { setCompareMode(true); setCompareIds([]) }}
+              className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap mb-px">
+              ⇄ Vergleichen
+            </button>
+          )
+        )}
       </div>
+
+      {/* Vergleich-Hinweis */}
+      {compareMode && (
+        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-3">
+          <p className="text-xs text-amber-800 flex-1">
+            {compareIds.length === 0 && 'Wählen Sie zwei Einträge zum Vergleich aus.'}
+            {compareIds.length === 1 && 'Noch einen Eintrag auswählen…'}
+            {compareIds.length === 2 && 'Beide Einträge ausgewählt — Vergleich wird unten angezeigt.'}
+          </p>
+          {compareIds.length > 0 && (
+            <button onClick={() => setCompareIds([])} className="text-xs text-amber-700 hover:text-amber-900 font-medium whitespace-nowrap">
+              Auswahl zurücksetzen
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Assessment ─────────────────────────────────────────── */}
       {tab === 'assessment' && (
         <div className="space-y-2">
           {assessments.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Assessment abgeschlossen. <Link href="/assessment" className="text-blue-600 hover:underline">Jetzt starten →</Link></p>}
-          {assessments.map(a => (
-            <div key={a.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(a.id)}>
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
-                  <span className="text-xs font-bold text-slate-900 shrink-0">{Number(a.total_score).toFixed(1)}/5.0</span>
-                  <span className="text-xs text-slate-400 shrink-0">{fmt(a.created_at)}</span>
-                </div>
-                <RowActions isPrimary={prefs.primary_assessment_id === a.id} isConfirmDelete={confirmId === a.id}
-                  onSetPrimary={e => { e.stopPropagation(); setPrimary('assessment', a.id) }}
-                  onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
-                  onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
-                  onDelete={e => { e.stopPropagation(); deleteItem('assessment', a.id) }} />
-              </div>
-              {expanded === a.id && (
-                <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 mb-3">
-                    {Object.entries(a.dim_scores ?? {}).map(([dim, score]) => (
-                      <div key={dim} className="text-xs flex justify-between">
-                        <span className="text-slate-500">{DIM_LABELS[dim] ?? dim}</span>
-                        <span className="font-semibold text-slate-800">{Number(score).toFixed(1)}</span>
-                      </div>
-                    ))}
+          {assessments.map(a => {
+            const isSelected = compareIds.includes(a.id)
+            return (
+              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
+                  {compareMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
+                    <span className="text-xs font-bold text-slate-900 shrink-0">{Number(a.total_score).toFixed(1)}/5.0</span>
+                    <span className="text-xs text-slate-400 shrink-0">{fmt(a.created_at)}</span>
                   </div>
-                  <Link href="/assessment" className="text-xs text-blue-600 hover:underline">Vollständiges Ergebnis ansehen →</Link>
+                  {!compareMode && (
+                    <RowActions isPrimary={prefs.primary_assessment_id === a.id} isConfirmDelete={confirmId === a.id}
+                      onSetPrimary={e => { e.stopPropagation(); setPrimary('assessment', a.id) }}
+                      onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
+                      onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                      onDelete={e => { e.stopPropagation(); deleteItem('assessment', a.id) }} />
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+                {!compareMode && expanded === a.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 mb-3">
+                      {Object.entries(a.dim_scores ?? {}).map(([dim, score]) => (
+                        <div key={dim} className="text-xs flex justify-between">
+                          <span className="text-slate-500">{DIM_LABELS[dim] ?? dim}</span>
+                          <span className="font-semibold text-slate-800">{Number(score).toFixed(1)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <Link href="/assessment" className="text-xs text-blue-600 hover:underline">Vollständiges Ergebnis ansehen →</Link>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Vergleichs-Panel */}
+          {compareMode && compareIds.length === 2 && (() => {
+            const a1 = assessments.find(a => a.id === compareIds[0])
+            const a2 = assessments.find(a => a.id === compareIds[1])
+            if (!a1 || !a2) return null
+            const dims = Object.keys(a1.dim_scores ?? {})
+            return (
+              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Assessments</p>
+                </div>
+                <div className="grid grid-cols-3 text-xs">
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Dimension</div>
+                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                    {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Number(a1.total_score).toFixed(1)}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.created_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                    {ARCHETYPES[a2.archetype] ?? a2.archetype} — {Number(a2.total_score).toFixed(1)}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.created_at)}</div>
+                  </div>
+                  {dims.map(dim => {
+                    const s1 = Number(a1.dim_scores?.[dim] ?? 0)
+                    const s2 = Number(a2.dim_scores?.[dim] ?? 0)
+                    const diff = s2 - s1
+                    return (
+                      <>
+                        <div key={`${dim}-label`} className="px-4 py-2 text-slate-500 border-t border-slate-100">{DIM_LABELS[dim] ?? dim}</div>
+                        <div key={`${dim}-s1`} className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{s1.toFixed(1)}</div>
+                        <div key={`${dim}-s2`} className={cn('px-4 py-2 font-semibold border-t border-slate-100 border-l flex items-center gap-1',
+                          diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-red-600' : 'text-slate-800')}>
+                          {s2.toFixed(1)}
+                          {diff !== 0 && <span className="text-[10px]">{diff > 0 ? '▲' : '▼'}{Math.abs(diff).toFixed(1)}</span>}
+                        </div>
+                      </>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -252,12 +346,6 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
         </div>
       )}
 
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <p className="text-xs text-blue-700">
-          <strong>★ Primär</strong> — Das als primär markierte Ergebnis wird im Architektur-Generator als Kontext verwendet.
-          So lassen sich mit verschiedenen Assessments oder Governance-Prüfungen unterschiedliche Architekturen entwickeln.
-        </p>
-      </div>
     </div>
   )
 }

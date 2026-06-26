@@ -80,8 +80,8 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
         </div>
       )}
 
-      {/* Step indicator — horizontal scroll on mobile */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5" role="list">
+      {/* Step indicator — gleiche Breite wie der Pfad-Container */}
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }} role="list">
         {steps.map((s) => {
           const isCurrent = s === nextStep
           const isLocked = s.proOnly && tier === 'free'
@@ -92,7 +92,7 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
               role="listitem"
               aria-label={`Schritt ${s.step}: ${s.title}${s.done ? ' (abgeschlossen)' : isCurrent ? ' (aktuell empfohlen)' : ''}`}
               className={[
-                'flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border transition-colors text-center min-w-[72px] max-w-[88px]',
+                'flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border transition-colors text-center',
                 s.done
                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                   : isCurrent
@@ -100,8 +100,8 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
                     : 'bg-slate-50 border-slate-200 text-slate-400',
               ].join(' ')}
             >
-              <span className="text-base leading-none">{s.done ? '✓' : s.icon}</span>
-              <span className="text-[10px] font-medium leading-tight line-clamp-2">{s.title}</span>
+              <span className="text-sm leading-none">{s.done ? '✓' : s.icon}</span>
+              <span className="text-[9px] font-medium leading-tight line-clamp-2 text-center w-full">{s.title}</span>
             </Link>
           )
         })}
@@ -203,23 +203,35 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
-          <div className="text-slate-400 text-lg mb-1.5">◈</div>
-          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-            tier === 'pro' ? 'bg-blue-100 text-blue-700' :
-            tier === 'enterprise' ? 'bg-violet-100 text-violet-700' :
-            'bg-slate-100 text-slate-600'
-          }`}>
-            {tier === 'pro' ? 'Pro' : tier === 'enterprise' ? 'Enterprise' : 'Free'}
-          </span>
-          <div className="text-xs text-slate-500 mt-1.5">
-            {tier === 'free' ? `${accessibleToolCount} von 7 Tools verfügbar` : 'Alle 7 Tools verfügbar'}
-          </div>
-        </div>
+        {latestAssessment ? (
+          <Link href="/assessment" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-4 sm:p-5 block transition-all">
+            <div className="text-slate-400 text-base mb-1.5">◎ Letztes Assessment</div>
+            <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_LABELS[latestAssessment.archetype as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+              {ARCHETYPE_LABELS[latestAssessment.archetype as string]?.label ?? String(latestAssessment.archetype)}
+            </span>
+            <div className="text-xs text-slate-500 mt-1.5">
+              Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0
+            </div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              {new Date(latestAssessment.created_at as string).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </div>
+          </Link>
+        ) : (
+          <Link href="/assessment" className="bg-white border border-dashed border-slate-200 hover:border-blue-300 rounded-xl p-4 sm:p-5 block transition-all">
+            <div className="text-slate-300 text-base mb-1.5">◎ Letztes Assessment</div>
+            <div className="text-sm font-medium text-slate-500">Noch kein Assessment</div>
+            <div className="text-xs text-slate-400 mt-1">Archetype & Reifegrad bestimmen →</div>
+          </Link>
+        )}
         <Link href="/ergebnisse" className="bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm rounded-xl p-4 sm:p-5 block transition-all">
-          <div className="text-slate-400 text-lg mb-1">□</div>
+          <div className="text-slate-400 text-base mb-1">□ Gespeicherte Ergebnisse</div>
           <div className="text-2xl font-semibold text-slate-900">{savedCount > 0 ? savedCount : '—'}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Gespeicherte Ergebnisse</div>
+          <div className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+            Assessments, Architekturen, Governance & Roadmaps — primär markierte Ergebnisse fließen als Kontext in den Architektur-Generator ein.
+          </div>
+          {savedCount >= 2 && (
+            <div className="text-[10px] text-blue-600 mt-1 font-medium">Ergebnisse vergleichen →</div>
+          )}
         </Link>
       </div>
 
@@ -249,28 +261,6 @@ export default async function DashboardPage() {
         )
       })()}
 
-      {/* Latest Assessment result */}
-      {latestAssessment && (
-        <div className="mb-8">
-          <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Letztes Assessment</h2>
-          <Link href="/assessment" className="block bg-white border border-slate-200 hover:border-blue-300 rounded-xl p-4 sm:p-5 transition-all hover:shadow-sm">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_LABELS[latestAssessment.archetype as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
-                    {ARCHETYPE_LABELS[latestAssessment.archetype as string]?.label ?? latestAssessment.archetype}
-                  </span>
-                  <span className="text-xs text-slate-400">
-                    {new Date(latestAssessment.created_at as string).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600">AI-Readiness Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0</p>
-              </div>
-              <span className="text-xs font-medium text-blue-600 whitespace-nowrap">Ergebnis ansehen →</span>
-            </div>
-          </Link>
-        </div>
-      )}
 
       <div className="mb-4">
         <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Alle Tools</h2>
