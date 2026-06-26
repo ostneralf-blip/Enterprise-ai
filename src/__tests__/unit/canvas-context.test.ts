@@ -128,4 +128,10 @@ describe('extractCanvasContext', () => {
     const ctx = extractCanvasContext(mockCanvas(), mockUseCase(), [comp])
     expect(ctx.pre_scored_components.map(c => c.name)).toContain('SAP AI Core')
   })
+
+  it('erkennt eu_hosting_required Flag aus Frankfurt-Erwähnung in risks', () => {
+    const canvas = mockCanvas({ risks: 'Hosting muss in Frankfurt erfolgen, On-Premise bevorzugt' })
+    const ctx = extractCanvasContext(canvas, mockUseCase(), [])
+    expect(ctx.compliance_flags).toContain('eu_hosting_required')
+  })
 })

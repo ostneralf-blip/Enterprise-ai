@@ -108,7 +108,7 @@ export function extractCanvasContext(
   const risksLower = canvas.data.risks.toLowerCase()
   if (/dsgvo|datenschutz|personenbezogen/.test(risksLower))     compliance_flags.push('dsgvo_strict')
   if (/eu ai act|hochrisiko|biometrisch/.test(risksLower))      compliance_flags.push('eu_ai_act_high')
-  if (/eu.hosting|frankfurt|on.premise|on-premise/.test(risksLower)) compliance_flags.push('eu_hosting_required')
+  if (/eu[\s-]?hosting|frankfurt|on[\s-]?premise|on-premise/.test(risksLower)) compliance_flags.push('eu_hosting_required')
 
   // Wizard-Vorausfüllung
   const wizard_prefill: Partial<WizardAnswers> = {}
