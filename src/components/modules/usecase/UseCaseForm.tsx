@@ -6,17 +6,25 @@ import type { UseCase, UseCaseWeights } from '@/types'
 interface UseCaseFormProps {
   weights: UseCaseWeights
   editing?: UseCase | null
-  onSave: (data: { name: string; domain: string | null; description: string | null; scores: Record<string, number> }) => Promise<void>
+  canvases?: { id: string; title: string }[]
+  onSave: (data: {
+    name: string
+    domain: string | null
+    description: string | null
+    scores: Record<string, number>
+    canvas_id: string | null
+  }) => Promise<void>
   onCancel: () => void
 }
 
 const DEFAULT_SCORES: Record<string, number> = { value: 3, feasibility: 3, data_readiness: 3, risk: 3, speed: 3 }
 
-export function UseCaseForm({ weights, editing, onSave, onCancel }: UseCaseFormProps) {
+export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: UseCaseFormProps) {
   const [name, setName] = useState(editing?.name ?? '')
   const [domain, setDomain] = useState(editing?.domain ?? '')
   const [description, setDescription] = useState(editing?.description ?? '')
   const [scores, setScores] = useState<Record<string, number>>(editing?.scores ?? DEFAULT_SCORES)
+  const [canvasId, setCanvasId] = useState<string>(editing?.canvas_id ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,7 +38,7 @@ export function UseCaseForm({ weights, editing, onSave, onCancel }: UseCaseFormP
     setSaving(true)
     setError('')
     try {
-      await onSave({ name: name.trim(), domain: domain || null, description: description || null, scores })
+      await onSave({ name: name.trim(), domain: domain || null, description: description || null, scores, canvas_id: canvasId || null })
     } catch {
       setError('Fehler beim Speichern — bitte erneut versuchen.')
       setSaving(false)
@@ -65,6 +73,30 @@ export function UseCaseForm({ weights, editing, onSave, onCancel }: UseCaseFormP
               className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 transition-colors" />
           </div>
         </div>
+
+        {canvases && canvases.length > 0 && (
+          <div>
+            <label htmlFor="uc-canvas" className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
+              Canvas verknüpfen <span className="normal-case text-slate-400">(optional)</span>
+            </label>
+            <select
+              id="uc-canvas"
+              value={canvasId}
+              onChange={e => setCanvasId(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 transition-colors bg-white"
+            >
+              <option value="">Kein Canvas verknüpft</option>
+              {canvases.map(c => (
+                <option key={c.id} value={c.id}>{c.title || 'Unbenannter Canvas'}</option>
+              ))}
+            </select>
+            {canvasId && (
+              <p className="text-[11px] text-blue-600 mt-1">
+                ◧ Verknüpfter Canvas wird im Architektur-Generator berücksichtigt.
+              </p>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Bewertung (1 = niedrig · 5 = hoch)</label>

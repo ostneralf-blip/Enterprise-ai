@@ -43,6 +43,12 @@ export default async function UseCasePage() {
     .eq('portfolio_id', portfolio?.id ?? '')
     .order('weighted_score', { ascending: false }) as { data: UseCase[] | null }
 
+  const { data: canvases } = await supabase
+    .from('canvases')
+    .select('id, title')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false }) as { data: { id: string; title: string }[] | null }
+
   const safePortfolio: UseCasePortfolio = portfolio ?? {
     id: '', user_id: user.id, name: 'Mein Portfolio',
     weights: DEFAULT_WEIGHTS as UseCaseWeights,
@@ -61,6 +67,7 @@ export default async function UseCasePage() {
         initialPortfolio={safePortfolio}
         initialCases={rawCases ?? []}
         tier={tier}
+        canvases={canvases ?? []}
       />
     </div>
   )

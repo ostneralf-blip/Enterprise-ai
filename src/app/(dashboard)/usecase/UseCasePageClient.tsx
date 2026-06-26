@@ -12,11 +12,12 @@ interface Props {
   initialPortfolio: UseCasePortfolio
   initialCases: UseCase[]
   tier: Tier
+  canvases: { id: string; title: string }[]
 }
 
 type Tab = 'portfolio' | 'matrix'
 
-export function UseCasePageClient({ initialPortfolio, initialCases, tier }: Props) {
+export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvases }: Props) {
   const [useCases, setUseCases] = useState<UseCase[]>(initialCases)
   const [weights, setWeights] = useState<UseCaseWeights>(initialPortfolio.weights)
   const [tab, setTab] = useState<Tab>('portfolio')
@@ -33,7 +34,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier }: Prop
     setShowForm(true)
   }
 
-  const handleSaveCase = async (data: { name: string; domain: string | null; description: string | null; scores: Record<string, number> }) => {
+  const handleSaveCase = async (data: { name: string; domain: string | null; description: string | null; scores: Record<string, number>; canvas_id: string | null }) => {
     if (editingCase) {
       const res = await fetch(`/api/usecase/${editingCase.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
       const json = await res.json()
@@ -97,7 +98,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier }: Prop
       )}
 
       {(showForm || editingCase) && (
-        <UseCaseForm weights={weights} editing={editingCase}
+        <UseCaseForm weights={weights} editing={editingCase} canvases={canvases}
           onSave={handleSaveCase}
           onCancel={() => { setShowForm(false); setEditingCase(null) }} />
       )}
