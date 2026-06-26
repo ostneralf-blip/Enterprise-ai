@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import { recommendFromWizard, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 
@@ -218,14 +218,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAnswers(prev => ({ ...prev, [step.id]: optionId }))
   }
 
-  function applyRecs(wizardAnswers: WizardAnswers) {
-    setCatalogRecs(recommendFromWizard(wizardAnswers))
+  function applyRecs(wizardAnswers: WizardAnswers, loadedCatalog?: CatalogComponent[]) {
+    const catalog = loadedCatalog ?? recComponents
+    if (catalog.length > 0) {
+      setCatalogRecs(recommendFromCatalog(wizardAnswers, catalog))
+    } else {
+      setCatalogRecs(recommendFromWizard(wizardAnswers))
+    }
     setJouleUseCases(recommendJouleUseCases(wizardAnswers))
     if (!catalogFetched.current) {
       catalogFetched.current = true
       fetch('/api/catalog/components')
         .then(r => r.json())
-        .then(({ data }) => setRecComponents(data ?? []))
+        .then(({ data }: { data: CatalogComponent[] }) => {
+          const loaded = data ?? []
+          setRecComponents(loaded)
+          setCatalogRecs(recommendFromCatalog(wizardAnswers, loaded))
+        })
         .catch(() => { catalogFetched.current = false })
     }
   }

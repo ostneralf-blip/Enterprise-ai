@@ -1,5 +1,5 @@
 import type { WizardAnswers } from './architecture-data'
-import type { ArchLayer } from '@/types'
+import type { ArchLayer, CatalogComponent } from '@/types'
 import { SEED_JOULE_USE_CASES, type JouleUseCase } from './catalog-seed'
 
 export type { JouleUseCase }
@@ -183,4 +183,64 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
     ] as LayerRecommendation[]).filter(l => l.componentNames.length > 0),
     roleNames: [...new Set(roles)],
   }
+}
+
+const ARCH_LAYERS_ORDERED: ArchLayer[] = [
+  'data', 'model', 'mlops', 'serving', 'governance', 'security', 'application',
+]
+
+export function scoreComponentAgainstAnswers(
+  component: CatalogComponent,
+  answers: WizardAnswers
+): number {
+  let score = 0
+  const providerMap: Record<string, string> = {
+    sap_btp: 'sap', azure: 'azure', aws: 'aws', gcp: 'gcp',
+  }
+  if (answers.cloud_provider_hint && providerMap[answers.cloud_provider_hint] === component.cloud_provider)
+    score += 20
+  if (component.cloud_provider === 'independent') score += 5
+  if (answers.usecase && component.use_case_types.includes(answers.usecase)) score += 15
+  if (answers.sap_landscape && answers.sap_landscape !== 'none' && component.sap_compatible)
+    score += 10
+  if (answers.infra === 'onprem' && component.infra_types.includes('onprem')) score += 8
+  if (answers.infra === 'hybrid' && component.infra_types.includes('hybrid')) score += 8
+  if (answers.infra === 'cloud'  && component.infra_types.includes('cloud'))  score += 5
+  if (answers.compliance === 'strict') {
+    if (component.dsgvo_status === 'non_compliant') return -1000
+    if (component.dsgvo_status === 'compliant') score += 10
+    if (component.hosting.some(h => ['eu', 'onprem'].includes(h))) score += 5
+  }
+  return score
+}
+
+export function recommendFromCatalog(
+  answers: WizardAnswers,
+  catalog: CatalogComponent[]
+): CatalogRecommendations {
+  const layers: LayerRecommendation[] = ARCH_LAYERS_ORDERED.map(layer => {
+    const componentNames = catalog
+      .filter(c => c.architecture_layer === layer)
+      .map(c => ({ name: c.name, score: scoreComponentAgainstAnswers(c, answers) }))
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map(x => x.name)
+    return { layer, componentNames }
+  }).filter(l => l.componentNames.length > 0)
+
+  const roles: string[] = [
+    'AI Product Owner', 'Business AI Champion', 'Data Privacy Manager', 'Data Engineer',
+  ]
+  if (answers.skills === 'team')
+    roles.push('Data Scientist', 'ML Engineer', 'MLOps Engineer', 'AI CoE Lead')
+  else if (answers.skills === 'individuals')
+    roles.push('Data Scientist')
+  if (answers.usecase === 'generative') roles.push('Prompt Engineer')
+  if (answers.compliance === 'strict')  roles.push('AI Ethics / Risk Officer')
+  if (answers.sap_landscape && answers.sap_landscape !== 'none') roles.push('SAP AI Architect')
+  if (!['onprem'].includes(answers.infra ?? '') && answers.skills !== 'business')
+    roles.push('Enterprise Architect (AI)')
+
+  return { layers, roleNames: [...new Set(roles)] }
 }
