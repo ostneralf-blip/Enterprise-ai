@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   ReactFlow,
   Controls,
@@ -223,6 +223,36 @@ function DetailPanel({
   )
 }
 
+// ── Fullscreen modal ──────────────────────────────────────────────────────────
+function FullscreenModal({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode
+  onClose: () => void
+}) {
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl w-full max-w-7xl flex flex-col overflow-hidden shadow-2xl"
+        style={{ height: 'calc(100vh - 3rem)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 // ── Inner diagram (gets remounted via key when recs change) ───────────────────
 export interface ArchitectureDiagramProps {
   recs: CatalogRecommendations
@@ -238,6 +268,7 @@ function DiagramInner({ recs, components, tier = 'free' }: ArchitectureDiagramPr
   const [nodes, , onNodesChange] = useNodesState(initNodes)
   const [edges, , onEdgesChange] = useEdgesState(initEdges)
   const [selected, setSelected] = useState<{ name: string; comp: CatalogComponent | undefined } | null>(null)
+  const [fullscreen, setFullscreen] = useState(false)
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     if (node.type !== 'componentNode' || locked) return
@@ -247,60 +278,89 @@ function DiagramInner({ recs, components, tier = 'free' }: ArchitectureDiagramPr
 
   const totalComponents = recs.layers.reduce((s, l) => s + l.componentNames.length, 0)
 
-  return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3">
+  const header = (
+    <div className="px-4 sm:px-6 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 min-w-0">
         <h3 className="text-sm font-semibold text-slate-900">Architekturdiagramm</h3>
         {locked
           ? <span className="text-xs text-slate-400">🔒 Pro-Feature</span>
           : <span className="text-xs text-slate-400">{totalComponents} Komponenten · {recs.layers.length} Layer</span>
         }
       </div>
-
-      {/* Flow canvas */}
-      <div className="relative" style={{ height: 460 }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          nodeTypes={NODE_TYPES}
-          fitView
-          fitViewOptions={{ padding: 0.15 }}
-          minZoom={0.25}
-          maxZoom={2}
-          deleteKeyCode={null}
+      {!locked && (
+        <button
+          onClick={() => setFullscreen(v => !v)}
+          aria-label={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
+          title={fullscreen ? 'Schließen (ESC)' : 'Vollbild'}
+          className="text-slate-400 hover:text-slate-700 transition-colors p-1.5 rounded-lg hover:bg-slate-100 flex-shrink-0 text-base"
         >
-          <Controls showInteractive={false} />
-          <Background color="#f1f5f9" gap={24} size={1} />
-        </ReactFlow>
-
-        {locked && (
-          <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3">
-            <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
-            <p className="text-xs text-slate-500 text-center max-w-52">
-              {totalComponents} Komponenten in {recs.layers.length} Layers — verfügbar ab Pro
-            </p>
-            <a
-              href="/upgrade"
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors"
-            >
-              Jetzt upgraden →
-            </a>
-          </div>
-        )}
-      </div>
-
-      {/* Node detail panel */}
-      {selected && (
-        <DetailPanel
-          name={selected.name}
-          comp={selected.comp}
-          onClose={() => setSelected(null)}
-        />
+          {fullscreen ? '✕' : '⛶'}
+        </button>
       )}
+    </div>
+  )
+
+  const flowCanvas = (fullscreenMode: boolean) => (
+    <div className={cn('relative', fullscreenMode ? 'flex-1' : '')} style={fullscreenMode ? undefined : { height: 560 }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeClick={onNodeClick}
+        nodeTypes={NODE_TYPES}
+        fitView
+        fitViewOptions={{ padding: 0.15 }}
+        minZoom={0.15}
+        maxZoom={2}
+        deleteKeyCode={null}
+      >
+        <Controls showInteractive={false} />
+        <Background color="#f1f5f9" gap={24} size={1} />
+      </ReactFlow>
+
+      {locked && (
+        <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3">
+          <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
+          <p className="text-xs text-slate-500 text-center max-w-52">
+            {totalComponents} Komponenten in {recs.layers.length} Layers — verfügbar ab Pro
+          </p>
+          <a
+            href="/upgrade"
+            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors"
+          >
+            Jetzt upgraden →
+          </a>
+        </div>
+      )}
+    </div>
+  )
+
+  const detailPanel = selected && (
+    <DetailPanel
+      name={selected.name}
+      comp={selected.comp}
+      onClose={() => setSelected(null)}
+    />
+  )
+
+  if (fullscreen) {
+    return (
+      <FullscreenModal onClose={() => setFullscreen(false)}>
+        <div className="flex flex-col h-full bg-white rounded-2xl overflow-hidden">
+          {header}
+          {flowCanvas(true)}
+          {detailPanel}
+        </div>
+      </FullscreenModal>
+    )
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      {header}
+      {flowCanvas(false)}
+      {detailPanel}
     </div>
   )
 }
