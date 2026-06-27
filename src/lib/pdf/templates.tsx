@@ -489,21 +489,128 @@ const DIM_LABELS_ES: Record<string, string> = {
   data: 'Daten', skills: 'Skills', governance: 'Governance',
   tech: 'Technologie', strategy: 'Strategie', culture: 'Kultur',
 }
-const GOV_RESULT_ES: Record<string, string> = {
-  approve: 'Freigegeben', stop_dsgvo: 'Stop: DSGVO', stop_risk: 'Stop: Risiko', improve: 'Verbesserungsbedarf',
+const GOV_CFG_ES: Record<string, { label: string; color: string; bg: string }> = {
+  approve:    { label: 'Freigegeben',         color: C.green, bg: C.greenBg },
+  stop_dsgvo: { label: 'Stop: DSGVO',         color: C.red,   bg: C.redBg },
+  stop_risk:  { label: 'Stop: Risiko',        color: C.red,   bg: C.redBg },
+  improve:    { label: 'Verbesserungsbedarf', color: C.amber, bg: C.amberBg },
+}
+const QUADRANT_ES: Record<string, string> = {
+  quick_win: 'Quick Win', strategic_bet: 'Strategisch',
+  low_hanging_fruit: 'Geringer Aufwand', avoid: 'Vermeiden',
+}
+const CANVAS_LABELS_ES: Record<string, string> = {
+  problem: 'Problem / Opportunität', solution: 'KI-Lösung',
+  data_sources: 'Datenquellen', stakeholders: 'Stakeholder',
+  kpis: 'KPIs', risks: 'Risiken',
+  architecture: 'Technische Architektur', next_steps: 'Nächste Schritte',
+}
+const CANVAS_FIELD_ORDER = ['problem', 'solution', 'data_sources', 'stakeholders', 'kpis', 'risks', 'architecture', 'next_steps']
+
+interface ESPhaseData {
+  title: string; duration?: string; focus?: string
+  actions?: Array<{ label: string }>; kpis?: string[]
 }
 
 interface ExecutiveSummaryPdfData {
   companyName?: string
   completedModules: number
   totalModules: number
+  moduleStatus: Array<{ label: string; done: boolean }>
   assessment?: { archetype: string; totalScore: number; dimScores: Record<string, number> }
   useCaseCount: number
-  topUseCase?: { name: string; weightedScore: number | null; quadrant: string | null }
-  governance?: { useCaseName: string | null; result: string }
-  roadmap?: { title: string; archetype: string | null; phaseCount: number }
-  canvas?: { title: string }
-  architecture?: { title: string }
+  topUseCases: Array<{ name: string; weightedScore: number | null; quadrant: string | null; domain?: string | null }>
+  governance?: { useCaseName: string | null; result: string; protocol?: Array<{ question?: string; answer?: string; label?: string; value?: string }> }
+  roadmap?: { title: string; archetype: string | null; phases: ESPhaseData[] }
+  canvas?: { title: string; data: Record<string, string> }
+  architecture?: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[] }>; nextSteps?: string[] } }
+}
+
+function boardRecs(data: ExecutiveSummaryPdfData): string[] {
+  const recs: string[] = []
+  const score = data.assessment?.totalScore ?? 0
+  const arch = data.assessment?.archetype
+  const dims = data.assessment?.dimScores ?? {}
+
+  if (arch === 'starter')
+    recs.push('Pilotprojekt-Strategie: Fokus auf 1–2 Use Cases mit klarem ROI-Nachweis. Ressourcen bündeln statt verteilen — Tiefe vor Breite.')
+  else if (arch === 'scaler')
+    recs.push('Skalierungs-Agenda: Erfolgreiche Piloten systematisch ausrollen. AI-Center-of-Excellence als interne Kompetenzplattform aufbauen und Investment verdreifachen.')
+  else if (arch === 'transformer')
+    recs.push('Marktführer-Position: AI als strategischen Wettbewerbsvorteil aktiv kommunizieren. Differenzierung durch proprietäre Daten und domänenspezifische Modelle sichern.')
+
+  const sorted = Object.entries(dims).sort(([, a], [, b]) => a - b)
+  const weakest = sorted[0]
+  if (weakest && weakest[1] < 3) {
+    const actions: Record<string, string> = {
+      data:       'Daten-Qualitätsprogramm sofort starten — ohne belastbare Daten kein skalierbares AI.',
+      skills:     'AI-Talentprogramm: internes Upskilling + gezielte externe Rekrutierung von ML-Engineers.',
+      governance: 'AI-Governance-Framework verabschieden — RACI, Genehmigungsprozesse, Risikoschwellwerte.',
+      tech:       'Technologie-Modernisierung: API-Strategie und Cloud-Readiness als AI-Voraussetzung beschleunigen.',
+      strategy:   'AI-Strategie formal im nächsten Board-Meeting verabschieden — Vision, Ziele, messbare KPIs.',
+      culture:    'Change-Management-Programm: AI-Akzeptanz aktiv aufbauen, Executive-Sponsorship sichern.',
+    }
+    if (actions[weakest[0]])
+      recs.push(`Handlungsprioritär (${DIM_LABELS_ES[weakest[0]] ?? weakest[0]}, Score ${weakest[1].toFixed(1)}/5): ${actions[weakest[0]]}`)
+  }
+
+  if (data.governance?.result?.startsWith('stop'))
+    recs.push('Compliance-Stopp auflösen: Vor jeder Skalierung Governance-Blocker beheben — AI-Deployment ohne Rechtskonformität ist unkalkulierbares Haftungsrisiko.')
+  else if (data.governance?.result === 'approve')
+    recs.push('Governance-Freigabe genutzt: Use Case ethisch und rechtlich geprüft. Skalierung auf Basis dieses Frameworks strukturieren und dokumentieren.')
+
+  const quickWins = data.topUseCases.filter(u => u.quadrant === 'quick_win').length
+  if (quickWins > 0)
+    recs.push(`${quickWins} Quick-Win-Use-Case${quickWins > 1 ? 's' : ''} priorisieren: Schnelle Umsetzung schafft Momentum und Budget-Rechtfertigung für weitere AI-Investitionen.`)
+
+  const pct = Math.round((data.completedModules / data.totalModules) * 100)
+  recs.push(pct >= 70
+    ? `Vollständige Analyse (${pct}%): Ergebnisse als Basis für Quartals-Review und Budgetplanung nutzen. Quarterly AI Health Review als festen Termin etablieren.`
+    : `Analyse vervollständigen (${pct}%): Compliance-Center und Architektur-Generator abschließen für fundierte Gesamtbewertung.`)
+
+  if (score > 0 && score < 2.5)
+    recs.push('Kritischer Handlungsbedarf: AI-Readiness-Score unter 2,5 — Fundamentprogramm mit externem AI-Sparring starten, bevor Projekte beginnen.')
+  else if (score >= 4)
+    recs.push('Starkes Fundament: Score ≥ 4,0 — AI-Kompetenz als Brand-Differenzierung einsetzen und Industrieführerschaft in AI-Anwendung aktiv anstreben.')
+
+  return recs.slice(0, 6)
+}
+
+function archRecs(data: ExecutiveSummaryPdfData): string[] {
+  const recs: string[] = []
+  const dims = data.assessment?.dimScores ?? {}
+  const dataScore = dims.data ?? 3
+  const skillsScore = dims.skills ?? 3
+  const techScore = dims.tech ?? 3
+  const pattern = data.architecture?.result?.pattern
+
+  if (pattern)
+    recs.push(`Muster "${pattern}" konsequent durchhalten: Datenschicht, Modellschicht und Serving-Schicht getrennt deployen — unabhängige Skalierung und klare Wartungsgrenzen.`)
+
+  if (dataScore < 3)
+    recs.push('Daten-Fundament zuerst: Feature Store und Data Catalog einführen (Datahub, OpenMetadata). Ohne dokumentierte, reproduzierbare Daten-Assets ist kein valides ML-Training möglich.')
+  else
+    recs.push('Daten-Pipeline optimieren: Lakehouse-Pattern evaluieren (Delta Lake / Apache Iceberg). Real-time Feature Engineering für niedrige Inferenz-Latenz vorbereiten.')
+
+  if (skillsScore < 3 || techScore < 3)
+    recs.push('MLOps von Anfang an: Model Registry (MLflow) + CI/CD für Modelle einrichten. Automatisiertes Retraining, A/B-Tests und Drift-Monitoring einplanen — nicht nachrüsten.')
+  else
+    recs.push('LLMOps-Reife: Prompt-Versionierung, Evaluation-Pipelines und A/B-Testing aufsetzen. RAG-Architektur für domänenspezifisches Unternehmenswissen evaluieren.')
+
+  const canvasArch = data.canvas?.data?.architecture ?? ''
+  if (/sap|btp/i.test(canvasArch))
+    recs.push('SAP-Integration: SAP AI Core + BTP als Plattform-Rückgrat. Side-by-Side-Extension-Pattern — kein SAP-Kern-Eingriff. ABAP-to-API-Adapter für Legacy-Datenzugriff.')
+  else
+    recs.push('API-First-Architektur: AI-Services als RESTful Microservices bereitstellen. Event-Driven-Patterns (Kafka/Pub-Sub) für asynchrone Inference — Backend-Systeme entkoppeln.')
+
+  if (data.governance?.result === 'stop_dsgvo')
+    recs.push('Privacy-by-Design: Datenlokalisierung EU, Pseudonymisierung in der Pipeline, DSGVO-konforme Audit-Logs für jede AI-Entscheidung implementieren.')
+  else
+    recs.push('EU AI Act Compliance: Explainability-Layer einbauen (SHAP/LIME für Hochrisiko-Modelle). Audit-Trail nach Art. 13–17 EU AI Act implementieren.')
+
+  recs.push('Iterativer Navigator-Zyklus: Canvas → Scoring → Governance → Architektur quartalsweise wiederholen. KPI-Benchmarks aus dem Assessment als Messlatte für Fortschritt nutzen.')
+
+  return recs.slice(0, 6)
 }
 
 export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactElement {
@@ -513,132 +620,410 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
 
   return (
     <Document title="Executive Summary">
+
+      {/* ── SEITE 1: Überblick / Dashboard ─────────────────────────────────── */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Executive Summary</Text>
-        <Text style={s.sub}>
-          Enterprise AI Navigator · {data.completedModules} von {data.totalModules} Modulen abgeschlossen
-        </Text>
+        <Text style={s.sub}>Enterprise AI Navigator · {data.completedModules} von {data.totalModules} Modulen abgeschlossen</Text>
 
-        {/* KPI-Karten */}
         <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 22, fontWeight: 'bold', color: scoreColor }}>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: scoreColor }}>
               {data.assessment ? data.assessment.totalScore.toFixed(1) : '–'}
             </Text>
             <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>AI-Readiness Score</Text>
           </View>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 22, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Use Cases</Text>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Use Cases bewertet</Text>
           </View>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 22, fontWeight: 'bold', color: data.completedModules >= 5 ? C.ok : C.warn }}>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: data.completedModules >= 5 ? C.ok : C.warn }}>
               {data.completedModules}/{data.totalModules}
             </Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Module</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Module abgeschlossen</Text>
           </View>
+          {data.governance && (
+            <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
+                {GOV_CFG_ES[data.governance.result]?.label ?? data.governance.result}
+              </Text>
+              <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Governance</Text>
+            </View>
+          )}
         </View>
 
-        {/* Assessment */}
         {data.assessment && (
           <>
-            <Text style={s.h2}>AI-Readiness Assessment</Text>
-            <View style={[s.row, { gap: 12, marginBottom: 12, alignItems: 'flex-start' }]}>
-              <View style={{ backgroundColor: C.dark, borderRadius: 8, padding: 12, alignItems: 'center', minWidth: 56 }}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
-                <Text style={{ fontSize: 8, color: C.gray2 }}>/ 5,0</Text>
+            <Text style={s.h2}>AI-Archetyp</Text>
+            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }]}>
+              <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
+                <Text style={{ fontSize: 26, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
+                <Text style={{ fontSize: 8, color: C.gray2, textAlign: 'center' }}>/ 5,0</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
+                <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
                   {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
                 </Text>
-                <View style={[s.row, { flexWrap: 'wrap', gap: 4 }]}>
-                  {Object.entries(data.assessment.dimScores).map(([dim, score]) => (
-                    <View key={dim} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 3 }}>
-                      <Text style={{ fontSize: 8, color: C.gray }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
-                      <Text style={{ fontSize: 10, fontWeight: 'bold', color: Number(score) >= 4 ? C.ok : Number(score) >= 3 ? C.warn : C.danger }}>
-                        {Number(score).toFixed(1)}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </>
-        )}
-
-        {/* Top Use Case */}
-        {data.topUseCase && (
-          <>
-            <Text style={s.h2}>Priorisierter Use Case</Text>
-            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }]}>
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, flex: 1 }}>{data.topUseCase.name}</Text>
-              {data.topUseCase.weightedScore != null && (
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.brand, marginLeft: 8 }}>
-                  Score {data.topUseCase.weightedScore.toFixed(2)}
-                </Text>
-              )}
-            </View>
-          </>
-        )}
-
-        {/* Governance */}
-        {data.governance && (
-          <>
-            <Text style={s.h2}>Letzter Governance-Check</Text>
-            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }]}>
-              {data.governance.useCaseName && (
-                <Text style={{ fontSize: 10, color: C.dark, flex: 1 }}>{data.governance.useCaseName}</Text>
-              )}
-              <View style={{
-                backgroundColor: data.governance.result === 'approve' ? C.greenBg : data.governance.result.startsWith('stop') ? C.redBg : C.amberBg,
-                borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3,
-              }}>
-                <Text style={{
-                  fontSize: 9, fontWeight: 'bold',
-                  color: data.governance.result === 'approve' ? C.green : data.governance.result.startsWith('stop') ? C.red : C.amber,
-                }}>
-                  {GOV_RESULT_ES[data.governance.result] ?? data.governance.result}
+                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
+                  {data.assessment.archetype === 'starter' && 'Am Anfang der AI-Reise — Fokus auf erste Pilotprojekte mit klarem ROI.'}
+                  {data.assessment.archetype === 'scaler' && 'Erfolgreiche Piloten vorhanden — systematische Skalierung und AI-Kompetenzaufbau.'}
+                  {data.assessment.archetype === 'transformer' && 'AI als Teil der Unternehmens-DNA — Differenzierung durch proprietäre Daten und Modelle.'}
                 </Text>
               </View>
             </View>
           </>
         )}
 
-        {/* Weitere Module */}
-        {(data.roadmap || data.canvas || data.architecture) && (
-          <>
-            <Text style={s.h2}>Weitere Module</Text>
-            <View style={[s.row, { gap: 8 }]}>
-              {data.roadmap && (
-                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
-                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Roadmap</Text>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.roadmap.title}</Text>
-                  {data.roadmap.archetype && (
-                    <Text style={{ fontSize: 9, color: C.gray }}>{ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}</Text>
-                  )}
-                  <Text style={{ fontSize: 9, color: C.gray2, marginTop: 2 }}>{data.roadmap.phaseCount} Phasen</Text>
-                </View>
-              )}
-              {data.canvas && (
-                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
-                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Canvas</Text>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.canvas.title}</Text>
-                </View>
-              )}
-              {data.architecture && (
-                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
-                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Architektur</Text>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.architecture.title}</Text>
-                </View>
-              )}
+        <Text style={s.h2}>Modulübersicht</Text>
+        {data.moduleStatus.map((m, i) => (
+          <View key={i} style={[s.row, { alignItems: 'center', gap: 8, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: C.border }]}>
+            <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: m.done ? C.ok : C.border, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {m.done && <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>✓</Text>}
             </View>
-          </>
-        )}
+            <Text style={{ fontSize: 10, color: m.done ? C.dark : C.gray, flex: 1 }}>{m.label}</Text>
+            <Text style={{ fontSize: 9, color: m.done ? C.ok : C.gray2, fontWeight: m.done ? 'bold' : 'normal' }}>
+              {m.done ? 'Abgeschlossen' : 'Ausstehend'}
+            </Text>
+          </View>
+        ))}
 
         <PdfFooter />
       </Page>
+
+      {/* ── SEITE 2: Assessment-Details ─────────────────────────────────────── */}
+      {data.assessment && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>AI-Readiness Assessment</Text>
+          <Text style={s.sub}>Detailauswertung der 6 Dimensionen</Text>
+
+          <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 }]}>
+            <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center' }}>
+              <Text style={{ fontSize: 30, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
+              <Text style={{ fontSize: 8, color: C.gray2, textAlign: 'center' }}>/ 5,0</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
+                {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
+              </Text>
+              <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
+                Gesamt-Score basiert auf 6 Dimensionen. Skala: 1 (sehr schwach) bis 5 (sehr stark).
+              </Text>
+            </View>
+          </View>
+
+          <Text style={s.h2}>Dimensionen im Detail</Text>
+          {Object.entries(data.assessment.dimScores).map(([dim, score]) => {
+            const n = Number(score)
+            const col = n >= 4 ? C.ok : n >= 3 ? C.warn : C.danger
+            return (
+              <View key={dim} style={{ marginBottom: 12 }}>
+                <View style={[s.row, { justifyContent: 'space-between', marginBottom: 3 }]}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} / 5,0</Text>
+                </View>
+                <View style={{ backgroundColor: C.border, borderRadius: 4, height: 10 }}>
+                  <View style={{ backgroundColor: col, borderRadius: 4, height: 10, width: `${(n / 5) * 100}%` }} />
+                </View>
+                <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>
+                  {n >= 4 ? 'Stärke — weiter ausbauen' : n >= 3 ? 'Solide Basis — gezielt verbessern' : 'Handlungsbedarf — priorisiert adressieren'}
+                </Text>
+              </View>
+            )
+          })}
+
+          {(() => {
+            const gaps = Object.entries(data.assessment.dimScores)
+              .sort(([, a], [, b]) => Number(a) - Number(b))
+              .slice(0, 3)
+              .filter(([, v]) => Number(v) < 4)
+            const gapHints: Record<string, string> = {
+              data:       'Datenstrategie, -qualität und -verfügbarkeit für AI-Anwendungen ausbauen.',
+              skills:     'AI/ML-Kompetenzen intern aufbauen und Recruiting für Data Scientists schärfen.',
+              governance: 'AI-Governance-Richtlinien, Risikoklassifizierung und Freigabeprozesse einführen.',
+              tech:       'Technische Infrastruktur und API-Readiness für AI-Workloads modernisieren.',
+              strategy:   'AI-Strategie formalisieren: Vision, messbare Ziele und Investitionsrahmen.',
+              culture:    'Change-Management und AI-Literacy-Programme etablieren, Führung als Vorbild.',
+            }
+            return gaps.length > 0 ? (
+              <>
+                <Text style={s.h2}>Prioritäre Verbesserungsfelder</Text>
+                {gaps.map(([dim, score], i) => (
+                  <View key={dim} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.danger }]}>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>
+                      {i + 1}. {DIM_LABELS_ES[dim] ?? dim} — Score {Number(score).toFixed(1)}/5,0
+                    </Text>
+                    <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>{gapHints[dim] ?? ''}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null
+          })()}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 3: Use-Case Portfolio ─────────────────────────────────────── */}
+      {data.topUseCases.length > 0 && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>Use-Case Portfolio</Text>
+          <Text style={s.sub}>Top {data.topUseCases.length} Use Cases nach Score · {data.useCaseCount} gesamt bewertet</Text>
+
+          {(() => {
+            const counts: Record<string, number> = { quick_win: 0, strategic_bet: 0, low_hanging_fruit: 0, avoid: 0 }
+            data.topUseCases.forEach(u => { if (u.quadrant && u.quadrant in counts) counts[u.quadrant]++ })
+            const labels: Record<string, string> = { quick_win: 'Quick Win', strategic_bet: 'Strategisch', low_hanging_fruit: 'Geringer Aufwand', avoid: 'Vermeiden' }
+            return (
+              <View style={[s.row, { gap: 8, marginBottom: 16 }]}>
+                {Object.entries(labels).map(([key, label]) => (
+                  <View key={key} style={[s.card, { flex: 1, alignItems: 'center', padding: 8, marginBottom: 0 }]}>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: C.brand }}>{counts[key] ?? 0}</Text>
+                    <Text style={{ fontSize: 8, color: C.gray, textAlign: 'center', marginTop: 2 }}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            )
+          })()}
+
+          <View style={s.row}>
+            <Text style={[s.th, { flex: 3 }]}>Use Case</Text>
+            <Text style={[s.th, { flex: 1.2 }]}>Domäne</Text>
+            <Text style={[s.th, { flex: 0.8, textAlign: 'center' }]}>Score</Text>
+            <Text style={[s.th, { flex: 1.5 }]}>Kategorie</Text>
+          </View>
+          {data.topUseCases.map((uc, i) => {
+            const qLabel = QUADRANT_ES[uc.quadrant ?? ''] ?? uc.quadrant ?? '–'
+            const qColor = uc.quadrant === 'quick_win' ? C.ok : uc.quadrant === 'avoid' ? C.danger : C.warn
+            return (
+              <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
+                <Text style={[s.td, { flex: 3, fontWeight: i === 0 ? 'bold' : 'normal' }]}>{uc.name}</Text>
+                <Text style={[s.td, { flex: 1.2 }]}>{uc.domain ?? '–'}</Text>
+                <Text style={[s.td, { flex: 0.8, textAlign: 'center', fontWeight: 'bold', color: C.brand }]}>
+                  {uc.weightedScore != null ? uc.weightedScore.toFixed(2) : '–'}
+                </Text>
+                <Text style={[s.td, { flex: 1.5, color: uc.quadrant ? qColor : C.gray }]}>{qLabel}</Text>
+              </View>
+            )
+          })}
+          {data.useCaseCount > data.topUseCases.length && (
+            <Text style={{ fontSize: 9, color: C.gray, marginTop: 8, textAlign: 'center' }}>
+              + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im Portfolio
+            </Text>
+          )}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 4: Governance ─────────────────────────────────────────────── */}
+      {data.governance && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>Governance-Check</Text>
+          <Text style={s.sub}>Ethische, rechtliche und EU-AI-Act-Prüfung des Use Cases</Text>
+
+          <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 }]}>
+            {data.governance.useCaseName && (
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Geprüfter Use Case</Text>
+                <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark }}>{data.governance.useCaseName}</Text>
+              </View>
+            )}
+            <View style={{
+              backgroundColor: GOV_CFG_ES[data.governance.result]?.bg ?? C.light,
+              borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center',
+            }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.dark }}>
+                {GOV_CFG_ES[data.governance.result]?.label ?? data.governance.result}
+              </Text>
+              <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Ergebnis</Text>
+            </View>
+          </View>
+
+          {data.governance.protocol && data.governance.protocol.length > 0 && (
+            <>
+              <Text style={s.h2}>Prüfprotokoll</Text>
+              {data.governance.protocol.slice(0, 14).map((step, i) => {
+                const q = step.question ?? step.label ?? ''
+                const a = step.answer ?? step.value ?? ''
+                if (!q && !a) return null
+                return (
+                  <View key={i} style={{ marginBottom: 8, borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 8 }}>
+                    {q ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>{q}</Text> : null}
+                    {a ? <Text style={{ fontSize: 10, color: C.dark, fontWeight: 'bold' }}>{a}</Text> : null}
+                  </View>
+                )
+              })}
+            </>
+          )}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 5: Roadmap ────────────────────────────────────────────────── */}
+      {data.roadmap && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>AI-Roadmap</Text>
+          <Text style={s.sub}>
+            {data.roadmap.title}
+            {data.roadmap.archetype ? ` · ${ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}` : ''}
+            {` · ${data.roadmap.phases.length} Phasen`}
+          </Text>
+
+          {data.roadmap.phases.map((phase, i) => (
+            <View key={i} style={[s.card, { marginBottom: 10 }]}>
+              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }]}>
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark }}>Phase {i + 1}: {phase.title}</Text>
+                {phase.duration && <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold' }}>{phase.duration}</Text>}
+              </View>
+              {phase.focus && <Text style={{ fontSize: 9, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{phase.focus}</Text>}
+              {phase.actions && phase.actions.length > 0 && (
+                <View style={{ marginBottom: 4 }}>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.dark2, marginBottom: 3 }}>Maßnahmen:</Text>
+                  {phase.actions.slice(0, 5).map((a, j) => (
+                    <View key={j} style={[s.row, { gap: 4, marginBottom: 2 }]}>
+                      <Text style={{ fontSize: 9, color: C.brand }}>▸</Text>
+                      <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{a.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {phase.kpis && phase.kpis.length > 0 && (
+                <View>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.dark2, marginBottom: 3 }}>KPIs:</Text>
+                  <Text style={{ fontSize: 9, color: C.gray }}>{phase.kpis.slice(0, 3).join(' · ')}</Text>
+                </View>
+              )}
+            </View>
+          ))}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 6: Canvas ─────────────────────────────────────────────────── */}
+      {data.canvas && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>AI Use-Case Canvas</Text>
+          <Text style={s.sub}>{data.canvas.title} · 8-Felder-Canvas</Text>
+
+          <View style={[s.row, { flexWrap: 'wrap', gap: 10 }]}>
+            {CANVAS_FIELD_ORDER.map(key => {
+              const value = data.canvas!.data[key] ?? ''
+              if (!value.trim()) return null
+              return (
+                <View key={key} style={[s.card, { width: '47%', marginBottom: 0 }]}>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 4 }}>
+                    {CANVAS_LABELS_ES[key] ?? key}
+                  </Text>
+                  <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.4 }}>
+                    {value.length > 220 ? value.slice(0, 220) + '...' : value}
+                  </Text>
+                </View>
+              )
+            })}
+          </View>
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 7: Architektur ────────────────────────────────────────────── */}
+      {data.architecture && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>Enterprise AI Architektur</Text>
+          <Text style={s.sub}>{data.architecture.title} · Muster: {data.architecture.result.pattern}</Text>
+
+          {data.architecture.result.description && (
+            <View style={[s.card, { marginBottom: 14 }]}>
+              <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{data.architecture.result.description}</Text>
+            </View>
+          )}
+
+          <Text style={s.h2}>Architektur-Schichten</Text>
+          {data.architecture.result.layers.map((layer, i) => (
+            <View key={i} style={[s.card, { marginBottom: 8 }]}>
+              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }]}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{layer.name}</Text>
+                <Text style={{ fontSize: 9, color: C.gray }}>{layer.role}</Text>
+              </View>
+              {layer.components.length > 0 && (
+                <View style={[s.row, { flexWrap: 'wrap', gap: 4 }]}>
+                  {layer.components.map((comp, j) => (
+                    <View key={j} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                      <Text style={{ fontSize: 8, color: C.dark }}>{comp}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+
+          {data.architecture.result.nextSteps && data.architecture.result.nextSteps.length > 0 && (
+            <>
+              <Text style={s.h2}>Nächste Schritte</Text>
+              {data.architecture.result.nextSteps.slice(0, 5).map((step, i) => (
+                <View key={i} style={[s.row, { gap: 6, marginBottom: 5 }]}>
+                  <Text style={{ fontSize: 10, color: C.brand, fontWeight: 'bold' }}>{i + 1}.</Text>
+                  <Text style={{ fontSize: 10, color: C.dark, flex: 1 }}>{step}</Text>
+                </View>
+              ))}
+            </>
+          )}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE 8: Strategische Empfehlungen ─────────────────────────────── */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Strategische Empfehlungen</Text>
+        <Text style={s.sub}>Basierend auf Ihrer vollständigen AI-Navigator-Analyse</Text>
+
+        <Text style={s.h2}>Für den Vorstand / C-Level</Text>
+        {boardRecs(data).map((rec, i) => (
+          <View key={i} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
+            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
+              <View style={{ backgroundColor: C.brand, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
+              </View>
+              <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
+            </View>
+          </View>
+        ))}
+
+        <Text style={s.h2}>Für den AI-Architekten / Technical Lead</Text>
+        {archRecs(data).map((rec, i) => (
+          <View key={i} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.ok }]}>
+            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
+              <View style={{ backgroundColor: C.ok, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
+              </View>
+              <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
+            </View>
+          </View>
+        ))}
+
+        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Quarterly AI Health Review</Text>
+          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
+            Empfehlung: Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen.
+            AI-Readiness ist kein einmaliges Projekt, sondern ein kontinuierlicher Verbesserungsprozess.
+          </Text>
+        </View>
+
+        <PdfFooter />
+      </Page>
+
     </Document>
   )
 }
