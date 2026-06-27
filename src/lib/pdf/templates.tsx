@@ -484,6 +484,165 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
   )
 }
 
+// ─── EXECUTIVE SUMMARY ───────────────────────────────────────────────────────
+const DIM_LABELS_ES: Record<string, string> = {
+  data: 'Daten', skills: 'Skills', governance: 'Governance',
+  tech: 'Technologie', strategy: 'Strategie', culture: 'Kultur',
+}
+const GOV_RESULT_ES: Record<string, string> = {
+  approve: 'Freigegeben', stop_dsgvo: 'Stop: DSGVO', stop_risk: 'Stop: Risiko', improve: 'Verbesserungsbedarf',
+}
+
+interface ExecutiveSummaryPdfData {
+  companyName?: string
+  completedModules: number
+  totalModules: number
+  assessment?: { archetype: string; totalScore: number; dimScores: Record<string, number> }
+  useCaseCount: number
+  topUseCase?: { name: string; weightedScore: number | null; quadrant: string | null }
+  governance?: { useCaseName: string | null; result: string }
+  roadmap?: { title: string; archetype: string | null; phaseCount: number }
+  canvas?: { title: string }
+  architecture?: { title: string }
+}
+
+export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactElement {
+  const scoreColor = data.assessment
+    ? data.assessment.totalScore >= 4 ? C.ok : data.assessment.totalScore >= 3 ? C.warn : C.danger
+    : C.gray
+
+  return (
+    <Document title="Executive Summary">
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Executive Summary</Text>
+        <Text style={s.sub}>
+          Enterprise AI Navigator · {data.completedModules} von {data.totalModules} Modulen abgeschlossen
+        </Text>
+
+        {/* KPI-Karten */}
+        <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: scoreColor }}>
+              {data.assessment ? data.assessment.totalScore.toFixed(1) : '–'}
+            </Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>AI-Readiness Score</Text>
+          </View>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Use Cases</Text>
+          </View>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: data.completedModules >= 5 ? C.ok : C.warn }}>
+              {data.completedModules}/{data.totalModules}
+            </Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Module</Text>
+          </View>
+        </View>
+
+        {/* Assessment */}
+        {data.assessment && (
+          <>
+            <Text style={s.h2}>AI-Readiness Assessment</Text>
+            <View style={[s.row, { gap: 12, marginBottom: 12, alignItems: 'flex-start' }]}>
+              <View style={{ backgroundColor: C.dark, borderRadius: 8, padding: 12, alignItems: 'center', minWidth: 56 }}>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
+                <Text style={{ fontSize: 8, color: C.gray2 }}>/ 5,0</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
+                  {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
+                </Text>
+                <View style={[s.row, { flexWrap: 'wrap', gap: 4 }]}>
+                  {Object.entries(data.assessment.dimScores).map(([dim, score]) => (
+                    <View key={dim} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 3 }}>
+                      <Text style={{ fontSize: 8, color: C.gray }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
+                      <Text style={{ fontSize: 10, fontWeight: 'bold', color: Number(score) >= 4 ? C.ok : Number(score) >= 3 ? C.warn : C.danger }}>
+                        {Number(score).toFixed(1)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Top Use Case */}
+        {data.topUseCase && (
+          <>
+            <Text style={s.h2}>Priorisierter Use Case</Text>
+            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }]}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, flex: 1 }}>{data.topUseCase.name}</Text>
+              {data.topUseCase.weightedScore != null && (
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.brand, marginLeft: 8 }}>
+                  Score {data.topUseCase.weightedScore.toFixed(2)}
+                </Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Governance */}
+        {data.governance && (
+          <>
+            <Text style={s.h2}>Letzter Governance-Check</Text>
+            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }]}>
+              {data.governance.useCaseName && (
+                <Text style={{ fontSize: 10, color: C.dark, flex: 1 }}>{data.governance.useCaseName}</Text>
+              )}
+              <View style={{
+                backgroundColor: data.governance.result === 'approve' ? C.greenBg : data.governance.result.startsWith('stop') ? C.redBg : C.amberBg,
+                borderRadius: 4, paddingHorizontal: 8, paddingVertical: 3,
+              }}>
+                <Text style={{
+                  fontSize: 9, fontWeight: 'bold',
+                  color: data.governance.result === 'approve' ? C.green : data.governance.result.startsWith('stop') ? C.red : C.amber,
+                }}>
+                  {GOV_RESULT_ES[data.governance.result] ?? data.governance.result}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Weitere Module */}
+        {(data.roadmap || data.canvas || data.architecture) && (
+          <>
+            <Text style={s.h2}>Weitere Module</Text>
+            <View style={[s.row, { gap: 8 }]}>
+              {data.roadmap && (
+                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
+                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Roadmap</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.roadmap.title}</Text>
+                  {data.roadmap.archetype && (
+                    <Text style={{ fontSize: 9, color: C.gray }}>{ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}</Text>
+                  )}
+                  <Text style={{ fontSize: 9, color: C.gray2, marginTop: 2 }}>{data.roadmap.phaseCount} Phasen</Text>
+                </View>
+              )}
+              {data.canvas && (
+                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
+                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Canvas</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.canvas.title}</Text>
+                </View>
+              )}
+              {data.architecture && (
+                <View style={[s.card, { flex: 1, marginBottom: 0 }]}>
+                  <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>Architektur</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{data.architecture.title}</Text>
+                </View>
+              )}
+            </View>
+          </>
+        )}
+
+        <PdfFooter />
+      </Page>
+    </Document>
+  )
+}
+
 // ─── USE CASE PORTFOLIO ──────────────────────────────────────────────────────
 interface UseCaseEntry { name: string; domain: string | null; description: string | null; weighted_score: number | null; quadrant: string | null }
 interface UsecasePdfData { portfolioName: string; useCases: UseCaseEntry[]; companyName?: string }

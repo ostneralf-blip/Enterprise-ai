@@ -9,12 +9,13 @@ import {
   renderCompliancePdf,
   renderArchitecturePdf,
   renderUsecasePdf,
+  renderExecutiveSummaryPdf,
 } from '@/lib/pdf/templates'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
 
 const querySchema = z.object({
-  module: z.enum(['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']),
+  module: z.enum(['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture', 'executive_summary']),
   entityId: z.string().uuid().optional(),
 })
 
@@ -160,6 +161,80 @@ export async function GET(req: Request) {
         companyName: company,
       })
       filename = 'ai-architektur.pdf'
+
+    } else if (module === 'executive_summary') {
+      const { data: portfolio } = await supabase
+        .from('uc_portfolios')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle() as { data: { id: string } | null }
+
+      const portfolioId = portfolio?.id ?? null
+
+      const [
+        assessmentRes,
+        governanceRes,
+        roadmapRes,
+        canvasRes,
+        architectureRes,
+        ucCountRes,
+        topUcRes,
+      ] = await Promise.all([
+        supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { archetype: string; total_score: number; dim_scores: Record<string, number> } | null }>,
+        supabase.from('governance_sessions').select('use_case_name, result').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { use_case_name: string | null; result: string } | null }>,
+        supabase.from('roadmaps').select('title, archetype, phases').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; archetype: string | null; phases: unknown[] } | null }>,
+        supabase.from('canvases').select('title').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string } | null }>,
+        supabase.from('architectures').select('title').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string } | null }>,
+        portfolioId
+          ? supabase.from('use_cases').select('*', { count: 'exact', head: true }).eq('portfolio_id', portfolioId)
+          : Promise.resolve({ count: 0 }),
+        portfolioId
+          ? supabase.from('use_cases').select('name, weighted_score, quadrant').eq('portfolio_id', portfolioId).order('weighted_score', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { name: string; weighted_score: number | null; quadrant: string | null } | null }>
+          : Promise.resolve({ data: null }),
+      ])
+
+      const assessment = assessmentRes.data
+      const governance = governanceRes.data
+      const roadmap = roadmapRes.data
+      const canvas = canvasRes.data
+      const architecture = architectureRes.data
+      const useCaseCount = ucCountRes.count ?? 0
+      const topUseCase = topUcRes.data
+
+      const completedModules = [
+        !!assessment, useCaseCount > 0, !!governance, !!roadmap, !!canvas, !!architecture,
+      ].filter(Boolean).length
+
+      doc = renderExecutiveSummaryPdf({
+        companyName: company,
+        completedModules,
+        totalModules: 7,
+        assessment: assessment ? {
+          archetype: assessment.archetype,
+          totalScore: assessment.total_score,
+          dimScores: assessment.dim_scores,
+        } : undefined,
+        useCaseCount,
+        topUseCase: topUseCase ? {
+          name: topUseCase.name,
+          weightedScore: topUseCase.weighted_score,
+          quadrant: topUseCase.quadrant,
+        } : undefined,
+        governance: governance ? {
+          useCaseName: governance.use_case_name,
+          result: governance.result,
+        } : undefined,
+        roadmap: roadmap ? {
+          title: roadmap.title,
+          archetype: roadmap.archetype,
+          phaseCount: Array.isArray(roadmap.phases) ? roadmap.phases.length : 0,
+        } : undefined,
+        canvas: canvas ? { title: canvas.title } : undefined,
+        architecture: architecture ? { title: architecture.title } : undefined,
+      })
+      filename = 'executive-summary.pdf'
 
     } else {
       // module === 'usecase'
