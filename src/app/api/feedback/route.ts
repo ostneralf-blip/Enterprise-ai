@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 
-const BodySchema = z.object({
+// Vollständiges Feedback-Formular (Feedback-Seite)
+const FormSchema = z.object({
   category: z.enum(['bug', 'feature', 'frage', 'sonstiges']),
   message:  z.string().min(1).max(5000),
+})
+
+// Quick-Widget (Daumen hoch/runter in Modul-Ergebnissen)
+const WidgetSchema = z.object({
+  module:    z.string().min(1).max(50),
+  sentiment: z.enum(['positive', 'negative']),
+  comment:   z.string().max(2000).optional(),
 })
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -12,6 +20,30 @@ const CATEGORY_LABELS: Record<string, string> = {
   feature:   'Feature-Wunsch',
   frage:     'Frage / Support',
   sonstiges: 'Sonstiges',
+}
+
+function normalizeBody(body: unknown): { category: string; message: string; categoryLabel: string } | null {
+  const form = FormSchema.safeParse(body)
+  if (form.success) {
+    return {
+      category: form.data.category,
+      message: form.data.message,
+      categoryLabel: CATEGORY_LABELS[form.data.category] ?? form.data.category,
+    }
+  }
+  const widget = WidgetSchema.safeParse(body)
+  if (widget.success) {
+    const { module, sentiment, comment } = widget.data
+    const emoji = sentiment === 'positive' ? '👍' : '👎'
+    const label = sentiment === 'positive' ? 'Positives Feedback' : 'Verbesserungsbedarf'
+    const text = comment ? `${emoji} ${label}\n\n${comment}` : `${emoji} ${label}`
+    return {
+      category: 'sonstiges',
+      message: `[Modul: ${module}] ${text}`,
+      categoryLabel: `Widget-Feedback (${module})`,
+    }
+  }
+  return null
 }
 
 export async function POST(request: Request) {
@@ -26,19 +58,18 @@ export async function POST(request: Request) {
     .single()
 
   const body: unknown = await request.json().catch(() => ({}))
-  const parsed = BodySchema.safeParse(body)
-  if (!parsed.success) {
+  const normalized = normalizeBody(body)
+  if (!normalized) {
     return NextResponse.json({ error: 'Ungültige Eingabe' }, { status: 400 })
   }
 
-  const { category, message } = parsed.data
+  const { message, categoryLabel } = normalized
   const senderName  = (profile?.full_name as string | null) ?? 'Unbekannt'
   const senderEmail = (profile?.email as string | null) ?? user.email ?? 'unbekannt'
-  const categoryLabel = CATEGORY_LABELS[category] ?? category
 
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey || apiKey === 're_...') {
-    console.info('[Feedback]', { category, senderEmail, message: message.substring(0, 100) })
+    console.info('[Feedback]', { categoryLabel, senderEmail, message: message.substring(0, 100) })
     return NextResponse.json({ ok: true })
   }
 

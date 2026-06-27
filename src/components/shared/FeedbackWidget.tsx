@@ -22,12 +22,16 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
 
   const submit = async (s: 'positive' | 'negative', c: string) => {
     setLoading(true)
-    await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ module, sentiment: s, comment: c }),
-    })
-    track('feedback_submitted', { module, sentiment: s })
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module, sentiment: s, comment: c }),
+      })
+      track('feedback_submitted', { module, sentiment: s })
+    } catch {
+      // Netzwerkfehler still ignorieren — UI trotzdem als "gesendet" markieren
+    }
     setSubmitted(true)
     setLoading(false)
   }
