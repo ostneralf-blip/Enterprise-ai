@@ -43,6 +43,20 @@ export function LoginForm({ searchParams }: LoginFormProps) {
         return
       }
 
+      // Profile laden und is_banned prüfen
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', result.data.user!.id)
+        .single()
+
+      if (profile?.is_banned) {
+        await supabase.auth.signOut()
+        setError(MESSAGE_LABELS.account_suspended)
+        setLoading(false)
+        return
+      }
+
       track('login', { method: 'email' })
       router.push(redirectTo)
       router.refresh()
