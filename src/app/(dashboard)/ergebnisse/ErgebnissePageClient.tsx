@@ -261,27 +261,65 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {tab === 'architecture' && (
         <div className="space-y-2">
           {architectures.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Architektur gespeichert. <Link href="/architecture" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
-          {architectures.map(a => (
-            <div key={a.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(a.id)}>
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-sm font-medium text-slate-700 truncate">{a.title}</span>
-                  <span className="text-xs text-slate-400 shrink-0">{fmt(a.updated_at)}</span>
+          {architectures.map(a => {
+            const isSelected = compareIds.includes(a.id)
+            return (
+              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
+                  {compareMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-sm font-medium text-slate-700 truncate">{a.title}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{fmt(a.updated_at)}</span>
+                  </div>
+                  {!compareMode && (
+                    <RowActions isPrimary={prefs.primary_architecture_id === a.id} isConfirmDelete={confirmId === a.id}
+                      onSetPrimary={e => { e.stopPropagation(); setPrimary('architecture', a.id) }}
+                      onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
+                      onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                      onDelete={e => { e.stopPropagation(); deleteItem('architecture', a.id) }} />
+                  )}
                 </div>
-                <RowActions isPrimary={prefs.primary_architecture_id === a.id} isConfirmDelete={confirmId === a.id}
-                  onSetPrimary={e => { e.stopPropagation(); setPrimary('architecture', a.id) }}
-                  onConfirm={e => { e.stopPropagation(); setConfirmId(a.id) }}
-                  onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
-                  onDelete={e => { e.stopPropagation(); deleteItem('architecture', a.id) }} />
+                {!compareMode && expanded === a.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
+                    <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
+                    <Link href="/architecture" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+                  </div>
+                )}
               </div>
-              {expanded === a.id && (
-                <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                  <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
-                  <Link href="/architecture" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+            )
+          })}
+
+          {compareMode && compareIds.length === 2 && (() => {
+            const a1 = architectures.find(a => a.id === compareIds[0])
+            const a2 = architectures.find(a => a.id === compareIds[1])
+            if (!a1 || !a2) return null
+            return (
+              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Architekturen</p>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="grid grid-cols-3 text-xs">
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                    {a1.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.updated_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                    {a2.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.updated_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Konfigurationsfelder</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Object.keys(a1.wizard_data ?? {}).length}</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Object.keys(a2.wizard_data ?? {}).length}</div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -291,21 +329,30 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {governance.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Governance-Check gespeichert. <Link href="/governance" className="text-blue-600 hover:underline">Jetzt prüfen →</Link></p>}
           {governance.map(g => {
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            const isSelected = compareIds.includes(g.id)
             return (
-              <div key={g.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(g.id)}>
+              <div key={g.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => compareMode ? toggleCompare(g.id) : toggle(g.id)}>
+                  {compareMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(g.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${v.color}`}>{v.label}</span>
                     <span className="text-xs text-slate-600 truncate">{g.use_case_name ?? '—'}</span>
                     <span className="text-xs text-slate-400 shrink-0">{fmt(g.created_at)}</span>
                   </div>
-                  <RowActions isPrimary={prefs.primary_governance_id === g.id} isConfirmDelete={confirmId === g.id}
-                    onSetPrimary={e => { e.stopPropagation(); setPrimary('governance', g.id) }}
-                    onConfirm={e => { e.stopPropagation(); setConfirmId(g.id) }}
-                    onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
-                    onDelete={e => { e.stopPropagation(); deleteItem('governance', g.id) }} />
+                  {!compareMode && (
+                    <RowActions isPrimary={prefs.primary_governance_id === g.id} isConfirmDelete={confirmId === g.id}
+                      onSetPrimary={e => { e.stopPropagation(); setPrimary('governance', g.id) }}
+                      onConfirm={e => { e.stopPropagation(); setConfirmId(g.id) }}
+                      onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                      onDelete={e => { e.stopPropagation(); deleteItem('governance', g.id) }} />
+                  )}
                 </div>
-                {expanded === g.id && (
+                {!compareMode && expanded === g.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
                     <p className="text-xs text-slate-600">Use Case: <strong>{g.use_case_name ?? '—'}</strong></p>
                     <p className="text-xs text-slate-600">Ergebnis: <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
@@ -314,6 +361,39 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               </div>
             )
           })}
+
+          {compareMode && compareIds.length === 2 && (() => {
+            const g1 = governance.find(g => g.id === compareIds[0])
+            const g2 = governance.find(g => g.id === compareIds[1])
+            if (!g1 || !g2) return null
+            const v1 = VERDICTS[g1.result] ?? { label: g1.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            const v2 = VERDICTS[g2.result] ?? { label: g2.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            return (
+              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Governance-Checks</p>
+                </div>
+                <div className="grid grid-cols-3 text-xs">
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                    {g1.use_case_name ?? '—'}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(g1.created_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                    {g2.use_case_name ?? '—'}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(g2.created_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Ergebnis</div>
+                  <div className="px-4 py-2 border-t border-slate-100 border-l">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v1.color}`}>{v1.label}</span>
+                  </div>
+                  <div className="px-4 py-2 border-t border-slate-100 border-l">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v2.color}`}>{v2.label}</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -321,28 +401,69 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {tab === 'roadmap' && (
         <div className="space-y-2">
           {roadmaps.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Roadmap gespeichert. <Link href="/roadmap" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
-          {roadmaps.map(r => (
-            <div key={r.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => toggle(r.id)}>
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="text-sm font-medium text-slate-700 truncate">{r.title}</span>
-                  <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[r.archetype] ?? r.archetype}</span>
-                  <span className="text-xs text-slate-400 shrink-0">{fmt(r.updated_at)}</span>
+          {roadmaps.map(r => {
+            const isSelected = compareIds.includes(r.id)
+            return (
+              <div key={r.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => compareMode ? toggleCompare(r.id) : toggle(r.id)}>
+                  {compareMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(r.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-sm font-medium text-slate-700 truncate">{r.title}</span>
+                    <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[r.archetype] ?? r.archetype}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{fmt(r.updated_at)}</span>
+                  </div>
+                  {!compareMode && (
+                    <RowActions isPrimary={prefs.primary_roadmap_id === r.id} isConfirmDelete={confirmId === r.id}
+                      onSetPrimary={e => { e.stopPropagation(); setPrimary('roadmap', r.id) }}
+                      onConfirm={e => { e.stopPropagation(); setConfirmId(r.id) }}
+                      onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                      onDelete={e => { e.stopPropagation(); deleteItem('roadmap', r.id) }} />
+                  )}
                 </div>
-                <RowActions isPrimary={prefs.primary_roadmap_id === r.id} isConfirmDelete={confirmId === r.id}
-                  onSetPrimary={e => { e.stopPropagation(); setPrimary('roadmap', r.id) }}
-                  onConfirm={e => { e.stopPropagation(); setConfirmId(r.id) }}
-                  onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
-                  onDelete={e => { e.stopPropagation(); deleteItem('roadmap', r.id) }} />
+                {!compareMode && expanded === r.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
+                    <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
+                    <Link href="/roadmap" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+                  </div>
+                )}
               </div>
-              {expanded === r.id && (
-                <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                  <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
-                  <Link href="/roadmap" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+            )
+          })}
+
+          {compareMode && compareIds.length === 2 && (() => {
+            const r1 = roadmaps.find(r => r.id === compareIds[0])
+            const r2 = roadmaps.find(r => r.id === compareIds[1])
+            if (!r1 || !r2) return null
+            return (
+              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Roadmaps</p>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="grid grid-cols-3 text-xs">
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                    {r1.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(r1.updated_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                    {r2.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(r2.updated_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Archetyp</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r1.archetype] ?? r1.archetype}</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r2.archetype] ?? r2.archetype}</div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Phasen</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Array.isArray(r1.phases) ? r1.phases.length : 0}</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Array.isArray(r2.phases) ? r2.phases.length : 0}</div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
 
