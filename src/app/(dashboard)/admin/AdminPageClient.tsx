@@ -56,6 +56,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [catalogCloud, setCatalogCloud] = useState('all')
   const [seeding, setSeeding] = useState(false)
   const [seedResult, setSeedResult] = useState<string | null>(null)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadResult, setUploadResult] = useState<string | null>(null)
 
   // ── Catalog sources state ───────────────────────────────────────────────────
   const [sources, setSources] = useState<CatalogSource[]>(initialSources)
@@ -318,6 +321,28 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       setSyncMessages(prev => ({ ...prev, [sourceId]: msg }))
     } finally {
       setSyncingId(null)
+    }
+  }
+
+  async function handleUpload() {
+    if (!uploadFile) return
+    setUploading(true)
+    setUploadResult(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', uploadFile)
+      const res = await fetch('/api/admin/catalog/upload', { method: 'POST', body: fd })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Upload fehlgeschlagen')
+      const { upserted, skipped_errors } = json.data
+      setUploadResult(`✓ ${upserted} Komponenten importiert${skipped_errors > 0 ? `, ${skipped_errors} Zeilen übersprungen` : ''}`)
+      setUploadFile(null)
+      const listRes = await fetch('/api/catalog/components')
+      if (listRes.ok) { const { data } = await listRes.json(); setComponents(data ?? []) }
+    } catch (e) {
+      setUploadResult(`✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`)
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -797,6 +822,38 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 className="whitespace-nowrap px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
               >
                 {seeding ? 'Lädt…' : '↑ Seed-Daten einspielen'}
+              </button>
+            </div>
+          </div>
+
+          {/* CSV / JSON Upload */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-slate-700 mb-1">CSV / JSON Import</p>
+              <input
+                type="file"
+                accept=".csv,.json"
+                key={uploadResult ?? 'idle'}
+                onChange={e => { setUploadFile(e.target.files?.[0] ?? null); setUploadResult(null) }}
+                className="block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Spalten: name, vendor, architecture_layer, hosting, dsgvo_status, tags, … (kommagetrennt)</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {uploadResult && (
+                <span className={cn(
+                  'text-xs font-medium',
+                  uploadResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'
+                )}>
+                  {uploadResult}
+                </span>
+              )}
+              <button
+                onClick={handleUpload}
+                disabled={!uploadFile || uploading}
+                className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors"
+              >
+                {uploading ? 'Importiert…' : '↑ Importieren'}
               </button>
             </div>
           </div>
