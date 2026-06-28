@@ -9,6 +9,12 @@ const TIERS: Tier[] = ['free', 'pro', 'enterprise']
 const KNOWN_FLAGS = ['early_access', 'pdf_export', 'sharing', 'api_access']
 const ARCH_LAYERS = ['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']
 const CLOUD_PROVIDERS = ['aws', 'azure', 'gcp', 'sap', 'independent']
+const KNOWN_VENDORS = [
+  'SAP', 'Microsoft', 'Google', 'Amazon Web Services', 'Anthropic', 'OpenAI',
+  'Meta', 'Mistral AI', 'Cohere', 'Hugging Face', 'Databricks', 'Snowflake',
+  'NVIDIA', 'IBM', 'Oracle', 'Salesforce', 'LangChain', 'Weaviate', 'Pinecone',
+  'MongoDB', 'Chroma', 'unabhängig / Open Source',
+]
 
 interface Props {
   initialEntries: ContentLibraryEntry[]
@@ -59,6 +65,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<string | null>(null)
+  const [uploadPreview, setUploadPreview] = useState<{
+    format: string; formatLabel: string; detected_vendor: string; detected_layer: string;
+    layer_confidence: 'high' | 'medium' | 'low'; row_count: number; sample_names: string[]; ambiguous: boolean;
+  } | null>(null)
+  const [uploadVendor, setUploadVendor] = useState('')
+  const [uploadLayer, setUploadLayer] = useState('')
+  const [previewing, setPreviewing] = useState(false)
 
   // ── Catalog sources state ───────────────────────────────────────────────────
   const [sources, setSources] = useState<CatalogSource[]>(initialSources)
@@ -324,6 +337,27 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     }
   }
 
+  async function handlePreview(file: File) {
+    setPreviewing(true)
+    setUploadPreview(null)
+    setUploadVendor('')
+    setUploadLayer('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/admin/catalog/upload?mode=preview', { method: 'POST', body: fd })
+      if (!res.ok) return
+      const { detection } = await res.json()
+      setUploadPreview(detection)
+      setUploadVendor(detection.detected_vendor ?? '')
+      setUploadLayer(detection.detected_layer ?? '')
+    } catch {
+      // preview failure ist nicht kritisch
+    } finally {
+      setPreviewing(false)
+    }
+  }
+
   async function handleUpload() {
     if (!uploadFile) return
     setUploading(true)
@@ -331,12 +365,17 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     try {
       const fd = new FormData()
       fd.append('file', uploadFile)
+      if (uploadVendor) fd.append('vendor_override', uploadVendor)
+      if (uploadLayer) fd.append('layer_override', uploadLayer)
       const res = await fetch('/api/admin/catalog/upload', { method: 'POST', body: fd })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Upload fehlgeschlagen')
-      const { upserted, skipped_errors } = json.data
-      setUploadResult(`✓ ${upserted} Komponenten importiert${skipped_errors > 0 ? `, ${skipped_errors} Zeilen übersprungen` : ''}`)
+      const { upserted, skipped_errors, format } = json.data
+      setUploadResult(`✓ ${upserted} Komponenten importiert (${format})${skipped_errors > 0 ? `, ${skipped_errors} Zeilen übersprungen` : ''}`)
       setUploadFile(null)
+      setUploadPreview(null)
+      setUploadVendor('')
+      setUploadLayer('')
       const listRes = await fetch('/api/catalog/components')
       if (listRes.ok) { const { data } = await listRes.json(); setComponents(data ?? []) }
     } catch (e) {
@@ -827,24 +866,88 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {/* CSV / JSON Upload */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-slate-700 mb-1">CSV / JSON Import</p>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 space-y-3">
+            <p className="text-xs font-medium text-slate-700">CSV / JSON Import</p>
+
+            {/* File picker */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <input
                 type="file"
                 accept=".csv,.json"
                 key={uploadResult ?? 'idle'}
-                onChange={e => { setUploadFile(e.target.files?.[0] ?? null); setUploadResult(null) }}
-                className="block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                onChange={e => {
+                  const f = e.target.files?.[0] ?? null
+                  setUploadFile(f)
+                  setUploadResult(null)
+                  if (f) handlePreview(f)
+                }}
+                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
               />
-              <p className="text-[10px] text-slate-400 mt-1">Spalten: name, vendor, architecture_layer, hosting, dsgvo_status, tags, … (kommagetrennt)</p>
+              {previewing && <span className="text-[10px] text-slate-400 animate-pulse whitespace-nowrap">Analysiere Datei…</span>}
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <p className="text-[10px] text-slate-400">Standard-Spalten: name, vendor, architecture_layer, … | SAP Discovery Center CSV wird automatisch erkannt</p>
+
+            {/* Preview / Bestätigung */}
+            {uploadPreview && (
+              <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold text-blue-800">{uploadPreview.formatLabel}</span>
+                    <span className="text-xs text-blue-600">· {uploadPreview.row_count} Einträge</span>
+                    {uploadPreview.ambiguous && (
+                      <span className="text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
+                        Layer unklar — bitte prüfen
+                      </span>
+                    )}
+                  </div>
+                  <span className={cn('text-[10px] font-medium', {
+                    'text-emerald-700': uploadPreview.layer_confidence === 'high',
+                    'text-amber-700':   uploadPreview.layer_confidence === 'medium',
+                    'text-red-700':     uploadPreview.layer_confidence === 'low',
+                  })}>
+                    {uploadPreview.layer_confidence === 'high'   && '● Hohe Erkennungssicherheit'}
+                    {uploadPreview.layer_confidence === 'medium' && '● Mittlere Erkennungssicherheit'}
+                    {uploadPreview.layer_confidence === 'low'    && '● Layer manuell wählen'}
+                  </span>
+                </div>
+
+                {uploadPreview.sample_names.length > 0 && (
+                  <p className="text-[10px] text-blue-600 truncate">
+                    Beispiele: {uploadPreview.sample_names.join(' · ')}
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-600 mb-1">Vendor (Override für alle)</label>
+                    <select
+                      value={uploadVendor}
+                      onChange={e => setUploadVendor(e.target.value)}
+                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">— Aus Datei übernehmen —</option>
+                      {KNOWN_VENDORS.map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-600 mb-1">Architecture Layer (Override für alle)</label>
+                    <select
+                      value={uploadLayer}
+                      onChange={e => setUploadLayer(e.target.value)}
+                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">— Aus Datei übernehmen —</option>
+                      {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Result + Button */}
+            <div className="flex items-center gap-3 flex-wrap">
               {uploadResult && (
-                <span className={cn(
-                  'text-xs font-medium',
-                  uploadResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'
-                )}>
+                <span className={cn('text-xs font-medium', uploadResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700')}>
                   {uploadResult}
                 </span>
               )}
@@ -853,7 +956,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 disabled={!uploadFile || uploading}
                 className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors"
               >
-                {uploading ? 'Importiert…' : '↑ Importieren'}
+                {uploading ? 'Importiert…' : uploadPreview ? `↑ Importieren (${uploadPreview.row_count} Einträge)` : '↑ Importieren'}
               </button>
             </div>
           </div>
