@@ -98,6 +98,17 @@ export function Sidebar({ profile }: SidebarProps) {
           <Link href="/trust" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
           <span className="text-xs text-slate-700">v0.5.0</span>
         </div>
+        <div className="pt-1 border-t border-slate-800/60">
+          <span className="text-xs text-slate-700">📖 Basiert auf: </span>
+          <a
+            href="https://enterprise-ai.biz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            Enterprise AI Leitfaden · Daniel Ostner
+          </a>
+        </div>
       </div>
     </>
   )
