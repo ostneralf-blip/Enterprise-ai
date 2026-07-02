@@ -163,8 +163,32 @@ const GOV_RESULT: Record<string, { label: string; color: string; bg: string }> =
   improve:    { label: 'Verbesserungsbedarf', color: C.amber,   bg: C.amberBg },
 }
 
+const GOV_RECS: Record<string, string[]> = {
+  approve:    [
+    'Ergebnis dokumentieren und im nächsten Sprint-Review präsentieren.',
+    'Governance-Freigabe als Meilenstein im Projektplan festhalten.',
+    'Regelmäßigen Review-Zyklus (quartalsweise) für laufende Compliance sicherstellen.',
+  ],
+  stop_dsgvo: [
+    'Datenschutzbeauftragten einbeziehen und DSGVO-Analyse formalisieren.',
+    'Technische Maßnahmen prüfen: Pseudonymisierung, Datensparsamkeit, Einwilligungsmanagement.',
+    'Use Case erst nach erfolgreicher DSGVO-Klärung erneut dem Governance-Check unterziehen.',
+  ],
+  stop_risk:  [
+    'Risikoregister anlegen und alle identifizierten Risiken mit Verantwortlichen versehen.',
+    'Risikominderungsmaßnahmen definieren: Transparenzpflichten, menschliche Überwachung, Fallback-Mechanismen.',
+    'Erneute Governance-Prüfung nach Umsetzung der Risikominderung einplanen.',
+  ],
+  improve:    [
+    'Identifizierte Schwachstellen priorisieren und Maßnahmenplan erstellen.',
+    'Zuständige Fachbereiche (Legal, Compliance, IT) in Verbesserungsmaßnahmen einbinden.',
+    'Verbesserten Use Case innerhalb von 4–6 Wochen erneut prüfen.',
+  ],
+}
+
 export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
   const res = data.result ? (GOV_RESULT[data.result] ?? GOV_RESULT.improve) : GOV_RESULT.improve
+  const recs = data.result ? (GOV_RECS[data.result] ?? GOV_RECS.improve) : GOV_RECS.improve
   const rows = (data.protocol ?? []).filter(i => (i.question ?? i.label) || (i.answer ?? i.value))
 
   return (
@@ -177,6 +201,14 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
         <View style={{ backgroundColor: res.bg, borderRadius: 10, padding: 14, marginBottom: 18, alignSelf: 'flex-start' }}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: res.color }}>{res.label}</Text>
         </View>
+
+        <Text style={s.h2}>Handlungsempfehlungen</Text>
+        {recs.map((rec, i) => (
+          <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: res.color, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
+            <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{rec}</Text>
+          </View>
+        ))}
 
         {rows.length > 0 && (
           <>
@@ -306,10 +338,22 @@ export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
         </View>
 
         <Text style={s.h2}>Umsetzung</Text>
-        <View style={[s.row, { gap: 8 }]}>
+        <View style={[s.row, { gap: 8, marginBottom: 8 }]}>
           <CanvasSection label="Technische Architektur" value={data.data?.architecture} />
           <CanvasSection label="Nächste Schritte" value={data.data?.next_steps} />
         </View>
+
+        {data.data?.next_steps && (
+          <>
+            <Text style={s.h2}>Handlungsempfehlungen</Text>
+            {data.data.next_steps.split('\n').filter(Boolean).slice(0, 5).map((step, i) => (
+              <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
+                <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{step.replace(/^[-•▸]\s*/, '')}</Text>
+              </View>
+            ))}
+          </>
+        )}
         <PdfFooter />
       </Page>
     </Document>
@@ -814,6 +858,49 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im Portfolio
             </Text>
           )}
+
+          <PdfFooter />
+        </Page>
+      )}
+
+      {/* ── SEITE Use Cases: Handlungsempfehlungen ──────────────────────────── */}
+      {data.topUseCases.length > 0 && (
+        <Page size="A4" style={s.page}>
+          <PdfHeader company={data.companyName} />
+          <Text style={s.h1}>Handlungsempfehlungen</Text>
+          <Text style={s.sub}>Use-Case Portfolio · Enterprise AI Navigator</Text>
+
+          {(() => {
+            const quickWins = data.topUseCases.filter(u => u.quadrant === 'quick_win')
+            const strategic = data.topUseCases.filter(u => u.quadrant === 'strategic_bet')
+            const avoid     = data.topUseCases.filter(u => u.quadrant === 'avoid')
+            const recs: Array<{ title: string; text: string; color: string }> = []
+
+            if (quickWins.length > 0)
+              recs.push({ title: `${quickWins.length} Quick Win${quickWins.length > 1 ? 's' : ''} sofort starten`, color: C.ok,
+                text: `${quickWins.map(u => u.name).join(', ')} — Hoher Wert bei geringem Umsetzungsaufwand. Direkt in die Umsetzungsplanung aufnehmen und innerhalb von 60 Tagen pilotieren.` })
+
+            if (strategic.length > 0)
+              recs.push({ title: `${strategic.length} strategische${strategic.length > 1 ? ' Use Cases' : 'r Use Case'} budgetieren`, color: C.brand,
+                text: `${strategic.map(u => u.name).join(', ')} — Langfristiger strategischer Wert. In Jahresbudget und Roadmap verankern, dediziertes Team einplanen.` })
+
+            recs.push({ title: 'Scoring regelmäßig aktualisieren', color: C.warn,
+              text: 'Use-Case-Bewertungen quartalsweise überprüfen — Marktbedingungen, Datenlage und Ressourcenverfügbarkeit ändern sich. Gewichtungen ggf. anpassen.' })
+
+            if (avoid.length > 0)
+              recs.push({ title: `${avoid.length} Use Case${avoid.length > 1 ? 's' : ''} deprioritisieren`, color: C.danger,
+                text: `${avoid.map(u => u.name).join(', ')} — Derzeit nicht empfohlen. Ressourcen auf Quick Wins und strategische Use Cases fokussieren.` })
+
+            recs.push({ title: 'Governance-Check für Top-Use-Cases durchführen', color: C.dark2,
+              text: 'Vor Pilotstart jeden High-Score-Use-Case durch den AI-Governance-Check führen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen.' })
+
+            return recs.map((rec, i) => (
+              <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: rec.color }]}>
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: rec.color, marginBottom: 4 }}>{i + 1}. {rec.title}</Text>
+                <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{rec.text}</Text>
+              </View>
+            ))
+          })()}
 
           <PdfFooter />
         </Page>

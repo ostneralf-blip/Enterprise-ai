@@ -219,11 +219,15 @@ export function recommendFromCatalog(
   catalog: CatalogComponent[]
 ): CatalogRecommendations {
   const layers: LayerRecommendation[] = ARCH_LAYERS_ORDERED.map(layer => {
-    const componentNames = catalog
+    const scored = catalog
       .filter(c => c.architecture_layer === layer)
       .map(c => ({ name: c.name, score: scoreComponentAgainstAnswers(c, answers) }))
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
+    // Require contextual relevance (≥ 8 pts) — "cloud_provider independent" alone (+5) is insufficient.
+    // Fallback: show top 2 by score if nothing reaches threshold, so diagram is never empty.
+    const relevant = scored.filter(x => x.score >= 8)
+    const componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2))
       .slice(0, 4)
       .map(x => x.name)
     return { layer, componentNames }
