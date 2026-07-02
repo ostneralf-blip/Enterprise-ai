@@ -8,6 +8,7 @@ const BASE_PREFS = {
   primary_governance_id: null,
   primary_roadmap_id: null,
   primary_architecture_id: null,
+  primary_canvas_id: null,
 }
 
 const GOVERNANCE_WITH_PROTOCOL: GovernanceRow[] = [
@@ -59,6 +60,7 @@ function renderGovernanceTab(governanceSessions: GovernanceRow[]) {
       architectures={[]}
       governanceSessions={governanceSessions}
       roadmaps={[]}
+      canvases={[]}
       initialPreferences={BASE_PREFS}
     />
   )

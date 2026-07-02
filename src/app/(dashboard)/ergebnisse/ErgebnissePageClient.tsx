@@ -2,20 +2,23 @@
 import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { InfoHint } from '@/components/shared/InfoHint'
 
-type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap'
+type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap' | 'canvas'
 
 interface Prefs {
   primary_assessment_id:   string | null
   primary_governance_id:   string | null
   primary_roadmap_id:      string | null
   primary_architecture_id: string | null
+  primary_canvas_id:       string | null
 }
 
 export interface AssessmentRow    { id: string; archetype: string; total_score: number; dim_scores: Record<string, number>; created_at: string }
 export interface ArchitectureRow  { id: string; title: string; wizard_data: Record<string, unknown>; result: Record<string, unknown>; updated_at: string }
 export interface GovernanceRow    { id: string; use_case_name: string | null; result: string; protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null; created_at: string }
 export interface RoadmapRow       { id: string; title: string; archetype: string; phases: unknown[]; updated_at: string }
+export interface CanvasRow        { id: string; title: string; archetype: string | null; data: Record<string, string>; updated_at: string }
 
 const ARCHETYPES: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
@@ -35,6 +38,7 @@ const PREF_KEY: Record<Tab, keyof Prefs> = {
   architecture: 'primary_architecture_id',
   governance:   'primary_governance_id',
   roadmap:      'primary_roadmap_id',
+  canvas:       'primary_canvas_id',
 }
 const fmt = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
@@ -70,11 +74,12 @@ interface Props {
   architectures:      ArchitectureRow[]
   governanceSessions: GovernanceRow[]
   roadmaps:           RoadmapRow[]
+  canvases:           CanvasRow[]
   initialPreferences: Prefs | null
 }
 
-export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, initialPreferences }: Props) {
-  const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null }
+export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, initialPreferences }: Props) {
+  const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null }
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? emptyPrefs)
   const [expanded,      setExpanded]      = useState<string | null>(null)
@@ -83,6 +88,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const [architectures, setArchitectures] = useState(initArch)
   const [governance,    setGovernance]    = useState(initG)
   const [roadmaps,      setRoadmaps]      = useState(initR)
+  const [canvases,      setCanvases]      = useState(initC)
   const [compareMode,   setCompareMode]   = useState(false)
   const [compareIds,    setCompareIds]    = useState<string[]>([])
 
@@ -97,13 +103,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   }
 
   const deleteItem = async (category: Tab, id: string) => {
-    const path = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}` }[category]
+    const path = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}`, canvas: `/api/canvas/${id}` }[category]
     const res = await fetch(path, { method: 'DELETE' })
     if (!res.ok) return
     if (category === 'assessment')   setAssessments(xs => xs.filter(x => x.id !== id))
     if (category === 'architecture') setArchitectures(xs => xs.filter(x => x.id !== id))
     if (category === 'governance')   setGovernance(xs => xs.filter(x => x.id !== id))
     if (category === 'roadmap')      setRoadmaps(xs => xs.filter(x => x.id !== id))
+    if (category === 'canvas')       setCanvases(xs => xs.filter(x => x.id !== id))
     if (expanded === id) setExpanded(null)
     setConfirmId(null)
     if (prefs[PREF_KEY[category]] === id) setPrefs(p => ({ ...p, [PREF_KEY[category]]: null }))
@@ -124,6 +131,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
     { key: 'architecture' as Tab, label: 'Architektur', count: architectures.length },
     { key: 'governance'   as Tab, label: 'Governance',  count: governance.length },
     { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length },
+    { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length },
   ]
 
   return (
@@ -543,6 +551,101 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                       </Fragment>
                     )
                   })}
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {/* ── Canvas ─────────────────────────────────────────────── */}
+      {tab === 'canvas' && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-xs text-slate-500">
+              Der <strong>AI Strategy Canvas</strong> ist Ihre strategische Grundlage — Use Cases, Architekturen und Roadmaps bauen auf ihm auf.
+            </p>
+            <InfoHint title="Was ist der Canvas?" side="bottom">
+              <p>Der Canvas erfasst in 8 Feldern den strategischen Kontext Ihres AI-Projekts: Vision, Herausforderungen, Stakeholder, Ressourcen, Zeitplan, Risiken, KPIs und Governance-Struktur.</p>
+              <p className="mt-1.5">Ein als <strong>Primär</strong> markierter Canvas wird automatisch in den Architektur-Generator und andere Module übernommen, um kontextsensitive Empfehlungen zu liefern.</p>
+            </InfoHint>
+          </div>
+
+          {canvases.length === 0 && (
+            <p className="text-sm text-slate-400 py-12 text-center">
+              Noch keinen Canvas gespeichert. <Link href="/canvas" className="text-blue-600 hover:underline">Jetzt erstellen →</Link>
+            </p>
+          )}
+
+          {canvases.map(c => {
+            const isSelected = compareIds.includes(c.id)
+            const filledFields = Object.values(c.data ?? {}).filter(v => v?.trim()).length
+            return (
+              <div key={c.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => compareMode ? toggleCompare(c.id) : toggle(c.id)}>
+                  {compareMode && (
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(c.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                  )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-sm font-medium text-slate-700 truncate">{c.title}</span>
+                    {c.archetype && (
+                      <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[c.archetype] ?? c.archetype}</span>
+                    )}
+                    <span className="text-xs text-slate-400 shrink-0">{filledFields}/8 Felder · {fmt(c.updated_at)}</span>
+                  </div>
+                  {!compareMode && (
+                    <RowActions isPrimary={prefs.primary_canvas_id === c.id} isConfirmDelete={confirmId === c.id}
+                      onSetPrimary={e => { e.stopPropagation(); setPrimary('canvas', c.id) }}
+                      onConfirm={e => { e.stopPropagation(); setConfirmId(c.id) }}
+                      onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                      onDelete={e => { e.stopPropagation(); deleteItem('canvas', c.id) }} />
+                  )}
+                </div>
+                {!compareMode && expanded === c.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1.5">
+                    {Object.entries(c.data ?? {}).filter(([, v]) => v?.trim()).map(([key, value]) => (
+                      <div key={key} className="text-xs">
+                        <span className="font-medium text-slate-600 capitalize">{key}: </span>
+                        <span className="text-slate-500 line-clamp-2">{value}</span>
+                      </div>
+                    ))}
+                    <Link href="/canvas" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {compareMode && compareIds.length === 2 && (() => {
+            const c1 = canvases.find(c => c.id === compareIds[0])
+            const c2 = canvases.find(c => c.id === compareIds[1])
+            if (!c1 || !c2) return null
+            const allKeys = [...new Set([...Object.keys(c1.data ?? {}), ...Object.keys(c2.data ?? {})])]
+            return (
+              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Canvas</p>
+                </div>
+                <div className="grid grid-cols-3 text-xs">
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Feld</div>
+                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                    {c1.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(c1.updated_at)}</div>
+                  </div>
+                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                    {c2.title}
+                    <div className="text-[10px] text-slate-400 font-normal">{fmt(c2.updated_at)}</div>
+                  </div>
+                  {allKeys.map(key => (
+                    <Fragment key={`canvas-${key}`}>
+                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100 capitalize">{key}</div>
+                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l line-clamp-3">{c1.data?.[key] || '—'}</div>
+                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l line-clamp-3">{c2.data?.[key] || '—'}</div>
+                    </Fragment>
+                  ))}
                 </div>
               </div>
             )

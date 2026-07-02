@@ -1,8 +1,35 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
-import type { Canvas, Archetype, Tier } from '@/types'
+import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import type { Canvas, CanvasData, Archetype, Tier } from '@/types'
+
+function analyzeCanvasData(data: CanvasData) {
+  const text = Object.values(data).join(' ').toLowerCase()
+  const platform: string[] = []
+  if (/\bsap\b/.test(text)) platform.push('SAP')
+  if (/\bazure\b/.test(text)) platform.push('Azure')
+  if (/\baws\b|amazon web/.test(text)) platform.push('AWS')
+  if (/\bgcp\b|google cloud/.test(text)) platform.push('GCP')
+  if (/on.?prem|\bserver\b|\blokal\b/.test(text)) platform.push('On-Premises')
+
+  const usecaseType =
+    /generativ|llm|sprachmodell|chatbot|gpt/.test(text) ? 'Generative AI' :
+    /prognose|vorhersage|forecast|predict/.test(text) ? 'Predictive Analytics' :
+    /automatisier|workflow|rpa/.test(text) ? 'Prozessautomatisierung' :
+    /vision|bilderkennung|computer.?vision/.test(text) ? 'Computer Vision' : null
+
+  const compliance: string[] = []
+  if (/dsgvo|datenschutz|personenbezogen/.test(text)) compliance.push('DSGVO relevant')
+  if (/eu.?ai.?act|hochrisiko/.test(text)) compliance.push('EU AI Act relevant')
+  if (/eu.hosting|eu.server|frankfurt|irland/.test(text)) compliance.push('EU-Hosting bevorzugt')
+  if (/iso.?27001|isms/.test(text)) compliance.push('ISO 27001 relevant')
+
+  const filledCount = Object.values(data).filter(v => v?.trim()).length
+  return { platform, usecaseType, compliance, filledCount }
+}
 
 const ARCHETYPE_BTNS: { id: Archetype; label: string }[] = [
   { id: 'starter', label: 'AI Starter' },
@@ -20,6 +47,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active?.data])
 
   const handleCreate = async () => {
     const res = await fetch('/api/canvas', { method: 'POST' })
@@ -132,6 +160,73 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             </section>
           ))}
         </div>
+
+        {/* Kontextanalyse-Panel */}
+        {insights && insights.filledCount >= 2 && (
+          <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Kontextanalyse</h2>
+              <InfoHint title="Was ist die Kontextanalyse?" side="top">
+                <p>Während Sie Ihren Canvas ausfüllen, analysiert das Tool automatisch Schlüsselbegriffe und erkennt Plattformen, Use-Case-Typen und Compliance-Anforderungen.</p>
+                <p className="mt-1.5">Diese Erkenntnisse werden in anderen Modulen verwendet — z. B. schlägt der Architektur-Generator passende Komponenten vor, wenn SAP oder Azure erkannt wurde.</p>
+                <p className="mt-1.5">Die Analyse verbessert sich, je vollständiger der Canvas ist ({insights.filledCount}/8 Felder ausgefüllt).</p>
+              </InfoHint>
+            </div>
+
+            {insights.filledCount < 4 && (
+              <HintBox variant="tip" className="text-xs">
+                Füllen Sie mehr Felder aus, um präzisere Empfehlungen zu erhalten ({insights.filledCount}/8 ausgefüllt).
+              </HintBox>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Plattform</p>
+                {insights.platform.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {insights.platform.map(p => (
+                      <span key={p} className="text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">{p}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">Nicht erkannt</p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">AI-Typ</p>
+                {insights.usecaseType ? (
+                  <span className="text-xs bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-medium">{insights.usecaseType}</span>
+                ) : (
+                  <p className="text-xs text-slate-400">Nicht erkannt</p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Compliance</p>
+                {insights.compliance.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {insights.compliance.map(c => (
+                      <span key={c} className="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 font-medium">{c}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">Keine Flags</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-1 border-t border-slate-200">
+              <p className="text-xs text-slate-500 flex-1">Erkannte Signale automatisch in anderen Modulen verwenden:</p>
+              <Link href="/architecture" className="text-xs text-blue-600 hover:underline whitespace-nowrap font-medium">
+                → Architektur
+              </Link>
+              <Link href="/compliance" className="text-xs text-blue-600 hover:underline whitespace-nowrap font-medium">
+                → Compliance
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

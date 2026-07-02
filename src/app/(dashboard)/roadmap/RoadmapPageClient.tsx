@@ -3,11 +3,13 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
 import { QUADRANT_META } from '@/config/usecase-data'
+import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import type { Archetype, Tier } from '@/types'
 
 type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }
 type MilestoneStatus = 'not_started' | 'in_progress' | 'done'
 type SavedRoadmap = { id: string; archetype: string; phases: unknown[] }
+type LinkedCanvas = { id: string; title: string; archetype: string | null; data: Record<string, string> }
 
 const MILESTONE_NEXT: Record<MilestoneStatus, MilestoneStatus> = {
   not_started: 'in_progress',
@@ -25,12 +27,25 @@ const MILESTONE_COLOR: Record<MilestoneStatus, string> = {
   done: 'text-emerald-500 hover:text-emerald-600',
 }
 
+function detectCanvasInsights(data: Record<string, string>): string[] {
+  const text = Object.values(data).join(' ').toLowerCase()
+  const insights: string[] = []
+  if (/\bsap\b/.test(text)) insights.push('SAP-Umgebung erkannt')
+  if (/\bazure\b/.test(text)) insights.push('Microsoft Azure erkannt')
+  if (/\baws\b|amazon web/.test(text)) insights.push('AWS erkannt')
+  if (/\bgcp\b|google cloud/.test(text)) insights.push('Google Cloud erkannt')
+  if (/dsgvo|datenschutz|personenbezogen/.test(text)) insights.push('DSGVO-Relevanz erkannt')
+  if (/eu.?ai.?act|hochrisiko/.test(text)) insights.push('EU AI Act relevant')
+  return insights
+}
+
 interface Props {
   initialArchetype: Archetype | null
   fromAssessment: boolean
   tier: Tier
   topUseCases: TopUseCase[]
   savedRoadmap: SavedRoadmap | null
+  linkedCanvas: LinkedCanvas | null
 }
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
@@ -49,7 +64,7 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
   return result
 }
 
-export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap }: Props) {
+export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas }: Props) {
   const [archetype, setArchetype] = useState<Archetype>(
     (savedRoadmap?.archetype as Archetype | undefined) ?? initialArchetype ?? 'starter'
   )
@@ -99,8 +114,36 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
   const roadmap = ROADMAPS[archetype]
 
+  const canvasInsights = linkedCanvas ? detectCanvasInsights(linkedCanvas.data) : []
+
   return (
     <div>
+      {/* Canvas-Kontext-Banner */}
+      {linkedCanvas && (
+        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <div className="flex items-start gap-2 mb-2">
+            <span className="text-xs font-semibold text-blue-800">Canvas verknüpft</span>
+            <InfoHint title="Wie beeinflusst der Canvas die Roadmap?" side="bottom">
+              <p>Der verknüpfte Canvas stammt von Ihrem am höchsten bewerteten Use Case. Er liefert strategischen Kontext wie Plattform, Compliance-Anforderungen und Stakeholder-Situation.</p>
+              <p className="mt-1.5">Die erkannten Signale helfen Ihnen, bei der Phasenplanung gezielt zu priorisieren. Wechseln Sie in der Sidebar zu <strong>Canvas</strong>, um den Inhalt zu bearbeiten.</p>
+            </InfoHint>
+          </div>
+          <p className="text-xs text-blue-700 font-medium mb-1">{linkedCanvas.title}</p>
+          {canvasInsights.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {canvasInsights.map(insight => (
+                <span key={insight} className="text-[11px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                  {insight}
+                </span>
+              ))}
+            </div>
+          )}
+          {canvasInsights.length === 0 && (
+            <p className="text-xs text-blue-600 opacity-70">Keine spezifischen Plattform- oder Compliance-Signale erkannt.</p>
+          )}
+        </div>
+      )}
+
       {/* Archetyp-Auswahl */}
       <div className="mb-6">
         {fromAssessment && initialArchetype && (

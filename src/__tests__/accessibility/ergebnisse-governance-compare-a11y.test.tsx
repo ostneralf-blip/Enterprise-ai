@@ -11,6 +11,7 @@ const BASE_PREFS = {
   primary_governance_id: null,
   primary_roadmap_id: null,
   primary_architecture_id: null,
+  primary_canvas_id: null,
 }
 
 const GOVERNANCE_WITH_PROTOCOL: GovernanceRow[] = [
@@ -62,6 +63,7 @@ function renderAndOpenCompare(governanceSessions: GovernanceRow[]) {
       architectures={[]}
       governanceSessions={governanceSessions}
       roadmaps={[]}
+      canvases={[]}
       initialPreferences={BASE_PREFS}
     />
   )
@@ -87,6 +89,7 @@ describe('Accessibility: Governance-Vergleich mit Protokolldetails', () => {
         architectures={[]}
         governanceSessions={GOVERNANCE_WITH_PROTOCOL}
         roadmaps={[]}
+        canvases={[]}
         initialPreferences={BASE_PREFS}
       />
     )

@@ -8,12 +8,14 @@ import {
   RISK_MATRIX,
   getRiskLevel,
   POLICY_TEMPLATES,
+  ADDITIONAL_REGULATIONS,
   type CheckRow,
   type CheckStatus,
   type EuAiActRiskClass,
 } from '@/config/compliance-data'
+import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 
-type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates'
+type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'euaiact', label: 'EU AI Act' },
@@ -21,6 +23,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'matrix', label: 'Risikomatrix' },
   { id: 'summary', label: 'Zusammenfassung' },
   { id: 'templates', label: 'Policy-Templates' },
+  { id: 'extras', label: 'Weitere Gesetze' },
 ]
 
 interface Props {
@@ -40,6 +43,28 @@ export function CompliancePageClient({ initialChecks }: Props) {
   })
   const [saving, setSaving] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
+
+  // Aktive Zusatz-Regelwerke werden als Check-Eintrag in compliance_checks persistiert:
+  // regulation='system', check_type='active_regulations', notes=JSON-Array der IDs
+  const [activeRegIds, setActiveRegIds] = useState<Set<string>>(() => {
+    const stored = initialChecks.find(
+      c => c.regulation === 'system' && c.check_type === 'active_regulations'
+    )
+    if (!stored?.notes) return new Set()
+    try { return new Set(JSON.parse(stored.notes) as string[]) }
+    catch { return new Set() }
+  })
+
+  const toggleReg = (id: string) => {
+    setActiveRegIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      upsert('system', 'active_regulations', 'compliant', JSON.stringify([...next]))
+      return next
+    })
+  }
+
+  const activeRegs = ADDITIONAL_REGULATIONS.filter(r => activeRegIds.has(r.id))
 
   const getCheck = (regulation: string, checkType: string): CheckRow | undefined =>
     checks.get(makeKey(regulation, checkType))
@@ -434,6 +459,130 @@ export function CompliancePageClient({ initialChecks }: Props) {
               </pre>
             </section>
           ))}
+        </div>
+      )}
+
+      {/* ── WEITERE GESETZE ── */}
+      {tab === 'extras' && (
+        <div role="tabpanel" id="panel-extras" aria-labelledby="tab-extras" className="space-y-6">
+          <HintBox variant="info" className="mb-1">
+            <strong>Wählen Sie branchenspezifische Regelwerke aus</strong>, die für Ihr Unternehmen relevant sind.
+            Aktivierte Gesetze erscheinen als ausfüllbare Checklisten — Ihren Fortschritt können Sie direkt hier abhaken.
+            Ihre Auswahl wird lokal gespeichert.
+          </HintBox>
+
+          {/* Regelwerk-Auswahl */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-sm font-semibold text-slate-700">Regelwerke aktivieren</h2>
+              <InfoHint title="Warum zusätzliche Regelwerke?">
+                <p>EU AI Act und DSGVO sind für alle AI-Projekte relevant. Je nach Branche und Unternehmensgröße kommen weitere Anforderungen hinzu:</p>
+                <p className="mt-1"><strong>ISO 42001</strong> ist der internationale KI-Management-Standard — häufige Anforderung in Enterprise-Ausschreibungen.</p>
+                <p className="mt-1"><strong>NIS-2</strong> gilt seit Oktober 2024 für kritische Infrastrukturen und digitale Dienste.</p>
+                <p className="mt-1"><strong>BAIT</strong> ist verpflichtend für Banken und Finanzdienstleister unter BaFin-Aufsicht.</p>
+                <p className="mt-1"><strong>LkSG</strong> betrifft Unternehmen ab 1.000 Mitarbeitenden — auch bei externer Datenbeschaffung relevant.</p>
+              </InfoHint>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {ADDITIONAL_REGULATIONS.map(reg => {
+                const isActive = activeRegIds.has(reg.id)
+                return (
+                  <button
+                    key={reg.id}
+                    onClick={() => toggleReg(reg.id)}
+                    aria-pressed={isActive}
+                    className={cn(
+                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                      isActive
+                        ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300'
+                        : 'bg-white border-slate-200 hover:border-slate-300'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600')}>
+                        {reg.shortLabel}
+                      </span>
+                      <span className={cn('text-xs font-medium', isActive ? 'text-blue-600' : 'text-slate-400')}>
+                        {isActive ? '✓ Aktiv' : 'Aktivieren'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-800 mb-1 leading-snug">{reg.label}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{reg.description}</p>
+                    <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
+                      <strong>Gilt für:</strong> {reg.applicability}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Checklisten der aktiven Regelwerke */}
+          {activeRegs.length === 0 && (
+            <p className="text-sm text-slate-400 text-center py-6">
+              Aktivieren Sie oben ein Regelwerk, um die passende Checkliste anzuzeigen.
+            </p>
+          )}
+
+          {activeRegs.map(reg => {
+            const regDone = reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'compliant').length
+            return (
+              <div key={reg.id} className="border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-800">{reg.label}</h3>
+                    <InfoHint title={reg.label} side="bottom">
+                      <p>{reg.description}</p>
+                      <p className="mt-1.5"><strong>Gilt für:</strong> {reg.applicability}</p>
+                    </InfoHint>
+                  </div>
+                  <span className="text-xs text-slate-400 flex-shrink-0">{regDone}/{reg.items.length} erledigt</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all"
+                    style={{ width: `${(regDone / reg.items.length) * 100}%` }}
+                    role="progressbar"
+                    aria-valuenow={regDone}
+                    aria-valuemin={0}
+                    aria-valuemax={reg.items.length}
+                    aria-label={`${reg.shortLabel} Fortschritt`}
+                  />
+                </div>
+                <ul className="space-y-2">
+                  {reg.items.map(item => {
+                    const c = getCheck(reg.id, item.id)
+                    const isDone = c?.status === 'compliant'
+                    const isSaving = saving.has(makeKey(reg.id, item.id))
+                    return (
+                      <li key={item.id}>
+                        <label className={cn(
+                          'flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors',
+                          isDone ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                          isSaving && 'opacity-60'
+                        )}>
+                          <input
+                            type="checkbox"
+                            checked={isDone}
+                            onChange={() => toggleItem(reg.id, item.id)}
+                            disabled={isSaving}
+                            className="mt-0.5 flex-shrink-0 accent-blue-600"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.category}</p>
+                            <p className={cn('text-sm font-medium', isDone ? 'text-blue-800 line-through' : 'text-slate-800')}>
+                              {item.label}
+                            </p>
+                          </div>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
         </div>
       )}
 

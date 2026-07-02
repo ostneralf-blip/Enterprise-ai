@@ -22,7 +22,7 @@ describe('Accessibility: Compliance Center', () => {
     render(<CompliancePageClient {...EMPTY_CHECKS} />)
     expect(screen.getByRole('tablist')).toBeInTheDocument()
     const tabs = screen.getAllByRole('tab')
-    expect(tabs).toHaveLength(5)
+    expect(tabs).toHaveLength(6)
   })
 
   it('aktiver Tab hat aria-selected="true"', () => {
