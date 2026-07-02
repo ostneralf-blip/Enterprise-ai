@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -14,7 +14,7 @@ interface Prefs {
 
 export interface AssessmentRow    { id: string; archetype: string; total_score: number; dim_scores: Record<string, number>; created_at: string }
 export interface ArchitectureRow  { id: string; title: string; wizard_data: Record<string, unknown>; result: Record<string, unknown>; updated_at: string }
-export interface GovernanceRow    { id: string; use_case_name: string | null; result: string; created_at: string }
+export interface GovernanceRow    { id: string; use_case_name: string | null; result: string; protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null; created_at: string }
 export interface RoadmapRow       { id: string; title: string; archetype: string; phases: unknown[]; updated_at: string }
 
 const ARCHETYPES: Record<string, string> = {
@@ -181,6 +181,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
+                      aria-label={`Assessment vom ${fmt(a.created_at)} zum Vergleich auswählen`}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -270,6 +271,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
+                      aria-label={`Architektur „${a.title}" zum Vergleich auswählen`}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -337,6 +339,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(g.id)}
                       onClick={e => e.stopPropagation()}
+                      aria-label={`Governance-Check „${g.use_case_name ?? fmt(g.created_at)}" zum Vergleich auswählen`}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -368,6 +371,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             if (!g1 || !g2) return null
             const v1 = VERDICTS[g1.result] ?? { label: g1.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             const v2 = VERDICTS[g2.result] ?? { label: g2.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            const protocolEntries = (g1.protocol ?? []).slice(0, 5)
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
@@ -383,6 +387,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {g2.use_case_name ?? '—'}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(g2.created_at)}</div>
                   </div>
+                  {/* Row: Ergebnis */}
                   <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Ergebnis</div>
                   <div className="px-4 py-2 border-t border-slate-100 border-l">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v1.color}`}>{v1.label}</span>
@@ -390,6 +395,24 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   <div className="px-4 py-2 border-t border-slate-100 border-l">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v2.color}`}>{v2.label}</span>
                   </div>
+                  {/* Row: Use Case */}
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Use Case</div>
+                  <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l truncate">{g1.use_case_name ?? '—'}</div>
+                  <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l truncate">{g2.use_case_name ?? '—'}</div>
+                  {/* Rows: Protocol entries (up to 5) */}
+                  {protocolEntries.map((entry, i) => {
+                    const q = entry.question ?? entry.label ?? `Frage ${i + 1}`
+                    const a1 = entry.answer ?? entry.value ?? '—'
+                    const g2entry = (g2.protocol ?? [])[i]
+                    const a2 = g2entry ? (g2entry.answer ?? g2entry.value ?? '—') : '—'
+                    return (
+                      <Fragment key={`protocol-${i}`}>
+                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100 truncate">{q}</div>
+                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">{a1}</div>
+                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">{a2}</div>
+                      </Fragment>
+                    )
+                  })}
                 </div>
               </div>
             )
