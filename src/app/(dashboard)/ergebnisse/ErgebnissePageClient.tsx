@@ -300,6 +300,13 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const a1 = architectures.find(a => a.id === compareIds[0])
             const a2 = architectures.find(a => a.id === compareIds[1])
             if (!a1 || !a2) return null
+            type ArchResult = { pattern?: string; description?: string; layers?: Array<{ name: string; components?: string[] }> }
+            const res1 = (a1.result ?? {}) as ArchResult
+            const res2 = (a2.result ?? {}) as ArchResult
+            const allLayerNames = Array.from(new Set([
+              ...(res1.layers ?? []).map(l => l.name),
+              ...(res2.layers ?? []).map(l => l.name),
+            ]))
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
@@ -315,9 +322,31 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {a2.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Konfigurationsfelder</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Object.keys(a1.wizard_data ?? {}).length}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Object.keys(a2.wizard_data ?? {}).length}</div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Muster</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res1.pattern ?? '—'}</div>
+                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res2.pattern ?? '—'}</div>
+                  {res1.description || res2.description ? (
+                    <Fragment key="arch-desc">
+                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Beschreibung</div>
+                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res1.description ?? '—'}</div>
+                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res2.description ?? '—'}</div>
+                    </Fragment>
+                  ) : null}
+                  {allLayerNames.map(layerName => {
+                    const l1 = (res1.layers ?? []).find(l => l.name === layerName)
+                    const l2 = (res2.layers ?? []).find(l => l.name === layerName)
+                    return (
+                      <Fragment key={`layer-${layerName}`}>
+                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100 truncate">{layerName}</div>
+                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">
+                          {l1 ? `${(l1.components ?? []).length} Komponenten` : <span className="text-slate-300">—</span>}
+                        </div>
+                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">
+                          {l2 ? `${(l2.components ?? []).length} Komponenten` : <span className="text-slate-300">—</span>}
+                        </div>
+                      </Fragment>
+                    )
+                  })}
                 </div>
               </div>
             )
@@ -462,6 +491,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const r1 = roadmaps.find(r => r.id === compareIds[0])
             const r2 = roadmaps.find(r => r.id === compareIds[1])
             if (!r1 || !r2) return null
+            type Phase = { title?: string; duration?: string; focus?: string }
+            const phases1 = (Array.isArray(r1.phases) ? r1.phases : []) as Phase[]
+            const phases2 = (Array.isArray(r2.phases) ? r2.phases : []) as Phase[]
+            const maxPhases = Math.max(phases1.length, phases2.length)
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
@@ -480,9 +513,33 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Archetyp</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r1.archetype] ?? r1.archetype}</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r2.archetype] ?? r2.archetype}</div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Phasen</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Array.isArray(r1.phases) ? r1.phases.length : 0}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Array.isArray(r2.phases) ? r2.phases.length : 0}</div>
+                  {Array.from({ length: maxPhases }, (_, i) => {
+                    const p1 = phases1[i]
+                    const p2 = phases2[i]
+                    return (
+                      <Fragment key={`phase-${i}`}>
+                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Phase {i + 1}</div>
+                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                          {p1 ? (
+                            <>
+                              <p className="font-semibold text-slate-800">{p1.title ?? '—'}</p>
+                              {p1.duration && <p className="text-slate-400">{p1.duration}</p>}
+                              {p1.focus && <p className="text-slate-500 mt-0.5">{p1.focus}</p>}
+                            </>
+                          ) : <span className="text-slate-300">—</span>}
+                        </div>
+                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                          {p2 ? (
+                            <>
+                              <p className="font-semibold text-slate-800">{p2.title ?? '—'}</p>
+                              {p2.duration && <p className="text-slate-400">{p2.duration}</p>}
+                              {p2.focus && <p className="text-slate-500 mt-0.5">{p2.focus}</p>}
+                            </>
+                          ) : <span className="text-slate-300">—</span>}
+                        </div>
+                      </Fragment>
+                    )
+                  })}
                 </div>
               </div>
             )
