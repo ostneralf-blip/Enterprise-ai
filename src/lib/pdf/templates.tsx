@@ -243,7 +243,29 @@ interface RoadmapPdfData {
 
 const PHASE_COLORS = ['#1d4ed8', '#0891b2', '#7c3aed']
 
+const ROADMAP_RECS: Record<string, string[]> = {
+  starter: [
+    'Fokus auf 1–2 Pilotprojekte mit messbarem ROI — Tiefe vor Breite, schnelle Lernzyklen priorisieren.',
+    'Daten-Fundament sicherstellen: Datenverfügbarkeit und -qualität als KI-Voraussetzung prüfen und ggf. aufbauen.',
+    'Quick-Win-Use-Cases für erste Phase wählen — frühe Erfolge schaffen internes Vertrauen und Budget-Argumente.',
+    'Executive-Sponsorship auf C-Level frühzeitig sichern — AI-Projekte ohne Management-Commitment scheitern in der Skalierungsphase.',
+  ],
+  scaler: [
+    'Erfolgreiche Piloten dokumentieren und als Playbook auf weitere Bereiche übertragen — systematisches Ausrollen statt Einzelprojekte.',
+    'AI-Center-of-Excellence etablieren: Zentrale Kompetenzplattform für Methoden, Tools und Best Practices aufbauen.',
+    'KPI-Tracking professionalisieren: Roadmap-KPIs quartalsweise messen und in Management-Reviews berichten.',
+    'MLOps-Reife steigern: Automatisiertes Retraining, Drift-Monitoring und A/B-Testing für produktive Modelle implementieren.',
+  ],
+  transformer: [
+    'AI als strategischen Wettbewerbsvorteil aktiv kommunizieren — intern als Kulturmerkmal, extern als Differenzierungsmerkmal.',
+    'Proprietäre Daten als strategischen Asset behandeln: Datenmonetarisierung und domänenspezifische Modelle vorantreiben.',
+    'Innovationsgeschwindigkeit aufrechterhalten: Dediziertes Experiments-Budget und Fail-Fast-Kultur etablieren.',
+    'AI-Ökosystem mitgestalten: Partnerschaften, Standards und Open-Source-Beiträge als strategische Hebel nutzen.',
+  ],
+}
+
 export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
+  const archetypeRecs = ROADMAP_RECS[data.archetype ?? ''] ?? ROADMAP_RECS.starter
   return (
     <Document title="AI-Roadmap">
       <Page size="A4" style={s.page}>
@@ -284,6 +306,51 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
             )}
           </View>
         ))}
+        <PdfFooter />
+      </Page>
+
+      {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>
+          {data.archetype ? `${ARCHETYPE_LABELS[data.archetype] ?? data.archetype} · ` : ''}AI-Roadmap · Enterprise AI Navigator
+        </Text>
+
+        {archetypeRecs.map((rec, i) => (
+          <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
+            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
+              <View style={{ backgroundColor: C.brand, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
+              </View>
+              <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
+            </View>
+          </View>
+        ))}
+
+        {data.phases.length > 0 && (
+          <>
+            <Text style={s.h2}>Erste Phase — Fokusthemen</Text>
+            <View style={[s.card, { borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[0] }]}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>{data.phases[0].title}</Text>
+              {data.phases[0].focus && <Text style={{ fontSize: 10, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{data.phases[0].focus}</Text>}
+              {(data.phases[0].actions ?? []).slice(0, 4).map((a, i) => (
+                <View key={i} style={[s.row, { gap: 4, marginBottom: 3 }]}>
+                  <Text style={{ fontSize: 9, color: C.brand }}>▸</Text>
+                  <Text style={{ flex: 1, fontSize: 10 }}>{a.label}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
+        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Quarterly AI Health Review</Text>
+          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
+            Empfehlung: Roadmap-KPIs und AI-Readiness-Score quartalsweise überprüfen. Phasen-Ziele anpassen wenn sich Marktbedingungen, Ressourcen oder Prioritäten ändern.
+          </Text>
+        </View>
+
         <PdfFooter />
       </Page>
     </Document>
@@ -343,17 +410,24 @@ export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
           <CanvasSection label="Nächste Schritte" value={data.data?.next_steps} />
         </View>
 
-        {data.data?.next_steps && (
-          <>
-            <Text style={s.h2}>Handlungsempfehlungen</Text>
-            {data.data.next_steps.split('\n').filter(Boolean).slice(0, 5).map((step, i) => (
-              <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
-                <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{step.replace(/^[-•▸]\s*/, '')}</Text>
-              </View>
-            ))}
-          </>
-        )}
+        <Text style={s.h2}>Handlungsempfehlungen</Text>
+        {([
+          data.data?.risks
+            ? 'Identifizierte Risiken in Risikoregister übernehmen und Mitigationsmaßnahmen mit Verantwortlichen versehen.'
+            : 'Risikobewertung ergänzen: Technische, rechtliche und betriebliche Risiken systematisch identifizieren vor Pilotstart.',
+          data.data?.kpis
+            ? 'KPIs als Messgrundlage nutzen: Vor Pilotstart Baseline erfassen und nach 30, 60, 90 Tagen auswerten.'
+            : 'KPIs definieren: Messbare Erfolgsindikatoren (Zeit, Kosten, Qualität, Nutzerzufriedenheit) festlegen.',
+          data.data?.stakeholders
+            ? 'Stakeholder-Kommunikationsplan erstellen: Regelmäßige Updates einplanen, Change-Management-Bedarf adressieren.'
+            : 'Stakeholder-Analyse vertiefen: Betroffene Nutzer, Entscheider und Systemabhängigkeiten vollständig erfassen.',
+          'AI-Governance-Check durchführen: Use Case vor Pilotstart auf EU AI Act-Konformität und DSGVO-Anforderungen prüfen.',
+        ] as string[]).map((rec, i) => (
+          <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
+            <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{rec}</Text>
+          </View>
+        ))}
         <PdfFooter />
       </Page>
     </Document>
@@ -409,6 +483,34 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
   const dsgvoChecks = byReg.get('dsgvo') ?? []
   const euDone = euChecks.filter(c => c.status === 'compliant').length
   const dsgvoDone = dsgvoChecks.filter(c => c.status === 'compliant').length
+
+  const nonCompliantEU   = euChecks.filter(c => c.status === 'non_compliant').length
+  const nonCompliantDSGVO = dsgvoChecks.filter(c => c.status === 'non_compliant').length
+  const pendingTotal     = data.checks.filter(c => c.status === 'pending').length
+  const complianceRecs: Array<{ title: string; text: string; color: string }> = []
+  if (nonCompliantEU > 0)
+    complianceRecs.push({ color: C.danger,
+      title: `${nonCompliantEU} EU AI Act-Verstoß${nonCompliantEU > 1 ? 'e' : ''} beheben`,
+      text: 'Identifizierte Nicht-Konformitäten haben höchste Priorität vor Pilotstart. Transparenzpflichten (Art. 13–15), Dokumentationsanforderungen und Risikoklassifizierung adressieren.' })
+  if (nonCompliantDSGVO > 0)
+    complianceRecs.push({ color: C.danger,
+      title: `${nonCompliantDSGVO} DSGVO-Lücke${nonCompliantDSGVO > 1 ? 'n' : ''} schließen`,
+      text: 'Datenschutzbeauftragten einbeziehen. Technische Maßnahmen prüfen: Pseudonymisierung, Datensparsamkeit, Privacy-by-Design. Rechtsgrundlagen für alle AI-Datenverarbeitungen dokumentieren.' })
+  if (pendingTotal > 0)
+    complianceRecs.push({ color: C.warn,
+      title: `${pendingTotal} ausstehende Prüfpunkte abschließen`,
+      text: 'Noch offene Compliance-Checks zeitnah bearbeiten — vollständiges Bild vor Pilotstart erforderlich. Verantwortliche benennen und verbindliche Termine setzen.' })
+  if (euDone === euChecks.length && euChecks.length > 0)
+    complianceRecs.push({ color: C.ok,
+      title: 'EU AI Act: Vollständige Konformität bestätigt',
+      text: 'Alle EU AI Act-Pflichten erfüllt. Status dokumentieren, Review-Zyklus (quartalsweise) einrichten. Compliance als Vertrauensmerkmal gegenüber Kunden und Aufsichtsbehörden kommunizieren.' })
+  if (dsgvoDone === dsgvoChecks.length && dsgvoChecks.length > 0)
+    complianceRecs.push({ color: C.ok,
+      title: 'DSGVO: Vollständige Konformität bestätigt',
+      text: 'DSGVO-Compliance vollständig nachgewiesen. Verarbeitungsverzeichnis aktuell halten und bei Änderungen (neue Datenquellen, neue Modelle) erneut prüfen.' })
+  complianceRecs.push({ color: C.dark2,
+    title: 'Compliance-Monitoring etablieren',
+    text: 'EU AI Act und DSGVO-Anforderungen entwickeln sich laufend. Quartalsweiser Compliance-Check als festen Termin einplanen. Änderungen im EU AI Act-Annex III (Hochrisiko-Liste) aktiv beobachten.' })
 
   const renderSection = (title: string, items: ComplianceCheck[]) => {
     if (items.length === 0) return null
@@ -469,6 +571,29 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
 
         {renderSection('EU AI Act — Pflichten-Checkliste', euChecks)}
         {renderSection('DSGVO-Checkliste', dsgvoChecks)}
+
+        <PdfFooter />
+      </Page>
+
+      {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>Compliance Status Report · Enterprise AI Navigator</Text>
+
+        {complianceRecs.map((rec, i) => (
+          <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: rec.color }]}>
+            <Text style={{ fontSize: 11, fontWeight: 'bold', color: rec.color, marginBottom: 4 }}>{i + 1}. {rec.title}</Text>
+            <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{rec.text}</Text>
+          </View>
+        ))}
+
+        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Nächster Schritt</Text>
+          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
+            Governance-Check im AI Navigator für jeden High-Score-Use-Case durchführen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen (Art. 6, Annex III).
+          </Text>
+        </View>
 
         <PdfFooter />
       </Page>
@@ -1184,6 +1309,58 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
             </View>
           )
         })}
+        <PdfFooter />
+      </Page>
+
+      {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>Use-Case Portfolio · Enterprise AI Navigator</Text>
+
+        {(() => {
+          const quickWins = data.useCases.filter(u => u.quadrant === 'quick_win')
+          const strategic = data.useCases.filter(u => u.quadrant === 'strategic_bet')
+          const avoid     = data.useCases.filter(u => u.quadrant === 'avoid')
+          const topUc     = sorted[0]
+          const recs: Array<{ title: string; text: string; color: string }> = []
+
+          if (quickWins.length > 0)
+            recs.push({ color: C.ok,
+              title: `${quickWins.length} Quick Win${quickWins.length > 1 ? 's' : ''} sofort starten`,
+              text: `${quickWins.map(u => u.name).join(', ')} — Hoher Wert bei geringem Umsetzungsaufwand. In die Umsetzungsplanung aufnehmen und innerhalb von 60 Tagen pilotieren.` })
+
+          if (topUc && topUc.quadrant !== 'quick_win')
+            recs.push({ color: C.brand,
+              title: `Top-Use-Case "${topUc.name}" priorisieren`,
+              text: `Höchster Score im Portfolio (${topUc.weighted_score?.toFixed(2) ?? '–'}). Governance-Check durchführen, Canvas detaillieren und Pilotplanung starten.` })
+
+          if (strategic.length > 0)
+            recs.push({ color: '#1e3a8a',
+              title: `${strategic.length} strategische${strategic.length > 1 ? ' Use Cases' : 'n Use Case'} budgetieren`,
+              text: `${strategic.map(u => u.name).join(', ')} — Langfristiger strategischer Wert. In Jahresbudget und Roadmap verankern, dediziertes Team einplanen.` })
+
+          recs.push({ color: C.warn,
+            title: 'Scoring quartalsweise aktualisieren',
+            text: 'Use-Case-Bewertungen regelmäßig überprüfen — Marktbedingungen, Datenlage und Ressourcenverfügbarkeit ändern sich. Gewichtungen bei Bedarf anpassen.' })
+
+          if (avoid.length > 0)
+            recs.push({ color: C.danger,
+              title: `${avoid.length} Use Case${avoid.length > 1 ? 's' : ''} deprioritisieren`,
+              text: `${avoid.map(u => u.name).join(', ')} — Derzeit nicht empfohlen. Ressourcen auf Quick Wins und strategische Use Cases fokussieren.` })
+
+          recs.push({ color: C.dark2,
+            title: 'Governance-Check für Top-Use-Cases durchführen',
+            text: 'Vor Pilotstart jeden High-Score-Use-Case durch den AI-Governance-Check führen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen.' })
+
+          return recs.map((rec, i) => (
+            <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: rec.color }]}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: rec.color, marginBottom: 4 }}>{i + 1}. {rec.title}</Text>
+              <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{rec.text}</Text>
+            </View>
+          ))
+        })()}
+
         <PdfFooter />
       </Page>
     </Document>
