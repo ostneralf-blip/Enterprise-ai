@@ -42,8 +42,7 @@ export default async function ErgebnissePage() {
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Gespeicherte Ergebnisse</h1>
         <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-3">
-          <strong>★ Primär</strong> — Das als primär markierte Ergebnis wird im Architektur-Generator als Kontext verwendet.
-          So lassen sich mit verschiedenen Assessments oder Governance-Prüfungen unterschiedliche Architekturen entwickeln.
+          <strong>★ Primär</strong> — Markiert den Eintrag, der in anderen Modulen als Basis verwendet wird (Architektur-Generator, Dashboard, PDF-Export, Sharing). Pro Kategorie kann jeweils ein Eintrag als primär gesetzt werden.
         </p>
       </div>
       <ErgebnissePageClient

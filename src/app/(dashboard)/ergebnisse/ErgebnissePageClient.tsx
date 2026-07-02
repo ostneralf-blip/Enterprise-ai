@@ -128,14 +128,6 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
   return (
     <div>
-      {/* Primär-Hinweis */}
-      <div className="mb-4 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-start gap-2">
-        <span className="text-amber-600 shrink-0 mt-px">★</span>
-        <p className="text-xs text-slate-600">
-          <span className="font-semibold text-slate-700">Primär</span> markiert den Eintrag, der in anderen Modulen als Basis verwendet wird – z. B. für das Dashboard, PDF-Exporte und Sharing-Links. Pro Kategorie kann jeweils ein Eintrag als primär gesetzt werden.
-        </p>
-      </div>
-
       <div className="flex items-center gap-1 mb-3 border-b border-slate-200 overflow-x-auto">
         {TABS.map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null); exitCompare() }}
