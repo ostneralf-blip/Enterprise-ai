@@ -87,6 +87,11 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
                 <td className="px-4 py-3">
                   <div className="font-medium text-slate-900 min-w-0 max-w-[200px] truncate">{uc.name}</div>
                   {uc.description && <div className="text-xs text-slate-400 truncate max-w-[200px]">{uc.description}</div>}
+                  {uc.canvas_id && (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mt-1">
+                      □ Canvas verknüpft
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-slate-500 hidden sm:table-cell whitespace-nowrap">
                   {uc.domain ?? '—'}
@@ -108,6 +113,13 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
                       title="Im Architektur-Generator öffnen"
                     >
                       ◈ Architektur
+                    </a>
+                    <a
+                      href={`/governance?from=usecase&id=${uc.id}`}
+                      className="text-xs text-orange-600 hover:text-orange-800 font-medium whitespace-nowrap"
+                      title="Im Governance-Check öffnen"
+                    >
+                      ⬣ Governance
                     </a>
                     <button onClick={() => onEdit(uc)} aria-label="Bearbeiten"
                       className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50">✏️</button>

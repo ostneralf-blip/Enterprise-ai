@@ -24,7 +24,7 @@ export default async function ErgebnissePage() {
       .eq('user_id', user!.id)
       .order('updated_at', { ascending: false }).limit(50),
     supabase.from('governance_sessions')
-      .select('id, use_case_name, result, created_at')
+      .select('id, use_case_name, result, protocol, created_at')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false }).limit(50),
     supabase.from('roadmaps')
