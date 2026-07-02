@@ -41,3 +41,6 @@ coverage/
 
 # Lokaler Chrome für Puppeteer-PDF-Export
 /chrome
+
+# Git worktrees
+.worktrees/
