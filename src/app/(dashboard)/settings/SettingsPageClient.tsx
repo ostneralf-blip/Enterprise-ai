@@ -17,6 +17,7 @@ interface Props {
     street: string | null
     zip: string | null
     city: string | null
+    guided_path_reset_at: string | null
   }
   email: string
 }
@@ -61,6 +62,10 @@ export function SettingsPageClient({ profile, email }: Props) {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
+  const [wizardResetting, setWizardResetting] = useState(false)
+  const [wizardResetAt, setWizardResetAt] = useState<string | null>(profile.guided_path_reset_at)
+  const [wizardResetError, setWizardResetError] = useState<string | null>(null)
+
   const pwRules = {
     length: newPassword.length >= 8,
     uppercase: /[A-Z]/.test(newPassword),
@@ -84,6 +89,20 @@ export function SettingsPageClient({ profile, email }: Props) {
   }
 
   const hasBilling = profile.tier !== 'free' && !!profile.stripe_customer_id
+
+  const handleWizardReset = async () => {
+    if (!confirm('Geführten Pfad zurücksetzen? Deine bestehenden Ergebnisse bleiben erhalten.')) return
+    setWizardResetting(true)
+    setWizardResetError(null)
+    const res = await fetch('/api/account/wizard-reset', { method: 'POST' })
+    setWizardResetting(false)
+    if (!res.ok) {
+      const json = await res.json()
+      setWizardResetError(json.error ?? 'Fehler beim Zurücksetzen.')
+      return
+    }
+    setWizardResetAt(new Date().toISOString())
+  }
 
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== 'LÖSCHEN') return
@@ -375,6 +394,69 @@ export function SettingsPageClient({ profile, email }: Props) {
           )}
         </section>
       )}
+      {/* Assistent */}
+      <section aria-labelledby="wizard-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+        <h2 id="wizard-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-1">Assistent</h2>
+        <p className="text-sm text-slate-500 mb-5">Einstellungen für den geführten 7-Schritte-Pfad.</p>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-slate-800">Geführten Pfad zurücksetzen</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Der Dashboard-Pfad zeigt alle Schritte als nicht abgeschlossen an — deine gespeicherten Ergebnisse bleiben vollständig erhalten.
+              </p>
+              {wizardResetAt && (
+                <p className="text-xs text-emerald-600 mt-1">
+                  ✓ Zurückgesetzt am {new Date(wizardResetAt).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}
+                </p>
+              )}
+              {wizardResetError && (
+                <p role="alert" className="text-xs text-red-600 mt-1">{wizardResetError}</p>
+              )}
+            </div>
+            <button
+              onClick={handleWizardReset}
+              disabled={wizardResetting}
+              className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              {wizardResetting ? 'Wird zurückgesetzt…' : 'Pfad zurücksetzen'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Darstellung — Demnächst */}
+      <section aria-labelledby="display-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-slate-900">Darstellung</h2>
+          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+        </div>
+        <p className="text-sm text-slate-400 mb-4">UI-Theme, Schriftgröße und Farbschema anpassen.</p>
+        <div className="flex gap-2">
+          {['Hell', 'Dunkel', 'System'].map(opt => (
+            <div key={opt} className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-400 cursor-not-allowed">{opt}</div>
+          ))}
+        </div>
+      </section>
+
+      {/* Architektur-Diagramm — Demnächst */}
+      <section aria-labelledby="diagram-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-slate-900">Architektur-Diagramm</h2>
+          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+        </div>
+        <p className="text-sm text-slate-400">Diagramm-Stil, Layout und Farbkodierung für den Architektur-Generator.</p>
+      </section>
+
+      {/* Geteilte Links — Demnächst */}
+      <section aria-labelledby="shared-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-slate-900">Geteilte Links</h2>
+          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+        </div>
+        <p className="text-sm text-slate-400">Übersicht aller aktiven Share-Links mit Ablaufdaten und Zugriffszahlen.</p>
+      </section>
+
       {/* Gefahrenzone */}
       <section aria-labelledby="danger-heading" className="bg-white border border-red-200 rounded-2xl p-4 sm:p-6">
         <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-red-600 mb-2">Konto löschen</h2>

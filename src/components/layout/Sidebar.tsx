@@ -19,13 +19,13 @@ export function Sidebar({ profile }: SidebarProps) {
     <>
       {/* Logo */}
       <div className="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link href="/dashboard" onClick={close} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-sm font-bold">N</div>
           <div>
             <div className="font-semibold text-sm tracking-wide">AI Navigator</div>
             <div className="text-xs text-slate-400">enterprise-ai.biz</div>
           </div>
-        </div>
+        </Link>
         <button onClick={close} aria-label="Menü schließen"
           className="lg:hidden text-slate-400 hover:text-white p-1 -mr-1">
           ✕

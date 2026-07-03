@@ -116,8 +116,24 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Fetch profile first to get guided_path_reset_at (used in count filter below)
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('full_name, company, tier, guided_path_reset_at')
+    .eq('id', user!.id)
+    .single() as { data: { full_name: string | null; company: string | null; tier: string; guided_path_reset_at: string | null } | null }
+
+  const resetAt = profileData?.guided_path_reset_at ?? null
+
+  const uid = user!.id
+  const cnt = (table: string, extra?: Record<string, string | boolean>) => {
+    let q = supabase.from(table).select('*', { count: 'exact', head: true })
+    if (extra) for (const [k, v] of Object.entries(extra)) q = (q as typeof q).eq(k, v)
+    if (resetAt) q = (q as typeof q).gt('created_at', resetAt)
+    return q
+  }
+
   const [
-    profileResult,
     { data: latestAssessment },
     { count: architectureCount },
     { count: governanceCount },
@@ -127,17 +143,15 @@ export default async function DashboardPage() {
     { count: canvasCount },
     { count: complianceCount },
   ] = await Promise.all([
-    supabase.from('profiles').select('full_name, company, tier').eq('id', user!.id).single(),
-    supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', user!.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('architectures').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
-    supabase.from('governance_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
-    supabase.from('roadmaps').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
-    supabase.from('assessment_sessions').select('*', { count: 'exact', head: true }).eq('user_id', user!.id).eq('completed', true),
-    supabase.from('use_cases').select('*', { count: 'exact', head: true }),
-    supabase.from('canvases').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
-    supabase.from('compliance_checks').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
+    supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', uid).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    cnt('architectures',       { user_id: uid }),
+    cnt('governance_sessions', { user_id: uid }),
+    cnt('roadmaps',            { user_id: uid }),
+    cnt('assessment_sessions', { user_id: uid, completed: true }),
+    cnt('use_cases'),
+    cnt('canvases',            { user_id: uid }),
+    cnt('compliance_checks',   { user_id: uid }),
   ])
-  const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
 
   const tier = (profileData?.tier ?? 'free') as Tier
   const fullName = profileData?.full_name as string | null

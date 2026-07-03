@@ -15,6 +15,7 @@ const FREE_PROFILE = {
   street: null,
   zip: null,
   city: null,
+  guided_path_reset_at: null,
 }
 
 const PRO_PROFILE = {

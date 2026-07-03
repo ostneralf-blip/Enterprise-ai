@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CHANGELOG } from '@/config/changelog'
 
 const CATEGORIES = [
   { value: 'bug',     label: 'Fehler melden' },
@@ -12,6 +13,8 @@ const CATEGORIES = [
 export default function FeedbackPage() {
   const router = useRouter()
   const [category, setCategory] = useState('frage')
+  const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null)
   const [message,  setMessage]  = useState('')
   const [sending,  setSending]  = useState(false)
   const [sent,     setSent]     = useState(false)
@@ -38,7 +41,8 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-xl space-y-10">
+      <div>
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Feedback & Support</h1>
         <p className="text-sm text-slate-500 mt-1">Fehler melden, Feature-Wünsche einreichen oder eine Frage stellen.</p>
@@ -133,6 +137,70 @@ export default function FeedbackPage() {
           </div>
         </form>
       )}
+    </div>
+
+      {/* ── Versions-Changelog ── */}
+      <div>
+        <div className="mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-900">Versions-Übersicht</h2>
+          <p className="text-sm text-slate-500 mt-1">Alle Features mit Hintergrund aus dem Enterprise AI Leitfaden.</p>
+        </div>
+        <div className="space-y-2">
+          {CHANGELOG.map(entry => {
+            const isOpen = expandedVersion === entry.version
+            return (
+              <div key={entry.version} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setExpandedVersion(isOpen ? null : entry.version)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 shrink-0">
+                      v{entry.version}
+                    </span>
+                    <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{entry.label}</span>
+                    <span className="text-xs text-slate-400 hidden sm:block shrink-0">{entry.date}</span>
+                  </div>
+                  <span className="text-slate-400 shrink-0 ml-2" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+                    {entry.features.map(feature => {
+                      const featureKey = `${entry.version}:${feature.title}`
+                      const featureOpen = expandedFeature === featureKey
+                      return (
+                        <div key={feature.title} className="rounded-lg border border-slate-100 overflow-hidden">
+                          <button
+                            onClick={() => setExpandedFeature(featureOpen ? null : featureKey)}
+                            aria-expanded={featureOpen}
+                            className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                          >
+                            <span className="text-sm font-medium text-slate-700">{feature.title}</span>
+                            <span className="text-xs text-slate-400 shrink-0 ml-2" aria-hidden="true">
+                              {featureOpen ? '−' : '+'}
+                            </span>
+                          </button>
+                          {featureOpen && (
+                            <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
+                              <p className="text-sm text-slate-600">{feature.description}</p>
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+                                <p className="text-xs font-semibold text-amber-800 mb-1">📖 Aus dem Enterprise AI Leitfaden</p>
+                                <p className="text-xs text-amber-900 leading-relaxed">{feature.bookContext}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
