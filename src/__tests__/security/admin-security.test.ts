@@ -88,4 +88,81 @@ describe('Security: Admin Panel', () => {
       fetches.forEach(f => expect(f).toContain('/api/'))
     })
   })
+
+  describe('API route: PATCH /api/admin/catalog/components/[id]', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/app/api/admin/catalog/components/[id]/route.ts'),
+      'utf-8'
+    )
+
+    it('calls requireAdmin() before processing', () => {
+      expect(source).toContain('requireAdmin()')
+    })
+
+    it('returns 403 when not admin', () => {
+      expect(source).toContain('{ status: 403 }')
+    })
+
+    it('uses Zod to validate the tags array', () => {
+      expect(source).toContain("from 'zod'")
+      expect(source).toContain('safeParse(')
+      expect(source).toContain('tags')
+    })
+
+    it('limits tag count to prevent oversized payloads', () => {
+      expect(source).toContain('.max(30)')
+    })
+
+    it('limits individual tag length', () => {
+      expect(source).toContain('.max(50)')
+    })
+  })
+
+  describe('API route: GET /api/admin/catalog/log', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/app/api/admin/catalog/log/route.ts'),
+      'utf-8'
+    )
+
+    it('calls requireAdmin() before processing', () => {
+      expect(source).toContain('requireAdmin()')
+    })
+
+    it('returns 403 when not admin', () => {
+      expect(source).toContain('{ status: 403 }')
+    })
+
+    it('reads from catalog_upload_log table', () => {
+      expect(source).toContain('catalog_upload_log')
+    })
+  })
+
+  describe('Upload log integration: upload and seed routes', () => {
+    const uploadSource = readFileSync(
+      join(process.cwd(), 'src/app/api/admin/catalog/upload/route.ts'),
+      'utf-8'
+    )
+    const seedSource = readFileSync(
+      join(process.cwd(), 'src/app/api/admin/catalog/seed/route.ts'),
+      'utf-8'
+    )
+
+    it('upload route inserts into catalog_upload_log after successful upsert', () => {
+      expect(uploadSource).toContain('catalog_upload_log')
+      expect(uploadSource).toContain('.insert(')
+    })
+
+    it('seed route inserts into catalog_upload_log after successful upsert', () => {
+      expect(seedSource).toContain('catalog_upload_log')
+      expect(seedSource).toContain('.insert(')
+    })
+
+    it('upload route still requires admin (requireAdmin check present)', () => {
+      expect(uploadSource).toContain('requireAdmin()')
+    })
+
+    it('seed route still requires admin (requireAdmin check present)', () => {
+      expect(seedSource).toContain('requireAdmin()')
+    })
+  })
 })

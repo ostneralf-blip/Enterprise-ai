@@ -76,6 +76,18 @@ export interface CatalogRole {
   created_at: string
 }
 
+export interface CatalogUploadLog {
+  id: string
+  user_id: string | null
+  filename: string
+  format: string
+  row_count: number
+  vendor_override: string | null
+  layer_override: string | null
+  source: 'upload' | 'seed'
+  uploaded_at: string
+}
+
 export interface CatalogSource {
   id: string
   name: string

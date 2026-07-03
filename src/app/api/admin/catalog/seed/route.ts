@@ -48,6 +48,17 @@ export async function POST() {
     return NextResponse.json({ error: `roles: ${roleResult.error.message}` }, { status: 500 })
   }
 
+  const { data: { user } } = await supabase.auth.getUser()
+  await supabase.from('catalog_upload_log').insert({
+    user_id: user?.id ?? null,
+    filename: 'catalog-seed.ts',
+    format: 'Seed-Daten',
+    row_count: compResult.data?.length ?? 0,
+    vendor_override: null,
+    layer_override: null,
+    source: 'seed',
+  })
+
   return NextResponse.json({
     data: {
       components_upserted: compResult.data?.length ?? 0,
