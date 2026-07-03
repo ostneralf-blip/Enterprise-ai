@@ -62,9 +62,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [catalogCloud, setCatalogCloud] = useState('all')
   const [seeding, setSeeding] = useState(false)
   const [seedResult, setSeedResult] = useState<string | null>(null)
+  const [seedBackup, setSeedBackup] = useState<CatalogComponent[] | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<string | null>(null)
+  const [uploadBackup, setUploadBackup] = useState<CatalogComponent[] | null>(null)
   const [uploadPreview, setUploadPreview] = useState<{
     format: string; formatLabel: string; detected_vendor: string; detected_layer: string;
     layer_confidence: 'high' | 'medium' | 'low'; row_count: number; sample_names: string[]; ambiguous: boolean;
@@ -240,17 +242,33 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     }
   }
 
+  // ── Catalog helpers ─────────────────────────────────────────────────────────
+  function downloadBackupJson(data: CatalogComponent[], prefix: string) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${prefix}-backup-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   // ── Catalog handlers ────────────────────────────────────────────────────────
   async function handleSeed() {
     if (!confirm('Alle Seed-Daten (Komponenten + Rollen) in die DB schreiben? Bestehende Einträge werden aktualisiert.')) return
     setSeeding(true)
     setSeedResult(null)
+    setSeedBackup(null)
     try {
       const res = await fetch('/api/admin/catalog/seed', { method: 'POST' })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Fehler beim Seeden')
-      setSeedResult(`✓ ${json.data.components_upserted} Komponenten, ${json.data.roles_upserted} Rollen eingetragen.`)
-      // Refresh component list
+      const d = json.data
+      if (d.backup_data?.length) setSeedBackup(d.backup_data)
+      const backupHint = d.backup_count > 0 ? ` · ${d.backup_count} Einträge gesichert` : ''
+      setSeedResult(`✓ ${d.components_upserted} Komponenten, ${d.roles_upserted} Rollen eingetragen.${backupHint}`)
       const listRes = await fetch('/api/catalog/components')
       if (listRes.ok) {
         const { data } = await listRes.json()
@@ -362,6 +380,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     if (!uploadFile) return
     setUploading(true)
     setUploadResult(null)
+    setUploadBackup(null)
     try {
       const fd = new FormData()
       fd.append('file', uploadFile)
@@ -370,8 +389,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       const res = await fetch('/api/admin/catalog/upload', { method: 'POST', body: fd })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Upload fehlgeschlagen')
-      const { upserted, skipped_errors, format } = json.data
-      setUploadResult(`✓ ${upserted} Komponenten importiert (${format})${skipped_errors > 0 ? `, ${skipped_errors} Zeilen übersprungen` : ''}`)
+      const { upserted, skipped_errors, duplicate_rows, format, backup_data, backup_count } = json.data
+      if (backup_data?.length) setUploadBackup(backup_data)
+      const dupHint = duplicate_rows > 0 ? `, ${duplicate_rows} Duplikate bereinigt` : ''
+      const backupHint = backup_count > 0 ? ` · ${backup_count} Einträge gesichert` : ''
+      setUploadResult(`✓ ${upserted} Komponenten importiert (${format})${skipped_errors > 0 ? `, ${skipped_errors} Zeilen übersprungen` : ''}${dupHint}${backupHint}`)
       setUploadFile(null)
       setUploadPreview(null)
       setUploadVendor('')
@@ -848,12 +870,20 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               {filteredCatalog.length} von {components.length} Komponenten
               {components.length === 0 && componentCount > 0 && ` (${componentCount} in DB — Seite neu laden)`}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               {seedResult && (
                 <span className={cn(
                   'text-xs font-medium',
                   seedResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'
                 )}>{seedResult}</span>
+              )}
+              {seedBackup && seedBackup.length > 0 && (
+                <button
+                  onClick={() => downloadBackupJson(seedBackup, 'katalog-seed')}
+                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                >
+                  ↓ Backup ({seedBackup.length})
+                </button>
               )}
               <button
                 onClick={handleSeed}
@@ -950,6 +980,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 <span className={cn('text-xs font-medium', uploadResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700')}>
                   {uploadResult}
                 </span>
+              )}
+              {uploadBackup && uploadBackup.length > 0 && (
+                <button
+                  onClick={() => downloadBackupJson(uploadBackup, 'katalog-upload')}
+                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                >
+                  ↓ Backup ({uploadBackup.length})
+                </button>
               )}
               <button
                 onClick={handleUpload}

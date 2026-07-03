@@ -12,18 +12,30 @@ export async function POST() {
 
   const supabase = await createClient()
 
+  // Fetch current catalog as backup before overwriting
+  const { data: backupData } = await supabase.from('component_catalog').select('*')
+
+  // Deduplicate seed data by name+vendor (safety guard against duplicate seed entries)
+  const compMap = new Map<string, typeof SEED_COMPONENTS[0]>()
+  for (const c of SEED_COMPONENTS) compMap.set(`${c.name}||${c.vendor ?? ''}`, c)
+  const dedupedComponents = Array.from(compMap.values())
+
+  const roleMap = new Map<string, typeof SEED_ROLES[0]>()
+  for (const r of SEED_ROLES) roleMap.set(r.role_name, r)
+  const dedupedRoles = Array.from(roleMap.values())
+
   const [compResult, roleResult] = await Promise.all([
     supabase
       .from('component_catalog')
       .upsert(
-        SEED_COMPONENTS.map(c => ({ ...c, source: 'manual', is_active: true })),
+        dedupedComponents.map(c => ({ ...c, source: 'manual', is_active: true })),
         { onConflict: 'name,vendor', ignoreDuplicates: false }
       )
       .select('id'),
     supabase
       .from('roles_catalog')
       .upsert(
-        SEED_ROLES.map(r => ({ ...r, is_active: true })),
+        dedupedRoles.map(r => ({ ...r, is_active: true })),
         { onConflict: 'role_name', ignoreDuplicates: false }
       )
       .select('id'),
@@ -40,6 +52,8 @@ export async function POST() {
     data: {
       components_upserted: compResult.data?.length ?? 0,
       roles_upserted: roleResult.data?.length ?? 0,
+      backup_count: backupData?.length ?? 0,
+      backup_data: backupData ?? [],
     }
   })
 }

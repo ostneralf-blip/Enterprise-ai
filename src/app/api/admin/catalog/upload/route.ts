@@ -286,11 +286,25 @@ export async function POST(request: Request) {
     )
   }
 
+  // Deduplicate by name+vendor — last occurrence wins; prevents PG "cannot affect row a second time"
+  const dedupMap = new Map<string, typeof valid[0]>()
+  for (const row of valid) {
+    dedupMap.set(`${row.name}||${row.vendor ?? ''}`, row)
+  }
+  const deduped = Array.from(dedupMap.values())
+
   const supabase = await createClient()
+
+  // Fetch existing rows that will be overwritten (backup before upsert)
+  const { data: backupData } = await supabase
+    .from('component_catalog')
+    .select('*')
+    .in('name', deduped.map(r => r.name))
+
   const { data, error } = await supabase
     .from('component_catalog')
     .upsert(
-      valid.map(r => ({ ...r, source: 'manual', is_active: true })),
+      deduped.map(r => ({ ...r, source: 'manual', is_active: true })),
       { onConflict: 'name,vendor', ignoreDuplicates: false }
     )
     .select('id')
@@ -299,10 +313,13 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     data: {
-      upserted: data?.length ?? valid.length,
+      upserted: data?.length ?? deduped.length,
       skipped_errors: errors.length,
+      duplicate_rows: valid.length - deduped.length,
       errors: errors.slice(0, 10),
       format: detection.formatLabel,
+      backup_count: backupData?.length ?? 0,
+      backup_data: backupData ?? [],
     }
   })
 }
