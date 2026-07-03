@@ -311,6 +311,17 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  const { data: { user } } = await supabase.auth.getUser()
+  await supabase.from('catalog_upload_log').insert({
+    user_id: user?.id ?? null,
+    filename: (file as File).name,
+    format: detection.formatLabel,
+    row_count: deduped.length,
+    vendor_override: vendorOverride || null,
+    layer_override: layerOverride || null,
+    source: 'upload',
+  })
+
   return NextResponse.json({
     data: {
       upserted: data?.length ?? deduped.length,

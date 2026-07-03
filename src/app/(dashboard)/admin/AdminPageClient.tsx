@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog } from '@/types'
 import { cn } from '@/lib/utils'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
@@ -9,6 +9,14 @@ const TIERS: Tier[] = ['free', 'pro', 'enterprise']
 const KNOWN_FLAGS = ['early_access', 'pdf_export', 'sharing', 'api_access']
 const ARCH_LAYERS = ['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']
 const CLOUD_PROVIDERS = ['aws', 'azure', 'gcp', 'sap', 'independent']
+const PREDEFINED_TAGS = [
+  'llm', 'nlp', 'generative-ai', 'predictive', 'vision', 'rag', 'vector-db',
+  'fine-tuning', 'automation', 'classification', 'open-source', 'on-prem',
+  'serverless', 'kubernetes', 'docker', 'api', 'gdpr-ready', 'iso27001',
+  'soc2', 'eu-ai-act', 'beta', 'ga', 'enterprise-only', 'no-code', 'low-code',
+  'sap', 'azure', 'aws', 'gcp', 'btp', 'hana', 'embedding', 'multimodal',
+]
+
 const KNOWN_VENDORS = [
   'SAP', 'Microsoft', 'Google', 'Amazon Web Services', 'Anthropic', 'OpenAI',
   'Meta', 'Mistral AI', 'Cohere', 'Hugging Face', 'Databricks', 'Snowflake',
@@ -22,6 +30,7 @@ interface Props {
   initialComponents?: CatalogComponent[]
   componentCount?: number
   initialSources?: CatalogSource[]
+  initialUploadLog?: CatalogUploadLog[]
 }
 
 type Tab = 'content' | 'users' | 'catalog'
@@ -37,7 +46,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [] }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [] }: Props) {
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -87,6 +96,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [newSourceForm, setNewSourceForm] = useState({ name: '', type: 'huggingface', url: '', config: {} as Record<string, string> })
   const [addingSource, setAddingSource] = useState(false)
   const [addSourceError, setAddSourceError] = useState<string | null>(null)
+
+  // ── Upload log + tag editing state ─────────────────────────────────────────
+  const [uploadLog, setUploadLog] = useState<CatalogUploadLog[]>(initialUploadLog)
+  const [tagEditingId, setTagEditingId] = useState<string | null>(null)
+  const [tagSavingId, setTagSavingId] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -191,6 +205,36 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     patchUser(user.id, { feature_flags: { ...current, [flag]: !current[flag] } })
   }
 
+  // ── Tag editing handlers ────────────────────────────────────────────────────
+  async function patchComponentTags(id: string, tags: string[]) {
+    setTagSavingId(id)
+    setComponents(prev => prev.map(c => c.id === id ? { ...c, tags } : c))
+    try {
+      const res = await fetch(`/api/admin/catalog/components/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tags }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json() as { error?: string }
+        throw new Error(error ?? 'Fehler beim Speichern')
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setTagSavingId(null)
+    }
+  }
+
+  function removeTag(id: string, currentTags: string[], tag: string) {
+    patchComponentTags(id, currentTags.filter(t => t !== tag))
+  }
+
+  function addTag(id: string, currentTags: string[], tag: string) {
+    if (currentTags.includes(tag)) return
+    patchComponentTags(id, [...currentTags, tag])
+  }
+
   // ── Source add/delete handlers ──────────────────────────────────────────────
   function openAddSource() {
     const schema = SOURCE_TYPE_SCHEMAS['huggingface']
@@ -269,11 +313,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       if (d.backup_data?.length) setSeedBackup(d.backup_data)
       const backupHint = d.backup_count > 0 ? ` · ${d.backup_count} Einträge gesichert` : ''
       setSeedResult(`✓ ${d.components_upserted} Komponenten, ${d.roles_upserted} Rollen eingetragen.${backupHint}`)
-      const listRes = await fetch('/api/catalog/components')
-      if (listRes.ok) {
-        const { data } = await listRes.json()
-        setComponents(data ?? [])
-      }
+      const [listRes, logRes] = await Promise.all([
+        fetch('/api/catalog/components'),
+        fetch('/api/admin/catalog/log'),
+      ])
+      if (listRes.ok) { const { data } = await listRes.json(); setComponents(data ?? []) }
+      if (logRes.ok) { const { data } = await logRes.json(); setUploadLog(data ?? []) }
     } catch (e) {
       setSeedResult(`✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`)
     } finally {
@@ -398,8 +443,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       setUploadPreview(null)
       setUploadVendor('')
       setUploadLayer('')
-      const listRes = await fetch('/api/catalog/components')
+      const [listRes, logRes] = await Promise.all([
+        fetch('/api/catalog/components'),
+        fetch('/api/admin/catalog/log'),
+      ])
       if (listRes.ok) { const { data } = await listRes.json(); setComponents(data ?? []) }
+      if (logRes.ok) { const { data } = await logRes.json(); setUploadLog(data ?? []) }
     } catch (e) {
       setUploadResult(`✗ ${e instanceof Error ? e.message : 'Unbekannter Fehler'}`)
     } finally {
@@ -1047,12 +1096,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Cloud</th>
                       <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">DSGVO</th>
                       <th className="text-center px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">SAP</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden xl:table-cell">Tags</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Tags</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredCatalog.map(c => (
-                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={c.id} className="hover:bg-slate-50 transition-colors align-top">
                         <td className="px-4 py-3 min-w-0">
                           <div className="font-medium text-slate-900 truncate max-w-[180px]">{c.name}</div>
                           {c.description && (
@@ -1077,15 +1126,41 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <td className="px-4 py-3 text-center hidden lg:table-cell">
                           {c.sap_compatible ? '✓' : '—'}
                         </td>
-                        <td className="px-4 py-3 hidden xl:table-cell">
-                          <div className="flex gap-1 flex-wrap max-w-[200px]">
-                            {c.tags.slice(0, 3).map(tag => (
-                              <span key={tag} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">{tag}</span>
+                        {/* Tags — inline editable */}
+                        <td className="px-4 py-3 max-w-[260px]">
+                          <div className="flex gap-1 flex-wrap">
+                            {c.tags.map(tag => (
+                              <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                                {tag}
+                                <button
+                                  onClick={() => removeTag(c.id, c.tags, tag)}
+                                  disabled={tagSavingId === c.id}
+                                  aria-label={`Tag "${tag}" entfernen`}
+                                  className="text-slate-400 hover:text-red-500 leading-none disabled:opacity-40 ml-0.5"
+                                >×</button>
+                              </span>
                             ))}
-                            {c.tags.length > 3 && (
-                              <span className="text-xs text-slate-400">+{c.tags.length - 3}</span>
+                            <button
+                              onClick={() => setTagEditingId(tagEditingId === c.id ? null : c.id)}
+                              aria-label="Tag hinzufügen"
+                              aria-expanded={tagEditingId === c.id}
+                              className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded border border-blue-200 leading-none"
+                            >+</button>
+                            {tagSavingId === c.id && (
+                              <span className="text-[10px] text-slate-400 self-center">…</span>
                             )}
                           </div>
+                          {tagEditingId === c.id && (
+                            <div className="mt-1.5 flex gap-1 flex-wrap max-w-[240px]">
+                              {PREDEFINED_TAGS.filter(t => !c.tags.includes(t)).map(t => (
+                                <button
+                                  key={t}
+                                  onClick={() => { addTag(c.id, c.tags, t); setTagEditingId(null) }}
+                                  className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded border border-blue-200 hover:bg-blue-100 transition-colors"
+                                >+{t}</button>
+                              ))}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -1094,6 +1169,54 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               </div>
             </div>
           )}
+
+          {/* Upload-Verlauf */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-800">Upload-Verlauf</h3>
+              <span className="text-xs text-slate-400">{uploadLog.length} Einträge</span>
+            </div>
+            {uploadLog.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs" aria-label="Upload-Verlauf">
+                  <thead className="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500">Datei / Quelle</th>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden sm:table-cell">Format</th>
+                      <th className="text-right px-4 py-2 font-medium text-slate-500 hidden sm:table-cell">Einträge</th>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Vendor-Override</th>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Layer-Override</th>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500">Datum</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {uploadLog.map(log => (
+                      <tr key={log.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-2 font-medium text-slate-700 max-w-[180px] truncate">
+                          <span className={cn(
+                            'mr-1.5 px-1 py-0.5 rounded text-[10px] font-semibold',
+                            log.source === 'seed' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                          )}>
+                            {log.source === 'seed' ? 'SEED' : 'CSV/JSON'}
+                          </span>
+                          {log.filename}
+                        </td>
+                        <td className="px-4 py-2 text-slate-500 hidden sm:table-cell">{log.format}</td>
+                        <td className="px-4 py-2 text-slate-700 text-right hidden sm:table-cell">{log.row_count}</td>
+                        <td className="px-4 py-2 text-slate-400 hidden md:table-cell">{log.vendor_override ?? '—'}</td>
+                        <td className="px-4 py-2 text-slate-400 hidden md:table-cell">{log.layer_override ?? '—'}</td>
+                        <td className="px-4 py-2 text-slate-400 whitespace-nowrap">
+                          {new Date(log.uploaded_at).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
