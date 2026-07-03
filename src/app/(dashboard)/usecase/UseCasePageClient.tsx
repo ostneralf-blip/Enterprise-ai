@@ -121,7 +121,8 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
       {tab === 'portfolio' && (
         <UseCaseTable useCases={useCases}
           onEdit={uc => { setEditingCase(uc); setShowForm(true); setShowWeights(false) }}
-          onDelete={handleDelete} />
+          onDelete={handleDelete}
+          canvases={canvases} />
       )}
       {tab === 'matrix' && <UseCaseMatrix useCases={useCases} />}
 

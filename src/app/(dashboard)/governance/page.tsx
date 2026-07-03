@@ -7,10 +7,12 @@ import type { Tier } from '@/types'
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Governance-Check' }
 
-export default async function GovernancePage() {
+export default async function GovernancePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const params = await searchParams
 
   const [{ data: profileData }, { data: sessions }] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
@@ -24,6 +26,17 @@ export default async function GovernancePage() {
 
   const tier = (profileData?.tier ?? 'free') as Tier
 
+  let initialUseCaseName: string | undefined
+  if (params.from === 'usecase' && params.id) {
+    const { data: uc } = await supabase
+      .from('use_cases')
+      .select('name')
+      .eq('id', params.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    initialUseCaseName = uc?.name ?? undefined
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -32,7 +45,7 @@ export default async function GovernancePage() {
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>
       </div>
-      <GovernancePageClient tier={tier} sessions={sessions ?? []} />
+      <GovernancePageClient tier={tier} sessions={sessions ?? []} initialUseCaseName={initialUseCaseName} />
     </div>
   )
 }

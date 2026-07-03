@@ -52,9 +52,10 @@ const WEIGHT_DOT: Record<string, string> = {
   green: 'bg-emerald-500',
 }
 
-export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions: GovernanceSession[] }) {
+export function GovernancePageClient({ tier, sessions, initialUseCaseName }: { tier: Tier; sessions: GovernanceSession[]; initialUseCaseName?: string }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
+  const [useCaseName, setUseCaseName] = useState(initialUseCaseName ?? '')
   const [showResult, setShowResult] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -94,7 +95,11 @@ export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions:
       const res = await fetch('/api/governance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, result: VERDICT_TO_API[verdictLevel] }),
+        body: JSON.stringify({
+          use_case_name: useCaseName.trim() || null,
+          answers,
+          result: VERDICT_TO_API[verdictLevel],
+        }),
       })
       if (res.ok) setSaved(true)
     } finally {
@@ -208,6 +213,22 @@ export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions:
         <strong>Was ist der AI-Governance-Check?</strong> Dieser strukturierte Prüfprozess bewertet Ihren AI-Use-Case anhand von {totalSteps} ethischen und rechtlichen Gates — von der Rechtmäßigkeit der Datenverarbeitung bis zu Transparenz und Risikomanagement. Das Ergebnis ist keine Rechtsberatung, aber eine fundierte Orientierung für interne Freigabeprozesse.
         <span className="block mt-1 text-xs opacity-75">Tipp: Wählen Sie die Antwort, die den aktuellen Stand Ihres Projekts am besten beschreibt — nicht den Soll-Zustand.</span>
       </HintBox>
+
+      {/* Use-Case-Name */}
+      <div className="mb-5">
+        <label htmlFor="governance-usecase-name" className="block text-xs font-medium text-slate-600 mb-1.5">
+          Use Case <span className="text-slate-400 font-normal">(optional)</span>
+        </label>
+        <input
+          id="governance-usecase-name"
+          type="text"
+          value={useCaseName}
+          onChange={e => setUseCaseName(e.target.value)}
+          placeholder="Name des zu prüfenden AI-Use-Cases"
+          maxLength={200}
+          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
 
       {/* Progress */}
       <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={`Gate ${currentStep + 1} von ${totalSteps}`}>

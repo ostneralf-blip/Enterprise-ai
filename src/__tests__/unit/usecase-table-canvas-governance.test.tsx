@@ -1,6 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { UseCaseTable } from '@/components/modules/usecase/UseCaseTable'
+import { GovernancePageClient } from '@/app/(dashboard)/governance/GovernancePageClient'
 import type { UseCase } from '@/types'
+
+global.fetch = jest.fn()
 
 const BASE_UC: UseCase = {
   id: 'uc1',
@@ -19,26 +22,48 @@ const BASE_UC: UseCase = {
 const UC_WITH_CANVAS: UseCase = { ...BASE_UC, id: 'uc2', canvas_id: 'canvas-abc-123' }
 
 describe('UseCaseTable: Canvas-Badge (#54)', () => {
+  afterEach(() => jest.resetAllMocks())
+
   it('zeigt kein Canvas-Badge wenn canvas_id null ist', () => {
     render(<UseCaseTable useCases={[BASE_UC]} onEdit={jest.fn()} onDelete={jest.fn()} />)
-    expect(screen.queryByText(/canvas verknüpft/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/canvas/i)).not.toBeInTheDocument()
   })
 
-  it('zeigt Canvas-Badge wenn canvas_id gesetzt ist', () => {
+  it('zeigt Canvas-Badge "Canvas verknüpft" wenn canvas_id gesetzt, aber kein canvases-Prop', () => {
     render(<UseCaseTable useCases={[UC_WITH_CANVAS]} onEdit={jest.fn()} onDelete={jest.fn()} />)
     expect(screen.getByText(/canvas verknüpft/i)).toBeInTheDocument()
+  })
+
+  it('zeigt Canvas-Titel wenn canvases-Prop mit passendem Canvas übergeben', () => {
+    const canvases = [{ id: 'canvas-abc-123', title: 'AI-Strategie 2026' }]
+    render(<UseCaseTable useCases={[UC_WITH_CANVAS]} onEdit={jest.fn()} onDelete={jest.fn()} canvases={canvases} />)
+    expect(screen.getByText('□ Canvas: AI-Strategie 2026')).toBeInTheDocument()
+  })
+
+  it('fällt zurück auf "Canvas verknüpft" wenn kein passender Canvas gefunden', () => {
+    const canvases = [{ id: 'other-canvas-id', title: 'Anderer Canvas' }]
+    render(<UseCaseTable useCases={[UC_WITH_CANVAS]} onEdit={jest.fn()} onDelete={jest.fn()} canvases={canvases} />)
+    expect(screen.getByText(/canvas verknüpft/i)).toBeInTheDocument()
+    expect(screen.queryByText(/AI-Strategie/)).not.toBeInTheDocument()
   })
 
   it('Canvas-Badge ist unterhalb des Use-Case-Namens sichtbar', () => {
     render(<UseCaseTable useCases={[UC_WITH_CANVAS]} onEdit={jest.fn()} onDelete={jest.fn()} />)
     const name = screen.getByText('OCR für Rechnungen')
     const badge = screen.getByText(/canvas verknüpft/i)
-    // badge should be in the same table cell as the name
     expect(name.closest('td')).toContainElement(badge)
+  })
+
+  it('Canvas-Badge ist ein Link zu /canvas', () => {
+    render(<UseCaseTable useCases={[UC_WITH_CANVAS]} onEdit={jest.fn()} onDelete={jest.fn()} />)
+    const badge = screen.getByText(/canvas verknüpft/i)
+    expect(badge.closest('a')).toHaveAttribute('href', '/canvas')
   })
 })
 
 describe('UseCaseTable: Governance Quick-Start (#56)', () => {
+  afterEach(() => jest.resetAllMocks())
+
   it('zeigt Governance-Link für jeden Use Case', () => {
     render(<UseCaseTable useCases={[BASE_UC]} onEdit={jest.fn()} onDelete={jest.fn()} />)
     const link = screen.getByTitle(/governance-check/i)
@@ -64,5 +89,33 @@ describe('UseCaseTable: Governance Quick-Start (#56)', () => {
     expect(govLinks).toHaveLength(2)
     expect(govLinks[0]).toHaveAttribute('href', `/governance?from=usecase&id=uc1`)
     expect(govLinks[1]).toHaveAttribute('href', `/governance?from=usecase&id=uc2`)
+  })
+})
+
+describe('GovernancePageClient: Use-Case-Prefill (#56)', () => {
+  afterEach(() => jest.resetAllMocks())
+
+  it('zeigt ein Namensfeld im Wizard', () => {
+    render(<GovernancePageClient tier="free" sessions={[]} />)
+    expect(screen.getByLabelText(/use case/i)).toBeInTheDocument()
+  })
+
+  it('Namensfeld ist leer wenn kein initialUseCaseName übergeben', () => {
+    render(<GovernancePageClient tier="free" sessions={[]} />)
+    const input = screen.getByLabelText(/use case/i) as HTMLInputElement
+    expect(input.value).toBe('')
+  })
+
+  it('Namensfeld ist vorausgefüllt wenn initialUseCaseName übergeben', () => {
+    render(<GovernancePageClient tier="free" sessions={[]} initialUseCaseName="KI-Dokumentenprüfung" />)
+    const input = screen.getByLabelText(/use case/i) as HTMLInputElement
+    expect(input.value).toBe('KI-Dokumentenprüfung')
+  })
+
+  it('Nutzer kann den vorausgefüllten Namen ändern', () => {
+    render(<GovernancePageClient tier="free" sessions={[]} initialUseCaseName="Alter Name" />)
+    const input = screen.getByLabelText(/use case/i)
+    fireEvent.change(input, { target: { value: 'Neuer Name' } })
+    expect((input as HTMLInputElement).value).toBe('Neuer Name')
   })
 })

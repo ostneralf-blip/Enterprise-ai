@@ -7,6 +7,7 @@ interface UseCaseTableProps {
   useCases: UseCase[]
   onEdit: (uc: UseCase) => void
   onDelete: (id: string) => void
+  canvases?: { id: string; title: string }[]
 }
 
 const quadrantBadge = (q: UseCase['quadrant']) => {
@@ -23,7 +24,7 @@ const quadrantBadge = (q: UseCase['quadrant']) => {
   )
 }
 
-export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) {
+export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseCaseTableProps) {
   const [search, setSearch] = useState('')
 
   if (useCases.length === 0) {
@@ -87,11 +88,19 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
                 <td className="px-4 py-3">
                   <div className="font-medium text-slate-900 min-w-0 max-w-[200px] truncate">{uc.name}</div>
                   {uc.description && <div className="text-xs text-slate-400 truncate max-w-[200px]">{uc.description}</div>}
-                  {uc.canvas_id && (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mt-1">
-                      □ Canvas verknüpft
-                    </span>
-                  )}
+                  {uc.canvas_id && (() => {
+                    const canvasTitle = canvases.find(c => c.id === uc.canvas_id)?.title
+                    return (
+                      <a
+                        href="/canvas"
+                        className="inline-flex items-center gap-1 text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mt-1 hover:bg-indigo-100 transition-colors"
+                        title="Canvas öffnen"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        □ Canvas{canvasTitle ? `: ${canvasTitle}` : ' verknüpft'}
+                      </a>
+                    )
+                  })()}
                 </td>
                 <td className="px-4 py-3 text-slate-500 hidden sm:table-cell whitespace-nowrap">
                   {uc.domain ?? '—'}
