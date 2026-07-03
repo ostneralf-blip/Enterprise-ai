@@ -187,11 +187,21 @@ describe('Architektur-Vergleich (#51): result.pattern + layers', () => {
     expect(screen.getByText('Serving')).toBeInTheDocument()
   })
 
-  it('zeigt Komponenten-Anzahl je Layer', () => {
+  it('zeigt Komponenten-Namen je Layer (nicht Anzahl)', () => {
     renderWithTab('architecture')
     activateCompare()
-    expect(screen.getAllByText('2 Komponenten').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('1 Komponenten').length).toBeGreaterThan(0)
+    expect(screen.getByText('Azure Data Lake')).toBeInTheDocument()
+    expect(screen.getByText('SAP HANA')).toBeInTheDocument()
+    expect(screen.getByText('PostgreSQL')).toBeInTheDocument()
+    expect(screen.getByText('GPT-4o')).toBeInTheDocument()
+    expect(screen.queryByText(/Komponenten/)).not.toBeInTheDocument()
+  })
+
+  it('zeigt Komponenten aus a2 (FastAPI, LangChain)', () => {
+    renderWithTab('architecture')
+    activateCompare()
+    expect(screen.getByText('FastAPI')).toBeInTheDocument()
+    expect(screen.getByText('LangChain')).toBeInTheDocument()
   })
 
   it('zeigt "—" für Layer der nur in einer Architektur existiert', () => {
@@ -200,5 +210,46 @@ describe('Architektur-Vergleich (#51): result.pattern + layers', () => {
     // "Modell" layer only exists in a1, not a2 → a2 column shows "—"
     const dashes = screen.getAllByText('—')
     expect(dashes.length).toBeGreaterThan(0)
+  })
+
+  it('zeigt Farbcode-Legende im Vergleichs-Panel', () => {
+    renderWithTab('architecture')
+    activateCompare()
+    expect(screen.getByText('nur in A1')).toBeInTheDocument()
+    expect(screen.getByText('nur in A2')).toBeInTheDocument()
+    expect(screen.getByText('in beiden')).toBeInTheDocument()
+  })
+
+  it('zeigt geteilte Komponenten in beiden Spalten (shared = je 2×)', () => {
+    const archsWithShared: ArchitectureRow[] = [
+      {
+        id: 'ax1',
+        title: 'A mit shared',
+        wizard_data: {},
+        result: {
+          pattern: 'P1',
+          layers: [{ name: 'Modell', components: ['GPT-4o', 'Llama'] }],
+        },
+        updated_at: '2026-06-01T10:00:00Z',
+      },
+      {
+        id: 'ax2',
+        title: 'B mit shared',
+        wizard_data: {},
+        result: {
+          pattern: 'P2',
+          layers: [{ name: 'Modell', components: ['GPT-4o', 'Claude'] }],
+        },
+        updated_at: '2026-06-15T10:00:00Z',
+      },
+    ]
+    renderWithTab('architecture', ROADMAPS, archsWithShared)
+    activateCompare()
+    // GPT-4o is in both architectures → appears as chip in both columns
+    expect(screen.getAllByText('GPT-4o').length).toBe(2)
+    // Llama is only in ax1 → appears once
+    expect(screen.getAllByText('Llama').length).toBe(1)
+    // Claude is only in ax2 → appears once
+    expect(screen.getAllByText('Claude').length).toBe(1)
   })
 })
