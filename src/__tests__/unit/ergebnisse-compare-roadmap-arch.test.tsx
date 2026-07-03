@@ -8,6 +8,7 @@ const BASE_PREFS = {
   primary_governance_id: null,
   primary_roadmap_id: null,
   primary_architecture_id: null,
+  primary_canvas_id: null,
 }
 
 // ── Roadmap fixtures ──────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ function renderWithTab(tab: 'roadmap' | 'architecture', roadmaps = ROADMAPS, arc
       architectures={architectures}
       governanceSessions={[]}
       roadmaps={roadmaps}
+      canvases={[]}
       initialPreferences={BASE_PREFS}
     />
   )

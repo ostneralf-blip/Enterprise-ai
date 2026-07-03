@@ -6,10 +6,11 @@ export type EuAiActRiskClass = 'prohibited' | 'high' | 'limited' | 'minimal'
 
 export interface ChecklistItem {
   id: string          // wird als check_type in DB gespeichert
-  article: string
+  article?: string
   label: string
-  description: string
+  description?: string
   relevance?: string  // warum relevant für AI
+  category?: string   // für Regelwerke ohne Artikel-Referenz (ISO, NIS-2 etc.)
 }
 
 export interface CheckRow {
@@ -471,5 +472,114 @@ Für jeden Vorfall: Datum, System, betroffene Personen, Ursache, Maßnahmen, Les
 [ ] Sub-Auftragsverarbeiter transparent und genehmigt
 
 Bewertung: [ ] Freigegeben  [ ] Bedingt freigegeben (mit Auflagen)  [ ] Abgelehnt`,
+  },
+]
+
+// ── Optionale / erweiterbare Regelwerke ──────────────────────────────────────
+
+export interface AdditionalRegulation {
+  id: string
+  label: string
+  shortLabel: string
+  description: string
+  applicability: string
+  items: ChecklistItem[]
+}
+
+export const ADDITIONAL_REGULATIONS: AdditionalRegulation[] = [
+  {
+    id: 'iso_42001',
+    shortLabel: 'ISO 42001',
+    label: 'ISO 42001 — KI-Managementsystem',
+    description:
+      'Internationaler Standard für den Aufbau, Betrieb und die kontinuierliche Verbesserung eines KI-Managementsystems (AIMS). Adressiert Governance, Risiko, Transparenz und ethische Aspekte.',
+    applicability:
+      'Empfohlen für Unternehmen, die AI-Systeme entwickeln oder betreiben und eine zertifizierbare Governance-Grundlage anstreben.',
+    items: [
+      { id: 'iso42001_context', label: 'Organisationskontext und interessierte Parteien für AI dokumentiert', category: 'Governance' },
+      { id: 'iso42001_policy', label: 'AI-Richtlinie (AI Policy) durch Leitung verabschiedet', category: 'Governance' },
+      { id: 'iso42001_risk', label: 'AI-Risikobewertungsprozess etabliert und dokumentiert', category: 'Risiko' },
+      { id: 'iso42001_objectives', label: 'Messbare AI-Ziele definiert und überwacht', category: 'Governance' },
+      { id: 'iso42001_data', label: 'Datenqualitäts- und Daten-Governance-Anforderungen definiert', category: 'Daten' },
+      { id: 'iso42001_transparency', label: 'Transparenz- und Erklärbarkeitsanforderungen je System festgelegt', category: 'Transparenz' },
+      { id: 'iso42001_monitoring', label: 'Kontinuierliche Überwachung und Verbesserung (Plan-Do-Check-Act) eingerichtet', category: 'Betrieb' },
+      { id: 'iso42001_audit', label: 'Interne Audits geplant und dokumentiert', category: 'Audit' },
+    ],
+  },
+  {
+    id: 'nis2',
+    shortLabel: 'NIS-2',
+    label: 'NIS-2 — Cybersicherheitsrichtlinie',
+    description:
+      'EU-Richtlinie 2022/2555 erweitert den Geltungsbereich auf mehr Sektoren und verschärft Anforderungen an Risikomanagement, Meldepflichten und Lieferkettensicherheit.',
+    applicability:
+      'Gilt für „wesentliche" und „wichtige" Einrichtungen in 18 Sektoren (u. a. Energie, Finanzen, Gesundheit, Digitale Infrastruktur) ab Oktober 2024.',
+    items: [
+      { id: 'nis2_governance', label: 'Leitungsebene für Cybersicherheitsmaßnahmen verantwortlich gemacht', category: 'Governance' },
+      { id: 'nis2_risk', label: 'Cybersicherheits-Risikobewertung durchgeführt und dokumentiert', category: 'Risiko' },
+      { id: 'nis2_incident', label: 'Meldeprozess für erhebliche Sicherheitsvorfälle (24h-Erstmeldung) eingerichtet', category: 'Incident' },
+      { id: 'nis2_supply_chain', label: 'Sicherheitsanforderungen an Lieferanten und Dienstleister vertraglich fixiert', category: 'Lieferkette' },
+      { id: 'nis2_access', label: 'Zugangskontrollen und Least-Privilege-Prinzip umgesetzt', category: 'Zugang' },
+      { id: 'nis2_encryption', label: 'Verschlüsselung sensibler Daten in Ruhe und in Übertragung sichergestellt', category: 'Kryptographie' },
+      { id: 'nis2_bcp', label: 'Business Continuity Plan (BCP) für kritische Dienste vorhanden', category: 'Betrieb' },
+      { id: 'nis2_training', label: 'Regelmäßige Cybersicherheits-Schulungen für alle Mitarbeitenden', category: 'Schulung' },
+    ],
+  },
+  {
+    id: 'iso_27001',
+    shortLabel: 'ISO 27001',
+    label: 'ISO 27001 — Informationssicherheit',
+    description:
+      'International anerkannter Standard für Informationssicherheits-Managementsysteme (ISMS). Definiert Anforderungen für den systematischen Schutz von Informationswerten.',
+    applicability:
+      'Relevant für alle Unternehmen, die Kundendaten verarbeiten oder in regulierten Branchen tätig sind. Häufige Voraussetzung in Enterprise-Ausschreibungen.',
+    items: [
+      { id: 'iso27001_scope', label: 'ISMS-Anwendungsbereich definiert und dokumentiert', category: 'Governance' },
+      { id: 'iso27001_assets', label: 'Informationsasset-Inventar erstellt und klassifiziert', category: 'Assets' },
+      { id: 'iso27001_risk_treatment', label: 'Risiken identifiziert, bewertet und Behandlungspläne erstellt', category: 'Risiko' },
+      { id: 'iso27001_soa', label: 'Statement of Applicability (SoA) für Anhang-A-Maßnahmen erstellt', category: 'Dokumentation' },
+      { id: 'iso27001_access_mgmt', label: 'Zugriffsmanagement-Richtlinie und -prozesse dokumentiert', category: 'Zugang' },
+      { id: 'iso27001_physical', label: 'Physische Sicherheitsmaßnahmen für Serverräume/Büros umgesetzt', category: 'Physisch' },
+      { id: 'iso27001_incident', label: 'Incident-Response-Prozess definiert und geübt', category: 'Incident' },
+      { id: 'iso27001_review', label: 'Management-Review mindestens jährlich durchgeführt', category: 'Audit' },
+    ],
+  },
+  {
+    id: 'bait',
+    shortLabel: 'BAIT',
+    label: 'BAIT — Bankaufsichtliche IT-Anforderungen',
+    description:
+      'BaFin-Rundschreiben zu IT-Governance, Informationssicherheit und IT-Risikomanagement für Kreditinstitute. Ergänzt MaRisk im IT-Bereich.',
+    applicability:
+      'Verpflichtend für Kreditinstitute und Finanzdienstleister unter BaFin-Aufsicht. Besonders relevant beim Einsatz von AI in Kredit-, Scoring- oder Risikomodellen.',
+    items: [
+      { id: 'bait_strategy', label: 'IT-Strategie mit Vorstand abgestimmt und dokumentiert', category: 'Governance' },
+      { id: 'bait_governance', label: 'IT-Governance-Struktur mit klaren Verantwortlichkeiten etabliert', category: 'Governance' },
+      { id: 'bait_risk', label: 'IT-Risikoanalyse durchgeführt und in Gesamtrisikomanagement integriert', category: 'Risiko' },
+      { id: 'bait_it_ops', label: 'IT-Betrieb mit definierten SLAs und Kapazitätsplanung dokumentiert', category: 'Betrieb' },
+      { id: 'bait_outsourcing', label: 'IT-Dienstleister-Steuerung (inkl. Cloud) nach BAIT-Anforderungen eingerichtet', category: 'Lieferkette' },
+      { id: 'bait_iam', label: 'Identitäts- und Berechtigungsmanagement (IAM) revisionssicher implementiert', category: 'Zugang' },
+      { id: 'bait_model_risk', label: 'Modell-Risikomanagement für KI/ML-Modelle etabliert', category: 'KI-Modelle' },
+      { id: 'bait_audit_trail', label: 'Vollständiger Audit Trail für kritische AI-Entscheidungen vorhanden', category: 'Audit' },
+    ],
+  },
+  {
+    id: 'lksg',
+    shortLabel: 'LkSG',
+    label: 'LkSG — Lieferkettensorgfaltspflichtengesetz',
+    description:
+      'Deutsches Gesetz zur Sorgfaltspflicht in Lieferketten (ab 1.000 MA). Verpflichtet Unternehmen, Menschenrechts- und Umweltrisiken bei direkten und indirekten Zulieferern zu identifizieren und zu beheben.',
+    applicability:
+      'Gilt für Unternehmen mit ≥ 1.000 Beschäftigten in Deutschland (ab 2024). Relevant für AI-Projekte mit externen Datenbeschaffungs- oder Annotierungs-Dienstleistern.',
+    items: [
+      { id: 'lksg_policy', label: 'Grundsatzerklärung zur Achtung der Menschenrechte verabschiedet', category: 'Governance' },
+      { id: 'lksg_risk_analysis', label: 'Risikoanalyse für direkte Zulieferer durchgeführt', category: 'Risiko' },
+      { id: 'lksg_preventive', label: 'Präventivmaßnahmen in Lieferantenverträgen (CoC, Audits) verankert', category: 'Lieferkette' },
+      { id: 'lksg_remediation', label: 'Abhilfemaßnahmen bei festgestellten Verstößen definiert', category: 'Incident' },
+      { id: 'lksg_complaint', label: 'Beschwerdemechanismus für Hinweisgeber eingerichtet', category: 'Governance' },
+      { id: 'lksg_documentation', label: 'Sorgfaltspflichten vollständig dokumentiert (7-Jahres-Aufbewahrung)', category: 'Dokumentation' },
+      { id: 'lksg_ai_supply_chain', label: 'AI-spezifische Lieferkette auf Menschenrechtsrisiken geprüft (Datenerhebung, Annotation)', category: 'KI-spezifisch' },
+      { id: 'lksg_reporting', label: 'Jahresbericht über Sorgfaltspflichten erstellt und veröffentlicht', category: 'Reporting' },
+    ],
   },
 ]

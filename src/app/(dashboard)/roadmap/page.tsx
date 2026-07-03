@@ -28,7 +28,7 @@ export default async function RoadmapPage() {
       .single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('use_cases')
-      .select('id, name, domain, weighted_score, quadrant')
+      .select('id, name, domain, weighted_score, quadrant, canvas_id')
       .order('weighted_score', { ascending: false })
       .limit(3),
     supabase
@@ -42,6 +42,19 @@ export default async function RoadmapPage() {
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
   const tier = (profileData?.tier ?? 'free') as Tier
+
+  // Lade den Canvas des Top-Use-Cases, falls verknüpft
+  type LinkedCanvas = { id: string; title: string; archetype: string | null; data: Record<string, string> }
+  const topCanvasId = (topUseCases as Array<{ canvas_id?: string | null }> | null)?.[0]?.canvas_id ?? null
+  let linkedCanvas: LinkedCanvas | null = null
+  if (topCanvasId) {
+    const { data: canvasData } = await supabase
+      .from('canvases')
+      .select('id, title, archetype, data')
+      .eq('id', topCanvasId)
+      .maybeSingle()
+    if (canvasData) linkedCanvas = canvasData as LinkedCanvas
+  }
 
   return (
     <div>
@@ -57,6 +70,7 @@ export default async function RoadmapPage() {
         tier={tier}
         topUseCases={(topUseCases ?? []) as Array<{ id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }>}
         savedRoadmap={latestRoadmap ?? null}
+        linkedCanvas={linkedCanvas}
       />
     </div>
   )
