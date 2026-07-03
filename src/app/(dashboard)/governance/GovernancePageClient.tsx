@@ -10,6 +10,7 @@ import {
   type VerdictLevel,
 } from '@/config/governance-data'
 import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
+import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 
 const VERDICT_TO_API: Record<VerdictLevel, string> = {
   unlawful: 'stop_dsgvo',
@@ -123,7 +124,15 @@ export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions:
         {/* Action items */}
         {actionItems.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-            <h3 className="text-sm font-semibold text-slate-900 mb-4">Handlungsfelder</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-sm font-semibold text-slate-900">Handlungsfelder</h3>
+              <InfoHint title="Was bedeuten die Handlungsfelder?">
+                <p>Diese Punkte stammen aus Gates, die Sie nicht mit &bdquo;OK&ldquo; bewertet haben.</p>
+                <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />Gelb: Verbesserungsbedarf, aber kein sofortiger Stopp.</p>
+                <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />Rot: Kritische Lücke, die vor Go-Live geschlossen werden muss.</p>
+                <p className="mt-1.5">Die Empfehlungen sind Ausgangspunkte — die finale Bewertung obliegt Ihrem Team und ggf. einem Rechtsbeistand.</p>
+              </InfoHint>
+            </div>
             <ul className="space-y-4" role="list">
               {actionItems.map(({ gate: g, option }) => (
                 <li key={g.id} className="flex gap-3">
@@ -195,6 +204,11 @@ export function GovernancePageClient({ tier, sessions }: { tier: Tier; sessions:
 
   return (
     <div className="max-w-2xl">
+      <HintBox variant="info" className="mb-6">
+        <strong>Was ist der AI-Governance-Check?</strong> Dieser strukturierte Prüfprozess bewertet Ihren AI-Use-Case anhand von {totalSteps} ethischen und rechtlichen Gates — von der Rechtmäßigkeit der Datenverarbeitung bis zu Transparenz und Risikomanagement. Das Ergebnis ist keine Rechtsberatung, aber eine fundierte Orientierung für interne Freigabeprozesse.
+        <span className="block mt-1 text-xs opacity-75">Tipp: Wählen Sie die Antwort, die den aktuellen Stand Ihres Projekts am besten beschreibt — nicht den Soll-Zustand.</span>
+      </HintBox>
+
       {/* Progress */}
       <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={`Gate ${currentStep + 1} von ${totalSteps}`}>
         <div className="flex items-center justify-between text-xs text-slate-500 mb-2">

@@ -5,6 +5,7 @@ import { UseCaseMatrix } from '@/components/modules/usecase/UseCaseMatrix'
 import { UseCaseForm } from '@/components/modules/usecase/UseCaseForm'
 import { WeightsEditor } from '@/components/modules/usecase/WeightsEditor'
 import { UpgradeModal } from '@/components/shared/UpgradeModal'
+import { InfoHint } from '@/components/shared/InfoHint'
 import { FREE_LIMIT } from '@/config/usecase-data'
 import type { UseCase, UseCasePortfolio, UseCaseWeights, Tier } from '@/types'
 
@@ -70,11 +71,25 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div className="bg-slate-100 rounded-xl p-1 flex gap-1">
-          <button onClick={() => setTab('portfolio')} className={tabClass('portfolio')}>Portfolio</button>
-          <button onClick={() => setTab('matrix')} className={tabClass('matrix')}>Matrix</button>
+        <div className="flex items-center gap-2">
+          <div className="bg-slate-100 rounded-xl p-1 flex gap-1">
+            <button onClick={() => setTab('portfolio')} className={tabClass('portfolio')}>Portfolio</button>
+            <button onClick={() => setTab('matrix')} className={tabClass('matrix')}>Matrix</button>
+          </div>
+          {tab === 'matrix' && (
+            <InfoHint title="Was zeigt die Scoring-Matrix?">
+              <p>Die Matrix positioniert Ihre Use Cases in einem Quadranten nach zwei gewichteten Dimensionen:</p>
+              <p className="mt-1.5"><strong>X-Achse (Aufwand/Risiko):</strong> Wie hoch ist der Implementierungsaufwand und das Risiko?</p>
+              <p className="mt-1"><strong>Y-Achse (Nutzen/Wirkung):</strong> Wie groß ist der erwartete Mehrwert für das Unternehmen?</p>
+              <p className="mt-1.5">Use Cases oben links (hoher Nutzen, geringer Aufwand) sind die besten Startprojekte — &bdquo;Quick Wins&ldquo;.</p>
+            </InfoHint>
+          )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <InfoHint title="Was sind Bewertungsgewichte?">
+            <p>Jeder Use Case wird nach mehreren Kriterien bewertet (z. B. strategischer Fit, Datenverfügbarkeit, Compliance-Risiko).</p>
+            <p className="mt-1.5">Mit den <strong>Gewichten</strong> legen Sie fest, welche Kriterien für Ihr Unternehmen am wichtigsten sind. Das beeinflusst die Reihenfolge im Portfolio.</p>
+          </InfoHint>
           <button onClick={() => { setShowWeights(v => !v); setShowForm(false) }}
             className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap">
             ⚙️ Gewichte

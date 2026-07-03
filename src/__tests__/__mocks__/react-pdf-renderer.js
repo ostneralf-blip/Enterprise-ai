@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // CJS-Mock für @react-pdf/renderer in Jest (ESM-Paket, nicht transformierbar ohne VM-Modules)
 const React = require('react')
 

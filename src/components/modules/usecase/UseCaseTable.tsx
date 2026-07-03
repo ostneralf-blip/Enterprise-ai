@@ -78,7 +78,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete }: UseCaseTableProps) 
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={10} className="px-4 py-8 text-center text-sm text-slate-400">
-                  Keine Use Cases für „{search}" gefunden.
+                  Keine Use Cases für &bdquo;{search}&ldquo; gefunden.
                 </td>
               </tr>
             )}

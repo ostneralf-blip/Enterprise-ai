@@ -448,7 +448,6 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
   partial:       { label: 'Teilw. konform',  color: C.amber,   bg: C.amberBg },
   pending:       { label: 'Ausstehend',      color: C.neutral, bg: C.neutralBg },
 }
-const REG_LABELS: Record<string, string> = { eu_ai_act: 'EU AI Act', dsgvo: 'DSGVO', internal: 'Intern' }
 
 export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
   // Build label lookup from config

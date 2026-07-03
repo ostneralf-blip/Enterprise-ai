@@ -15,10 +15,10 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const module = searchParams.get('module')
+  const moduleParam = searchParams.get('module')
   const entity_id = searchParams.get('entity_id')
 
-  if (!module || !entity_id) {
+  if (!moduleParam || !entity_id) {
     return NextResponse.json({ error: 'module und entity_id erforderlich' }, { status: 400 })
   }
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     .from('result_versions')
     .select('id, version_no, label, created_at, data')
     .eq('user_id', user.id)
-    .eq('module', module)
+    .eq('module', moduleParam)
     .eq('entity_id', entity_id)
     .order('version_no', { ascending: false })
 

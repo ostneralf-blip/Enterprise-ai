@@ -49,11 +49,20 @@ describe('Accessibility: Compliance Center', () => {
     expect(await axe(container)).toHaveNoViolations()
   })
 
-  it('DSGVO-Checkliste zeigt Checkboxen mit Labels', () => {
+  it('DSGVO-Checkliste zeigt Status-Buttons für alle Einträge', () => {
     render(<CompliancePageClient {...EMPTY_CHECKS} />)
     fireEvent.click(screen.getByRole('tab', { name: 'DSGVO' }))
-    const checkboxes = screen.getAllByRole('checkbox')
-    expect(checkboxes.length).toBeGreaterThanOrEqual(10)
+    const statusButtons = screen.getAllByRole('button', { name: /Offen — anklicken für Erfüllt/i })
+    expect(statusButtons.length).toBeGreaterThanOrEqual(10)
+  })
+
+  it('Status-Button wechselt von Offen zu Erfüllt bei Klick', () => {
+    render(<CompliancePageClient {...EMPTY_CHECKS} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'DSGVO' }))
+    const firstButton = screen.getAllByRole('button', { name: /Offen — anklicken für Erfüllt/i })[0]
+    fireEvent.click(firstButton)
+    // Nach Klick muss mindestens ein "Erfüllt"-Button existieren
+    expect(screen.getAllByRole('button', { name: /Erfüllt — anklicken für Nicht erfüllt/i }).length).toBeGreaterThanOrEqual(1)
   })
 
   it('DSGVO-Progressbar ist zugänglich', () => {
