@@ -338,6 +338,11 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
                   <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Architekturen</p>
+                  <div className="flex flex-wrap gap-3 mt-1.5">
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-blue-50 border-blue-200" />nur in A1</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-emerald-50 border-emerald-200" />nur in A2</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-slate-50 border-slate-200" />in beiden</span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
@@ -365,11 +370,33 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     return (
                       <Fragment key={`layer-${layerName}`}>
                         <div className="px-4 py-2 text-slate-500 border-t border-slate-100 truncate">{layerName}</div>
-                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">
-                          {l1 ? `${(l1.components ?? []).length} Komponenten` : <span className="text-slate-300">—</span>}
+                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                          {l1 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {(l1.components ?? []).map((c, ci) => (
+                                <span key={ci} className={cn('text-[10px] px-1.5 py-0.5 rounded border',
+                                  (l2?.components ?? []).includes(c)
+                                    ? 'bg-slate-50 text-slate-600 border-slate-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                )}>{c}</span>
+                              ))}
+                              {(l1.components ?? []).length === 0 && <span className="text-slate-300 text-sm">—</span>}
+                            </div>
+                          ) : <span className="text-slate-300">—</span>}
                         </div>
-                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">
-                          {l2 ? `${(l2.components ?? []).length} Komponenten` : <span className="text-slate-300">—</span>}
+                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                          {l2 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {(l2.components ?? []).map((c, ci) => (
+                                <span key={ci} className={cn('text-[10px] px-1.5 py-0.5 rounded border',
+                                  (l1?.components ?? []).includes(c)
+                                    ? 'bg-slate-50 text-slate-600 border-slate-200'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                )}>{c}</span>
+                              ))}
+                              {(l2.components ?? []).length === 0 && <span className="text-slate-300 text-sm">—</span>}
+                            </div>
+                          ) : <span className="text-slate-300">—</span>}
                         </div>
                       </Fragment>
                     )
