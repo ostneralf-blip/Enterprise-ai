@@ -1,4 +1,30 @@
-import { recommendFromWizard, recommendJouleUseCases } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendJouleUseCases, scoreComponentAgainstAnswers, recommendFromCatalog } from '@/config/architecture-rules'
+import type { CatalogComponent } from '@/types'
+
+const mkComp = (overrides: Partial<CatalogComponent>): CatalogComponent => ({
+  id: 'test-id',
+  name: 'Test Component',
+  vendor: null,
+  category: null,
+  architecture_layer: 'model',
+  hosting: ['eu'],
+  dsgvo_status: 'compliant',
+  eu_ai_act_risk: 'minimal',
+  sap_compatible: false,
+  sap_components: [],
+  use_case_types: [],
+  infra_types: ['cloud'],
+  cloud_provider: 'independent',
+  icon_name: null,
+  website_url: null,
+  description: null,
+  tags: [],
+  source: 'seed',
+  is_active: true,
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-01T00:00:00Z',
+  ...overrides,
+})
 
 describe('architecture-rules: recommendFromWizard', () => {
   it('SAP-Stack empfiehlt SAP-Komponenten', () => {
@@ -93,6 +119,94 @@ describe('architecture-rules: recommendFromWizard', () => {
     const allNames = recs.layers.flatMap(l => l.componentNames)
     expect(allNames).toContain('SAP Datasphere')
     expect(allNames).toContain('SAP Integration Suite')
+  })
+})
+
+describe('architecture-rules: scoreComponentAgainstAnswers (#59)', () => {
+  const sapComp = mkComp({ name: 'SAP GenAI Hub', cloud_provider: 'sap', use_case_types: ['generative'], sap_compatible: true })
+  const azureComp = mkComp({ name: 'Azure OpenAI Service', cloud_provider: 'azure', use_case_types: ['generative'] })
+  const awsComp = mkComp({ name: 'Amazon SageMaker', cloud_provider: 'aws', use_case_types: ['predictive', 'generative'] })
+  const independentComp = mkComp({ name: 'MLflow', cloud_provider: 'independent', use_case_types: ['predictive', 'generative'] })
+
+  it('SAP-Komponente: Score < 0 für Azure-Nutzer (generative)', () => {
+    expect(scoreComponentAgainstAnswers(sapComp, { cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' })).toBeLessThan(0)
+  })
+
+  it('SAP-Komponente: Score < 0 für Nutzer ohne SAP-Kontext', () => {
+    expect(scoreComponentAgainstAnswers(sapComp, { infra: 'cloud', usecase: 'generative' })).toBeLessThan(0)
+  })
+
+  it('SAP-Komponente: Score > 0 für SAP-Nutzer (cloud_provider_hint=sap_btp)', () => {
+    expect(scoreComponentAgainstAnswers(sapComp, { cloud_provider_hint: 'sap_btp', sap_landscape: 'full', usecase: 'generative' })).toBeGreaterThan(0)
+  })
+
+  it('SAP-Komponente: Score > 0 für Nutzer mit sap_landscape (ohne cloud_provider_hint)', () => {
+    expect(scoreComponentAgainstAnswers(sapComp, { sap_landscape: 'full', usecase: 'generative' })).toBeGreaterThan(0)
+  })
+
+  it('Azure-Komponente: Score < 0 für SAP-Nutzer', () => {
+    expect(scoreComponentAgainstAnswers(azureComp, { cloud_provider_hint: 'sap_btp', usecase: 'generative' })).toBeLessThan(0)
+  })
+
+  it('AWS-Komponente: Score < 0 für Azure-Nutzer', () => {
+    expect(scoreComponentAgainstAnswers(awsComp, { cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' })).toBeLessThan(0)
+  })
+
+  it('Independent-Komponente: Score > 0 für Azure-Nutzer mit passendem usecase', () => {
+    expect(scoreComponentAgainstAnswers(independentComp, { cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' })).toBeGreaterThan(0)
+  })
+
+  it('Independent-Komponente: Score > 0 für SAP-Nutzer', () => {
+    expect(scoreComponentAgainstAnswers(independentComp, { cloud_provider_hint: 'sap_btp', usecase: 'generative' })).toBeGreaterThan(0)
+  })
+
+  it('Independent-Komponente: Score > 0 für AWS-Nutzer', () => {
+    expect(scoreComponentAgainstAnswers(independentComp, { cloud_provider_hint: 'aws', infra: 'cloud', usecase: 'generative' })).toBeGreaterThan(0)
+  })
+})
+
+describe('architecture-rules: recommendFromCatalog (#59)', () => {
+  const catalog: CatalogComponent[] = [
+    mkComp({ id: 'sap-gen', name: 'SAP GenAI Hub', architecture_layer: 'model', cloud_provider: 'sap', use_case_types: ['generative'], sap_compatible: true }),
+    mkComp({ id: 'sap-ai', name: 'SAP AI Core', architecture_layer: 'model', cloud_provider: 'sap', use_case_types: ['predictive', 'generative'], sap_compatible: true }),
+    mkComp({ id: 'az-oai', name: 'Azure OpenAI Service', architecture_layer: 'model', cloud_provider: 'azure', use_case_types: ['generative'] }),
+    mkComp({ id: 'az-ml', name: 'Azure Machine Learning', architecture_layer: 'model', cloud_provider: 'azure', use_case_types: ['predictive', 'generative'] }),
+    mkComp({ id: 'aws-sm', name: 'Amazon SageMaker', architecture_layer: 'model', cloud_provider: 'aws', use_case_types: ['predictive', 'generative'] }),
+    mkComp({ id: 'mlflow', name: 'MLflow', architecture_layer: 'mlops', cloud_provider: 'independent', use_case_types: ['predictive', 'generative'] }),
+  ]
+
+  it('Azure-Nutzer sieht keine SAP-Plattform-Komponenten', () => {
+    const recs = recommendFromCatalog({ cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' }, catalog)
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).not.toContain('SAP GenAI Hub')
+    expect(allNames).not.toContain('SAP AI Core')
+  })
+
+  it('Azure-Nutzer sieht keine AWS-Komponenten', () => {
+    const recs = recommendFromCatalog({ cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'predictive' }, catalog)
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).not.toContain('Amazon SageMaker')
+  })
+
+  it('Azure-Nutzer sieht Azure-Komponenten', () => {
+    const recs = recommendFromCatalog({ cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' }, catalog)
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).toContain('Azure OpenAI Service')
+  })
+
+  it('SAP-Nutzer sieht SAP-Komponenten aber keine Azure- oder AWS-Komponenten', () => {
+    const recs = recommendFromCatalog({ cloud_provider_hint: 'sap_btp', sap_landscape: 'full', infra: 'cloud', usecase: 'generative' }, catalog)
+    const allNames = recs.layers.flatMap(l => l.componentNames)
+    expect(allNames).toContain('SAP GenAI Hub')
+    expect(allNames).not.toContain('Azure OpenAI Service')
+    expect(allNames).not.toContain('Amazon SageMaker')
+  })
+
+  it('Independent-Komponenten erscheinen für Azure- und SAP-Nutzer', () => {
+    const azureRecs = recommendFromCatalog({ cloud_provider_hint: 'azure', infra: 'cloud', usecase: 'generative' }, catalog)
+    const sapRecs = recommendFromCatalog({ cloud_provider_hint: 'sap_btp', sap_landscape: 'full', usecase: 'generative' }, catalog)
+    expect(azureRecs.layers.flatMap(l => l.componentNames)).toContain('MLflow')
+    expect(sapRecs.layers.flatMap(l => l.componentNames)).toContain('MLflow')
   })
 })
 
