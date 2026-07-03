@@ -1,5 +1,5 @@
 'use client'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
@@ -31,6 +31,20 @@ function analyzeCanvasData(data: CanvasData) {
   return { platform, usecaseType, compliance, filledCount }
 }
 
+export function platformToProvider(platform: string): string | null {
+  const map: Record<string, string> = { SAP: 'sap', Azure: 'azure', AWS: 'aws', GCP: 'gcp' }
+  return map[platform] ?? null
+}
+
+export function usecaseToApiType(usecaseType: string | null): string | null {
+  if (!usecaseType) return null
+  if (usecaseType.includes('Generative')) return 'generative'
+  if (usecaseType.includes('Predictive')) return 'predictive'
+  if (usecaseType.includes('Vision')) return 'vision'
+  if (usecaseType.includes('Prozess')) return 'automation'
+  return null
+}
+
 const ARCHETYPE_BTNS: { id: Archetype; label: string }[] = [
   { id: 'starter', label: 'AI Starter' },
   { id: 'scaler', label: 'AI Scaler' },
@@ -48,6 +62,29 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active])
+  const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
+
+  const detectedProvider = insights && insights.platform.length > 0
+    ? platformToProvider(insights.platform[0])
+    : null
+  const detectedUsecase = insights ? usecaseToApiType(insights.usecaseType) : null
+
+  useEffect(() => {
+    if (!detectedProvider) return
+    const controller = new AbortController()
+    fetch(`/api/catalog/components?cloud_provider=${detectedProvider}`, { signal: controller.signal })
+      .then(async r => {
+        if (!r.ok) return
+        const json = await r.json() as { data: Array<{ name: string; architecture_layer: string | null; use_case_types: string[] }> }
+        const suggestions = json.data
+          .filter(c => !detectedUsecase || c.use_case_types.includes(detectedUsecase))
+          .slice(0, 5)
+          .map(c => ({ name: c.name, architecture_layer: c.architecture_layer }))
+        setCatalogSuggestions(suggestions)
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [detectedProvider, detectedUsecase])
 
   const handleCreate = async () => {
     const res = await fetch('/api/canvas', { method: 'POST' })
@@ -215,6 +252,17 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 )}
               </div>
             </div>
+
+            {detectedProvider && catalogSuggestions && catalogSuggestions.length > 0 && (
+              <div className="pt-2 border-t border-slate-100">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Passende Komponenten</p>
+                <div className="flex flex-wrap gap-1">
+                  {catalogSuggestions.map(c => (
+                    <span key={c.name} className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 font-medium">{c.name}</span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-1 border-t border-slate-200">
               <p className="text-xs text-slate-500 flex-1">Erkannte Signale automatisch in anderen Modulen verwenden:</p>

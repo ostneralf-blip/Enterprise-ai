@@ -129,6 +129,22 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             </InfoHint>
           </div>
           <p className="text-xs text-blue-700 font-medium mb-1">{linkedCanvas.title}</p>
+          {(linkedCanvas.data.problem || linkedCanvas.data.kpis) && (
+            <div className="mt-1 mb-2 space-y-1">
+              {linkedCanvas.data.problem && (
+                <p className="text-xs text-blue-700 opacity-90">
+                  <span className="font-medium">Problem: </span>
+                  {linkedCanvas.data.problem.length > 120 ? `${linkedCanvas.data.problem.slice(0, 120)}…` : linkedCanvas.data.problem}
+                </p>
+              )}
+              {linkedCanvas.data.kpis && (
+                <p className="text-xs text-blue-700 opacity-90">
+                  <span className="font-medium">KPIs: </span>
+                  {linkedCanvas.data.kpis.length > 100 ? `${linkedCanvas.data.kpis.slice(0, 100)}…` : linkedCanvas.data.kpis}
+                </p>
+              )}
+            </div>
+          )}
           {canvasInsights.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {canvasInsights.map(insight => (
@@ -251,6 +267,16 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                       )
                     })}
                   </ul>
+                  {phaseId === 'phase1' && linkedCanvas?.data.next_steps && (
+                    <div className="mt-3 pt-3 border-t border-slate-200/60">
+                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Aus Ihrem Canvas</p>
+                      <p className="text-sm text-slate-600">
+                        {linkedCanvas.data.next_steps.length > 250
+                          ? `${linkedCanvas.data.next_steps.slice(0, 250)}…`
+                          : linkedCanvas.data.next_steps}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Ziel-KPIs</p>
@@ -262,6 +288,16 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                       </li>
                     ))}
                   </ul>
+                  {phaseId === 'phase1' && linkedCanvas?.data.kpis && (
+                    <div className="mt-3 pt-3 border-t border-slate-200/60">
+                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Ihre KPIs (Canvas)</p>
+                      <p className="text-sm text-slate-600">
+                        {linkedCanvas.data.kpis.length > 200
+                          ? `${linkedCanvas.data.kpis.slice(0, 200)}…`
+                          : linkedCanvas.data.kpis}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </section>

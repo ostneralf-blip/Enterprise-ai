@@ -5,7 +5,10 @@ import type { Canvas } from '@/types'
 
 expect.extend(toHaveNoViolations)
 
-global.fetch = jest.fn()
+global.fetch = jest.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({ data: [] }),
+})
 
 const MOCK_CANVAS: Canvas = {
   id: 'c1',
