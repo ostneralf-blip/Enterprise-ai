@@ -9,6 +9,10 @@ interface LoginFormProps {
   searchParams: Promise<{ redirect?: string; message?: string }>
 }
 
+const MESSAGE_LABELS: Record<string, string> = {
+  account_suspended: 'Ihr Konto wurde gesperrt. Bitte wenden Sie sich an den Support.',
+}
+
 export function LoginForm({ searchParams }: LoginFormProps) {
   const router = useRouter()
   const supabase = createClient()
@@ -17,10 +21,6 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [redirectTo, setRedirectTo] = useState('/dashboard')
-
-  const MESSAGE_LABELS: Record<string, string> = {
-    account_suspended: 'Ihr Konto wurde gesperrt. Bitte wenden Sie sich an den Support.',
-  }
 
   useEffect(() => {
     searchParams.then(params => {

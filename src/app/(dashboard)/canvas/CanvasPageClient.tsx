@@ -47,7 +47,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active?.data])
+  const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active])
 
   const handleCreate = async () => {
     const res = await fetch('/api/canvas', { method: 'POST' })

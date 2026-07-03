@@ -71,6 +71,7 @@ function openGovernanceTabAndCompareMode() {
   fireEvent.click(screen.getByRole('button', { name: /vergleichen/i }))
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function selectBothEntries(id1: string, id2: string) {
   const checkboxes = screen.getAllByRole('checkbox')
   // Select first and second checkbox (matching the two governance rows)

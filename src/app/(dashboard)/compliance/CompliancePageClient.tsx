@@ -26,6 +26,9 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'extras', label: 'Weitere Gesetze' },
 ]
 
+const CONTENT_REVIEWED_AT = '2026-06-25'
+const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
+
 interface Props {
   initialChecks: CheckRow[]
 }
@@ -44,8 +47,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
   const [saving, setSaving] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState<string | null>(null)
 
-  // Aktive Zusatz-Regelwerke werden als Check-Eintrag in compliance_checks persistiert:
-  // regulation='system', check_type='active_regulations', notes=JSON-Array der IDs
   const [activeRegIds, setActiveRegIds] = useState<Set<string>>(() => {
     const stored = initialChecks.find(
       c => c.regulation === 'system' && c.check_type === 'active_regulations'
@@ -58,7 +59,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
   const toggleReg = (id: string) => {
     setActiveRegIds(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       upsert('system', 'active_regulations', 'compliant', JSON.stringify([...next]))
       return next
     })
@@ -85,7 +86,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
     }
     setChecks(prev => new Map(prev).set(key, optimistic))
     setSaving(prev => new Set(prev).add(key))
-
     try {
       await fetch('/api/compliance', {
         method: 'POST',
@@ -97,9 +97,11 @@ export function CompliancePageClient({ initialChecks }: Props) {
     }
   }, [])
 
+  // Zyklus: pending → compliant → non_compliant → pending
   const toggleItem = (regulation: string, checkType: string) => {
     const current = getCheck(regulation, checkType)
-    const next: CheckStatus = current?.status === 'compliant' ? 'pending' : 'compliant'
+    const s = current?.status ?? 'pending'
+    const next: CheckStatus = s === 'pending' ? 'compliant' : s === 'compliant' ? 'non_compliant' : 'pending'
     upsert(regulation, checkType, next)
   }
 
@@ -133,7 +135,21 @@ export function CompliancePageClient({ initialChecks }: Props) {
   const riskClass = selectedRiskClass()
   const obligations = riskClass ? EU_AI_ACT_OBLIGATIONS[riskClass] : []
   const euAiActDone = obligations.filter(o => getCheck('eu_ai_act', o.id)?.status === 'compliant').length
+  const euAiActNonCompliant = obligations.filter(o => getCheck('eu_ai_act', o.id)?.status === 'non_compliant').length
   const dsgvoDone = DSGVO_CHECKLIST.filter(i => getCheck('dsgvo', i.id)?.status === 'compliant').length
+  const dsgvoNonCompliant = DSGVO_CHECKLIST.filter(i => getCheck('dsgvo', i.id)?.status === 'non_compliant').length
+
+  // ─── Offene Punkte (nicht erfüllte Einträge aller Regelwerke) ────────────
+  const allOpenItems = [
+    ...obligations.filter(o => getCheck('eu_ai_act', o.id)?.status === 'non_compliant')
+      .map(o => ({ reg: 'EU AI Act', label: o.label })),
+    ...DSGVO_CHECKLIST.filter(i => getCheck('dsgvo', i.id)?.status === 'non_compliant')
+      .map(i => ({ reg: 'DSGVO', label: i.label })),
+    ...activeRegs.flatMap(reg =>
+      reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'non_compliant')
+        .map(i => ({ reg: reg.shortLabel, label: i.label }))
+    ),
+  ]
 
   const handleCopy = async (id: string, content: string) => {
     await navigator.clipboard.writeText(content)
@@ -141,23 +157,19 @@ export function CompliancePageClient({ initialChecks }: Props) {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  // Update this date whenever compliance content is reviewed
-  const CONTENT_REVIEWED_AT = '2026-06-25'
-  const reviewedDays = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
-
   return (
     <div>
       {/* Content freshness badge */}
       <div className={cn(
         'mb-4 flex items-center gap-2 text-xs px-3 py-2 rounded-lg border w-fit',
-        reviewedDays > 90
+        COMPLIANCE_REVIEWED_DAYS > 90
           ? 'bg-amber-50 border-amber-200 text-amber-700'
           : 'bg-slate-50 border-slate-200 text-slate-500'
       )}>
-        {reviewedDays > 90 ? '⚠' : '✓'}
+        {COMPLIANCE_REVIEWED_DAYS > 90 ? '⚠' : '✓'}
         <span>
           Inhalt zuletzt geprüft: {new Date(CONTENT_REVIEWED_AT).toLocaleDateString('de-DE')}
-          {reviewedDays > 90 && ' — Review empfohlen'}
+          {COMPLIANCE_REVIEWED_DAYS > 90 && ' — Review empfohlen'}
         </span>
       </div>
 
@@ -179,6 +191,11 @@ export function CompliancePageClient({ initialChecks }: Props) {
             )}
           >
             {t.label}
+            {t.id === 'summary' && allOpenItems.length > 0 && (
+              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                {allOpenItems.length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -186,7 +203,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {/* ── EU AI ACT ── */}
       {tab === 'euaiact' && (
         <div role="tabpanel" id="panel-euaiact" aria-labelledby="tab-euaiact" className="space-y-6">
-          {/* Risk class selection */}
           <div>
             <h2 className="text-sm font-semibold text-slate-700 mb-1">Schritt 1: Risikoklasse selbst einordnen</h2>
             <p className="text-xs text-slate-400 mb-3">
@@ -231,7 +247,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
             </div>
           </div>
 
-          {/* Obligations checklist */}
           {riskClass === 'prohibited' && (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5">
               <p className="text-sm font-semibold text-red-800 mb-1">Deployment nicht zulässig</p>
@@ -254,11 +269,24 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {riskClass && obligations.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-700">
-                  Schritt 2: Pflichten-Checkliste ({EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title})
-                </h2>
-                <span className="text-xs text-slate-400">{euAiActDone}/{obligations.length} erledigt</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-slate-700">
+                    Schritt 2: Pflichten-Checkliste ({EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title})
+                  </h2>
+                  <InfoHint title="Wie funktioniert die Checkliste?">
+                    <p>Klicken Sie auf den Status-Kreis eines Eintrags, um zwischen drei Zuständen zu wechseln:</p>
+                    <p className="mt-1.5"><strong>○ Offen</strong> — noch nicht geprüft (Ausgangszustand)</p>
+                    <p className="mt-1.5"><strong>✓ Erfüllt</strong> — Anforderung ist umgesetzt</p>
+                    <p className="mt-1.5"><strong>✗ Nicht erfüllt</strong> — geprüft, aber Lücke identifiziert. Diese Punkte erscheinen als Offene Punkte in der Zusammenfassung.</p>
+                  </InfoHint>
+                </div>
+                <span className="text-xs text-slate-400 flex-shrink-0">
+                  {euAiActDone}/{obligations.length} erfüllt
+                  {euAiActNonCompliant > 0 && (
+                    <span className="ml-2 text-red-600 font-medium">· {euAiActNonCompliant} offen</span>
+                  )}
+                </span>
               </div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
                 <div
@@ -274,25 +302,24 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <ul className="space-y-2">
                 {obligations.map(item => {
                   const c = getCheck('eu_ai_act', item.id)
-                  const isDone = c?.status === 'compliant'
+                  const status = c?.status ?? 'pending'
                   const isSaving = saving.has(makeKey('eu_ai_act', item.id))
                   return (
                     <li key={item.id}>
-                      <label className={cn(
-                        'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors',
-                        isDone ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                      <div className={cn(
+                        'flex items-start gap-3 p-3.5 rounded-xl border transition-colors',
+                        status === 'compliant' ? 'bg-blue-50 border-blue-200' :
+                        status === 'non_compliant' ? 'bg-red-50 border-red-200' :
+                        'bg-white border-slate-200',
                         isSaving && 'opacity-60'
                       )}>
-                        <input
-                          type="checkbox"
-                          checked={isDone}
-                          onChange={() => toggleItem('eu_ai_act', item.id)}
-                          disabled={isSaving}
-                          className="mt-0.5 flex-shrink-0 accent-blue-600"
-                        />
+                        <StatusIcon status={status} onClick={() => toggleItem('eu_ai_act', item.id)} disabled={isSaving} />
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.article}</p>
-                          <p className={cn('text-sm font-medium', isDone ? 'text-blue-800 line-through' : 'text-slate-800')}>
+                          <p className={cn('text-sm font-medium',
+                            status === 'compliant' ? 'text-blue-800 line-through' :
+                            status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                          )}>
                             {item.label}
                           </p>
                           <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
@@ -302,7 +329,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                             </p>
                           )}
                         </div>
-                      </label>
+                      </div>
                     </li>
                   )
                 })}
@@ -322,8 +349,20 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {tab === 'dsgvo' && (
         <div role="tabpanel" id="panel-dsgvo" aria-labelledby="tab-dsgvo">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-slate-500">{dsgvoDone} von {DSGVO_CHECKLIST.length} erledigt</p>
-            <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="text-sm text-slate-500 whitespace-nowrap">{dsgvoDone} von {DSGVO_CHECKLIST.length} erfüllt</p>
+              {dsgvoNonCompliant > 0 && (
+                <span className="text-xs text-red-600 font-medium whitespace-nowrap">· {dsgvoNonCompliant} nicht erfüllt</span>
+              )}
+              <InfoHint title="Wie funktioniert die DSGVO-Checkliste?">
+                <p>Klicken Sie auf den Kreis links neben einem Eintrag, um seinen Status zu ändern:</p>
+                <p className="mt-1.5"><strong>○ Offen</strong> — noch nicht geprüft</p>
+                <p className="mt-1.5"><strong>✓ Erfüllt</strong> — Anforderung ist umgesetzt</p>
+                <p className="mt-1.5"><strong>✗ Nicht erfüllt</strong> — Lücke identifiziert, muss adressiert werden</p>
+                <p className="mt-2">Nicht erfüllte Punkte erscheinen als Handlungsbedarf in der Zusammenfassung.</p>
+              </InfoHint>
+            </div>
+            <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden flex-shrink-0">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all"
                 style={{ width: `${(dsgvoDone / DSGVO_CHECKLIST.length) * 100}%` }}
@@ -338,25 +377,24 @@ export function CompliancePageClient({ initialChecks }: Props) {
           <ul className="space-y-2">
             {DSGVO_CHECKLIST.map(item => {
               const c = getCheck('dsgvo', item.id)
-              const isDone = c?.status === 'compliant'
+              const status = c?.status ?? 'pending'
               const isSaving = saving.has(makeKey('dsgvo', item.id))
               return (
                 <li key={item.id}>
-                  <label className={cn(
-                    'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors',
-                    isDone ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                  <div className={cn(
+                    'flex items-start gap-3 p-3.5 rounded-xl border transition-colors',
+                    status === 'compliant' ? 'bg-emerald-50 border-emerald-200' :
+                    status === 'non_compliant' ? 'bg-red-50 border-red-200' :
+                    'bg-white border-slate-200',
                     isSaving && 'opacity-60'
                   )}>
-                    <input
-                      type="checkbox"
-                      checked={isDone}
-                      onChange={() => toggleItem('dsgvo', item.id)}
-                      disabled={isSaving}
-                      className="mt-0.5 flex-shrink-0 accent-emerald-600"
-                    />
+                    <StatusIcon status={status} onClick={() => toggleItem('dsgvo', item.id)} disabled={isSaving} />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.article}</p>
-                      <p className={cn('text-sm font-medium', isDone ? 'text-emerald-800 line-through' : 'text-slate-800')}>
+                      <p className={cn('text-sm font-medium',
+                        status === 'compliant' ? 'text-emerald-800 line-through' :
+                        status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                      )}>
                         {item.label}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
@@ -366,7 +404,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                         </p>
                       )}
                     </div>
-                  </label>
+                  </div>
                 </li>
               )
             })}
@@ -380,7 +418,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
           <p className="text-sm text-slate-500 mb-5">
             Positionieren Sie Ihren AI-Use-Case nach Auswirkung (bei Fehler) und Eintrittswahrscheinlichkeit.
           </p>
-
           <RiskMatrixSelector
             value={getRiskMatrixPos()}
             onChange={({ impact, probability }) => setRiskMatrixPos(impact, probability)}
@@ -405,16 +442,18 @@ export function CompliancePageClient({ initialChecks }: Props) {
               value={obligations.length > 0 ? `${euAiActDone} / ${obligations.length}` : riskClass ? 'Keine Pflichten' : '—'}
               sub={obligations.length > 0 ? `${Math.round((euAiActDone / obligations.length) * 100)}% abgeschlossen` : undefined}
               done={obligations.length > 0 ? euAiActDone === obligations.length : !!riskClass}
+              issues={euAiActNonCompliant}
             />
             <SummaryCard
               label="DSGVO-Checkliste"
               value={`${dsgvoDone} / ${DSGVO_CHECKLIST.length}`}
               sub={`${Math.round((dsgvoDone / DSGVO_CHECKLIST.length) * 100)}% abgeschlossen`}
               done={dsgvoDone === DSGVO_CHECKLIST.length}
+              issues={dsgvoNonCompliant}
             />
           </div>
 
-          {/* Risk level display */}
+          {/* Risikoniveau */}
           {(() => {
             const pos = getRiskMatrixPos()
             const level = getRiskLevel(pos.impact, pos.probability)
@@ -433,6 +472,44 @@ export function CompliancePageClient({ initialChecks }: Props) {
             )
           })()}
 
+          {/* Offene Punkte */}
+          {allOpenItems.length > 0 && (
+            <div className="border border-red-200 rounded-2xl p-4 sm:p-5 bg-red-50">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-sm font-semibold text-red-900">
+                  Offene Punkte ({allOpenItems.length})
+                </h3>
+                <InfoHint title="Was sind Offene Punkte?" side="bottom">
+                  <p>Alle Anforderungen, die Sie als <strong>&bdquo;Nicht erfüllt&ldquo; (✗)</strong> markiert haben.</p>
+                  <p className="mt-1.5">Diese Lücken sollten vor einem Go-Live adressiert werden — durch technische Maßnahmen, Prozessanpassungen oder Dokumentation.</p>
+                  <p className="mt-1.5">Klicken Sie in der Checkliste auf den roten Status-Kreis, um den Status zurückzusetzen.</p>
+                </InfoHint>
+              </div>
+              <p className="text-xs text-red-700 mb-3">
+                Folgende Anforderungen wurden als &bdquo;Nicht erfüllt&ldquo; markiert und müssen vor einem Go-Live adressiert werden.
+              </p>
+              <ul className="space-y-2">
+                {allOpenItems.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-xs">
+                    <span
+                      className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-[10px]"
+                      aria-hidden="true"
+                    >✗</span>
+                    <span className="min-w-0">
+                      <span className="font-semibold text-red-800">{item.reg}:</span>
+                      <span className="text-red-700 ml-1">{item.label}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {allOpenItems.length === 0 && (dsgvoDone > 0 || euAiActDone > 0) && (
+            <div className="border border-emerald-200 rounded-xl p-3.5 bg-emerald-50">
+              <p className="text-xs font-medium text-emerald-800">✓ Keine offenen Punkte — alle geprüften Anforderungen sind erfüllt.</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -467,11 +544,9 @@ export function CompliancePageClient({ initialChecks }: Props) {
         <div role="tabpanel" id="panel-extras" aria-labelledby="tab-extras" className="space-y-6">
           <HintBox variant="info" className="mb-1">
             <strong>Wählen Sie branchenspezifische Regelwerke aus</strong>, die für Ihr Unternehmen relevant sind.
-            Aktivierte Gesetze erscheinen als ausfüllbare Checklisten — Ihren Fortschritt können Sie direkt hier abhaken.
-            Ihre Auswahl wird lokal gespeichert.
+            Aktivierte Gesetze erscheinen als ausfüllbare Checklisten — Ihr Fortschritt wird automatisch gespeichert.
           </HintBox>
 
-          {/* Regelwerk-Auswahl */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <h2 className="text-sm font-semibold text-slate-700">Regelwerke aktivieren</h2>
@@ -518,7 +593,6 @@ export function CompliancePageClient({ initialChecks }: Props) {
             </div>
           </div>
 
-          {/* Checklisten der aktiven Regelwerke */}
           {activeRegs.length === 0 && (
             <p className="text-sm text-slate-400 text-center py-6">
               Aktivieren Sie oben ein Regelwerk, um die passende Checkliste anzuzeigen.
@@ -527,17 +601,23 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {activeRegs.map(reg => {
             const regDone = reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'compliant').length
+            const regNonCompliant = reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'non_compliant').length
             return (
               <div key={reg.id} className="border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-slate-800">{reg.label}</h3>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h3 className="text-sm font-semibold text-slate-800 truncate">{reg.label}</h3>
                     <InfoHint title={reg.label} side="bottom">
                       <p>{reg.description}</p>
                       <p className="mt-1.5"><strong>Gilt für:</strong> {reg.applicability}</p>
                     </InfoHint>
                   </div>
-                  <span className="text-xs text-slate-400 flex-shrink-0">{regDone}/{reg.items.length} erledigt</span>
+                  <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                    {regDone}/{reg.items.length} erfüllt
+                    {regNonCompliant > 0 && (
+                      <span className="ml-1.5 text-red-600 font-medium">· {regNonCompliant} offen</span>
+                    )}
+                  </span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
@@ -553,29 +633,28 @@ export function CompliancePageClient({ initialChecks }: Props) {
                 <ul className="space-y-2">
                   {reg.items.map(item => {
                     const c = getCheck(reg.id, item.id)
-                    const isDone = c?.status === 'compliant'
+                    const status = c?.status ?? 'pending'
                     const isSaving = saving.has(makeKey(reg.id, item.id))
                     return (
                       <li key={item.id}>
-                        <label className={cn(
-                          'flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors',
-                          isDone ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-slate-300',
+                        <div className={cn(
+                          'flex items-start gap-3 p-3 rounded-xl border transition-colors',
+                          status === 'compliant' ? 'bg-blue-50 border-blue-200' :
+                          status === 'non_compliant' ? 'bg-red-50 border-red-200' :
+                          'bg-white border-slate-200',
                           isSaving && 'opacity-60'
                         )}>
-                          <input
-                            type="checkbox"
-                            checked={isDone}
-                            onChange={() => toggleItem(reg.id, item.id)}
-                            disabled={isSaving}
-                            className="mt-0.5 flex-shrink-0 accent-blue-600"
-                          />
+                          <StatusIcon status={status} onClick={() => toggleItem(reg.id, item.id)} disabled={isSaving} />
                           <div className="min-w-0">
                             <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.category}</p>
-                            <p className={cn('text-sm font-medium', isDone ? 'text-blue-800 line-through' : 'text-slate-800')}>
+                            <p className={cn('text-sm font-medium',
+                              status === 'compliant' ? 'text-blue-800 line-through' :
+                              status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                            )}>
                               {item.label}
                             </p>
                           </div>
-                        </label>
+                        </div>
                       </li>
                     )
                   })}
@@ -586,7 +665,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
         </div>
       )}
 
-      {/* Aktions-Leiste — konsistent unten wie alle anderen Module */}
+      {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
         <a
           href="/api/export/pdf?module=compliance"
@@ -603,12 +682,74 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function SummaryCard({ label, value, sub, done }: { label: string; value: string; sub?: string; done: boolean }) {
+function StatusIcon({
+  status,
+  onClick,
+  disabled,
+}: {
+  status: CheckStatus | undefined
+  onClick: () => void
+  disabled: boolean
+}) {
+  const base = 'flex-shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50'
+  if (!status || status === 'pending') {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label="Offen — anklicken für Erfüllt"
+        className={cn(base, 'border-slate-300 bg-white hover:border-blue-400 focus:ring-blue-500')}
+      />
+    )
+  }
+  if (status === 'compliant') {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label="Erfüllt — anklicken für Nicht erfüllt"
+        className={cn(base, 'border-emerald-500 bg-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 focus:ring-emerald-500')}
+      >
+        <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✓</span>
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label="Nicht erfüllt — anklicken für Offen"
+      className={cn(base, 'border-red-500 bg-red-500 hover:bg-red-600 hover:border-red-600 focus:ring-red-500')}
+    >
+      <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✗</span>
+    </button>
+  )
+}
+
+function SummaryCard({
+  label,
+  value,
+  sub,
+  done,
+  issues,
+}: {
+  label: string
+  value: string
+  sub?: string
+  done: boolean
+  issues?: number
+}) {
   return (
     <div className={cn('rounded-xl border p-4', done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200')}>
       <p className="text-xs text-slate-500 mb-1">{label}</p>
       <p className={cn('text-base font-semibold', done ? 'text-emerald-800' : 'text-slate-900')}>{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+      {issues != null && issues > 0 && (
+        <p className="text-xs text-red-600 mt-1 font-medium">✗ {issues} nicht erfüllt</p>
+      )}
     </div>
   )
 }

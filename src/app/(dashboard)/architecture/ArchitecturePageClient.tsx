@@ -3,11 +3,14 @@ import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
+import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent, Canvas, UseCase } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
+
+const NOW = Date.now()
 
 const LAYER_ICONS = ['◎', '◐', '▷', '□']
 
@@ -216,11 +219,28 @@ function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
   )
 }
 
-function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecommendations; components: CatalogComponent[] }) {
+function CatalogRecommendationsCard({
+  recs,
+  components,
+  onSelectComp,
+}: {
+  recs: CatalogRecommendations
+  components: CatalogComponent[]
+  onSelectComp: (comp: CatalogComponent) => void
+}) {
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-5">
-      <h3 className="text-sm font-semibold text-slate-900">Empfohlene Katalog-Komponenten</h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-900">Empfohlene Katalog-Komponenten</h3>
+        <InfoHint title="Was sind Katalog-Komponenten?">
+          <p>Diese Komponenten wurden anhand Ihrer Wizard-Eingaben aus dem Technologie-Katalog ausgewählt — bewertet nach DSGVO-Konformität, EU AI Act-Risiko und Hosting-Standort.</p>
+          <p className="mt-1.5"><strong>Klicken Sie auf eine Komponente</strong>, um Details wie Beschreibung, Zertifizierungen und offizielle Website zu sehen.</p>
+        </InfoHint>
+      </div>
+      <HintBox variant="tip" className="py-2 text-xs">
+        Klicken Sie auf eine Komponente für Details zu DSGVO-Status, EU AI Act-Einordnung und Hosting.
+      </HintBox>
       <div className="space-y-3">
         {recs.layers.map(lr => (
           <div key={lr.layer}>
@@ -230,14 +250,25 @@ function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecomme
             <div className="flex flex-wrap gap-1.5">
               {lr.componentNames.map(name => {
                 const comp = byName[name]
+                if (comp) {
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => onSelectComp(comp)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    >
+                      <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
+                      {comp.dsgvo_status && (
+                        <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
+                          {DSGVO_LABEL[comp.dsgvo_status]}
+                        </span>
+                      )}
+                    </button>
+                  )
+                }
                 return (
-                  <span key={name} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
-                    <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
-                    {comp?.dsgvo_status && (
-                      <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
-                        {DSGVO_LABEL[comp.dsgvo_status]}
-                      </span>
-                    )}
+                  <span key={name} className="inline-flex items-center px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 font-medium">
+                    {name}
                   </span>
                 )
               })}
@@ -260,6 +291,7 @@ function CatalogRecommendationsCard({ recs, components }: { recs: CatalogRecomme
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
+  const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<WizardAnswers>(() => {
     const base = compliancePreset ? { compliance: compliancePreset } : {}
@@ -469,9 +501,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 </div>
                 <p className="text-xs text-slate-500 mb-2">{layer.role}</p>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  {layer.components.map((comp, j) => (
-                    <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{comp}</span>
-                  ))}
+                  {layer.components.map((comp, j) => {
+                    const catalogComp = recComponents.find(c => c.name === comp)
+                    if (catalogComp) {
+                      return (
+                        <button
+                          key={j}
+                          onClick={() => setSelectedComp(catalogComp)}
+                          className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full hover:bg-blue-100 hover:text-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {comp}
+                        </button>
+                      )
+                    }
+                    return (
+                      <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{comp}</span>
+                    )
+                  })}
                 </div>
                 <p className="text-xs text-slate-400 italic">{layer.examples}</p>
               </section>
@@ -487,10 +533,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Catalog recommendations */}
         {catalogRecs && (
           <>
-            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} />
+            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} onSelectComp={setSelectedComp} />
             {recComponents.length > 0 && (() => {
               const latest = recComponents.reduce((a, b) => a.updated_at > b.updated_at ? a : b)
-              const days = Math.floor((Date.now() - new Date(latest.updated_at).getTime()) / 86_400_000)
+              const days = Math.floor((NOW - new Date(latest.updated_at).getTime()) / 86_400_000)
               return (
                 <p className={cn('text-xs mt-1', days > 30 ? 'text-amber-600' : 'text-slate-400')}>
                   {days > 30
@@ -595,6 +641,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             Canvas öffnen →
           </a>
         </div>
+
+        {/* Component detail modal */}
+        {selectedComp && (
+          <ComponentDetailModal comp={selectedComp} onClose={() => setSelectedComp(null)} />
+        )}
       </div>
     )
   }
@@ -687,6 +738,73 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         >
           {isLastStep ? 'Architektur generieren' : 'Weiter →'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClose: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="comp-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-sm w-full">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <h2 id="comp-modal-title" className="text-sm font-semibold text-slate-900 min-w-0">{comp.name}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Schließen"
+            className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-0.5"
+          >✕</button>
+        </div>
+        {comp.description && (
+          <p className="text-xs text-slate-600 mb-4 leading-relaxed">{comp.description}</p>
+        )}
+        <dl className="space-y-2.5">
+          {comp.dsgvo_status && (
+            <div className="flex items-center gap-3">
+              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">DSGVO</dt>
+              <dd>
+                <span className={cn('text-xs px-2 py-0.5 rounded border font-medium', DSGVO_BADGE[comp.dsgvo_status])}>
+                  {DSGVO_LABEL[comp.dsgvo_status]}
+                </span>
+              </dd>
+            </div>
+          )}
+          {comp.eu_ai_act_risk && (
+            <div className="flex items-center gap-3">
+              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">EU AI Act</dt>
+              <dd className="text-xs text-slate-700">{comp.eu_ai_act_risk}</dd>
+            </div>
+          )}
+          {comp.cloud_provider && (
+            <div className="flex items-center gap-3">
+              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">Hosting</dt>
+              <dd className="text-xs text-slate-700">{comp.cloud_provider}</dd>
+            </div>
+          )}
+          {comp.website_url && (
+            <div className="flex items-center gap-3">
+              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">Website</dt>
+              <dd>
+                <a
+                  href={comp.website_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline break-all"
+                >
+                  {comp.website_url.replace(/^https?:\/\//, '')} ↗
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
       </div>
     </div>
   )

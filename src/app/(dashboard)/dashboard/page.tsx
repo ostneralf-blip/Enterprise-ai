@@ -7,6 +7,8 @@ import type { Tier } from '@/types'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
+const NOW = Date.now()
+
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
   scaler:      { label: 'AI Scaler',      color: 'text-blue-700 bg-blue-50 border-blue-200' },
@@ -140,8 +142,6 @@ export default async function DashboardPage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   const fullName = profileData?.full_name as string | null
   const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0) + (assessmentCount ?? 0)
-  const accessibleToolCount = MODULES.filter(mod => hasAccess(tier, mod.requiredTier)).length
-
   const moduleDone: Record<string, boolean> = {
     assessment:  (assessmentCount ?? 0) > 0,
     usecase:     (usecaseCount ?? 0) > 0,
@@ -193,6 +193,11 @@ export default async function DashboardPage() {
     },
   ]
 
+  const assessmentDaysSince = latestAssessment
+    ? Math.floor((NOW - new Date(latestAssessment.created_at as string).getTime()) / 86_400_000)
+    : 0
+  const assessmentWeeksSince = Math.floor(assessmentDaysSince / 7)
+
   return (
     <div>
       <div className="mb-8">
@@ -239,27 +244,22 @@ export default async function DashboardPage() {
       <GuidedPath steps={guidedSteps} tier={tier} />
 
       {/* Quarterly Review Reminder */}
-      {latestAssessment && (() => {
-        const daysSince = Math.floor((Date.now() - new Date(latestAssessment.created_at as string).getTime()) / 86_400_000)
-        const weeksSince = Math.floor(daysSince / 7)
-        if (daysSince < 90) return null
-        return (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-amber-900">Zeit für Ihren Quarterly AI Health Review</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Ihr letztes Assessment ist {weeksSince} Wochen alt. Regelmäßige Reviews sichern Ihren AI-Fortschritt.
-              </p>
-            </div>
-            <a
-              href="/assessment"
-              className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0"
-            >
-              Assessment neu starten →
-            </a>
+      {latestAssessment && assessmentDaysSince >= 90 && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-900">Zeit für Ihren Quarterly AI Health Review</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Ihr letztes Assessment ist {assessmentWeeksSince} Wochen alt. Regelmäßige Reviews sichern Ihren AI-Fortschritt.
+            </p>
           </div>
-        )
-      })()}
+          <a
+            href="/assessment"
+            className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0"
+          >
+            Assessment neu starten →
+          </a>
+        </div>
+      )}
 
 
       <div className="mb-4">

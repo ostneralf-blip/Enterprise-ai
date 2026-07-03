@@ -53,10 +53,26 @@ interface RowActionsProps {
 
 function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCancel, onDelete }: RowActionsProps) {
   return (
-    <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+    <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
       {isPrimary
-        ? <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 whitespace-nowrap">★ Primär</span>
-        : <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
+        ? (
+          <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 whitespace-nowrap">
+            ★ Primär
+            <InfoHint title="Was bedeutet Primär?" side="bottom">
+              <p>Das als Primär markierte Ergebnis wird in anderen Modulen als Standard-Kontext verwendet.</p>
+              <p className="mt-1.5">Zum Beispiel zieht der Architektur-Generator das primäre Assessment-Ergebnis automatisch als Kontext ein — so müssen Sie Ihren Reifegrad nicht erneut eingeben.</p>
+            </InfoHint>
+          </span>
+        )
+        : (
+          <span className="flex items-center gap-1">
+            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
+            <InfoHint title="Was bedeutet Primär?" side="bottom">
+              <p>Das als Primär markierte Ergebnis wird als Standard-Kontext in anderen Modulen verwendet.</p>
+              <p className="mt-1.5">Nur ein Ergebnis pro Modul-Typ kann gleichzeitig Primär sein.</p>
+            </InfoHint>
+          </span>
+        )
       }
       {isConfirmDelete
         ? <div className="flex gap-1">

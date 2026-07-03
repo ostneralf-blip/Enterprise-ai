@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
 import { QUADRANT_META } from '@/config/usecase-data'
-import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { InfoHint } from '@/components/shared/InfoHint'
 import type { Archetype, Tier } from '@/types'
 
 type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }

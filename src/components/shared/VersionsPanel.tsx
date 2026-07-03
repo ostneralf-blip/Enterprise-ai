@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { ArchitectureResult } from '@/config/architecture-data'
 
 interface Version {
@@ -31,7 +31,7 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
 
   const isPro = tier === 'pro' || tier === 'enterprise'
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/versions?module=${module}&entity_id=${entityId}`)
@@ -42,11 +42,12 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [module, entityId])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (open) load()
-  }, [open])
+  }, [open, load])
 
   const handleSave = async () => {
     setSaving(true)
