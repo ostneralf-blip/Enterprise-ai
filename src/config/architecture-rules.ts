@@ -193,10 +193,24 @@ export function scoreComponentAgainstAnswers(
   component: CatalogComponent,
   answers: WizardAnswers
 ): number {
-  let score = 0
   const providerMap: Record<string, string> = {
     sap_btp: 'sap', azure: 'azure', aws: 'aws', gcp: 'gcp',
   }
+
+  // Hard-exclude: SAP-platform components require SAP context
+  if (component.cloud_provider === 'sap' && !isSAP(answers)) return -1
+
+  // Hard-exclude: if user explicitly chose a vendor, exclude other vendors' specific components
+  if (answers.cloud_provider_hint) {
+    const targetProvider = providerMap[answers.cloud_provider_hint] ?? answers.cloud_provider_hint
+    if (component.cloud_provider !== null
+        && component.cloud_provider !== 'independent'
+        && component.cloud_provider !== targetProvider) {
+      return -1
+    }
+  }
+
+  let score = 0
   if (answers.cloud_provider_hint && providerMap[answers.cloud_provider_hint] === component.cloud_provider)
     score += 20
   if (component.cloud_provider === 'independent') score += 5
