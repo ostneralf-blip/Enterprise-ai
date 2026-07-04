@@ -101,6 +101,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [uploadLog, setUploadLog] = useState<CatalogUploadLog[]>(initialUploadLog)
   const [tagEditingId, setTagEditingId] = useState<string | null>(null)
   const [tagSavingId, setTagSavingId] = useState<string | null>(null)
+  const [restoringId, setRestoringId] = useState<string | null>(null)
+  const [restoreMsg, setRestoreMsg] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
@@ -233,6 +235,29 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   function addTag(id: string, currentTags: string[], tag: string) {
     if (currentTags.includes(tag)) return
     patchComponentTags(id, [...currentTags, tag])
+  }
+
+  // ── Catalog restore handler ─────────────────────────────────────────────────
+  async function handleRestore(logId: string, filename: string) {
+    if (!confirm(`Katalog auf Stand von "${filename}" zurücksetzen? Bestehende Einträge werden überschrieben.`)) return
+    setRestoringId(logId)
+    setRestoreMsg(null)
+    try {
+      const res = await fetch('/api/admin/catalog/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logId }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Fehler beim Wiederherstellen')
+      setRestoreMsg(`✓ ${json.restored} Komponenten wiederhergestellt`)
+      const listRes = await fetch('/api/catalog/components')
+      if (listRes.ok) { const { data } = await listRes.json(); setComponents(data ?? []) }
+    } catch (e) {
+      setRestoreMsg(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setRestoringId(null)
+    }
   }
 
   // ── Source add/delete handlers ──────────────────────────────────────────────
@@ -1172,10 +1197,20 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Upload-Verlauf */}
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold text-slate-800">Upload-Verlauf</h3>
               <span className="text-xs text-slate-400">{uploadLog.length} Einträge</span>
             </div>
+            {restoreMsg && (
+              <div className={cn(
+                'px-4 py-2 text-xs font-medium border-b',
+                restoreMsg.startsWith('✓')
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                  : 'bg-red-50 text-red-700 border-red-100'
+              )}>
+                {restoreMsg}
+              </div>
+            )}
             {uploadLog.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
             ) : (
@@ -1189,6 +1224,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Vendor-Override</th>
                       <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Layer-Override</th>
                       <th className="text-left px-4 py-2 font-medium text-slate-500">Datum</th>
+                      <th className="text-left px-4 py-2 font-medium text-slate-500"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -1209,6 +1245,19 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <td className="px-4 py-2 text-slate-400 hidden md:table-cell">{log.layer_override ?? '—'}</td>
                         <td className="px-4 py-2 text-slate-400 whitespace-nowrap">
                           {new Date(log.uploaded_at).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          {log.snapshot ? (
+                            <button
+                              onClick={() => handleRestore(log.id, log.filename)}
+                              disabled={restoringId === log.id}
+                              className="px-2 py-1 text-[10px] font-medium rounded border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+                            >
+                              {restoringId === log.id ? '…' : '↩ Wiederherstellen'}
+                            </button>
+                          ) : (
+                            <span className="text-slate-300 text-[10px]">kein Snapshot</span>
+                          )}
                         </td>
                       </tr>
                     ))}

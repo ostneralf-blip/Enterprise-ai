@@ -320,6 +320,7 @@ export async function POST(request: Request) {
     vendor_override: vendorOverride || null,
     layer_override: layerOverride || null,
     source: 'upload',
+    snapshot: deduped,
   })
 
   return NextResponse.json({

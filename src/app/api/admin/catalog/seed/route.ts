@@ -57,6 +57,7 @@ export async function POST() {
     vendor_override: null,
     layer_override: null,
     source: 'seed',
+    snapshot: dedupedComponents,
   })
 
   return NextResponse.json({

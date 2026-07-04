@@ -4,14 +4,14 @@ import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 
-const LAYER_META: Record<string, { label: string; color: string; dot: string }> = {
-  data:        { label: 'Daten',      color: 'bg-blue-50 border-blue-200 text-blue-800',      dot: 'bg-blue-500' },
-  model:       { label: 'Modell',     color: 'bg-violet-50 border-violet-200 text-violet-800', dot: 'bg-violet-500' },
-  mlops:       { label: 'MLOps',      color: 'bg-amber-50 border-amber-200 text-amber-800',    dot: 'bg-amber-500' },
-  serving:     { label: 'Serving',    color: 'bg-emerald-50 border-emerald-200 text-emerald-800', dot: 'bg-emerald-500' },
-  governance:  { label: 'Governance', color: 'bg-orange-50 border-orange-200 text-orange-800', dot: 'bg-orange-500' },
-  security:    { label: 'Security',   color: 'bg-red-50 border-red-200 text-red-800',          dot: 'bg-red-500' },
-  application: { label: 'Anwendung',  color: 'bg-indigo-50 border-indigo-200 text-indigo-800', dot: 'bg-indigo-500' },
+const LAYER_META: Record<string, { label: string; band: string; dot: string; cross?: boolean }> = {
+  data:        { label: 'Daten',      band: 'bg-blue-50 border-blue-200',     dot: 'bg-blue-500' },
+  model:       { label: 'Modell',     band: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
+  mlops:       { label: 'MLOps',      band: 'bg-amber-50 border-amber-200',   dot: 'bg-amber-500' },
+  serving:     { label: 'Serving',    band: 'bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
+  application: { label: 'Anwendung',  band: 'bg-indigo-50 border-indigo-200', dot: 'bg-indigo-500' },
+  governance:  { label: 'Governance', band: 'bg-orange-50 border-orange-200', dot: 'bg-orange-500', cross: true },
+  security:    { label: 'Security',   band: 'bg-red-50 border-red-200',       dot: 'bg-red-500',    cross: true },
 }
 
 const DSGVO_BADGE: Record<string, string> = {
@@ -27,6 +27,8 @@ export interface ArchitectureDiagramProps {
   recs: CatalogRecommendations
   components: CatalogComponent[]
   tier?: string
+  pattern?: string
+  archetype?: string
 }
 
 interface DetailPanelProps {
@@ -74,6 +76,42 @@ function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
   )
 }
 
+function ComponentButton({
+  name,
+  comp,
+  isSelected,
+  locked,
+  onSelect,
+}: {
+  name: string
+  comp: CatalogComponent | undefined
+  isSelected: boolean
+  locked: boolean
+  onSelect: () => void
+}) {
+  if (locked) {
+    return <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
+  }
+  return (
+    <button
+      onClick={onSelect}
+      className={cn(
+        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
+        isSelected
+          ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
+          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm',
+      )}
+    >
+      <span className="min-w-0 truncate max-w-[150px]">{name}</span>
+      {comp?.dsgvo_status && (
+        <span className={cn('px-1 py-0.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+          {DSGVO_LABEL[comp.dsgvo_status]}
+        </span>
+      )}
+    </button>
+  )
+}
+
 function SwimlaneTable({
   recs,
   byName,
@@ -87,63 +125,85 @@ function SwimlaneTable({
   selected: string | null
   onSelect: (name: string) => void
 }) {
+  const mainLayers = recs.layers.filter(lr => !LAYER_META[lr.layer]?.cross)
+  const crossLayers = recs.layers.filter(lr => LAYER_META[lr.layer]?.cross)
+
   return (
     <div className="overflow-x-auto">
+      {/* Main swimlane rows */}
       <table className="w-full border-collapse text-xs min-w-[480px]">
         <tbody>
-          {recs.layers.map((lr, layerIdx) => {
-            const meta = LAYER_META[lr.layer] ?? { label: lr.layer, color: 'bg-slate-50 border-slate-200 text-slate-700', dot: 'bg-slate-400' }
-            const isLast = layerIdx === recs.layers.length - 1
+          {mainLayers.map((lr, layerIdx) => {
+            const meta = LAYER_META[lr.layer] ?? { label: lr.layer, band: 'bg-slate-50 border-slate-200', dot: 'bg-slate-400' }
+            const isLast = layerIdx === mainLayers.length - 1
             return (
               <tr key={lr.layer} className={cn(!isLast && 'border-b border-slate-100')}>
-                {/* Layer label cell */}
-                <td className={cn('px-3 py-3 w-28 align-middle border-r border-slate-100 shrink-0', meta.color)}>
+                <td className={cn('px-3 py-3 w-28 align-middle border-r border-slate-100 shrink-0', meta.band)}>
                   <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className={cn('w-2 h-2 rounded-full flex-shrink-0', meta.dot)} />
-                    <span className="font-semibold text-[11px] uppercase tracking-wide">{meta.label}</span>
+                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{meta.label}</span>
                   </div>
                 </td>
-                {/* Component cells */}
                 <td className="px-3 py-2.5 align-middle">
-                  {locked ? (
-                    <div className="flex flex-wrap gap-2">
-                      {lr.componentNames.map((_, i) => (
-                        <div key={i} className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {lr.componentNames.map(name => {
-                        const comp = byName[name]
-                        const isSelected = selected === name
-                        return (
-                          <button
+                  <div className="flex flex-wrap gap-2">
+                    {locked
+                      ? lr.componentNames.map((_, i) => <div key={i} className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />)
+                      : lr.componentNames.map(name => (
+                          <ComponentButton
                             key={name}
-                            onClick={() => onSelect(name)}
-                            className={cn(
-                              'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
-                              isSelected
-                                ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
-                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm',
-                            )}
-                          >
-                            <span className="min-w-0 truncate max-w-[150px]">{name}</span>
-                            {comp?.dsgvo_status && (
-                              <span className={cn('px-1 py-0.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
-                                {DSGVO_LABEL[comp.dsgvo_status]}
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
+                            name={name}
+                            comp={byName[name]}
+                            isSelected={selected === name}
+                            locked={false}
+                            onSelect={() => onSelect(name)}
+                          />
+                        ))
+                    }
+                  </div>
                 </td>
               </tr>
             )
           })}
         </tbody>
       </table>
+
+      {/* Cross-cutting banners: Governance + Security */}
+      {crossLayers.length > 0 && (
+        <div className="border-t-2 border-dashed border-slate-200 mt-1 min-w-[480px]">
+          <div className="px-3 py-1.5 bg-slate-50">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Querschnittsfunktionen</span>
+          </div>
+          <div className="flex flex-wrap gap-0 divide-x divide-slate-100">
+            {crossLayers.map(lr => {
+              const meta = LAYER_META[lr.layer]!
+              return (
+                <div key={lr.layer} className={cn('flex-1 min-w-[220px] px-3 py-2.5', meta.band)}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className={cn('w-2 h-2 rounded-full flex-shrink-0', meta.dot)} />
+                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{meta.label}</span>
+                    <span className="text-[9px] text-slate-400 ml-1">gilt für alle Layer</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {locked
+                      ? lr.componentNames.map((_, i) => <div key={i} className="h-6 w-20 rounded bg-slate-100 animate-pulse" />)
+                      : lr.componentNames.map(name => (
+                          <ComponentButton
+                            key={name}
+                            name={name}
+                            comp={byName[name]}
+                            isSelected={selected === name}
+                            locked={false}
+                            onSelect={() => onSelect(name)}
+                          />
+                        ))
+                    }
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -167,12 +227,13 @@ function FullscreenModal({ children, onClose }: { children: React.ReactNode; onC
   )
 }
 
-export function ArchitectureDiagram({ recs, components, tier = 'free' }: ArchitectureDiagramProps) {
+export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, archetype }: ArchitectureDiagramProps) {
   const locked  = tier === 'free'
   const byName  = Object.fromEntries(components.map(c => [c.name, c]))
   const [selected, setSelected]     = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
 
+  const mainLayers  = recs.layers.filter(lr => !LAYER_META[lr.layer]?.cross)
   const totalComponents = recs.layers.reduce((s, l) => s + l.componentNames.length, 0)
 
   const handleSelect = (name: string) => {
@@ -183,11 +244,22 @@ export function ArchitectureDiagram({ recs, components, tier = 'free' }: Archite
 
   const header = (
     <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
-      <div className="flex items-center gap-3 min-w-0">
-        <h3 className="text-sm font-semibold text-slate-900">Enterprise Architekturdiagramm</h3>
+      <div className="flex items-center gap-3 min-w-0 flex-wrap">
+        {pattern ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-sm font-semibold text-slate-900 truncate">{pattern}</h3>
+            {archetype && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap flex-shrink-0">
+                {archetype}
+              </span>
+            )}
+          </div>
+        ) : (
+          <h3 className="text-sm font-semibold text-slate-900">Enterprise Architekturdiagramm</h3>
+        )}
         {locked
           ? <span className="text-xs text-slate-400">🔒 Pro-Feature</span>
-          : <span className="text-xs text-slate-400">{totalComponents} Komponenten · {recs.layers.length} Schichten</span>
+          : <span className="text-xs text-slate-400">{totalComponents} Komponenten · {mainLayers.length} Schichten</span>
         }
       </div>
       {!locked && (
@@ -210,7 +282,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free' }: Archite
         <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3 rounded-b-2xl">
           <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
           <p className="text-xs text-slate-500 text-center max-w-52">
-            {totalComponents} Komponenten in {recs.layers.length} Schichten — verfügbar ab Pro
+            {totalComponents} Komponenten in {mainLayers.length} Schichten — verfügbar ab Pro
           </p>
           <a href="/upgrade"
             className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors">

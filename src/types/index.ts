@@ -86,6 +86,7 @@ export interface CatalogUploadLog {
   layer_override: string | null
   source: 'upload' | 'seed'
   uploaded_at: string
+  snapshot: Record<string, unknown>[] | null
 }
 
 export interface CatalogSource {

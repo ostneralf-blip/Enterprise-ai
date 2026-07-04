@@ -164,5 +164,48 @@ describe('Security: Admin Panel', () => {
     it('seed route still requires admin (requireAdmin check present)', () => {
       expect(seedSource).toContain('requireAdmin()')
     })
+
+    it('upload route saves snapshot to log entry', () => {
+      expect(uploadSource).toContain('snapshot')
+    })
+
+    it('seed route saves snapshot to log entry', () => {
+      expect(seedSource).toContain('snapshot')
+    })
+  })
+
+  describe('API route: POST /api/admin/catalog/restore', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/app/api/admin/catalog/restore/route.ts'),
+      'utf-8'
+    )
+
+    it('calls requireAdmin() before restore operation', () => {
+      expect(source).toContain('requireAdmin()')
+    })
+
+    it('imports requireAdmin from admin-check utility', () => {
+      expect(source).toContain("from '@/lib/utils/admin-check'")
+    })
+
+    it('validates logId as UUID via Zod', () => {
+      expect(source).toContain('z.string().uuid()')
+    })
+
+    it('returns 403 when not admin', () => {
+      expect(source).toContain("status: 403")
+    })
+
+    it('returns 404 when log entry not found', () => {
+      expect(source).toContain("status: 404")
+    })
+
+    it('returns 409 when no snapshot available', () => {
+      expect(source).toContain("status: 409")
+    })
+
+    it('uses upsert for restore to handle existing components safely', () => {
+      expect(source).toContain('.upsert(')
+    })
   })
 })
