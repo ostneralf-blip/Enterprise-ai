@@ -527,7 +527,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Architecture diagram */}
         {catalogRecs && (
-          <ArchitectureDiagram recs={catalogRecs} components={recComponents} tier={tier} />
+          <ArchitectureDiagram
+            recs={catalogRecs}
+            components={recComponents}
+            tier={tier}
+            pattern={result?.pattern}
+            archetype={assessmentContext?.archetype ? (ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype) : undefined}
+          />
         )}
 
         {/* Catalog recommendations */}
