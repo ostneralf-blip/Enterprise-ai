@@ -29,6 +29,25 @@ export function LoginForm({ searchParams }: LoginFormProps) {
     })
   }, [searchParams])
 
+  // Hash-basierten Magic-Link-Token verarbeiten (implicit flow)
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.includes('access_token')) return
+    const params = new URLSearchParams(hash.substring(1))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    if (!accessToken || !refreshToken) return
+    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      .then(({ error }) => {
+        if (!error) {
+          track('login', { method: 'magic_link' })
+          router.push('/dashboard')
+          router.refresh()
+        }
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
