@@ -104,6 +104,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [restoringId, setRestoringId] = useState<string | null>(null)
   const [restoreMsg, setRestoreMsg] = useState<string | null>(null)
 
+  // ── Dependency editor state ─────────────────────────────────────────────────
+  const [depEditingId, setDepEditingId] = useState<string | null>(null)
+  const [depForm, setDepForm] = useState<{ incompatible_with: string; requires: string; suggests: string }>({
+    incompatible_with: '', requires: '', suggests: '',
+  })
+  const [depSavingId, setDepSavingId] = useState<string | null>(null)
+
   // ── Content Library handlers ────────────────────────────────────────────────
   function openCreate() {
     setEditing(null)
@@ -235,6 +242,52 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   function addTag(id: string, currentTags: string[], tag: string) {
     if (currentTags.includes(tag)) return
     patchComponentTags(id, [...currentTags, tag])
+  }
+
+  // ── Dependency editor handlers ──────────────────────────────────────────────
+  async function patchComponentDependencies(id: string, patch: {
+    incompatible_with?: string[]
+    requires?: string[]
+    suggests?: string[]
+  }) {
+    setDepSavingId(id)
+    try {
+      const res = await fetch(`/api/admin/catalog/components/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      if (!res.ok) throw new Error((await res.json() as { error?: string }).error ?? 'Fehler')
+      const { data } = await res.json() as { data: { incompatible_with: string[]; requires: string[]; suggests: string[] } }
+      setComponents(prev => prev.map(c => c.id === id ? {
+        ...c,
+        incompatible_with: data.incompatible_with,
+        requires: data.requires,
+        suggests: data.suggests,
+      } : c))
+      setDepEditingId(null)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setDepSavingId(null)
+    }
+  }
+
+  function openDepEditor(c: CatalogComponent) {
+    setDepEditingId(c.id)
+    setDepForm({
+      incompatible_with: c.incompatible_with.join(', '),
+      requires: c.requires.join(', '),
+      suggests: c.suggests.join(', '),
+    })
+  }
+
+  function saveDepEditor(id: string) {
+    patchComponentDependencies(id, {
+      incompatible_with: depForm.incompatible_with.split(',').map(s => s.trim()).filter(Boolean),
+      requires:          depForm.requires.split(',').map(s => s.trim()).filter(Boolean),
+      suggests:          depForm.suggests.split(',').map(s => s.trim()).filter(Boolean),
+    })
   }
 
   // ── Catalog restore handler ─────────────────────────────────────────────────
@@ -1122,6 +1175,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">DSGVO</th>
                       <th className="text-center px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">SAP</th>
                       <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Tags</th>
+                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden xl:table-cell">Abhängigkeiten</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -1184,6 +1238,62 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                   className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded border border-blue-200 hover:bg-blue-100 transition-colors"
                                 >+{t}</button>
                               ))}
+                            </div>
+                          )}
+                        </td>
+                        {/* Dependency editor */}
+                        <td className="px-4 py-3 hidden xl:table-cell align-top">
+                          {depEditingId === c.id ? (
+                            <div className="space-y-1.5 min-w-[220px]">
+                              {([
+                                { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-red-200 focus:ring-red-400' },
+                                { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-blue-200 focus:ring-blue-400' },
+                                { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-emerald-200 focus:ring-emerald-400' },
+                              ] as const).map(({ key, label, color }) => (
+                                <div key={key}>
+                                  <label className="block text-[10px] font-medium text-slate-500 mb-0.5">{label}</label>
+                                  <input
+                                    type="text"
+                                    value={depForm[key]}
+                                    onChange={e => setDepForm(f => ({ ...f, [key]: e.target.value }))}
+                                    placeholder="Name1, Name2"
+                                    className={cn('w-full border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1', color)}
+                                  />
+                                </div>
+                              ))}
+                              <div className="flex gap-1.5 pt-0.5">
+                                <button
+                                  onClick={() => saveDepEditor(c.id)}
+                                  disabled={depSavingId === c.id}
+                                  className="px-2 py-1 text-[10px] font-medium bg-slate-800 text-white rounded disabled:opacity-50"
+                                >
+                                  {depSavingId === c.id ? '…' : 'Speichern'}
+                                </button>
+                                <button
+                                  onClick={() => setDepEditingId(null)}
+                                  className="px-2 py-1 text-[10px] font-medium border border-slate-200 text-slate-600 rounded"
+                                >
+                                  Abbrechen
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-0.5 min-w-0">
+                              {c.incompatible_with.length > 0 && (
+                                <p className="text-[10px] text-red-600 truncate max-w-[160px]">✗ {c.incompatible_with.join(', ')}</p>
+                              )}
+                              {c.requires.length > 0 && (
+                                <p className="text-[10px] text-blue-600 truncate max-w-[160px]">⬆ {c.requires.join(', ')}</p>
+                              )}
+                              {c.suggests.length > 0 && (
+                                <p className="text-[10px] text-emerald-600 truncate max-w-[160px]">💡 {c.suggests.join(', ')}</p>
+                              )}
+                              <button
+                                onClick={() => openDepEditor(c)}
+                                className="text-[10px] text-slate-400 hover:text-slate-700 font-medium"
+                              >
+                                {(c.incompatible_with.length + c.requires.length + c.suggests.length) > 0 ? '✎ Bearbeiten' : '+ Abhängigkeiten'}
+                              </button>
                             </div>
                           )}
                         </td>

@@ -56,6 +56,9 @@ export interface CatalogComponent {
   website_url: string | null
   description: string | null
   tags: string[]
+  incompatible_with: string[]
+  requires: string[]
+  suggests: string[]
   source: string
   is_active: boolean
   created_at: string

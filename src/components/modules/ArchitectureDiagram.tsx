@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
+import { SelectionSidebar } from '@/components/modules/SelectionSidebar'
+import { findConflicts, findSuggestions } from '@/lib/utils/catalog-compatibility'
 
 const LAYER_META: Record<string, { label: string; band: string; dot: string; cross?: boolean }> = {
   data:        { label: 'Daten',      band: 'bg-blue-50 border-blue-200',     dot: 'bg-blue-500' },
@@ -79,36 +81,67 @@ function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
 function ComponentButton({
   name,
   comp,
-  isSelected,
+  isChecked,
+  isFocused,
+  isConflicting,
+  isSuggested,
   locked,
-  onSelect,
+  onCheck,
+  onFocus,
 }: {
   name: string
   comp: CatalogComponent | undefined
-  isSelected: boolean
+  isChecked: boolean
+  isFocused: boolean
+  isConflicting: boolean
+  isSuggested: boolean
   locked: boolean
-  onSelect: () => void
+  onCheck: () => void
+  onFocus: () => void
 }) {
   if (locked) {
     return <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
   }
   return (
-    <button
-      onClick={onSelect}
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
-        isSelected
-          ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
-          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:shadow-sm',
-      )}
+    <div className={cn(
+      'inline-flex items-center rounded-lg border text-xs font-medium transition-all',
+      isChecked
+        ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
+        : isConflicting
+        ? 'border-red-400 bg-red-50 text-red-800'
+        : isSuggested
+        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+        : 'border-slate-200 bg-white text-slate-700',
+      isFocused && 'ring-2 ring-blue-400 ring-offset-1',
+    )}
+    title={
+      isConflicting ? `Inkompatibel mit einer ausgewählten Komponente` :
+      isSuggested   ? `Empfohlen als Ergänzung` :
+      undefined
+    }
     >
-      <span className="min-w-0 truncate max-w-[150px]">{name}</span>
+      <label className="flex items-center gap-1 pl-2 pr-1 py-1.5 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={isChecked}
+          onChange={onCheck}
+          aria-label={`${name} auswählen`}
+          className="w-3 h-3 rounded accent-blue-500 cursor-pointer flex-shrink-0"
+        />
+      </label>
+      <button
+        onClick={onFocus}
+        aria-pressed={isFocused}
+        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded"
+      >
+        {name}
+      </button>
       {comp?.dsgvo_status && (
-        <span className={cn('px-1 py-0.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+        <span className={cn('px-1 py-0.5 mr-1.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
           {DSGVO_LABEL[comp.dsgvo_status]}
         </span>
       )}
-    </button>
+    </div>
   )
 }
 
@@ -116,14 +149,22 @@ function SwimlaneTable({
   recs,
   byName,
   locked,
-  selected,
-  onSelect,
+  checked,
+  focused,
+  conflictingNames,
+  suggestedNames,
+  onCheck,
+  onFocus,
 }: {
   recs: CatalogRecommendations
   byName: Record<string, CatalogComponent>
   locked: boolean
-  selected: string | null
-  onSelect: (name: string) => void
+  checked: Set<string>
+  focused: string | null
+  conflictingNames: Set<string>
+  suggestedNames: Set<string>
+  onCheck: (name: string) => void
+  onFocus: (name: string) => void
 }) {
   const mainLayers = recs.layers.filter(lr => !LAYER_META[lr.layer]?.cross)
   const crossLayers = recs.layers.filter(lr => LAYER_META[lr.layer]?.cross)
@@ -153,9 +194,13 @@ function SwimlaneTable({
                             key={name}
                             name={name}
                             comp={byName[name]}
-                            isSelected={selected === name}
+                            isChecked={checked.has(name)}
+                            isFocused={focused === name}
+                            isConflicting={conflictingNames.has(name)}
+                            isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
-                            onSelect={() => onSelect(name)}
+                            onCheck={() => onCheck(name)}
+                            onFocus={() => onFocus(name)}
                           />
                         ))
                     }
@@ -191,9 +236,13 @@ function SwimlaneTable({
                             key={name}
                             name={name}
                             comp={byName[name]}
-                            isSelected={selected === name}
+                            isChecked={checked.has(name)}
+                            isFocused={focused === name}
+                            isConflicting={conflictingNames.has(name)}
+                            isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
-                            onSelect={() => onSelect(name)}
+                            onCheck={() => onCheck(name)}
+                            onFocus={() => onFocus(name)}
                           />
                         ))
                     }
@@ -230,17 +279,56 @@ function FullscreenModal({ children, onClose }: { children: React.ReactNode; onC
 export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, archetype }: ArchitectureDiagramProps) {
   const locked  = tier === 'free'
   const byName  = Object.fromEntries(components.map(c => [c.name, c]))
-  const [selected, setSelected]     = useState<string | null>(null)
+  const [checked, setChecked]       = useState<Set<string>>(new Set())
+  const [focused, setFocused]       = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
 
   const mainLayers  = recs.layers.filter(lr => !LAYER_META[lr.layer]?.cross)
   const totalComponents = recs.layers.reduce((s, l) => s + l.componentNames.length, 0)
 
-  const handleSelect = (name: string) => {
-    setSelected(prev => prev === name ? null : name)
+  const handleCheck = (name: string) => {
+    setChecked(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
   }
 
-  const selectedComp = selected ? byName[selected] : undefined
+  const handleFocus = (name: string) => {
+    setFocused(prev => prev === name ? null : name)
+  }
+
+  const conflicts   = findConflicts(checked, byName)
+  const suggestions = findSuggestions(checked, byName)
+  const showSidebar = checked.size > 0
+
+  // Which un-checked components would cause a conflict if selected?
+  const wouldConflictIfChecked = new Set<string>()
+  for (const name of checked) {
+    const comp = byName[name]
+    if (!comp) continue
+    // Forward: checked component says B is incompatible
+    for (const incompat of comp.incompatible_with) {
+      if (!checked.has(incompat)) wouldConflictIfChecked.add(incompat)
+    }
+  }
+  // Reverse: un-checked component says a checked component is incompatible
+  for (const [otherName, otherComp] of Object.entries(byName)) {
+    if (checked.has(otherName)) continue
+    for (const incompat of otherComp.incompatible_with) {
+      if (checked.has(incompat)) { wouldConflictIfChecked.add(otherName); break }
+    }
+  }
+
+  const suggestedNames = new Set(suggestions.map(s => s.target))
+
+  const handleAddComponent    = (name: string) => setChecked(prev => new Set([...prev, name]))
+  const handleRemoveComponent = (name: string) => {
+    setChecked(prev => { const next = new Set(prev); next.delete(name); return next })
+  }
+
+  const focusedComp = focused ? byName[focused] : undefined
 
   const header = (
     <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-shrink-0">
@@ -277,7 +365,33 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
 
   const body = (
     <div className="relative">
-      <SwimlaneTable recs={recs} byName={byName} locked={locked} selected={selected} onSelect={handleSelect} />
+      <div className={cn('flex', showSidebar ? 'flex-col md:flex-row' : 'flex-col')}>
+        <div className={cn('min-w-0', showSidebar ? 'md:flex-[7]' : 'flex-1')}>
+          <SwimlaneTable
+            recs={recs}
+            byName={byName}
+            locked={locked}
+            checked={checked}
+            focused={focused}
+            conflictingNames={wouldConflictIfChecked}
+            suggestedNames={suggestedNames}
+            onCheck={handleCheck}
+            onFocus={handleFocus}
+          />
+        </div>
+        {showSidebar && !locked && (
+          <div className="md:flex-[3] md:max-w-[260px]">
+            <SelectionSidebar
+              checked={checked}
+              byName={byName}
+              conflicts={conflicts}
+              suggestions={suggestions}
+              onAddComponent={handleAddComponent}
+              onRemoveComponent={handleRemoveComponent}
+            />
+          </div>
+        )}
+      </div>
       {locked && (
         <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3 rounded-b-2xl">
           <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
@@ -293,8 +407,8 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
     </div>
   )
 
-  const detailPanel = selected && (
-    <DetailPanel name={selected} comp={selectedComp} onClose={() => setSelected(null)} />
+  const detailPanel = focused && (
+    <DetailPanel name={focused} comp={focusedComp} onClose={() => setFocused(null)} />
   )
 
   if (fullscreen) {
