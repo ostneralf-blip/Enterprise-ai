@@ -325,15 +325,15 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
 
   // Bug #74: components added via "+" suggestion may not be in recs.layers.componentNames.
   // Inject them into their respective layer so checkboxes become visible in the swimlane.
+  // Fallback: if architecture_layer is null, append to the last visible layer.
   const allLayerNames = new Set(recs.layers.flatMap(lr => lr.componentNames))
   const extraByLayer = new Map<string, string[]>()
+  const fallbackLayer = recs.layers[recs.layers.length - 1]?.layer ?? 'application'
   for (const name of checked) {
     if (!allLayerNames.has(name)) {
-      const layer = byName[name]?.architecture_layer
-      if (layer) {
-        if (!extraByLayer.has(layer)) extraByLayer.set(layer, [])
-        extraByLayer.get(layer)!.push(name)
-      }
+      const layer = byName[name]?.architecture_layer ?? fallbackLayer
+      if (!extraByLayer.has(layer)) extraByLayer.set(layer, [])
+      extraByLayer.get(layer)!.push(name)
     }
   }
   const displayRecs = extraByLayer.size === 0 ? recs : {

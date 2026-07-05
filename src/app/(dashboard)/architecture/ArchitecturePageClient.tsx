@@ -375,13 +375,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const loaded = data ?? []
           setRecComponents(loaded)
           const catalogResult = recommendFromCatalog(wizardAnswers, loaded)
-          // SAP-Fallback: wenn SAP-Kontext aktiv aber DB enthält keine SAP-Komponenten
-          // (z.B. Katalog noch nicht geseedet), bleibt recommendFromWizard stabiler
-          if (isSAP(wizardAnswers) && loaded.length > 0) {
+          if (isSAP(wizardAnswers)) {
+            // SAP-Kontext: Phase-1-Wizard-Recs stabil halten — Katalog nur für Vorschläge.
+            // Wenn der Katalog gar keine SAP-Komponenten hat, Wizard-Recs explizit setzen.
             const hasSAPLayer = catalogResult.layers.some(lr =>
               lr.componentNames.some(n => loaded.find(c => c.name === n)?.cloud_provider === 'sap')
             )
-            setCatalogRecs(hasSAPLayer ? catalogResult : recommendFromWizard(wizardAnswers))
+            if (!hasSAPLayer) {
+              setCatalogRecs(recommendFromWizard(wizardAnswers))
+            }
+            // hasSAPLayer=true → Phase-1-Recs bleiben unverändert (kein setCatalogRecs)
           } else {
             setCatalogRecs(catalogResult)
           }
@@ -610,10 +613,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* SAP Joule use cases */}
         <JouleUseCasesCard useCases={jouleUseCases} />
 
-        {/* Key decisions + Next steps */}
+        {/* Key decisions + Next steps — nur aktive Komponenten aus catalogRecs, nicht den gesamten Katalog */}
         {(() => {
-          const dynamicDecisions = generateDynamicKeyDecisions(recComponents)
-          const dynamicSteps = generateDynamicNextSteps(recComponents)
+          const recNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const activeComponents = recComponents.filter(c => recNames.has(c.name))
+          const dynamicDecisions = generateDynamicKeyDecisions(activeComponents)
+          const dynamicSteps = generateDynamicNextSteps(activeComponents)
           const allDecisions = [...dynamicDecisions, ...result.keyDecisions.filter(d => !dynamicDecisions.includes(d))]
           const allSteps = [...dynamicSteps, ...result.nextSteps.filter(s => !dynamicSteps.includes(s))]
           return (
