@@ -43,11 +43,21 @@ export default async function UseCasePage() {
     .eq('portfolio_id', portfolio?.id ?? '')
     .order('weighted_score', { ascending: false }) as { data: UseCase[] | null }
 
-  const { data: canvases } = await supabase
-    .from('canvases')
-    .select('id, title')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false }) as { data: { id: string; title: string }[] | null }
+  const [{ data: canvases }, { data: complianceRisk }] = await Promise.all([
+    supabase
+      .from('canvases')
+      .select('id, title')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }) as unknown as Promise<{ data: { id: string; title: string }[] | null }>,
+    supabase
+      .from('compliance_checks')
+      .select('notes')
+      .eq('user_id', user.id)
+      .eq('check_type', 'risk_class')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle() as unknown as Promise<{ data: { notes: string | null } | null }>,
+  ])
 
   const safePortfolio: UseCasePortfolio = portfolio ?? {
     id: '', user_id: user.id, name: 'Mein Portfolio',
@@ -68,6 +78,7 @@ export default async function UseCasePage() {
         initialCases={rawCases ?? []}
         tier={tier}
         canvases={canvases ?? []}
+        complianceRisk={complianceRisk?.notes ?? null}
       />
     </div>
   )

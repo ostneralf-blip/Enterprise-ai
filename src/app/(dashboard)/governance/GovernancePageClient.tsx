@@ -11,6 +11,7 @@ import {
 } from '@/config/governance-data'
 import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
 
 const VERDICT_TO_API: Record<VerdictLevel, string> = {
   unlawful: 'stop_dsgvo',
@@ -53,13 +54,14 @@ const WEIGHT_DOT: Record<string, string> = {
 }
 
 export function GovernancePageClient({
-  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId,
+  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk,
 }: {
   tier: Tier
   sessions: GovernanceSession[]
   useCases?: { id: string; name: string }[]
   initialUseCaseName?: string
   initialUseCaseId?: string
+  complianceRisk?: string | null
 }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
@@ -223,6 +225,7 @@ export function GovernancePageClient({
 
   return (
     <div className="max-w-2xl">
+      <ComplianceContextBanner riskClass={complianceRisk} />
       <HintBox variant="info" className="mb-6">
         <strong>Was ist der AI-Governance-Check?</strong> Dieser strukturierte Prüfprozess bewertet Ihren AI-Use-Case anhand von {totalSteps} ethischen und rechtlichen Gates — von der Rechtmäßigkeit der Datenverarbeitung bis zu Transparenz und Risikomanagement. Das Ergebnis ist keine Rechtsberatung, aber eine fundierte Orientierung für interne Freigabeprozesse.
         <span className="block mt-1 text-xs opacity-75">Tipp: Wählen Sie die Antwort, die den aktuellen Stand Ihres Projekts am besten beschreibt — nicht den Soll-Zustand.</span>

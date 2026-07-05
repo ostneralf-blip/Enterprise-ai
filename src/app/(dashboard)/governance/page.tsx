@@ -14,7 +14,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   const params = await searchParams
 
-  const [{ data: profileData }, { data: sessions }, { data: portfolioData }] = await Promise.all([
+  const [{ data: profileData }, { data: sessions }, { data: portfolioData }, { data: complianceRisk }] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('governance_sessions')
@@ -28,6 +28,14 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from('compliance_checks')
+      .select('notes')
+      .eq('user_id', user.id)
+      .eq('check_type', 'risk_class')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle() as unknown as Promise<{ data: { notes: string | null } | null }>,
   ])
 
   const tier = (profileData?.tier ?? 'free') as Tier
@@ -65,6 +73,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
         useCases={useCases}
         initialUseCaseName={initialUseCaseName}
         initialUseCaseId={initialUseCaseId}
+        complianceRisk={complianceRisk?.notes ?? null}
       />
     </div>
   )

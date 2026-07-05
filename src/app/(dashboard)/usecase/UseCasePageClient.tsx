@@ -6,6 +6,7 @@ import { UseCaseForm } from '@/components/modules/usecase/UseCaseForm'
 import { WeightsEditor } from '@/components/modules/usecase/WeightsEditor'
 import { UpgradeModal } from '@/components/shared/UpgradeModal'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
 import { FREE_LIMIT } from '@/config/usecase-data'
 import type { UseCase, UseCasePortfolio, UseCaseWeights, Tier } from '@/types'
 
@@ -14,11 +15,12 @@ interface Props {
   initialCases: UseCase[]
   tier: Tier
   canvases: { id: string; title: string }[]
+  complianceRisk?: string | null
 }
 
 type Tab = 'portfolio' | 'matrix'
 
-export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvases }: Props) {
+export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvases, complianceRisk }: Props) {
   const [useCases, setUseCases] = useState<UseCase[]>(initialCases)
   const [weights, setWeights] = useState<UseCaseWeights>(initialPortfolio.weights)
   const [tab, setTab] = useState<Tab>('portfolio')
@@ -70,6 +72,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
 
   return (
     <div>
+      <ComplianceContextBanner riskClass={complianceRisk} />
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
           <div className="bg-slate-100 rounded-xl p-1 flex gap-1">

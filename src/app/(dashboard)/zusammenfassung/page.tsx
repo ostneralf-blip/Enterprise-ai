@@ -14,6 +14,13 @@ const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
+const RISK_CLASS_LABELS: Record<string, { label: string; color: string }> = {
+  prohibited: { label: 'Verboten (EU AI Act)',         color: 'text-red-700 bg-red-50 border-red-200' },
+  high:       { label: 'Hochrisiko (EU AI Act)',        color: 'text-red-700 bg-red-50 border-red-200' },
+  limited:    { label: 'Begrenztes Risiko (EU AI Act)', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  minimal:    { label: 'Minimales Risiko (EU AI Act)',  color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+}
+
 const GOV_RESULT_LABELS: Record<string, { label: string; color: string }> = {
   approve:    { label: 'Freigegeben',               color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   stop_dsgvo: { label: 'Gestoppt (DSGVO)',           color: 'text-red-700 bg-red-50 border-red-200' },
@@ -39,6 +46,7 @@ export default async function ZusammenfassungPage() {
     { data: latestRoadmap },
     { count: usecaseCount },
     { data: topUsecase },
+    { data: latestCompliance },
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, company, tier').eq('id', user.id).single(),
     supabase.from('assessment_sessions')
@@ -65,6 +73,13 @@ export default async function ZusammenfassungPage() {
     supabase.from('use_cases')
       .select('name, weighted_score, created_at')
       .order('weighted_score', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('compliance_checks')
+      .select('notes, created_at')
+      .eq('user_id', user.id)
+      .eq('check_type', 'risk_class')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
@@ -170,10 +185,20 @@ export default async function ZusammenfassungPage() {
       step: 6, icon: '⬡', title: 'Compliance Center', href: '/compliance',
       requiredTier: 'pro',
       description: 'EU AI Act Risikoklassen-Check und DSGVO-Pflichten-Checkliste',
-      done: false,
-      date: undefined,
-      detail: hasAccess(tier, 'pro') ? (
-        <span className="text-xs text-slate-400 italic">Fortschritt wird lokal im Browser gespeichert</span>
+      done: !!latestCompliance,
+      date: (latestCompliance as { notes?: string | null; created_at?: string } | null)?.created_at,
+      detail: latestCompliance ? (
+        (() => {
+          const rc = (latestCompliance as { notes?: string | null }).notes
+          const cfg = rc ? RISK_CLASS_LABELS[rc] : null
+          return cfg ? (
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.color}`}>
+              {cfg.label}
+            </span>
+          ) : null
+        })()
+      ) : hasAccess(tier, 'pro') ? (
+        <span className="text-xs text-slate-400 italic">Noch nicht durchgeführt</span>
       ) : null,
     },
     {
