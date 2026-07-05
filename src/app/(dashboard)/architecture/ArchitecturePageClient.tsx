@@ -53,6 +53,12 @@ interface GovernanceContext {
   result: string | null
 }
 
+interface RoadmapContext {
+  title: string
+  archetype: string | null
+  phasesCount: number
+}
+
 interface Props {
   initialArchitectures?: SavedArchitecture[]
   assessmentContext?: AssessmentContext | null
@@ -60,6 +66,7 @@ interface Props {
   compliancePreset?: 'strict' | 'moderate' | 'low' | 'undefined'
   tier?: string
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
+  roadmapContext?: RoadmapContext | null
 }
 
 const COMPLIANCE_PRESET_LABELS: Record<string, string> = {
@@ -73,10 +80,11 @@ interface ContextBannerProps {
   assessmentContext: AssessmentContext | null | undefined
   governanceContext: GovernanceContext | null | undefined
   compliancePreset?: string
+  roadmapContext?: RoadmapContext | null
 }
 
-function ContextBanner({ assessmentContext, governanceContext, compliancePreset }: ContextBannerProps) {
-  if (!assessmentContext && !governanceContext && !compliancePreset) return null
+function ContextBanner({ assessmentContext, governanceContext, compliancePreset, roadmapContext }: ContextBannerProps) {
+  if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-1.5">
       <p className="font-semibold text-blue-900">Kontext aus anderen Modulen</p>
@@ -100,6 +108,13 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset 
         <p>
           <span className="font-medium">Compliance (vorausgefüllt):</span>{' '}
           {COMPLIANCE_PRESET_LABELS[compliancePreset] ?? compliancePreset}
+        </p>
+      )}
+      {roadmapContext && (
+        <p>
+          <span className="font-medium">Roadmap:</span>{' '}
+          {roadmapContext.title}
+          {roadmapContext.phasesCount > 0 && ` · ${roadmapContext.phasesCount} Phasen`}
         </p>
       )}
     </div>
@@ -295,7 +310,7 @@ function CatalogRecommendationsCard({
   )
 }
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
@@ -450,7 +465,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   if (view === 'list') {
     return (
       <div className="max-w-2xl space-y-5">
-        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} />
+        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-slate-900">Gespeicherte Architekturen ({architectures.length})</h2>
           <button
@@ -504,7 +519,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   if (view === 'result' && result) {
     return (
       <div className="max-w-2xl space-y-5">
-        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} />
+        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
 
         {/* Pattern card */}
         <div className={cn('rounded-2xl border p-5 sm:p-6', result.color.bg, result.color.border)}>
@@ -708,7 +723,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   // Wizard view
   return (
     <div className="max-w-2xl">
-      <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} />
+      <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} roadmapContext={roadmapContext} />
       {showCanvasBanner && canvasCtx && canvasContext && (
         <CanvasContextBanner
           canvasTitle={canvasContext.canvas.title}

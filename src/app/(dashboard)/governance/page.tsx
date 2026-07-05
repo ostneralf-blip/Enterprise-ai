@@ -23,7 +23,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
       .order('created_at', { ascending: false })
       .limit(10),
     supabase
-      .from('use_case_portfolios')
+      .from('uc_portfolios')
       .select('use_cases(id, name)')
       .eq('user_id', user.id),
     supabase

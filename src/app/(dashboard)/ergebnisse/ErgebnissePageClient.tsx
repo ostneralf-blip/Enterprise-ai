@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { InfoHint } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 
-type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap' | 'canvas'
+type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap' | 'canvas' | 'compliance' | 'usecase'
 
 interface Prefs {
   primary_assessment_id:   string | null
@@ -20,6 +20,8 @@ export interface ArchitectureRow  { id: string; title: string; wizard_data: Reco
 export interface GovernanceRow    { id: string; use_case_name: string | null; result: string; protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null; created_at: string }
 export interface RoadmapRow       { id: string; title: string; archetype: string; phases: unknown[]; updated_at: string }
 export interface CanvasRow        { id: string; title: string; archetype: string | null; data: Record<string, string>; updated_at: string }
+export interface ComplianceRow    { id: string; regulation: string; check_type: string; status: string; notes: string | null; updated_at: string }
+export interface UseCaseRow       { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null; governance_result: string | null }
 
 const ARCHETYPES: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
@@ -34,7 +36,7 @@ const DIM_LABELS: Record<string, string> = {
   data: 'Daten', skills: 'Skills', governance: 'Governance',
   tech: 'Technologie', strategy: 'Strategie', culture: 'Kultur',
 }
-const PREF_KEY: Record<Tab, keyof Prefs> = {
+const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
   assessment:   'primary_assessment_id',
   architecture: 'primary_architecture_id',
   governance:   'primary_governance_id',
@@ -92,11 +94,13 @@ interface Props {
   governanceSessions: GovernanceRow[]
   roadmaps:           RoadmapRow[]
   canvases:           CanvasRow[]
+  complianceChecks:   ComplianceRow[]
+  useCases:           UseCaseRow[]
   initialPreferences: Prefs | null
   tier:               string
 }
 
-export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, initialPreferences, tier }: Props) {
+export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, complianceChecks: initCC, useCases: initUC, initialPreferences, tier }: Props) {
   const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null }
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? emptyPrefs)
@@ -107,11 +111,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const [governance,    setGovernance]    = useState(initG)
   const [roadmaps,      setRoadmaps]      = useState(initR)
   const [canvases,      setCanvases]      = useState(initC)
+  const [complianceChecks]                = useState(initCC)
+  const [useCases]                        = useState(initUC)
   const [compareMode,   setCompareMode]   = useState(false)
   const [compareIds,    setCompareIds]    = useState<string[]>([])
 
   const setPrimary = async (category: Tab, id: string) => {
     const key = PREF_KEY[category]
+    if (!key) return
     const res = await fetch('/api/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -121,7 +128,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   }
 
   const deleteItem = async (category: Tab, id: string) => {
-    const path = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}`, canvas: `/api/canvas/${id}` }[category]
+    const paths: Partial<Record<Tab, string>> = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}`, canvas: `/api/canvas/${id}` }
+    const path = paths[category]
+    if (!path) return
     const res = await fetch(path, { method: 'DELETE' })
     if (!res.ok) return
     if (category === 'assessment')   setAssessments(xs => xs.filter(x => x.id !== id))
@@ -131,7 +140,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
     if (category === 'canvas')       setCanvases(xs => xs.filter(x => x.id !== id))
     if (expanded === id) setExpanded(null)
     setConfirmId(null)
-    if (prefs[PREF_KEY[category]] === id) setPrefs(p => ({ ...p, [PREF_KEY[category]]: null }))
+    const prefKey = PREF_KEY[category]
+    if (prefKey && prefs[prefKey] === id) setPrefs(p => ({ ...p, [prefKey]: null }))
   }
 
   const toggle = (id: string) => setExpanded(e => e === id ? null : id)
@@ -145,11 +155,13 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const exitCompare = () => { setCompareMode(false); setCompareIds([]) }
 
   const TABS = [
-    { key: 'assessment'   as Tab, label: 'Assessment',  count: assessments.length },
-    { key: 'architecture' as Tab, label: 'Architektur', count: architectures.length },
-    { key: 'governance'   as Tab, label: 'Governance',  count: governance.length },
-    { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length },
-    { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length },
+    { key: 'assessment'   as Tab, label: 'Assessment',  count: assessments.length,     comparable: true },
+    { key: 'architecture' as Tab, label: 'Architektur', count: architectures.length,   comparable: true },
+    { key: 'governance'   as Tab, label: 'Governance',  count: governance.length,       comparable: true },
+    { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length,         comparable: true },
+    { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length,         comparable: true },
+    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: false },
+    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: false },
   ]
 
   return (
@@ -165,7 +177,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       </div>
 
       {/* Vergleich-Button — unterhalb der Tabs, immer sichtbar wenn ≥ 2 Einträge */}
-      {TABS.find(t => t.key === tab)!.count >= 2 && (
+      {(TABS.find(t => t.key === tab)?.comparable ?? false) && TABS.find(t => t.key === tab)!.count >= 2 && (
         <div className="flex justify-end mb-3">
           {compareMode ? (
             <button onClick={exitCompare}
@@ -449,9 +461,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === g.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
-                    <p className="text-xs text-slate-600">Use Case: <strong>{g.use_case_name ?? '—'}</strong></p>
-                    <p className="text-xs text-slate-600">Ergebnis: <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                    <div className="space-y-1">
+                      <p className="text-xs text-slate-600">Use Case: <strong>{g.use_case_name ?? '—'}</strong></p>
+                      <p className="text-xs text-slate-600">Ergebnis: <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
+                    </div>
+                    <VersionsPanel module="governance" entityId={g.id} tier={tier} currentData={{ result: g.result, protocol: g.protocol } as Record<string, unknown>} />
                   </div>
                 )}
               </div>
@@ -542,9 +557,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === r.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                    <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
-                    <Link href="/roadmap" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                    <div>
+                      <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
+                      <Link href="/roadmap" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+                    </div>
+                    <VersionsPanel module="roadmap" entityId={r.id} tier={tier} currentData={{ title: r.title, archetype: r.archetype, phases: r.phases } as Record<string, unknown>} />
                   </div>
                 )}
               </div>
@@ -658,14 +676,17 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === c.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1.5">
-                    {Object.entries(c.data ?? {}).filter(([, v]) => v?.trim()).map(([key, value]) => (
-                      <div key={key} className="text-xs">
-                        <span className="font-medium text-slate-600 capitalize">{key}: </span>
-                        <span className="text-slate-500 line-clamp-2">{value}</span>
-                      </div>
-                    ))}
-                    <Link href="/canvas" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                    <div className="space-y-1.5">
+                      {Object.entries(c.data ?? {}).filter(([, v]) => v?.trim()).map(([key, value]) => (
+                        <div key={key} className="text-xs">
+                          <span className="font-medium text-slate-600 capitalize">{key}: </span>
+                          <span className="text-slate-500 line-clamp-2">{value}</span>
+                        </div>
+                      ))}
+                      <Link href="/canvas" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
+                    </div>
+                    <VersionsPanel module="canvas" entityId={c.id} tier={tier} currentData={c.data as Record<string, unknown>} />
                   </div>
                 )}
               </div>
@@ -703,6 +724,99 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               </div>
             )
           })()}
+        </div>
+      )}
+
+      {/* ── Compliance ─────────────────────────────────────────── */}
+      {tab === 'compliance' && (
+        <div className="space-y-2">
+          {complianceChecks.length === 0 && (
+            <p className="text-sm text-slate-400 py-12 text-center">
+              Noch keine Compliance-Prüfungen gespeichert. <Link href="/compliance" className="text-blue-600 hover:underline">Jetzt prüfen →</Link>
+            </p>
+          )}
+          {complianceChecks.map(cc => {
+            const statusColor =
+              cc.status === 'compliant'     ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
+              cc.status === 'non_compliant' ? 'text-red-700 bg-red-50 border-red-200' :
+              'text-amber-700 bg-amber-50 border-amber-200'
+            const statusLabel =
+              cc.status === 'compliant'     ? 'Konform' :
+              cc.status === 'non_compliant' ? 'Nicht konform' : 'Offen'
+            const regulationLabel =
+              cc.regulation === 'eu_ai_act' ? 'EU AI Act' :
+              cc.regulation === 'dsgvo'     ? 'DSGVO' :
+              cc.regulation
+            return (
+              <div key={cc.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => toggle(cc.id)}>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${statusColor}`}>{statusLabel}</span>
+                    <span className="text-sm font-medium text-slate-700 truncate">{regulationLabel}</span>
+                    <span className="text-xs text-slate-500 shrink-0">{cc.check_type}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{fmt(cc.updated_at)}</span>
+                  </div>
+                </div>
+                {expanded === cc.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
+                    {cc.notes && <p className="text-xs text-slate-600">Notiz: {cc.notes}</p>}
+                    <Link href="/compliance" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Compliance öffnen →</Link>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Use Cases ──────────────────────────────────────────── */}
+      {tab === 'usecase' && (
+        <div className="space-y-2">
+          {useCases.length === 0 && (
+            <p className="text-sm text-slate-400 py-12 text-center">
+              Noch keine Use Cases bewertet. <Link href="/usecase" className="text-blue-600 hover:underline">Jetzt bewerten →</Link>
+            </p>
+          )}
+          {useCases.map(uc => {
+            const quadrantColor =
+              uc.quadrant === 'build'        ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
+              uc.quadrant === 'pilot'        ? 'text-blue-700 bg-blue-50 border-blue-200' :
+              uc.quadrant === 'evaluate'     ? 'text-amber-700 bg-amber-50 border-amber-200' :
+              'text-slate-500 bg-slate-50 border-slate-200'
+            const quadrantLabel =
+              uc.quadrant === 'build'        ? 'Bauen' :
+              uc.quadrant === 'pilot'        ? 'Pilot' :
+              uc.quadrant === 'evaluate'     ? 'Evaluieren' :
+              uc.quadrant === 'deprioritize' ? 'Zurückstellen' :
+              uc.quadrant ?? '—'
+            const gov = uc.governance_result ? (VERDICTS[uc.governance_result] ?? null) : null
+            return (
+              <div key={uc.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => toggle(uc.id)}>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {uc.quadrant && (
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${quadrantColor}`}>{quadrantLabel}</span>
+                    )}
+                    <span className="text-sm font-medium text-slate-700 truncate min-w-0">{uc.name}</span>
+                    {uc.domain && <span className="text-xs text-slate-500 shrink-0">{uc.domain}</span>}
+                    {uc.weighted_score != null && (
+                      <span className="text-xs text-slate-400 shrink-0">{Math.round(uc.weighted_score)} Pkt.</span>
+                    )}
+                  </div>
+                </div>
+                {expanded === uc.id && (
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
+                    {gov && (
+                      <p className="text-xs text-slate-600">Governance: <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
+                    )}
+                    <Link href="/usecase" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Use Cases öffnen →</Link>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

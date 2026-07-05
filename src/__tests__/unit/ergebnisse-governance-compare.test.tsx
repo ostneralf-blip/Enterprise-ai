@@ -61,6 +61,8 @@ function renderGovernanceTab(governanceSessions: GovernanceRow[]) {
       governanceSessions={governanceSessions}
       roadmaps={[]}
       canvases={[]}
+      complianceChecks={[]}
+      useCases={[]}
       initialPreferences={BASE_PREFS}
       tier="free"
     />

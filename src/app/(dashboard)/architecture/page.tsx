@@ -53,10 +53,10 @@ export default async function ArchitecturePage({
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('user_preferences')
-      .select('primary_assessment_id, primary_governance_id')
+      .select('primary_assessment_id, primary_governance_id, primary_roadmap_id')
       .eq('user_id', user.id)
       .maybeSingle(),
     supabase.from('compliance_checks')
@@ -66,9 +66,15 @@ export default async function ArchitecturePage({
       .eq('check_type', 'risk_class')
       .eq('status', 'compliant')
       .maybeSingle(),
+    supabase.from('roadmaps')
+      .select('id, title, archetype, phases')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
-  const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null } | null
+  const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null; primary_roadmap_id: string | null } | null
 
   // Map EU AI Act risk class → architecture compliance answer
   const riskClassNote = (complianceRiskClass as { notes: string | null } | null)?.notes
@@ -78,14 +84,24 @@ export default async function ArchitecturePage({
     : riskClassNote === 'minimal' ? 'low'
     : 'undefined'
 
-  const [{ data: latestAssessment }, { data: latestGovernance }] = await Promise.all([
+  const [{ data: latestAssessment }, { data: latestGovernance }, { data: primaryRoadmap }] = await Promise.all([
     prefData?.primary_assessment_id
       ? supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('id', prefData.primary_assessment_id).maybeSingle()
       : supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     prefData?.primary_governance_id
       ? supabase.from('governance_sessions').select('use_case_name, result, use_case_id').eq('id', prefData.primary_governance_id).maybeSingle()
       : supabase.from('governance_sessions').select('use_case_name, result, use_case_id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    prefData?.primary_roadmap_id
+      ? supabase.from('roadmaps').select('id, title, archetype, phases').eq('id', prefData.primary_roadmap_id).maybeSingle()
+      : Promise.resolve({ data: latestRoadmap }),
   ])
+
+  const roadmapSource = (primaryRoadmap ?? latestRoadmap) as { id: string; title: string; archetype: string; phases: unknown[] } | null
+  const roadmapContext = roadmapSource ? {
+    title: roadmapSource.title,
+    archetype: roadmapSource.archetype as Archetype | null,
+    phasesCount: Array.isArray(roadmapSource.phases) ? roadmapSource.phases.length : 0,
+  } : null
 
   // Wenn Governance einen verknüpften Use Case hat und kein Canvas-Kontext über URL-Param vorliegt,
   // Use Case + Canvas laden und als Architektur-Kontext nutzen
@@ -135,6 +151,7 @@ export default async function ArchitecturePage({
         compliancePreset={riskClassNote ? compliancePreset : undefined}
         tier={tier}
         canvasContext={canvasContext}
+        roadmapContext={roadmapContext}
       />
     </div>
   )

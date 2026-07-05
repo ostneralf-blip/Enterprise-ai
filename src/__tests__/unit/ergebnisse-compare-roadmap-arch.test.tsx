@@ -78,6 +78,8 @@ function renderWithTab(tab: 'roadmap' | 'architecture', roadmaps = ROADMAPS, arc
       governanceSessions={[]}
       roadmaps={roadmaps}
       canvases={[]}
+      complianceChecks={[]}
+      useCases={[]}
       initialPreferences={BASE_PREFS}
       tier="free"
     />

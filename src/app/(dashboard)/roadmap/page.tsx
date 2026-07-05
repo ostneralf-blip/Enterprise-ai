@@ -28,8 +28,8 @@ export default async function RoadmapPage() {
       .single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('use_cases')
-      .select('id, name, domain, weighted_score, quadrant, canvas_id, governance_result, use_case_portfolios!inner(user_id)')
-      .eq('use_case_portfolios.user_id', user.id)
+      .select('id, name, domain, weighted_score, quadrant, canvas_id, governance_result, uc_portfolios!inner(user_id)')
+      .eq('uc_portfolios.user_id', user.id)
       .order('weighted_score', { ascending: false })
       .limit(3),
     supabase

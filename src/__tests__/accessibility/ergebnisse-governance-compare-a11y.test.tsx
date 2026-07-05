@@ -64,6 +64,8 @@ function renderAndOpenCompare(governanceSessions: GovernanceRow[]) {
       governanceSessions={governanceSessions}
       roadmaps={[]}
       canvases={[]}
+      complianceChecks={[]}
+      useCases={[]}
       initialPreferences={BASE_PREFS}
       tier="free"
     />
@@ -91,6 +93,8 @@ describe('Accessibility: Governance-Vergleich mit Protokolldetails', () => {
         governanceSessions={GOVERNANCE_WITH_PROTOCOL}
         roadmaps={[]}
         canvases={[]}
+        complianceChecks={[]}
+        useCases={[]}
         initialPreferences={BASE_PREFS}
         tier="free"
       />

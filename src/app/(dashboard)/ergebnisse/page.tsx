@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { ErgebnissePageClient, type AssessmentRow, type ArchitectureRow, type GovernanceRow, type RoadmapRow, type CanvasRow } from './ErgebnissePageClient'
+import { ErgebnissePageClient, type AssessmentRow, type ArchitectureRow, type GovernanceRow, type RoadmapRow, type CanvasRow, type ComplianceRow, type UseCaseRow } from './ErgebnissePageClient'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Gespeicherte Ergebnisse' }
@@ -16,6 +16,8 @@ export default async function ErgebnissePage() {
     { data: roadmaps },
     { data: canvases },
     { data: preferences },
+    { data: complianceChecks },
+    { data: useCases },
   ] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user!.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase.from('assessment_sessions')
@@ -42,6 +44,16 @@ export default async function ErgebnissePage() {
       .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id')
       .eq('user_id', user!.id)
       .maybeSingle(),
+    supabase.from('compliance_checks')
+      .select('id, regulation, check_type, status, notes, updated_at')
+      .eq('user_id', user!.id)
+      .order('updated_at', { ascending: false })
+      .limit(50),
+    supabase.from('use_cases')
+      .select('id, name, domain, weighted_score, quadrant, governance_result, uc_portfolios!inner(user_id)')
+      .eq('uc_portfolios.user_id', user!.id)
+      .order('weighted_score', { ascending: false })
+      .limit(50),
   ])
 
   return (
@@ -58,6 +70,8 @@ export default async function ErgebnissePage() {
         governanceSessions={(governanceSessions ?? []) as GovernanceRow[]}
         roadmaps={(roadmaps ?? []) as RoadmapRow[]}
         canvases={(canvases ?? []) as CanvasRow[]}
+        complianceChecks={(complianceChecks ?? []) as ComplianceRow[]}
+        useCases={(useCases ?? []) as UseCaseRow[]}
         initialPreferences={preferences ?? null}
         tier={profile?.tier ?? 'free'}
       />
