@@ -39,10 +39,30 @@ const INDUSTRY_DOMAINS: Record<string, string[]> = {
   other:              ['Finance', 'Supply Chain', 'HR', 'Procurement', 'CX', 'Transformation'],
 }
 
-export function recommendJouleUseCases(answers: WizardAnswers): JouleUseCase[] {
+const COMPLEXITY_GATE: Record<string, Set<JouleUseCase['complexity']>> = {
+  starter:     new Set(['starter']),
+  scaler:      new Set(['starter', 'scaler']),
+  transformer: new Set(['starter', 'scaler', 'transformer']),
+}
+
+export function recommendJouleUseCases(
+  answers: WizardAnswers,
+  archetype?: string | null,
+  canvasIndustry?: string | null
+): JouleUseCase[] {
   if (!isSAP(answers) || answers.sap_landscape === 'none') return []
-  const domains = answers.industry ? INDUSTRY_DOMAINS[answers.industry] : INDUSTRY_DOMAINS.other
-  return SEED_JOULE_USE_CASES.filter(uc => domains.includes(uc.domain)).slice(0, 6)
+
+  const primaryDomains = answers.industry ? INDUSTRY_DOMAINS[answers.industry] : INDUSTRY_DOMAINS.other
+  const canvasDomains  = canvasIndustry ? (INDUSTRY_DOMAINS[canvasIndustry] ?? []) : []
+  const allDomains     = [...new Set([...primaryDomains, ...canvasDomains])]
+
+  const candidates = SEED_JOULE_USE_CASES.filter(uc => allDomains.includes(uc.domain))
+  if (!archetype || !COMPLEXITY_GATE[archetype]) return candidates.slice(0, 6)
+
+  const allowed = COMPLEXITY_GATE[archetype]
+  return candidates
+    .sort((a, b) => (allowed.has(a.complexity) ? 0 : 1) - (allowed.has(b.complexity) ? 0 : 1))
+    .slice(0, 6)
 }
 
 export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendations {

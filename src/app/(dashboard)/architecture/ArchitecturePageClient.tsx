@@ -209,6 +209,13 @@ function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
               <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', JOULE_DOMAIN_BADGE[uc.domain] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
                 {uc.domain}
               </span>
+              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', {
+                starter:     'bg-slate-50 text-slate-500 border-slate-200',
+                scaler:      'bg-blue-50 text-blue-600 border-blue-200',
+                transformer: 'bg-violet-50 text-violet-600 border-violet-200',
+              }[uc.complexity])}>
+                {uc.complexity === 'starter' ? 'Einstieg' : uc.complexity === 'scaler' ? 'Mittelstufe' : 'Fortgeschritten'}
+              </span>
             </div>
             <p className="text-xs font-semibold text-slate-800">{uc.name}</p>
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{uc.description}</p>
@@ -334,7 +341,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     } else {
       setCatalogRecs(recommendFromWizard(wizardAnswers))
     }
-    setJouleUseCases(recommendJouleUseCases(wizardAnswers))
+    setJouleUseCases(recommendJouleUseCases(
+      wizardAnswers,
+      assessmentContext?.archetype ?? null,
+      canvasCtx?.wizard_prefill?.industry ?? null
+    ))
     if (!catalogFetched.current) {
       catalogFetched.current = true
       fetch('/api/catalog/components')

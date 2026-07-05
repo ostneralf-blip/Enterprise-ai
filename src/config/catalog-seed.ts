@@ -441,34 +441,38 @@ export const SEED_ROLES: SeedRole[] = [
 
 // ── SEED: Joule Use Cases ─────────────────────────────────────────────────────
 export type JouleUseCase = {
-  name: string; domain: string; description: string; sap_products: string[]
+  name: string
+  domain: string
+  description: string
+  sap_products: string[]
+  complexity: 'starter' | 'scaler' | 'transformer'
 }
 
 export const SEED_JOULE_USE_CASES: JouleUseCase[] = [
   // Finance
-  { name: 'Receipt Analysis', domain: 'Finance', description: 'Automatische Belegerfassung und -kategorisierung via Joule Agent.', sap_products: ['joule', 'concur'] },
-  { name: 'Dispute Resolution', domain: 'Finance', description: 'KI-gestützte Klärung von Zahlungsstreitigkeiten mit automatisierten Vorschlägen.', sap_products: ['joule', 's4hana'] },
-  { name: 'Cash Management AI', domain: 'Finance', description: 'Liquiditätsprognosen und automatisierte Cash-Flow-Optimierungsvorschläge.', sap_products: ['joule', 's4hana', 'datasphere'] },
-  { name: 'Expense Validation', domain: 'Finance', description: 'Automatisierte Compliance-Prüfung von Reisekostenabrechnungen.', sap_products: ['joule', 'concur'] },
-  { name: 'Accounting Accruals', domain: 'Finance', description: 'KI-Unterstützung bei der Abgrenzungsbuchung auf Basis historischer Daten.', sap_products: ['joule', 's4hana'] },
+  { name: 'Receipt Analysis',      domain: 'Finance', complexity: 'starter',     description: 'Automatische Belegerfassung und -kategorisierung via Joule Agent.',                                    sap_products: ['joule', 'concur'] },
+  { name: 'Expense Validation',    domain: 'Finance', complexity: 'starter',     description: 'Automatisierte Compliance-Prüfung von Reisekostenabrechnungen.',                                        sap_products: ['joule', 'concur'] },
+  { name: 'Dispute Resolution',    domain: 'Finance', complexity: 'scaler',      description: 'KI-gestützte Klärung von Zahlungsstreitigkeiten mit automatisierten Vorschlägen.',                      sap_products: ['joule', 's4hana'] },
+  { name: 'Accounting Accruals',   domain: 'Finance', complexity: 'scaler',      description: 'KI-Unterstützung bei der Abgrenzungsbuchung auf Basis historischer Daten.',                            sap_products: ['joule', 's4hana'] },
+  { name: 'Cash Management AI',    domain: 'Finance', complexity: 'transformer', description: 'Liquiditätsprognosen und automatisierte Cash-Flow-Optimierungsvorschläge.',                            sap_products: ['joule', 's4hana', 'datasphere'] },
   // Supply Chain
-  { name: 'Field Service Dispatcher', domain: 'Supply Chain', description: 'Intelligente Disposition von Servicetechnikern basierend auf Skills und Standort.', sap_products: ['joule', 'field-service-mgmt'] },
-  { name: 'Production Planning AI', domain: 'Supply Chain', description: 'Optimierte Produktionsplanung mit KI-gestützter Bedarfsprognose.', sap_products: ['joule', 'ibp', 's4hana'] },
-  { name: 'Supplier Onboarding', domain: 'Supply Chain', description: 'Automatisiertes Onboarding neuer Lieferanten mit Risikobewertung.', sap_products: ['joule', 'ariba'] },
-  { name: 'Maintenance Planner', domain: 'Supply Chain', description: 'Prädiktive Wartungsplanung auf Basis von Sensordaten und SAP PM.', sap_products: ['joule', 's4hana', 'iot'] },
+  { name: 'Supplier Onboarding',       domain: 'Supply Chain', complexity: 'starter',     description: 'Automatisiertes Onboarding neuer Lieferanten mit Risikobewertung.',                          sap_products: ['joule', 'ariba'] },
+  { name: 'Field Service Dispatcher',  domain: 'Supply Chain', complexity: 'scaler',      description: 'Intelligente Disposition von Servicetechnikern basierend auf Skills und Standort.',          sap_products: ['joule', 'field-service-mgmt'] },
+  { name: 'Maintenance Planner',       domain: 'Supply Chain', complexity: 'scaler',      description: 'Prädiktive Wartungsplanung auf Basis von Sensordaten und SAP PM.',                          sap_products: ['joule', 's4hana', 'iot'] },
+  { name: 'Production Planning AI',    domain: 'Supply Chain', complexity: 'transformer', description: 'Optimierte Produktionsplanung mit KI-gestützter Bedarfsprognose.',                          sap_products: ['joule', 'ibp', 's4hana'] },
   // HR
-  { name: 'Performance Preparation', domain: 'HR', description: 'KI-Unterstützung bei Vorbereitung von Performance-Reviews mit Daten aus SAP SuccessFactors.', sap_products: ['joule', 'successfactors'] },
-  { name: 'HR Service Agent', domain: 'HR', description: 'Konversationeller HR-Assistent für Mitarbeiteranfragen zu Urlaub, Benefits und Policies.', sap_products: ['joule', 'successfactors'] },
-  { name: 'People Intelligence', domain: 'HR', description: 'Workforce Analytics und Skill-Gap-Analyse für strategische Personalplanung.', sap_products: ['joule', 'successfactors', 'datasphere'] },
+  { name: 'HR Service Agent',       domain: 'HR', complexity: 'starter',     description: 'Konversationeller HR-Assistent für Mitarbeiteranfragen zu Urlaub, Benefits und Policies.',              sap_products: ['joule', 'successfactors'] },
+  { name: 'Performance Preparation',domain: 'HR', complexity: 'scaler',      description: 'KI-Unterstützung bei Vorbereitung von Performance-Reviews mit Daten aus SAP SuccessFactors.',          sap_products: ['joule', 'successfactors'] },
+  { name: 'People Intelligence',    domain: 'HR', complexity: 'transformer', description: 'Workforce Analytics und Skill-Gap-Analyse für strategische Personalplanung.',                          sap_products: ['joule', 'successfactors', 'datasphere'] },
   // Procurement
-  { name: 'Sourcing Events AI', domain: 'Procurement', description: 'KI-gestützte Vorbereitung und Auswertung von Ausschreibungen.', sap_products: ['joule', 'ariba'] },
-  { name: 'Bid Analysis', domain: 'Procurement', description: 'Automatisierte Analyse und Vergleich von Lieferantenangeboten.', sap_products: ['joule', 'ariba'] },
+  { name: 'Bid Analysis',       domain: 'Procurement', complexity: 'starter', description: 'Automatisierte Analyse und Vergleich von Lieferantenangeboten.',                sap_products: ['joule', 'ariba'] },
+  { name: 'Sourcing Events AI', domain: 'Procurement', complexity: 'scaler',  description: 'KI-gestützte Vorbereitung und Auswertung von Ausschreibungen.',                sap_products: ['joule', 'ariba'] },
   // Customer Experience
-  { name: 'Case Classification', domain: 'CX', description: 'Automatische Klassifizierung und Routing von Kundenservice-Anfragen.', sap_products: ['joule', 'service-cloud'] },
-  { name: 'Digital Service Agent', domain: 'CX', description: 'KI-Assistent für Self-Service-Kundeninteraktionen im Web- und Mobile-Kanal.', sap_products: ['joule', 'cx', 'service-cloud'] },
-  { name: 'Quote Creation', domain: 'CX', description: 'Intelligente Angebotserstellung mit Konfigurationsvorschlägen aus SAP CPQ.', sap_products: ['joule', 'cpq', 'crm'] },
+  { name: 'Case Classification',   domain: 'CX', complexity: 'starter',     description: 'Automatische Klassifizierung und Routing von Kundenservice-Anfragen.',                                  sap_products: ['joule', 'service-cloud'] },
+  { name: 'Digital Service Agent', domain: 'CX', complexity: 'scaler',      description: 'KI-Assistent für Self-Service-Kundeninteraktionen im Web- und Mobile-Kanal.',                          sap_products: ['joule', 'cx', 'service-cloud'] },
+  { name: 'Quote Creation',        domain: 'CX', complexity: 'transformer', description: 'Intelligente Angebotserstellung mit Konfigurationsvorschlägen aus SAP CPQ.',                          sap_products: ['joule', 'cpq', 'crm'] },
   // Transformation
-  { name: 'Process Content Recommender', domain: 'Transformation', description: 'Empfiehlt Best-Practice-Prozesse aus SAP Signavio basierend auf Unternehmenskontext.', sap_products: ['joule', 'signavio'] },
-  { name: 'Value Case Creation', domain: 'Transformation', description: 'KI-gestützte Erstellung von Business Cases für SAP-Transformationsprojekte.', sap_products: ['joule', 'leanix'] },
-  { name: 'Dashboard Analyzer', domain: 'Transformation', description: 'Natürlichsprachliche Analyse und Interpretation von SAP Analytics Cloud Dashboards.', sap_products: ['joule', 'sac', 'datasphere'] },
+  { name: 'Process Content Recommender', domain: 'Transformation', complexity: 'starter',     description: 'Empfiehlt Best-Practice-Prozesse aus SAP Signavio basierend auf Unternehmenskontext.', sap_products: ['joule', 'signavio'] },
+  { name: 'Value Case Creation',         domain: 'Transformation', complexity: 'scaler',      description: 'KI-gestützte Erstellung von Business Cases für SAP-Transformationsprojekte.',          sap_products: ['joule', 'leanix'] },
+  { name: 'Dashboard Analyzer',          domain: 'Transformation', complexity: 'transformer', description: 'Natürlichsprachliche Analyse und Interpretation von SAP Analytics Cloud Dashboards.',  sap_products: ['joule', 'sac', 'datasphere'] },
 ]
