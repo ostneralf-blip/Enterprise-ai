@@ -49,6 +49,13 @@ describe('PATCH /api/admin/catalog/components/[id] — Sicherheit', () => {
     })
     const res = await PATCH(req, { params: Promise.resolve({ id: 'abc' }) })
     expect(res.status).toBe(200)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        incompatible_with: ['vLLM'],
+        requires: ['SAP BTP'],
+        suggests: ['SAP GenAI Hub'],
+      })
+    )
   })
 
   it('lehnt nicht-Array-Werte für incompatible_with ab', async () => {
@@ -60,5 +67,18 @@ describe('PATCH /api/admin/catalog/components/[id] — Sicherheit', () => {
     })
     const res = await PATCH(req, { params: Promise.resolve({ id: 'abc' }) })
     expect(res.status).toBe(400)
+  })
+
+  it('lehnt leeren Body ab (kein Feld vorhanden)', async () => {
+    mockRequireAdmin.mockResolvedValue(undefined)
+    const req = new NextRequest('http://localhost/api/admin/catalog/components/abc', {
+      method: 'PATCH',
+      body: JSON.stringify({}),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await PATCH(req, { params: Promise.resolve({ id: 'abc' }) })
+    expect(res.status).toBe(400)
+    const body = await res.json() as { error?: string }
+    expect(body.error).toContain('Mindestens ein Feld')
   })
 })
