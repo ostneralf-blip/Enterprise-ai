@@ -28,7 +28,13 @@ export async function POST() {
     supabase
       .from('component_catalog')
       .upsert(
-        dedupedComponents.map(c => ({ ...c, source: 'manual', is_active: true })),
+        dedupedComponents.map(c => ({
+          ...c,
+          suggests: c.suggests ?? [],
+          incompatible_with: c.incompatible_with ?? [],
+          source: 'manual',
+          is_active: true,
+        })),
         { onConflict: 'name,vendor', ignoreDuplicates: false }
       )
       .select('id'),
