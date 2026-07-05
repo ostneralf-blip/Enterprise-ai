@@ -220,12 +220,14 @@ export function scoreComponentAgainstAnswers(
   // Hard-exclude: SAP-platform components require SAP context
   if (component.cloud_provider === 'sap' && !isSAP(answers)) return -1
 
-  // Hard-exclude: if user explicitly chose a vendor, exclude other vendors' specific components
+  // Hard-exclude: if user explicitly chose a vendor, exclude other vendors' specific components.
+  // Exception: SAP components are never excluded when SAP is part of the landscape (hybrid scenario).
   if (answers.cloud_provider_hint) {
     const targetProvider = providerMap[answers.cloud_provider_hint] ?? answers.cloud_provider_hint
     if (component.cloud_provider !== null
         && component.cloud_provider !== 'independent'
-        && component.cloud_provider !== targetProvider) {
+        && component.cloud_provider !== targetProvider
+        && !(component.cloud_provider === 'sap' && isSAP(answers))) {
       return -1
     }
   }
@@ -233,6 +235,9 @@ export function scoreComponentAgainstAnswers(
   let score = 0
   if (answers.cloud_provider_hint && providerMap[answers.cloud_provider_hint] === component.cloud_provider)
     score += 20
+  // SAP hybrid bonus: SAP in landscape but not as primary cloud provider → still surface SAP components
+  if (component.cloud_provider === 'sap' && isSAP(answers) && answers.cloud_provider_hint !== 'sap_btp')
+    score += 12
   if (component.cloud_provider === 'independent') score += 5
   if (answers.usecase && component.use_case_types.includes(answers.usecase)) score += 15
   if (answers.sap_landscape && answers.sap_landscape !== 'none' && component.sap_compatible)

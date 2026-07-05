@@ -323,6 +323,27 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
 
   const suggestedNames = new Set(suggestions.map(s => s.target))
 
+  // Bug #74: components added via "+" suggestion may not be in recs.layers.componentNames.
+  // Inject them into their respective layer so checkboxes become visible in the swimlane.
+  const allLayerNames = new Set(recs.layers.flatMap(lr => lr.componentNames))
+  const extraByLayer = new Map<string, string[]>()
+  for (const name of checked) {
+    if (!allLayerNames.has(name)) {
+      const layer = byName[name]?.architecture_layer
+      if (layer) {
+        if (!extraByLayer.has(layer)) extraByLayer.set(layer, [])
+        extraByLayer.get(layer)!.push(name)
+      }
+    }
+  }
+  const displayRecs = extraByLayer.size === 0 ? recs : {
+    ...recs,
+    layers: recs.layers.map(lr => {
+      const extras = extraByLayer.get(lr.layer) ?? []
+      return extras.length > 0 ? { ...lr, componentNames: [...lr.componentNames, ...extras] } : lr
+    }),
+  }
+
   const handleAddComponent    = (name: string) => setChecked(prev => new Set([...prev, name]))
   const handleRemoveComponent = (name: string) => {
     setChecked(prev => { const next = new Set(prev); next.delete(name); return next })
@@ -368,7 +389,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
       <div className={cn('flex', showSidebar ? 'flex-col md:flex-row' : 'flex-col')}>
         <div className={cn('min-w-0', showSidebar ? 'md:flex-[7]' : 'flex-1')}>
           <SwimlaneTable
-            recs={recs}
+            recs={displayRecs}
             byName={byName}
             locked={locked}
             checked={checked}

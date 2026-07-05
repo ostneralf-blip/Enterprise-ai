@@ -233,7 +233,10 @@ export function GovernancePageClient({
 
       {/* Use-Case-Auswahl */}
       <div className="mb-5">
-        <label htmlFor="governance-usecase-select" className="block text-xs font-medium text-slate-600 mb-1.5">
+        <label
+          htmlFor={useCases.length > 0 && !manualEntry ? 'governance-usecase-select' : 'governance-usecase-name'}
+          className="block text-xs font-medium text-slate-600 mb-1.5"
+        >
           Use Case <span className="text-slate-400 font-normal">(optional)</span>
         </label>
         {useCases.length > 0 && !manualEntry ? (

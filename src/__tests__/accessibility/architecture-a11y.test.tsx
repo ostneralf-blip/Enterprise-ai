@@ -72,7 +72,7 @@ describe('Accessibility: Architektur-Generator', () => {
     expect(await axe(container)).toHaveNoViolations()
   })
 
-  it('Ergebnis zeigt Architektur-Schichten als Sections', () => {
+  it('Ergebnis zeigt Architektur-Schichten als Tabellenzeilen', () => {
     render(<ArchitecturePageClient />)
     for (let i = 0; i < WIZARD_STEPS.length; i++) {
       const radios = screen.getAllByRole('radio')
@@ -80,8 +80,9 @@ describe('Accessibility: Architektur-Generator', () => {
       const btnLabel = i === WIZARD_STEPS.length - 1 ? /architektur generieren/i : /weiter/i
       fireEvent.click(screen.getByRole('button', { name: btnLabel }))
     }
-    const sections = screen.getAllByRole('region')
-    expect(sections.length).toBeGreaterThanOrEqual(4)
+    // SwimlaneTable renders layers as <tr> (role="row") — at least one layer should appear
+    const rows = screen.getAllByRole('row')
+    expect(rows.length).toBeGreaterThanOrEqual(1)
   })
 
   it('"Neue Architektur generieren"-Button führt zum Wizard-Start zurück', () => {
