@@ -1278,7 +1278,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-0.5">
+                            <div className="space-y-0.5 min-w-0">
                               {c.incompatible_with.length > 0 && (
                                 <p className="text-[10px] text-red-600 truncate max-w-[160px]">✗ {c.incompatible_with.join(', ')}</p>
                               )}
