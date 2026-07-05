@@ -8,6 +8,8 @@ export type SeedComponent = {
   use_case_types: string[]; infra_types: string[]; cloud_provider: string
   icon_name: string | null; website_url?: string; description: string
   tags: string[]
+  suggests?: string[]
+  incompatible_with?: string[]
 }
 
 export const SEED_COMPONENTS: SeedComponent[] = [
@@ -18,7 +20,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     use_case_types: ['predictive','generative'], infra_types: ['cloud','hybrid'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', website_url: 'https://www.sap.com/datasphere',
     description: 'Unternehmensweite Datenplattform von SAP auf BTP — Data Fabric, semantische Modelle, Datenmarktplatz.',
-    tags: ['sap','data','btp','dw'] },
+    tags: ['sap','data','btp','dw','s4hana','datasphere'],
+    suggests: ['SAP HANA Cloud', 'SAP AI Core', 'SAP MDG', 'SAP Integration Suite'],
+    incompatible_with: [] },
 
   { name: 'SAP HANA Cloud', vendor: 'SAP', category: 'data_platform', architecture_layer: 'data',
     hosting: ['eu','us','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
@@ -26,7 +30,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     use_case_types: ['predictive','automation'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', website_url: 'https://www.sap.com/hana',
     description: 'In-memory Cloud-Datenbank auf SAP BTP für Echtzeit-Analytik und transaktionale Workloads.',
-    tags: ['sap','hana','in-memory','btp'] },
+    tags: ['sap','hana','in-memory','btp','s4hana'],
+    suggests: ['SAP Datasphere', 'SAP AI Core', 'SAP BTP Auth & Trust'],
+    incompatible_with: [] },
 
   // ── DATA LAYER — AWS ──────────────────────────────────────────────────────
   { name: 'Amazon Redshift', vendor: 'AWS', category: 'data_platform', architecture_layer: 'data',
@@ -94,7 +100,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     use_case_types: ['generative','predictive'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', website_url: 'https://www.sap.com/ai-core',
     description: 'ML Operations und Modell-Serving auf SAP BTP — trainiert, verwaltet und deployed AI-Modelle in SAP-Landschaften.',
-    tags: ['sap','mlops','model','btp'] },
+    tags: ['sap','mlops','model','btp','ai-core'],
+    suggests: ['SAP GenAI Hub', 'SAP AI Launchpad', 'SAP Datasphere', 'SAP BTP Auth & Trust'],
+    incompatible_with: [] },
 
   { name: 'SAP GenAI Hub', vendor: 'SAP', category: 'llm', architecture_layer: 'model',
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
@@ -102,7 +110,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', website_url: 'https://www.sap.com/genai-hub',
     description: 'Einheitlicher Zugriff auf LLMs (GPT-4o, Llama, Mistral) über SAP BTP mit eingebautem Prompt-Management und Usage Tracking.',
-    tags: ['sap','llm','genai','btp'] },
+    tags: ['sap','llm','genai','btp','joule'],
+    suggests: ['SAP AI Core', 'SAP AI Launchpad', 'SAP Datasphere'],
+    incompatible_with: [] },
 
   // ── MODEL LAYER — AWS ─────────────────────────────────────────────────────
   { name: 'Amazon SageMaker', vendor: 'AWS', category: 'ml_platform', architecture_layer: 'model',
@@ -163,7 +173,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['ai_core','btp'],
     use_case_types: ['predictive','generative'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'UI-Werkzeug für Verwaltung von AI-Szenarien und Deployments auf SAP AI Core.',
-    tags: ['sap','serving','launchpad'] },
+    tags: ['sap','serving','launchpad','btp'],
+    suggests: ['SAP AI Core', 'SAP GenAI Hub'],
+    incompatible_with: [] },
 
   { name: 'SageMaker Endpoints', vendor: 'AWS', category: 'serving', architecture_layer: 'serving',
     hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
@@ -239,7 +251,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['mdg'],
     use_case_types: ['automation'], infra_types: ['cloud','onprem'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'SAP Master Data Governance — zentrales Stammdaten-Management für AI-Trainingsdaten-Qualität.',
-    tags: ['sap','mdm','governance','data-quality'] },
+    tags: ['sap','mdm','governance','data-quality','s4hana'],
+    suggests: ['SAP Datasphere', 'SAP HANA Cloud'],
+    incompatible_with: [] },
 
   { name: 'Microsoft Purview', vendor: 'Microsoft', category: 'governance', architecture_layer: 'governance',
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
@@ -265,7 +279,9 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['btp'],
     use_case_types: ['automation'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'Identity & Access Management auf SAP BTP — SAML, OAuth 2.0, OIDC für SAP-Anwendungen.',
-    tags: ['sap','iam','auth','btp'] },
+    tags: ['sap','iam','auth','btp','oauth','oidc'],
+    suggests: ['SAP Integration Suite', 'SAP AI Core'],
+    incompatible_with: [] },
 
   { name: 'Microsoft Entra ID', vendor: 'Microsoft', category: 'security', architecture_layer: 'security',
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
@@ -291,14 +307,18 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['btp'],
     use_case_types: ['automation'], infra_types: ['cloud','hybrid'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'Integrationsplattform für SAP- und Non-SAP-Systeme auf BTP — API Management, Event Mesh, Integration Flows.',
-    tags: ['sap','integration','btp','api'] },
+    tags: ['sap','integration','btp','api','event-mesh','s4hana'],
+    suggests: ['SAP BTP Auth & Trust', 'SAP Datasphere', 'SAP AI Core'],
+    incompatible_with: [] },
 
   { name: 'SAP Joule Studio', vendor: 'SAP', category: 'application', architecture_layer: 'application',
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
     sap_compatible: true, sap_components: ['joule','btp','genai_hub'],
     use_case_types: ['generative','automation'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'Low-Code-Entwicklungsumgebung für Joule AI Agents in SAP-Prozessen.',
-    tags: ['sap','joule','agent','low-code'] },
+    tags: ['sap','joule','agent','low-code','btp'],
+    suggests: ['SAP GenAI Hub', 'SAP AI Core', 'SAP Integration Suite'],
+    incompatible_with: [] },
 
   { name: 'AWS API Gateway', vendor: 'AWS', category: 'integration', architecture_layer: 'application',
     hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',

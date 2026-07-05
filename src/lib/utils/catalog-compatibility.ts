@@ -58,11 +58,32 @@ export function findSuggestions(
   for (const name of checked) {
     const comp = byName[name]
     if (!comp) continue
+
+    // Primär: kuratierte suggests[]-Relationen aus dem Katalog
     for (const target of comp.suggests) {
       if (checked.has(target)) continue
       if (seen.has(target)) continue
+      if (!byName[target]) continue
       seen.add(target)
       suggestions.push({ source: name, target })
+    }
+
+    // Fallback: wenn suggests[] leer ist, weitere Komponenten des gleichen Providers vorschlagen.
+    // Relevant für SAP-Kontext, bis alle Katalogeinträge kuratierte suggests-Daten haben.
+    if (comp.suggests.length === 0 && comp.cloud_provider !== 'independent') {
+      const providerPeers = Object.values(byName)
+        .filter(c =>
+          c.cloud_provider === comp.cloud_provider &&
+          c.name !== comp.name &&
+          !checked.has(c.name) &&
+          !seen.has(c.name)
+        )
+        .slice(0, 3)
+
+      for (const peer of providerPeers) {
+        seen.add(peer.name)
+        suggestions.push({ source: name, target: peer.name })
+      }
     }
   }
 
