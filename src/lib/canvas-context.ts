@@ -18,6 +18,15 @@ export interface DetectedTag {
 
 type UcType = 'vision' | 'generative' | 'predictive' | 'automation'
 
+// Alias-Begriffe die auf einen Vendor hindeuten, ohne den Vendor-Namen zu nennen.
+// Wenn Canvas "S/4HANA" enthält, sollen SAP-Komponenten trotzdem gescort werden.
+const VENDOR_ALIASES: Record<string, string[]> = {
+  'SAP': ['s/4hana', 's4hana', 'fiori', 'btp', 'hana', 'datasphere', 'bw/4hana', 'joule', 'ariba', 'successfactors', 'sap cloud', 'ai core', 'genai hub'],
+  'Microsoft': ['azure', 'm365', 'teams', 'copilot studio', 'power platform', 'power bi', 'fabric'],
+  'AWS': ['amazon', 'bedrock', 'sagemaker', 'aws lambda', 'ec2'],
+  'Google': ['gcp', 'vertex ai', 'bigquery', 'google cloud'],
+}
+
 const BASE_VOCAB: Record<UcType, string[]> = {
   vision:     ['ocr', 'bildverarbeitung', 'dokument', 'scan', 'bild', 'erkennung', 'invoice', 'rechnung', 'vision', 'image'],
   generative: ['llm', 'gpt', 'genai', 'chat', 'text', 'zusammenfassung', 'sprachmodell', 'rag', 'embedding', 'generativ'],
@@ -45,15 +54,32 @@ export function buildVocabFromCatalog(
 
 export function scoreComponentAgainstText(
   component: CatalogComponent,
-  canvasText: string
+  canvasText: string,
+  clusterBonus = 0
 ): number {
   const text = canvasText.toLowerCase()
   let score = 0
-  if (text.includes(component.name.toLowerCase()))                           score += 30
-  if (component.vendor && text.includes(component.vendor.toLowerCase()))     score += 15
-  for (const tag of component.tags) {
-    if (text.includes(tag.toLowerCase()))                                    score += 5
+
+  if (text.includes(component.name.toLowerCase()))                            score += 30
+
+  if (component.vendor) {
+    const vendorLower = component.vendor.toLowerCase()
+    if (text.includes(vendorLower)) {
+      score += 15
+    } else {
+      // Alias-Treffer: wenn ein Alias-Begriff im Text, gilt als Vendor-Hinweis
+      const aliases = VENDOR_ALIASES[component.vendor] ?? []
+      if (aliases.some(alias => text.includes(alias))) score += 10
+    }
   }
+
+  for (const tag of component.tags) {
+    if (text.includes(tag.toLowerCase()))                                     score += 5
+  }
+
+  // Cluster-Bonus: wenn der Canvas stark auf diesen Vendor hindeutet (3+ Alias-Treffer)
+  score += clusterBonus
+
   return score
 }
 
@@ -119,9 +145,22 @@ export function extractCanvasContext(
   if (compliance_flags.includes('dsgvo_strict') || compliance_flags.includes('eu_ai_act_high'))
     wizard_prefill.compliance = 'strict'
 
+  // Cluster-Bonus: Anzahl Alias-Treffer pro Vendor zählen.
+  // Wenn 3+ SAP-Begriffe im Canvas → SAP-Komponenten erhalten +10 Bonus.
+  const clusterBonusPerVendor: Record<string, number> = {}
+  for (const [vendor, aliases] of Object.entries(VENDOR_ALIASES)) {
+    const vendorLower = vendor.toLowerCase()
+    const hits = (textLower.includes(vendorLower) ? 1 : 0) +
+      aliases.filter(a => textLower.includes(a)).length
+    if (hits >= 3) clusterBonusPerVendor[vendor] = 10
+  }
+
   // Direkte Catalog-Treffer
   const pre_scored_components = catalog
-    .map(c => ({ c, score: scoreComponentAgainstText(c, canvasText) }))
+    .map(c => ({
+      c,
+      score: scoreComponentAgainstText(c, canvasText, clusterBonusPerVendor[c.vendor ?? ''] ?? 0),
+    }))
     .filter(x => x.score >= 5)
     .sort((a, b) => b.score - a.score)
     .slice(0, 8)
