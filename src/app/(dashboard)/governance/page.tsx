@@ -14,20 +14,18 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   const params = await searchParams
 
-  const [{ data: profileData }, { data: sessions }, { data: portfolioData }, { data: complianceRisk }] = await Promise.all([
+  const [{ data: profileData }, { data: sessions }, { data: allUseCases }, { data: complianceRisk }] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('governance_sessions')
-      .select('id, use_case_name, use_case_id, answers, result, created_at')
+      .select('id, use_case_name, use_case_id, use_case_ids, answers, result, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10),
     supabase
       .from('use_case_portfolios')
       .select('use_cases(id, name)')
-      .eq('user_id', user.id)
-      .limit(1)
-      .maybeSingle(),
+      .eq('user_id', user.id),
     supabase
       .from('compliance_checks')
       .select('notes')
@@ -39,7 +37,10 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
   ])
 
   const tier = (profileData?.tier ?? 'free') as Tier
-  const useCases = ((portfolioData?.use_cases ?? []) as { id: string; name: string }[])
+  type UCRow = { use_cases: { id: string; name: string } | { id: string; name: string }[] | null }
+  const useCases = ((allUseCases ?? []) as UCRow[])
+    .flatMap(p => Array.isArray(p.use_cases) ? p.use_cases : p.use_cases ? [p.use_cases] : [])
+    .filter((uc, idx, arr) => arr.findIndex(x => x.id === uc.id) === idx)
     .sort((a, b) => a.name.localeCompare(b.name, 'de'))
 
   let initialUseCaseName: string | undefined

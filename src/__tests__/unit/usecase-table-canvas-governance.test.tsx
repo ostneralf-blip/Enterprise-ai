@@ -96,27 +96,51 @@ describe('UseCaseTable: Governance Quick-Start (#56)', () => {
 describe('GovernancePageClient: Use-Case-Prefill (#56)', () => {
   afterEach(() => jest.resetAllMocks())
 
-  it('zeigt ein Namensfeld im Wizard', () => {
+  it('zeigt ein Use-Case-Eingabefeld wenn keine Liste vorhanden', () => {
+    // Ohne useCases-Prop → Freitext-Input wird angezeigt
     render(<GovernancePageClient tier="free" sessions={[]} />)
-    expect(screen.getByLabelText(/use case/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/name des zu prüfenden/i)).toBeInTheDocument()
   })
 
   it('Namensfeld ist leer wenn kein initialUseCaseName übergeben', () => {
     render(<GovernancePageClient tier="free" sessions={[]} />)
-    const input = screen.getByLabelText(/use case/i) as HTMLInputElement
+    const input = screen.getByPlaceholderText(/name des zu prüfenden/i) as HTMLInputElement
     expect(input.value).toBe('')
   })
 
   it('Namensfeld ist vorausgefüllt wenn initialUseCaseName übergeben', () => {
     render(<GovernancePageClient tier="free" sessions={[]} initialUseCaseName="KI-Dokumentenprüfung" />)
-    const input = screen.getByLabelText(/use case/i) as HTMLInputElement
+    const input = screen.getByPlaceholderText(/name des zu prüfenden/i) as HTMLInputElement
     expect(input.value).toBe('KI-Dokumentenprüfung')
   })
 
   it('Nutzer kann den vorausgefüllten Namen ändern', () => {
     render(<GovernancePageClient tier="free" sessions={[]} initialUseCaseName="Alter Name" />)
-    const input = screen.getByLabelText(/use case/i)
+    const input = screen.getByPlaceholderText(/name des zu prüfenden/i)
     fireEvent.change(input, { target: { value: 'Neuer Name' } })
     expect((input as HTMLInputElement).value).toBe('Neuer Name')
+  })
+
+  it('zeigt Checkboxen wenn useCases-Liste übergeben wird', () => {
+    const useCases = [
+      { id: 'uc-1', name: 'Rechnungsprüfung' },
+      { id: 'uc-2', name: 'Dokumentenanalyse' },
+    ]
+    render(<GovernancePageClient tier="free" sessions={[]} useCases={useCases} />)
+    const checkboxes = screen.getAllByRole('checkbox')
+    expect(checkboxes.length).toBe(2)
+    expect(screen.getByText('Rechnungsprüfung')).toBeInTheDocument()
+    expect(screen.getByText('Dokumentenanalyse')).toBeInTheDocument()
+  })
+
+  it('Checkbox-Auswahl ist korrekt toggable', () => {
+    const useCases = [{ id: 'uc-1', name: 'Rechnungsprüfung' }]
+    render(<GovernancePageClient tier="free" sessions={[]} useCases={useCases} />)
+    const cb = screen.getByRole('checkbox') as HTMLInputElement
+    expect(cb.checked).toBe(false)
+    fireEvent.click(cb)
+    expect(cb.checked).toBe(true)
+    fireEvent.click(cb)
+    expect(cb.checked).toBe(false)
   })
 })

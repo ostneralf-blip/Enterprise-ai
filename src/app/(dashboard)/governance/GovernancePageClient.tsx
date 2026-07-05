@@ -65,12 +65,22 @@ export function GovernancePageClient({
 }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
-  const [useCaseName, setUseCaseName] = useState(initialUseCaseName ?? '')
-  const [useCaseId, setUseCaseId] = useState<string | null>(initialUseCaseId ?? null)
-  const [manualEntry, setManualEntry] = useState(!initialUseCaseId && !!initialUseCaseName)
+  const [useCaseIds, setUseCaseIds] = useState<string[]>(initialUseCaseId ? [initialUseCaseId] : [])
+  const [extraName, setExtraName] = useState(initialUseCaseId ? '' : (initialUseCaseName ?? ''))
+  const [showExtraInput, setShowExtraInput] = useState(!initialUseCaseId && !!initialUseCaseName)
   const [showResult, setShowResult] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const toggleUseCase = (id: string) => {
+    setUseCaseIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const selectedNames = useCaseIds.map(id => useCases.find(uc => uc.id === id)?.name ?? id)
+  const displayName = [
+    ...selectedNames,
+    ...(extraName.trim() ? [extraName.trim()] : []),
+  ].join(', ')
 
   const totalSteps = GOVERNANCE_GATES.length
   const gate = GOVERNANCE_GATES[currentStep]
@@ -99,9 +109,9 @@ export function GovernancePageClient({
     setCurrentStep(0)
     setShowResult(false)
     setSaved(false)
-    setUseCaseId(null)
-    setUseCaseName('')
-    setManualEntry(false)
+    setUseCaseIds([])
+    setExtraName('')
+    setShowExtraInput(false)
   }
 
   const handleSave = async (verdictLevel: VerdictLevel) => {
@@ -111,8 +121,9 @@ export function GovernancePageClient({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          use_case_name: useCaseName.trim() || null,
-          use_case_id: useCaseId ?? null,
+          use_case_name: displayName || null,
+          use_case_id: useCaseIds[0] ?? null,
+          use_case_ids: useCaseIds,
           answers,
           result: VERDICT_TO_API[verdictLevel],
         }),
@@ -233,60 +244,85 @@ export function GovernancePageClient({
 
       {/* Use-Case-Auswahl */}
       <div className="mb-5">
-        <label
-          htmlFor={useCases.length > 0 && !manualEntry ? 'governance-usecase-select' : 'governance-usecase-name'}
-          className="block text-xs font-medium text-slate-600 mb-1.5"
-        >
-          Use Case <span className="text-slate-400 font-normal">(optional)</span>
-        </label>
-        {useCases.length > 0 && !manualEntry ? (
-          <select
-            id="governance-usecase-select"
-            value={useCaseId ?? ''}
-            onChange={e => {
-              const val = e.target.value
-              if (val === '__manual__') {
-                setUseCaseId(null)
-                setUseCaseName('')
-                setManualEntry(true)
-              } else if (val === '') {
-                setUseCaseId(null)
-                setUseCaseName('')
-              } else {
-                const found = useCases.find(uc => uc.id === val)
-                setUseCaseId(val)
-                setUseCaseName(found?.name ?? '')
-              }
-            }}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-          >
-            <option value="">— Keinen (globaler Check) —</option>
-            {useCases.map(uc => (
-              <option key={uc.id} value={uc.id}>{uc.name}</option>
-            ))}
-            <option value="__manual__">Anderen Namen eingeben…</option>
-          </select>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              id="governance-usecase-name"
-              type="text"
-              value={useCaseName}
-              onChange={e => setUseCaseName(e.target.value)}
-              placeholder="Name des zu prüfenden AI-Use-Cases"
-              maxLength={200}
-              className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            {useCases.length > 0 && (
-              <button
-                type="button"
-                onClick={() => { setManualEntry(false); setUseCaseName(''); setUseCaseId(null) }}
-                className="text-xs text-blue-600 hover:text-blue-500 whitespace-nowrap px-2"
-              >
-                ← Aus Liste wählen
-              </button>
-            )}
+        <p className="text-xs font-medium text-slate-600 mb-1.5">
+          Use Cases <span className="text-slate-400 font-normal">(optional — mehrere wählbar)</span>
+        </p>
+        {useCases.length > 0 ? (
+          <div className="border border-slate-200 rounded-xl overflow-hidden">
+            <ul role="list">
+              {useCases.map((uc, idx) => {
+                const checked = useCaseIds.includes(uc.id)
+                return (
+                  <li
+                    key={uc.id}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 cursor-pointer select-none transition-colors',
+                      idx > 0 && 'border-t border-slate-100',
+                      checked ? 'bg-blue-50' : 'hover:bg-slate-50'
+                    )}
+                    onClick={() => toggleUseCase(uc.id)}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`uc-${uc.id}`}
+                      checked={checked}
+                      onChange={() => toggleUseCase(uc.id)}
+                      onClick={e => e.stopPropagation()}
+                      className="accent-blue-600 flex-shrink-0"
+                    />
+                    <label
+                      htmlFor={`uc-${uc.id}`}
+                      className={cn('text-sm min-w-0 truncate cursor-pointer', checked ? 'text-blue-900 font-medium' : 'text-slate-800')}
+                      onClick={e => e.preventDefault()}
+                    >
+                      {uc.name}
+                    </label>
+                  </li>
+                )
+              })}
+              <li className={cn('border-t border-slate-100', showExtraInput ? 'bg-blue-50' : 'hover:bg-slate-50')}>
+                {showExtraInput ? (
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <input
+                      type="text"
+                      id="governance-usecase-extra"
+                      value={extraName}
+                      onChange={e => setExtraName(e.target.value)}
+                      placeholder="Name des Use Cases eingeben…"
+                      maxLength={200}
+                      autoFocus
+                      className="flex-1 min-w-0 text-sm text-slate-900 placeholder-slate-400 bg-transparent focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setShowExtraInput(false); setExtraName('') }}
+                      className="text-xs text-slate-400 hover:text-slate-600 flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowExtraInput(true)}
+                    className="w-full text-left px-3 py-2.5 text-sm text-blue-600 hover:text-blue-500"
+                  >
+                    + Anderen Namen eingeben…
+                  </button>
+                )}
+              </li>
+            </ul>
           </div>
+        ) : (
+          <input
+            id="governance-usecase-name"
+            type="text"
+            value={extraName}
+            onChange={e => setExtraName(e.target.value)}
+            placeholder="Name des zu prüfenden AI-Use-Cases"
+            maxLength={200}
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         )}
       </div>
 

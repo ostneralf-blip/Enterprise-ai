@@ -257,18 +257,31 @@ export function recommendFromCatalog(
   answers: WizardAnswers,
   catalog: CatalogComponent[]
 ): CatalogRecommendations {
+  const byName = new Map(catalog.map(c => [c.name, c]))
+  // Bei SAP BTP als primärem Provider bekommen SAP-Komponenten exklusive Slots —
+  // independent-Komponenten erscheinen nur als Fallback wenn kein SAP im Layer vorhanden.
+  const sapPrimary = isSAP(answers) && answers.cloud_provider_hint === 'sap_btp'
+
   const layers: LayerRecommendation[] = ARCH_LAYERS_ORDERED.map(layer => {
     const scored = catalog
       .filter(c => c.architecture_layer === layer)
       .map(c => ({ name: c.name, score: scoreComponentAgainstAnswers(c, answers) }))
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
-    // Require contextual relevance (≥ 8 pts) — "cloud_provider independent" alone (+5) is insufficient.
-    // Fallback: show top 2 by score if nothing reaches threshold, so diagram is never empty.
     const relevant = scored.filter(x => x.score >= 8)
-    const componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2))
-      .slice(0, 4)
-      .map(x => x.name)
+
+    let componentNames: string[]
+    if (sapPrimary) {
+      const sapRelevant = relevant.filter(x => byName.get(x.name)?.cloud_provider === 'sap')
+      if (sapRelevant.length > 0) {
+        componentNames = sapRelevant.slice(0, 4).map(x => x.name)
+      } else {
+        componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name)
+      }
+    } else {
+      componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name)
+    }
+
     return { layer, componentNames }
   }).filter(l => l.componentNames.length > 0)
 
