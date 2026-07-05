@@ -74,9 +74,14 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
   const gen    = answers.usecase === 'generative'
   const strict = answers.compliance === 'strict'
 
+  // sapPrimary = SAP als primärer Cloud-Provider (sap_btp oder SAP-Landschaft ohne anderen Hint).
+  // Verhindert, dass sap_landscape: 'partial' + cloud_provider_hint: 'azure' zu SAP-Komponenten führt.
+  const sapPrimary = answers.cloud_provider_hint === 'sap_btp'
+    || (sap && !answers.cloud_provider_hint)
+
   // ── DATA ─────────────────────────────────────────────────────────────────
   const data: string[] = []
-  if (answers.data_platform === 'sap_bw' || (sap && !answers.data_platform)) {
+  if (answers.data_platform === 'sap_bw' || (sapPrimary && !answers.data_platform)) {
     data.push('SAP Datasphere', 'SAP HANA Cloud')
     if (!onprem) data.push('Apache Kafka')
   } else if (answers.data_platform === 'azure_fabric') {
@@ -94,7 +99,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   // ── MODEL ─────────────────────────────────────────────────────────────────
   const model: string[] = []
-  if (answers.model_platform === 'sap_ai_core' || (sap && !answers.model_platform)) {
+  if (answers.model_platform === 'sap_ai_core' || (sapPrimary && !answers.model_platform)) {
     model.push('SAP AI Core')
     if (gen) model.push('SAP GenAI Hub')
   } else if (answers.model_platform === 'cloud_ml') {
@@ -105,7 +110,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
     model.push('MLflow')
   } else if (answers.model_platform === 'no_code') {
     if (azure) model.push('Azure OpenAI Service')
-    else if (sap) model.push('SAP GenAI Hub')
+    else if (sapPrimary) model.push('SAP GenAI Hub')
     else model.push('AWS Bedrock')
   } else if (azure) {
     model.push('Azure Machine Learning')
@@ -119,7 +124,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
       if (onprem) model.push('Ollama')
     } else if (!model.some(c => ['SAP GenAI Hub','Azure OpenAI Service','AWS Bedrock','Mistral AI'].includes(c))) {
       if (azure) model.push('Azure OpenAI Service')
-      else if (sap) model.push('SAP GenAI Hub')
+      else if (sapPrimary) model.push('SAP GenAI Hub')
       else model.push('AWS Bedrock', 'Mistral AI')
     }
   }
@@ -157,21 +162,21 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   // ── GOVERNANCE ────────────────────────────────────────────────────────────
   const governance: string[] = []
-  if (sap)        governance.push('SAP MDG', 'OpenMetadata')
-  else if (azure) governance.push('Microsoft Purview', 'OpenMetadata')
-  else if (aws)   governance.push('AWS DataZone', 'OpenMetadata')
-  else            governance.push('OpenMetadata')
+  if (sapPrimary)  governance.push('SAP MDG', 'OpenMetadata')
+  else if (azure)  governance.push('Microsoft Purview', 'OpenMetadata')
+  else if (aws)    governance.push('AWS DataZone', 'OpenMetadata')
+  else             governance.push('OpenMetadata')
 
   // ── SECURITY ──────────────────────────────────────────────────────────────
   const security: string[] = []
-  if (sap)                    security.push('SAP BTP Auth & Trust', 'HashiCorp Vault')
+  if (sapPrimary)             security.push('SAP BTP Auth & Trust', 'HashiCorp Vault')
   else if (azure)             security.push('Microsoft Entra ID', 'HashiCorp Vault')
   else if (onprem || hybrid)  security.push('Keycloak', 'HashiCorp Vault')
   else                        security.push('HashiCorp Vault')
 
   // ── APPLICATION ───────────────────────────────────────────────────────────
   const application: string[] = []
-  if (sap) {
+  if (sapPrimary) {
     application.push('SAP Integration Suite')
     if (gen) application.push('SAP Joule Studio')
   } else if (aws)   application.push('AWS API Gateway', 'Kong Gateway')
@@ -189,6 +194,7 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
   }
   if (gen) roles.push('Prompt Engineer')
   if (strict) roles.push('AI Ethics / Risk Officer')
+  if (sap) roles.push('SAP AI Architect')
   if (!onprem && answers.skills !== 'business') roles.push('Enterprise Architect (AI)')
 
   return {
