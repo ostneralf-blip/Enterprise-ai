@@ -1,5 +1,8 @@
 # AI Navigator — CLAUDE.md
 ## Projekt-Konventionen für Claude Code
+_Zuletzt inhaltlich gegen Repo + GitHub abgeglichen: 05.07.2026. Diese Datei aktualisiert
+sich nicht automatisch — nach größeren Sprints manuell nachziehen (siehe Hinweis in der
+Feature-Lücken-Analyse unten)._
 
 ### Produkt
 - **Name:** AI Navigator
@@ -133,24 +136,28 @@ Kein Schritt wird übersprungen, auch nicht bei kleinen Änderungen. Manuelle Ch
 (docs/testing/security-checklist.md, manual-test-plan.md, accessibility-checklist.md)
 müssen vor jedem Produktions-Launch eines neuen Moduls aktualisiert und abgezeichnet werden.
 
-### Feature-Rückstand (Stufe 2 — eingeplant, noch nicht terminiert)
-- Settings: Adressfelder (Privat/Firma) + weitere Kontaktdetails (Mobil, Tel.) ergänzen
-- Settings: Impressum/Datenschutz/AGB sind verlinkt (Sidebar + Settings-Footer) — Platzhalter-Texte durch echte Rechtstexte (eRecht24/Anwalt) ersetzen
-- Admin Panel: User-Management (Sperren/Entsperren, Lizenz-/Feature-Zuweisung pro User)
-- FeedbackWidget: leichtes horizontales Überlaufen bei 393px Breite — am Ende von Sprint 2 final polieren
+### Feature-Rückstand (Stufe 2 — Stand 05.07.2026, gegen Repo + GitHub verifiziert)
+**Erledigt seit dem letzten Stand (21.06.2026) — hier verbleibend, damit die Historie nachvollziehbar bleibt:**
+- ~~Settings: Adressfelder + Kontaktdetails~~ → erledigt (`SettingsPageClient.tsx` hat `mobile`/`phone`-Felder)
+- ~~Admin Panel: User-Management~~ → erledigt (`/api/admin/users`, `is_admin`/`is_banned`/`feature_flags` auf `profiles`)
 
-### Admin-Panel & Content-Anreicherung (neu, 20.06.2026)
+**Noch offen:**
+- Settings/Impressum/Datenschutz/AGB: Routen existieren jetzt (`/impressum`, `/datenschutz`, `/agb`), Inhalt ist aber weiterhin Platzhalter (`[Name / Firmenname]`, `[Straße und Hausnummer]` etc.) — echte Rechtstexte (eRecht24/Anwalt) stehen noch aus. Bleibt Go-Live-Blocker, siehe Prio-1-Liste unten.
+- FeedbackWidget-Überlaufen bei 393px: Status nicht erneut verifiziert in dieser Runde — bei nächster Mobile-Testrunde gegenprüfen.
 
-**Stufe A — Plattform-Content-Verwaltung (Stufe 2, in Rückstand eingeplant):**
-- Eigene `content_library`-Tabelle statt hartcodierter Werte in `config/`-Dateien
-  (Gesetzesverweise, Branchen-Use-Case-Beispiele, Quellenangaben pro Modul)
-- `role = 'admin'`-Flag auf `profiles`, RLS-geschützt wie alle anderen Tabellen
-- Einfaches CRUD-Interface nur für Daniel erreichbar (kein Kunden-Zugriff)
-- Jedes Modul wird inhaltlich angereichert: konkrete Gesetzesartikel-Verweise
-  (z. B. EU AI Act Art. X, DSGVO Art. Y), echte Branchenbeispiele statt
-  Platzhalter, Quellenangaben mit Datum
-- **Aufwand:** mittel, reine Plattform-Erweiterung, kein Risiko für bestehendes
-  Tier-/RLS-Modell
+### Admin-Panel & Content-Anreicherung (Stand 05.07.2026)
+
+**Stufe A — Plattform-Content-Verwaltung: WEITGEHEND UMGESETZT** (war 20.06.2026 noch
+"in Rückstand eingeplant"):
+- `content_library`-Tabelle + `/api/admin/content` (GET/POST/PATCH) existiert und wird genutzt
+- Admin-Erkennung läuft über `is_admin`-Flag auf `profiles` (nicht `role='admin'` wie ursprünglich
+  skizziert — funktional gleichwertig), RLS-geschützt
+- CRUD-Interface im Admin-Panel (`/admin`) vorhanden, inkl. Komponenten-Katalog-Editor
+  (Tags, Abhängigkeiten `incompatible_with`/`requires`/`suggests`), Upload-Verlauf + Soft-Restore
+- Ob **jedes** Modul bereits inhaltlich mit konkreten Gesetzesartikel-Verweisen (EU AI Act Art. X,
+  DSGVO Art. Y) angereichert ist oder der `content_library`-Mechanismus bisher nur für den
+  Komponenten-Katalog genutzt wird, wurde in dieser Runde nicht Modul-für-Modul verifiziert —
+  bei Bedarf gezielt nachprüfen.
 
 **Stufe B — Kunden-konfigurierbare Inhalte (Phase 3, NUR Vision, nicht bauen
 ohne erneute explizite Freigabe):**
@@ -170,53 +177,105 @@ ohne erneute explizite Freigabe):**
   "möglich, aber noch nicht spezifiziert, welche Quelle/API" markieren,
   bis ein konkreter Bedarf vorliegt.
 
-### Feature-Lücken-Analyse (21.06.2026 — CDO/CIO-Perspektive, verifiziert gegen Repo)
+### Feature-Lücken-Analyse (05.07.2026 — aktualisiert gegen Repo + GitHub Issues/Commits)
 
-**WICHTIG — DB-Schema ist weiter als die UI:** Migration 001 legt bereits `result_versions`
-(Versionierung) UND `share_links` (Sharing, inkl. `share_public_read`-Policy für öffentlichen
-Lesezugriff) an. Das Datenfundament steht — es fehlen nur API-Routen und UI. Beim Bauen NICHT
-neue Tabellen anlegen, sondern die vorhandenen verdrahten.
+**Hinweis zur Methode:** Dieser Abschnitt wurde zuletzt am 21.06.2026 gepflegt. Seitdem
+liefen 98 Commits gegen `src/`+`supabase/`, ohne dass CLAUDE.md mitgezogen wurde — die
+Datei ist eine Momentaufnahme, keine Live-Ansicht des Repos, und muss nach größeren Sprints
+manuell nachgezogen werden (kein Hook macht das automatisch). Diese Aktualisierung wurde
+gegen den lokalen Code, die GitHub-Commit-Historie und die GitHub Issues des Repos
+`ostneralf-blip/enterprise-ai` abgeglichen. **Nicht möglich war** ein Live-Check des
+Supabase-Remote-Projekts (kein `supabase` CLI/Login in der Prüfumgebung) — die Aussagen
+zum DB-Schema stützen sich auf die 22 Migrationsdateien in `supabase/migrations/`. Vor
+dem nächsten Produktions-Deployment `supabase migration list` laufen lassen und
+verifizieren, dass Local/Remote für alle Migrationen bis `20260705122836` synchron sind.
 
-**A — Rechtlich kritisch (Blocker vor jedem echten Go-Live):**
-- DSGVO-Datenlöschung (Account + alle Daten, Art. 17): Settings-Seite hat "Konto"-Abschnitt,
-  aber KEINE Löschfunktion. Route `/api/account/delete` fehlt (404). Pflicht, nicht optional.
-- Impressum (/impressum), Datenschutzerklärung (/datenschutz), AGB (/agb): existieren als
-  Routen noch nicht — separater Legal-Arbeitsblock (siehe Punkt 1 der Brainstorming-Liste).
+**A — Rechtlich kritisch: TEILWEISE ERLEDIGT**
+- ~~DSGVO-Datenlöschung~~ → erledigt: `/api/account/delete` existiert.
+- Impressum/Datenschutz/AGB: Routen existieren jetzt (waren am 21.06. noch 404), sind auch
+  in Sidebar-Footer + Settings verlinkt — **aber der Seiteninhalt ist weiterhin Platzhalter**
+  (`src/app/impressum/page.tsx`: `[Name / Firmenname]`, `[Straße und Hausnummer]`, `[PLZ] [Stadt]`).
+  Bleibt ein echter Go-Live-Blocker, auch wenn die 404 behoben ist — braucht echte Rechtstexte
+  (eRecht24/Anwalt), keine Selbstformulierung.
 
-**B — Geplant, Schema vorhanden, aber NICHT verdrahtet (hoher Produktwert):**
-- Versionierung: Tabelle `result_versions` existiert, aber keine Speicher-/Vergleichs-UI.
-  Zentrales Pro-Feature laut Tier-Tabelle → "Pro" preislich sonst schwer zu rechtfertigen.
-- Link-Sharing (read-only, Ablaufdatum): Tabelle `share_links` existiert, aber Route
-  `share/[token]/` und `/api/share` fehlen (404).
-- PDF-Export für alle 7 Module: bisher nur für Assessment (Sprint 1) bestätigt. Kern-Produktwert
-  ("Ergebnis dem Vorstand zeigen") funktioniert sonst nur für 2 von 7 Modulen.
-- Google OAuth: bisher nur E-Mail-Login. Conversion-Hebel für B2B-Self-Service, kein Blocker.
+**B — Geplant, Schema vorhanden: GRÖSSTENTEILS VERDRAHTET, mit Lücken**
+- ~~Versionierung~~ / ~~Sharing~~ → API + UI existieren (`/api/versions`, `/api/share`,
+  `share/[token]/`). ABER: Das Versions-UI (`VersionsPanel`) ist laut Issue #68 nur in der
+  Architektur-Zeile von `/ergebnisse` eingebaut, nicht "pro Modul" wie im Issue gefordert
+  (Roadmap/Governance/Canvas fehlen). Issue #68 ist auf GitHub entsprechend korrekt noch OPEN.
+- ~~PDF-Export für alle 7 Module~~ → erledigt (`/api/export/pdf` deckt assessment, governance,
+  roadmap, canvas, compliance, architecture, executive_summary, usecase ab; Issues #36, #61 CLOSED).
+- **Neu entdeckt:** `/ergebnisse` (gespeicherte Ergebnisse) listet Assessment, Architektur,
+  Governance, Roadmap, Canvas (Issues #4, #45, #55 CLOSED) — aber **Compliance-Checks und
+  Use-Case-Scoring fehlen weiterhin** in dieser Übersicht. Kein "primär"-Flag, kein Vergleich
+  für diese zwei Module. Nicht als offenes Issue gefunden — sollte angelegt werden.
+- Google OAuth: weiterhin nur E-Mail-Login. Unverändert, kein Blocker.
 
-**C — UX-Verbesserungen (wichtig, nicht blockierend):**
-- Onboarding/Leerer-Zustand-Führung: empfohlene Modul-Reihenfolge aus dem Konzeptpapier
-  (30-Tage-Aktionsplan) im Produkt sichtbar machen, nicht nur im PDF.
-- Dashboard als echtes "Mein Stand" (Fortschritt, Readiness-Score, nächster empfohlener
-  Schritt) statt reiner Modul-Kachel-Liste.
-- Quer-Modul-Hinweise sichtbar machen (z. B. "erst Assessment, dann Use-Case-Scoring" —
-  technische Verknüpfung Roadmap↔Assessment existiert bereits, ist aber für Nutzer unsichtbar).
-- Suche/Filter/Sortierung in Tabellen (Use-Case-Liste) — ab ~10 Einträgen nötig (Pro/Enterprise).
-- Reminder-Mechanik für "Quarterly AI-Health-Review" (Konzeptpapier-Best-Practice) — macht aus
-  Einmal-Tool ein wiederkehrendes Arbeitsinstrument.
+**B2 — Aus dem Prozessdiagramm abgeleitete Datenfluss-Anforderungen (05.07.2026, via Issues
+#65/#67/#68/#71 von Daniel selbst als GitHub Issues angelegt und referenzieren explizit
+"Laut Prozessdiagramm"):**
+- ~~#66 DSGVO-Warnung mit Bestätigung im Architektur-Generator~~ → CLOSED, commit `0e238a0`.
+- ~~#72 Canvas-Komponentenerkennung (SAP-Alias/Cluster-Bonus)~~ → CLOSED, commit `897578f`.
+- ~~#69/#70 SAP-Komponenten-Suggests + Architektur-UI~~ → CLOSED.
+- **#65 Governance↔UseCase-Verknüpfung + Roadmap-Badges** — Code ist committet (`ed3eb92`,
+  heute erweitert um Multi-Use-Case-Auswahl in `975396a`), Issue aber weiterhin OPEN auf
+  GitHub (kein "Closes #65" im Commit). Zusätzlich: **funktioniert aktuell nicht**, siehe Bug
+  unten (`use_case_portfolios`). Issue korrekterweise offen lassen, bis der Bug behoben UND
+  verifiziert ist.
+- **#67 Compliance als globale Annahme** — Code committet (`ac6fa63`), Issue weiterhin OPEN
+  (kein Closes-Keyword). Funktional wirkt es vollständig umgesetzt (Banner in UseCase +
+  Governance + Zusammenfassung) — sollte nach Verifikation geschlossen werden.
+- **#68 Executive Summary Priorisierung + Versionsvergleich** — teilweise erledigt
+  (`summary-priorities.ts`, Prioritäts-Block in Zusammenfassung), aber laut eigenem
+  Ist-Zustand im Issue fehlt die Versions-UI "pro Modul" noch — zu Recht weiterhin OPEN.
+- **#71 Joule Use Cases dynamisch nach Archetyp + Canvas** — Code committet (`4234d63`),
+  Issue weiterhin OPEN.
+- **#73/#74 SAP-Fokus-Bug / Vorschlag-Checkbox-Sync-Bug** — beide OPEN, mit jeweils mehreren
+  Fix-Commits heute (`c2c997d`, `2e9f268`, `975396a`). Bei #73 brauchte es drei Anläufe am
+  selben Tag — Status vor dem nächsten Release nochmal manuell im Architektur-Generator
+  gegenprüfen (SAP-zentrischer Fokus + Vorschlag-Checkbox), bevor das Issue geschlossen wird.
+- **Prozess-Empfehlung:** Commits, die ein Issue vollständig erledigen, sollten `Closes #N`
+  im Commit-Body verwenden (GitHub schließt dann automatisch beim Merge auf main). Aktuell
+  bleiben mehrere fertige Features als offene Issues stehen, was den Rückstand größer aussehen
+  lässt als er ist — und umgekehrt das Risiko birgt, dass ein Issue vorschnell "erledigt"
+  wirkt, obwohl wie bei #68 nur ein Teil gebaut wurde.
 
-**D — Strategische Abgrenzung (bewusst NICHT bauen, nur kommunizieren):**
-- AI Navigator ist Planungs-/Strategietool, KEIN Runtime-/Monitoring-Tool. Abgrenzung zu
-  OneTrust/Credo AI/TrueFoundry (die docken an laufende AI-Systeme an). Bewusst kommunizieren,
-  nicht nachbauen.
-- Team-/Mandantenfunktion (mehrere User pro Unternehmen) = identisch mit Admin-Panel-"Stufe B".
-  Wird bei echten Enterprise-Verkaufsgesprächen schneller zum Showstopper als gedacht — im Blick
-  behalten, aber weiter zurückgestellt bis konkrete Kundenanfrage.
+**Neu gefundener Bug (nicht auf GitHub getrackt, sollte als Issue angelegt werden):**
+- `governance/page.tsx` (Zeile 26) und `roadmap/page.tsx` (Zeile 31–32) fragen eine Tabelle
+  `use_case_portfolios` ab. Diese existiert nicht — die Migration (`001_initial_schema.sql`)
+  legt die Tabelle als `uc_portfolios` an. Da der Fehler nicht abgefangen wird, laufen
+  vermutlich seit dem heutigen Commit `ed3eb92` sowohl das Use-Case-Dropdown im
+  Governance-Check als auch die Governance-Badges in der Roadmap ins Leere. Stufe-1-Sofort-Fix.
 
-**USP-Kandidat (eigener Sprint, erst nach A+B+Tests):**
-- AI-Komponenten-Katalog: kuratierte Modell-/Komponenten-Tabelle (Hosting EU/On-Prem,
-  DSGVO-Einordnung, EU-AI-Act-Relevanz, SAP-Kompatibilität), integriert in den Architektur-
-  Generator als Vorschlags-Engine. Nutzt vorhandenes Admin-Panel (`content_library`) als Basis.
-  ACHTUNG Content-Pflege-Problem, nicht nur Code: ohne klaren Aktualisierungsprozess veraltet
-  der Katalog und wird zum Vertrauensrisiko (Compliance-Lage von Modellen ändert sich laufend).
+**C — UX-Verbesserungen: teilweise erledigt**
+- ~~Onboarding/Führung~~ → Dashboard hat jetzt "Ihr geführter Pfad durch den AI Navigator" +
+  "Empfohlener nächster Schritt" (`dashboard/page.tsx`). Ursprüngliches Issue #22 (großer
+  `wizard_sessions`-Ansatz mit separatem Wizard-Modus) wurde nicht 1:1 gebaut, sondern kleiner
+  über Dashboard-Sequenzierung + `guided_path_reset_at`-Mechanismus gelöst — pragmatischer,
+  aber funktional andere Lösung als ursprünglich skizziert. Folge-Issue #37 (Wizard "kann nicht
+  zu 100% abgeschlossen werden") ist CLOSED; ob die dort beschriebenen Detailanforderungen
+  (Executive Summary immer ausführbar, PDF-Export optional zählend) tatsächlich 1:1 umgesetzt
+  sind, wurde nicht Zeile für Zeile nachverifiziert.
+- Quer-Modul-Hinweise: durch #65/#67 (Governance-Badges in Roadmap, Compliance-Banner in
+  UseCase/Governance) deutlich sichtbarer geworden als am 21.06.
+- Suche/Filter/Sortierung in Use-Case-Tabelle: Status nicht erneut geprüft in dieser Runde.
+- Quarterly-Review-Reminder: weiterhin nicht gefunden, unverändert offen.
+
+**D — Strategische Abgrenzung:** unverändert gültig, keine neuen Erkenntnisse.
+
+**E — Neu aus dem Prozessdiagramm-Abgleich (05.07.2026, noch nicht als GitHub Issue erfasst):**
+- Roadmap → Architektur-Generator: Das Diagramm zeigt eine Kante von den Roadmap-Ergebnissen
+  zu den Architektur-Ergebnissen. Im Code liest `architecture/page.tsx` Assessment, Governance
+  und Canvas, aber an keiner Stelle `roadmaps`. Die Kette bricht dort ab — sollte als Issue
+  angelegt werden, falls gewünscht.
+
+**USP-Kandidat (unverändert Vision, nach A+B+Tests):**
+- AI-Komponenten-Katalog: Der Kern davon (`component_catalog` + `catalog_sources` +
+  Abhängigkeitsmatrix `incompatible_with`/`requires`/`suggests`, Admin-CRUD, Upload-Log +
+  Soft-Restore) ist inzwischen weitgehend gebaut (Issue #41, Sprints 7–11) — deutlich weiter
+  als am 21.06.2026 als reine Vision markiert. Externe Sync-Quellen (CNCF Landscape,
+  Hugging Face, SAP API Hub) laut Issue #41 als Sprint 5 geplant — Status nicht verifiziert,
+  ob das bereits läuft oder weiterhin manuelle Pflege ist.
 
 ### Deployment-Lektion: Vercel Framework Preset (21.06.2026)
 **Symptom:** Grüner Build, Root Directory korrekt (`./`), aber 404 auf JEDER Route
@@ -234,89 +293,92 @@ wurde nicht als Next.js gebaut.
 **Lehre:** Bei neuem Vercel-Projekt-Setup IMMER zuerst Framework Preset prüfen,
 besonders bei sehr neuen Next.js-Versionen, wo die Auto-Erkennung versagen kann.
 
-### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026, verifiziert)
+### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026) — Status 05.07.2026
 
-**BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar (Architektur-Modul, vmtl. weitere):**
-- Tabelle `architectures` existiert mit allen Spalten (title, wizard_data, result) + RLS,
-  ABER `architecture/page.tsx` lädt keine gespeicherten Einträge — fragt nur Profil/Tier ab.
-- Vergleich: canvas/page.tsx macht es korrekt (`from('canvases').select('*').eq('user_id'...)`
-  → übergibt `initialCanvases`). Dieser Lade-Schritt fehlt im Architektur-Modul.
-- Folge: Ergebnisse werden gespeichert, aber nie zurückgeladen/gelistet ("nicht gelistet").
-- FIX: Lade-Logik analog Canvas in alle Module mit Speicherfunktion einbauen. Prüfen,
-  welche der 7 Module betroffen sind (Canvas funktioniert, Architektur nicht — Rest checken).
+**BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar** → ERLEDIGT (GitHub Issue #4, CLOSED
+21.06.2026). Lade-Logik wurde analog Canvas in die restlichen Module eingebaut, `/ergebnisse`
+zeigt heute Assessment/Architektur/Governance/Roadmap/Canvas inkl. Primär-Markierung.
 
-**BUG 2 — UI öffnet im "Popup-Modus" statt Vollbild (Mobile/iOS):**
-- Dashboard-Layout nutzt `h-screen overflow-hidden` außen + `overflow-y-auto` nur auf <main>.
-  Auf iOS Safari verhält sich das wie ein Modal: Seite klebt oben, scrollt erst nach
-  "Zieh"-Geste korrekt, native Adressleisten-Mechanik greift nicht.
-- FIX-Richtung: Mobile-Scroll-Verhalten überarbeiten — statt fixed `h-screen`-Container mit
-  innen-scrollendem main eher natürliches Body-Scrolling auf Mobile zulassen (z. B.
-  `min-h-screen` / `dvh`-Einheiten statt `h-screen overflow-hidden`, sticky statt fixed).
-  Bei 375px/393px verifizieren.
+**BUG 2 — UI öffnet im "Popup-Modus" statt Vollbild (Mobile/iOS)** → ERLEDIGT.
+`src/app/(dashboard)/layout.tsx` nutzt jetzt `h-[100dvh]` statt `h-screen`, mit explizitem
+Kommentar im Code, der genau diesen iOS-Safari-Modal-Effekt referenziert.
 
-**FEATURE-WUNSCH 1 — "Andere Ergebnisse speichern" ermöglichen:**
-- Nutzer sollen auch weitere/alternative Ergebnisse speichern können (nicht nur eins
-  überschreiben). Schema unterstützt das bereits (mehrere Zeilen pro user_id möglich,
-  result_versions-Tabelle vorhanden) — UI/Logik muss "Neu speichern" vs. "Überschreiben"
-  anbieten und eine Liste der gespeicherten Ergebnisse je Modul zeigen.
+**FEATURE-WUNSCH 1 — "Andere Ergebnisse speichern"** → ERLEDIGT für Architektur (VersionsPanel
+in `/ergebnisse`, Issue #45 + #68 teilweise CLOSED). Für Roadmap/Governance/Canvas laut Issue
+#68 noch nicht ausgerollt — siehe Feature-Lücken-Analyse B oben.
 
-**FEATURE-WUNSCH 2 — Geführter Onboarding-Wizard durch die Tools (PRIORITÄT):**
-- User soll ZUERST das Archetyp-Assessment durchlaufen (AI Starter/Scaler/Transformer),
-  dann sinnvoll durch die weiteren Tools geführt werden — statt 7 gleichwertige Kacheln
-  ohne Reihenfolge. Empfohlene Abfolge existiert bereits im Konzeptpapier (30-Tage-
-  Aktionsplan) und ist technisch teils verdrahtet (Roadmap zieht Archetyp aus Assessment).
-  Im Produkt als sichtbarer "Geführter Pfad"/Wizard umsetzen. Deckt sich mit Feature-Lücke
-  C "Onboarding/Leerer-Zustand-Führung".
+**FEATURE-WUNSCH 2 — Geführter Onboarding-Wizard** → funktional näherungsweise erledigt, aber
+anders gebaut als ursprünglich beschrieben: kein separater `wizard_sessions`-Wizard-Modus,
+stattdessen ein sequenzierter Dashboard-Pfad ("Ihr geführter Pfad durch den AI Navigator" +
+"Empfohlener nächster Schritt", `dashboard/page.tsx`). GitHub Issues #22 und #37 sind CLOSED.
+Ob alle in #37 genannten Detailanforderungen (Executive Summary immer ausführbar auch ohne
+100%-Abschluss, PDF-Export zählt nicht zur Fortschritts-Berechnung) exakt so umgesetzt sind,
+wurde in dieser Runde nicht zeilengenau nachverifiziert.
 
-### Priorisierte Gesamt-Roadmap (21.06.2026, Brainstorming-Ergebnis)
-Ordnungsprinzip: Was blockiert Go-Live mit zahlenden Kunden zuerst, dann Wert/USP,
-dann strategisch-wichtig-aber-nicht-dringend. Aufwände sind grobe Orientierung —
-tatsächliche Komplexität zeigt sich beim Bauen (v. a. Onboarding-Wizard und Abo-Kanten
-können größer werden als sie wirken).
+### Priorisierte Gesamt-Roadmap (Stand 05.07.2026 — aktualisiert gegen Repo + GitHub)
+Ordnungsprinzip unverändert: Go-Live-Blocker zuerst, dann Wert/USP, dann
+strategisch-wichtig-aber-nicht-dringend. Die Liste vom 21.06. ist zu großen Teilen
+abgearbeitet (siehe durchgestrichene Punkte) — hier die tatsächlich noch offenen Punkte
+plus neu gefundene.
 
-**PRIO 1 — Blocker (vor jedem echten Go-Live, rechtlich oder funktional zwingend):**
-1. Legal-Seiten: Impressum, Datenschutz, AGB. Pflicht + tote Links auf Landing Page
-   (/datenschutz, /impressum werden schon verlinkt, existieren nicht). Texte extern
-   (eRecht24/Anwalt), nicht selbst formulieren. [Mittel]
-2. DSGVO-Datenlöschung (Account + alle Daten, Art. 17). Settings-Seite hat Platz, keine
-   Funktion. Route /api/account/delete fehlt. [Klein–Mittel]
-3. Bug: gespeicherte Ergebnisse nicht anzeigbar. Tabellen + RLS existieren, Ladelogik
-   fehlt (Architektur betroffen, Canvas korrekt als Vorlage). Alle 7 Module prüfen. [Klein]
-4. Bug: Mobile Popup/Scroll-Verhalten (h-screen overflow-hidden → iOS-Modal-Effekt).
-   Erster Eindruck mobil ist kaputt. [Klein–Mittel]
-5. CI-Pipeline + Branch Protection auf main. Auto-Deploy = jeder Push geht ungeprüft live.
-   Sicherheitsnetz fehlt. 1 Workflow-Datei + 1 GitHub-Einstellung. [Klein]
+**PRIO 1 — Blocker (vor jedem echten Go-Live):**
+1. ~~Legal-Seiten-Routen~~ (Routen existieren) — **aber Rechtstexte sind weiterhin
+   Platzhalter** (`[Name / Firmenname]` im Impressum). Bleibt Blocker bis echte Texte
+   (eRecht24/Anwalt) eingesetzt sind. [Klein, reiner Content-Austausch]
+2. ~~DSGVO-Datenlöschung~~ → erledigt, `/api/account/delete` vorhanden.
+3. ~~Bug: gespeicherte Ergebnisse nicht anzeigbar~~ → erledigt (Issue #4).
+4. ~~Bug: Mobile Popup/Scroll-Verhalten~~ → erledigt (`h-[100dvh]` in `layout.tsx`).
+5. ~~CI-Pipeline~~ → `.github/workflows/ci.yml` vorhanden (Tests + Build bei jedem
+   Push/PR auf main). Branch-Protection-Einstellung selbst konnte aus dieser Session
+   heraus nicht verifiziert werden (GitHub-Repo-Setting, kein Datei-Artefakt) — einmal
+   in den GitHub-Settings gegenprüfen, ob "Require status checks" für main aktiv ist.
+6. **NEU — `use_case_portfolios`-Bug:** `governance/page.tsx` + `roadmap/page.tsx` fragen
+   eine nicht existierende Tabelle ab (richtig: `uc_portfolios`). Bricht vermutlich seit
+   heute (`ed3eb92`) das Governance-Use-Case-Dropdown und die Roadmap-Governance-Badges.
+   Klarer Stufe-1-Sofort-Fix, nicht auf GitHub getrackt. [Klein]
 
-**PRIO 2 — Hoher Produktwert (macht das Produkt verkaufbar):**
-6. Geführter Onboarding-Wizard: Archetyp-Test ZUERST, dann geführter Pfad durch die Tools
-   statt 7 gleichwertige Kacheln. Teils vorbereitet (Roadmap↔Assessment). [Mittel]
-7. Versionierung + Sharing verdrahten. Schema (result_versions, share_links) existiert,
-   nur UI/API fehlt. Zentrale Pro-Features. [Mittel]
-8. PDF-Export für alle 7 Module (aktuell nur Assessment). Kernwert "Ergebnis zeigen". [Mittel]
-9. "Andere Ergebnisse speichern" (mehrere statt überschreiben). Schema unterstützt es. [Klein–Mittel]
-10. Tests für die 5 neuen Module (Governance/Roadmap/Canvas/Compliance/Architecture). [Mittel]
+**PRIO 2 — Hoher Produktwert:**
+7. ~~Geführter Onboarding-Wizard~~ → funktional vorhanden (Dashboard-Sequenzierung),
+   Issues #22/#37 CLOSED — Detailanforderungen aus #37 nicht zeilengenau nachverifiziert.
+8. ~~Versionierung + Sharing~~ → API + UI vorhanden, **aber Versions-UI nur bei Architektur
+   verdrahtet** (Issue #68 offen). Roadmap/Governance/Canvas ergänzen. [Klein–Mittel]
+9. ~~PDF-Export alle 7 Module~~ → erledigt (Issues #36, #61 CLOSED).
+10. **NEU — `/ergebnisse` ohne Compliance + Use-Case-Scoring:** Speicher-/Vergleichs-Hub
+    deckt 5 von 7 Modulen ab, Compliance-Checks und Use-Case-Scoring fehlen. [Klein–Mittel]
+11. **NEU — Roadmap → Architektur-Verknüpfung fehlt:** Laut Prozessdiagramm sollte der
+    Architektur-Generator die Roadmap-Ergebnisse berücksichtigen; aktuell liest er nur
+    Assessment, Governance und Canvas. [Mittel]
+12. Tests für die heutigen Features (#65 Governance-UseCase-FK, #67 Compliance-Banner,
+    #68 Summary-Priorities): keine dedizierten Unit-/Security-/A11y-Tests gefunden —
+    verstößt gegen das eigene Test-Gate weiter oben. [Klein–Mittel]
+13. GitHub-Issues #65/#67/#68/#71 sind trotz committetem Code weiterhin OPEN (kein
+    "Closes #N" in den Commit-Messages verwendet) — nach Verifikation schließen, sonst
+    verzerrt der Issue-Tracker den tatsächlichen Fortschritt. [Prozess, kein Aufwand]
 
-**PRIO 3 — Betriebsgrundlagen & Vertrauen (vor/bei echtem Kundenwachstum):**
-11. Error-Tracking + Uptime-Monitoring (z. B. Sentry). [Klein]
-12. Abo-Lebenszyklus-Kanten: Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling
-    (was passiert mit Daten über Free-Limit?), Jahreslizenz-Ablauf. [Mittel]
-13. App-Versionierung: Changelog, Git-Tags, semantische Version. Macht Rollback machbar. [Klein]
-14. Vertrauenssignale: Trust/Security-Seite, EU-Hosting (Frankfurt) kommunizieren, Über-uns. [Klein–Mittel]
-15. Inhaltliche Aktualität sichern (EU-AI-Act-Fristen etc.) — Prozess, nicht Code. Verknüpft
-    mit Admin-Panel/Content-Pflege. [Laufend]
+**PRIO 3 — Betriebsgrundlagen & Vertrauen:**
+14. Error-Tracking + Uptime-Monitoring (Sentry-Config liegt vor — `sentry.*.config.ts` —
+    Status als "aktiv in Produktion verifiziert" nicht erneut geprüft). [Klein]
+15. Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling,
+    Jahreslizenz-Ablauf): unverändert nicht verifiziert. [Mittel]
+16. App-Versionierung: `CHANGELOG.md` + `src/config/changelog.ts` existieren bereits —
+    Feature-Wunsch damit größtenteils erledigt. [Klein]
+17. Vertrauenssignale: `/trust`-Route existiert bereits (`src/app/trust`) — Inhalt nicht
+    geprüft. [Klein]
+18. Inhaltliche Aktualität (EU-AI-Act-Fristen etc.) — weiterhin Prozessthema, kein Code.
 
-**PRIO 4 — USP & Differenzierung (eigener Sprint, nach Fundament):**
-16. AI-Komponenten-Katalog: stärkste USP-Idee. Braucht stabiles getestetes Fundament +
-    durchdachten Pflegeprozess. Nutzt Admin-Panel (content_library) als Basis. [Groß]
-17. UX-Feinschliff: Dashboard-Fortschritt, Suche/Filter (Use-Case-Liste ab ~10 Einträgen),
-    Quer-Modul-Hinweise sichtbar machen. [Mittel]
-18. Quarterly-Review-Reminder. Macht aus Einmal- ein wiederkehrendes Tool. [Klein–Mittel]
+**PRIO 4 — USP & Differenzierung:**
+19. AI-Komponenten-Katalog: deutlich weiter als am 21.06. — `component_catalog`,
+    `catalog_sources`, Abhängigkeitsmatrix, Admin-CRUD, Soft-Restore existieren (Issue #41,
+    Sprints 7–11 abgeschlossen). Externe Sync-Quellen (CNCF/Hugging Face/SAP API Hub)
+    laut Issue #41 als eigener Sprint 5 geplant — Status nicht verifiziert. [Rest: Mittel]
+20. UX-Feinschliff, Quarterly-Review-Reminder: Status nicht erneut geprüft in dieser Runde.
 
-**BEWUSST ZURÜCKGESTELLT (nicht bauen ohne neuen Auslöser):**
+**BEWUSST ZURÜCKGESTELLT (unverändert):**
 - Team-/Mandantenfunktion (Admin-Panel Stufe B) — bis konkrete Enterprise-Kundenanfrage
 - Runtime-/Monitoring-Features — bewusste Abgrenzung, AI Navigator bleibt Planungstool
-- Google OAuth, Dark Mode, Mehrsprachigkeit EN — Conversion-/Komfort-Hebel, kein Blocker
+- Google OAuth, Dark Mode, Mehrsprachigkeit EN — kein Blocker
 
-**Empfohlene Umsetzungsreihenfolge:** Prio 1 komplett (viel davon "klein"), dann in Prio 2
-mit #6 Onboarding-Wizard starten (größter spürbarer Wertsprung). Komponenten-Katalog (#16)
-bewusst zuletzt — auf stabilem, getestetem Fundament.
+**Empfohlene nächste Schritte:** Punkt 6 (`use_case_portfolios`-Bug) zuerst — betrifft
+Features von heute, die vermutlich gerade nicht funktionieren. Danach Punkt 1
+(Rechtstexte) als einzig verbliebener echter Go-Live-Blocker, dann Punkt 8/10/11 um die
+Diagramm-Datenkette und den Ergebnisse-Hub zu vervollständigen.
