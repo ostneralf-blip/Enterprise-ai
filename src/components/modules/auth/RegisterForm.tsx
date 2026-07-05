@@ -1,17 +1,20 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/posthog/client'
 
 export function RegisterForm() {
   const router = useRouter()
   const supabase = createClient()
+  const captchaRef = useRef<HCaptcha>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [company, setCompany] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
@@ -26,6 +29,7 @@ export function RegisterForm() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!pwValid) { setError('Bitte alle Passwort-Anforderungen erfüllen.'); return }
+    if (!captchaToken) return
     setLoading(true)
     setError('')
     track('register_started')
@@ -37,8 +41,12 @@ export function RegisterForm() {
         options: {
           data: { full_name: fullName, company },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+          captchaToken,
         }
       })
+
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
 
       if (result.error) {
         setError(result.error.message)
@@ -60,6 +68,8 @@ export function RegisterForm() {
       setDone(true)
     } catch (err) {
       console.error('Register error:', err)
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
       setError('Registrierung fehlgeschlagen — bitte erneut versuchen.')
       setLoading(false)
     }
@@ -123,8 +133,19 @@ export function RegisterForm() {
             </ul>
           )}
         </div>
-        <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+
+        <div className="flex justify-center">
+          <HCaptcha
+            sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
+            onVerify={setCaptchaToken}
+            onExpire={() => setCaptchaToken(null)}
+            ref={captchaRef}
+            theme="dark"
+          />
+        </div>
+
+        <button type="submit" disabled={loading || !captchaToken}
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird registriert…' : 'Kostenlosen Account erstellen'}
         </button>
       </form>

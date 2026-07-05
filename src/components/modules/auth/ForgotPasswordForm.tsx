@@ -1,23 +1,31 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
 
 export function ForgotPasswordForm() {
   const supabase = createClient()
+  const captchaRef = useRef<HCaptcha>(null)
   const [email, setEmail] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!captchaToken) return
     setLoading(true)
     setError('')
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
+      captchaToken,
     })
+
+    captchaRef.current?.resetCaptcha()
+    setCaptchaToken(null)
 
     // Bewusst KEINE Fehlermeldung bei "User nicht gefunden" anzeigen —
     // das würde E-Mail-Enumeration ermöglichen (gleiche Sicherheitslogik
@@ -68,8 +76,19 @@ export function ForgotPasswordForm() {
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
-        <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+
+        <div className="flex justify-center">
+          <HCaptcha
+            sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY!}
+            onVerify={setCaptchaToken}
+            onExpire={() => setCaptchaToken(null)}
+            ref={captchaRef}
+            theme="dark"
+          />
+        </div>
+
+        <button type="submit" disabled={loading || !captchaToken}
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird gesendet…' : 'Link zum Zurücksetzen senden'}
         </button>
       </form>
