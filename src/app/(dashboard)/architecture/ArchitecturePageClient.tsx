@@ -310,6 +310,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
+  const [dsgvoConfirmed, setDsgvoConfirmed] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
@@ -519,6 +520,51 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </>
         )}
 
+        {/* DSGVO-Warnung bei bedingter Konformität */}
+        {(() => {
+          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional')
+          if (conditionalComps.length === 0) return null
+          return (
+            <div role="alert" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <span className="text-amber-600 text-lg flex-shrink-0" aria-hidden="true">⚠</span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                    DSGVO-Hinweis: Bedingte Konformität
+                  </h3>
+                  <p className="text-xs text-amber-800 mb-2 leading-relaxed">
+                    Die folgenden empfohlenen Komponenten sind nur bedingt DSGVO-konform. Ein{' '}
+                    <strong>Auftragsverarbeitungsvertrag (AVV)</strong> mit dem Anbieter sowie eine{' '}
+                    Datenschutz-Folgenabschätzung (DSFA) können erforderlich sein:
+                  </p>
+                  <ul className="mb-3 space-y-1">
+                    {conditionalComps.map(c => (
+                      <li key={c.name} className="text-xs text-amber-700 flex items-center gap-1.5">
+                        <span aria-hidden="true">·</span>
+                        <strong>{c.name}</strong>
+                        {c.vendor && <span className="text-amber-600">({c.vendor})</span>}
+                      </li>
+                    ))}
+                  </ul>
+                  {!dsgvoConfirmed && (
+                    <button
+                      onClick={() => setDsgvoConfirmed(true)}
+                      className="text-xs font-medium px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
+                    >
+                      Ich bestätige, das Risiko ist bekannt
+                    </button>
+                  )}
+                  {dsgvoConfirmed && (
+                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
+                      <span aria-hidden="true">✓</span> Risiko bestätigt — Architektur kann gespeichert werden
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* SAP Joule use cases */}
         <JouleUseCasesCard useCases={jouleUseCases} />
 
@@ -568,15 +614,19 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           >
             Neue Architektur generieren
           </button>
-          {!saved && (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              {saving ? 'Wird gespeichert…' : 'Architektur speichern'}
-            </button>
-          )}
+          {!saved && (() => {
+            const needsDsgvoConfirm = recComponents.some(c => c.dsgvo_status === 'conditional') && !dsgvoConfirmed
+            return (
+              <button
+                onClick={handleSave}
+                disabled={saving || needsDsgvoConfirm}
+                title={needsDsgvoConfirm ? 'Bitte zuerst den DSGVO-Hinweis bestätigen' : undefined}
+                className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                {saving ? 'Wird gespeichert…' : needsDsgvoConfirm ? 'DSGVO-Hinweis bestätigen ↑' : 'Architektur speichern'}
+              </button>
+            )
+          })()}
           {saved && (
             <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
           )}
