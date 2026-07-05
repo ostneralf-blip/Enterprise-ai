@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
+import { SelectionSidebar } from '@/components/modules/SelectionSidebar'
+import { findConflicts, findSuggestions } from '@/lib/utils/catalog-compatibility'
 
 const LAYER_META: Record<string, { label: string; band: string; dot: string; cross?: boolean }> = {
   data:        { label: 'Daten',      band: 'bg-blue-50 border-blue-200',     dot: 'bg-blue-500' },
@@ -275,6 +277,15 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
     setFocused(prev => prev === name ? null : name)
   }
 
+  const conflicts   = findConflicts(checked, byName)
+  const suggestions = findSuggestions(checked, byName)
+  const showSidebar = checked.size > 0
+
+  const handleAddComponent    = (name: string) => setChecked(prev => new Set([...prev, name]))
+  const handleRemoveComponent = (name: string) => {
+    setChecked(prev => { const next = new Set(prev); next.delete(name); return next })
+  }
+
   const focusedComp = focused ? byName[focused] : undefined
 
   const header = (
@@ -312,7 +323,31 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
 
   const body = (
     <div className="relative">
-      <SwimlaneTable recs={recs} byName={byName} locked={locked} checked={checked} focused={focused} onCheck={handleCheck} onFocus={handleFocus} />
+      <div className={cn('flex', showSidebar ? 'flex-col md:flex-row' : 'flex-col')}>
+        <div className={cn('min-w-0', showSidebar ? 'md:flex-[7]' : 'flex-1')}>
+          <SwimlaneTable
+            recs={recs}
+            byName={byName}
+            locked={locked}
+            checked={checked}
+            focused={focused}
+            onCheck={handleCheck}
+            onFocus={handleFocus}
+          />
+        </div>
+        {showSidebar && !locked && (
+          <div className="md:flex-[3] md:max-w-[260px]">
+            <SelectionSidebar
+              checked={checked}
+              byName={byName}
+              conflicts={conflicts}
+              suggestions={suggestions}
+              onAddComponent={handleAddComponent}
+              onRemoveComponent={handleRemoveComponent}
+            />
+          </div>
+        )}
+      </div>
       {locked && (
         <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3 rounded-b-2xl">
           <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
