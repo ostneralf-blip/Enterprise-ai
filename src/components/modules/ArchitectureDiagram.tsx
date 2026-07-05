@@ -116,7 +116,7 @@ function ComponentButton({
       <button
         onClick={onFocus}
         aria-pressed={isFocused}
-        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus:outline-none"
+        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded"
       >
         {name}
       </button>
