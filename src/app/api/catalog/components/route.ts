@@ -18,8 +18,9 @@ export async function GET(request: Request) {
     .from('component_catalog')
     .select('*')
     .eq('is_active', true)
+    .order('architecture_layer', { ascending: false, nullsFirst: false })
     .order('name', { ascending: true })
-    .limit(2000)
+    .limit(1000)
 
   if (vendor)        query = query.eq('vendor', vendor)
   if (layer)         query = query.eq('architecture_layer', layer)
