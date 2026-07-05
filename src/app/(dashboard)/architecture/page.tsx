@@ -83,9 +83,35 @@ export default async function ArchitecturePage({
       ? supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('id', prefData.primary_assessment_id).maybeSingle()
       : supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     prefData?.primary_governance_id
-      ? supabase.from('governance_sessions').select('use_case_name, result').eq('id', prefData.primary_governance_id).maybeSingle()
-      : supabase.from('governance_sessions').select('use_case_name, result').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      ? supabase.from('governance_sessions').select('use_case_name, result, use_case_id').eq('id', prefData.primary_governance_id).maybeSingle()
+      : supabase.from('governance_sessions').select('use_case_name, result, use_case_id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ])
+
+  // Wenn Governance einen verknüpften Use Case hat und kein Canvas-Kontext über URL-Param vorliegt,
+  // Use Case + Canvas laden und als Architektur-Kontext nutzen
+  if (!canvasContext && latestGovernance) {
+    const gov = latestGovernance as { use_case_name: string | null; result: string | null; use_case_id: string | null }
+    if (gov.use_case_id) {
+      const { data: govUseCase } = await supabase
+        .from('use_cases')
+        .select('*, uc_portfolios!inner(user_id)')
+        .eq('id', gov.use_case_id)
+        .single() as { data: (import('@/types').UseCase & { uc_portfolios: { user_id: string } }) | null }
+
+      if (govUseCase && govUseCase.uc_portfolios.user_id === user.id && govUseCase.canvas_id) {
+        const { data: govCanvas } = await supabase
+          .from('canvases')
+          .select('*')
+          .eq('id', govUseCase.canvas_id)
+          .eq('user_id', user.id)
+          .single() as { data: import('@/types').Canvas | null }
+
+        if (govCanvas) {
+          canvasContext = { canvas: govCanvas, useCase: govUseCase }
+        }
+      }
+    }
+  }
 
   return (
     <div>

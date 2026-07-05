@@ -14,7 +14,7 @@ export interface CatalogRecommendations {
   roleNames: string[]
 }
 
-function isSAP(a: WizardAnswers) {
+export function isSAP(a: WizardAnswers) {
   return a.cloud_provider_hint === 'sap_btp'
       || a.data_platform === 'sap_bw'
       || a.model_platform === 'sap_ai_core'

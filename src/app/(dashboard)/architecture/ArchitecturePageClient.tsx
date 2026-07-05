@@ -5,7 +5,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent, Canvas, UseCase } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
@@ -301,7 +301,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<WizardAnswers>(() => {
-    const base = compliancePreset ? { compliance: compliancePreset } : {}
+    // Compliance aus drei Quellen: explizites compliancePreset > Governance-DSGVO-Stop > nichts
+    const governanceCompliance: Partial<WizardAnswers> =
+      governanceContext?.result === 'stop_dsgvo' ? { compliance: 'strict' } : {}
+    const base: Partial<WizardAnswers> = {
+      ...governanceCompliance,
+      ...(compliancePreset ? { compliance: compliancePreset } : {}),
+    }
     if (canvasContext) {
       const ctx = extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [])
       return { ...base, ...ctx.wizard_prefill }
@@ -353,7 +359,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         .then(({ data }: { data: CatalogComponent[] }) => {
           const loaded = data ?? []
           setRecComponents(loaded)
-          setCatalogRecs(recommendFromCatalog(wizardAnswers, loaded))
+          const catalogResult = recommendFromCatalog(wizardAnswers, loaded)
+          // SAP-Fallback: wenn SAP-Kontext aktiv aber DB enthält keine SAP-Komponenten
+          // (z.B. Katalog noch nicht geseedet), bleibt recommendFromWizard stabiler
+          if (isSAP(wizardAnswers) && loaded.length > 0) {
+            const hasSAPLayer = catalogResult.layers.some(lr =>
+              lr.componentNames.some(n => loaded.find(c => c.name === n)?.cloud_provider === 'sap')
+            )
+            setCatalogRecs(hasSAPLayer ? catalogResult : recommendFromWizard(wizardAnswers))
+          } else {
+            setCatalogRecs(catalogResult)
+          }
           if (canvasContext) {
             setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded))
           }
