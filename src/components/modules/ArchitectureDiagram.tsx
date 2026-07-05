@@ -83,6 +83,8 @@ function ComponentButton({
   comp,
   isChecked,
   isFocused,
+  isConflicting,
+  isSuggested,
   locked,
   onCheck,
   onFocus,
@@ -91,6 +93,8 @@ function ComponentButton({
   comp: CatalogComponent | undefined
   isChecked: boolean
   isFocused: boolean
+  isConflicting: boolean
+  isSuggested: boolean
   locked: boolean
   onCheck: () => void
   onFocus: () => void
@@ -103,9 +107,19 @@ function ComponentButton({
       'inline-flex items-center rounded-lg border text-xs font-medium transition-all',
       isChecked
         ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
+        : isConflicting
+        ? 'border-red-400 bg-red-50 text-red-800'
+        : isSuggested
+        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
         : 'border-slate-200 bg-white text-slate-700',
       isFocused && 'ring-2 ring-blue-400 ring-offset-1',
-    )}>
+    )}
+    title={
+      isConflicting ? `Inkompatibel mit einer ausgewählten Komponente` :
+      isSuggested   ? `Empfohlen als Ergänzung` :
+      undefined
+    }
+    >
       <label className="flex items-center gap-1 pl-2 pr-1 py-1.5 cursor-pointer">
         <input
           type="checkbox"
@@ -137,6 +151,8 @@ function SwimlaneTable({
   locked,
   checked,
   focused,
+  conflictingNames,
+  suggestedNames,
   onCheck,
   onFocus,
 }: {
@@ -145,6 +161,8 @@ function SwimlaneTable({
   locked: boolean
   checked: Set<string>
   focused: string | null
+  conflictingNames: Set<string>
+  suggestedNames: Set<string>
   onCheck: (name: string) => void
   onFocus: (name: string) => void
 }) {
@@ -178,6 +196,8 @@ function SwimlaneTable({
                             comp={byName[name]}
                             isChecked={checked.has(name)}
                             isFocused={focused === name}
+                            isConflicting={conflictingNames.has(name)}
+                            isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
                             onCheck={() => onCheck(name)}
                             onFocus={() => onFocus(name)}
@@ -218,6 +238,8 @@ function SwimlaneTable({
                             comp={byName[name]}
                             isChecked={checked.has(name)}
                             isFocused={focused === name}
+                            isConflicting={conflictingNames.has(name)}
+                            isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
                             onCheck={() => onCheck(name)}
                             onFocus={() => onFocus(name)}
@@ -281,6 +303,26 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
   const suggestions = findSuggestions(checked, byName)
   const showSidebar = checked.size > 0
 
+  // Which un-checked components would cause a conflict if selected?
+  const wouldConflictIfChecked = new Set<string>()
+  for (const name of checked) {
+    const comp = byName[name]
+    if (!comp) continue
+    // Forward: checked component says B is incompatible
+    for (const incompat of comp.incompatible_with) {
+      if (!checked.has(incompat)) wouldConflictIfChecked.add(incompat)
+    }
+  }
+  // Reverse: un-checked component says a checked component is incompatible
+  for (const [otherName, otherComp] of Object.entries(byName)) {
+    if (checked.has(otherName)) continue
+    for (const incompat of otherComp.incompatible_with) {
+      if (checked.has(incompat)) { wouldConflictIfChecked.add(otherName); break }
+    }
+  }
+
+  const suggestedNames = new Set(suggestions.map(s => s.target))
+
   const handleAddComponent    = (name: string) => setChecked(prev => new Set([...prev, name]))
   const handleRemoveComponent = (name: string) => {
     setChecked(prev => { const next = new Set(prev); next.delete(name); return next })
@@ -331,6 +373,8 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
             locked={locked}
             checked={checked}
             focused={focused}
+            conflictingNames={wouldConflictIfChecked}
+            suggestedNames={suggestedNames}
             onCheck={handleCheck}
             onFocus={handleFocus}
           />
