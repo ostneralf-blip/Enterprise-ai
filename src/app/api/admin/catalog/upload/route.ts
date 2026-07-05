@@ -24,6 +24,9 @@ const RowSchema = z.object({
   description:        z.string().max(2000).nullish(),
   website_url:        z.string().url().nullish(),
   icon_name:          z.string().max(50).nullish(),
+  incompatible_with:  z.array(z.string()).default([]),
+  requires:           z.array(z.string()).default([]),
+  suggests:           z.array(z.string()).default([]),
 })
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -185,6 +188,9 @@ function mapSapRow(raw: Record<string, string>, vendorOverride: string, layerOve
     description:        (raw['Description'] ?? '').trim().slice(0, 2000) || null,
     website_url:        websiteUrl.startsWith('http') ? websiteUrl : null,
     icon_name:          null,
+    incompatible_with:  [],
+    requires:           [],
+    suggests:           [],
   }
 }
 
@@ -206,6 +212,9 @@ function normalizeStandardRow(raw: Record<string, unknown>, vendorOverride: stri
     description:        raw.description ? String(raw.description).trim().slice(0, 2000) : null,
     website_url:        raw.website_url ? String(raw.website_url).trim() : null,
     icon_name:          raw.icon_name ? String(raw.icon_name).trim() : null,
+    incompatible_with:  splitField(raw.incompatible_with),
+    requires:           splitField(raw.requires),
+    suggests:           splitField(raw.suggests),
   }
 }
 
