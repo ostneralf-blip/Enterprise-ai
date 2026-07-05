@@ -62,6 +62,7 @@ function renderGovernanceTab(governanceSessions: GovernanceRow[]) {
       roadmaps={[]}
       canvases={[]}
       initialPreferences={BASE_PREFS}
+      tier="free"
     />
   )
 }

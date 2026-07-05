@@ -9,6 +9,7 @@ export default async function ErgebnissePage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const [
+    { data: profile },
     { data: assessments },
     { data: architectures },
     { data: governanceSessions },
@@ -16,6 +17,7 @@ export default async function ErgebnissePage() {
     { data: canvases },
     { data: preferences },
   ] = await Promise.all([
+    supabase.from('profiles').select('tier').eq('id', user!.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase.from('assessment_sessions')
       .select('id, archetype, total_score, dim_scores, created_at')
       .eq('user_id', user!.id).eq('completed', true)
@@ -57,6 +59,7 @@ export default async function ErgebnissePage() {
         roadmaps={(roadmaps ?? []) as RoadmapRow[]}
         canvases={(canvases ?? []) as CanvasRow[]}
         initialPreferences={preferences ?? null}
+        tier={profile?.tier ?? 'free'}
       />
     </div>
   )

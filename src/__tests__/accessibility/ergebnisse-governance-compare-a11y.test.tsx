@@ -65,6 +65,7 @@ function renderAndOpenCompare(governanceSessions: GovernanceRow[]) {
       roadmaps={[]}
       canvases={[]}
       initialPreferences={BASE_PREFS}
+      tier="free"
     />
   )
   // Switch to Governance tab
@@ -91,6 +92,7 @@ describe('Accessibility: Governance-Vergleich mit Protokolldetails', () => {
         roadmaps={[]}
         canvases={[]}
         initialPreferences={BASE_PREFS}
+        tier="free"
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /governance/i }))

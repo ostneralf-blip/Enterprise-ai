@@ -79,6 +79,7 @@ function renderWithTab(tab: 'roadmap' | 'architecture', roadmaps = ROADMAPS, arc
       roadmaps={roadmaps}
       canvases={[]}
       initialPreferences={BASE_PREFS}
+      tier="free"
     />
   )
   fireEvent.click(screen.getByRole('button', { name: new RegExp(tab === 'roadmap' ? 'roadmap' : 'architektur', 'i') }))

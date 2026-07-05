@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { VersionsPanel } from '@/components/shared/VersionsPanel'
 
 type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap' | 'canvas'
 
@@ -92,9 +93,10 @@ interface Props {
   roadmaps:           RoadmapRow[]
   canvases:           CanvasRow[]
   initialPreferences: Prefs | null
+  tier:               string
 }
 
-export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, initialPreferences }: Props) {
+export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, initialPreferences, tier }: Props) {
   const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null }
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? emptyPrefs)
@@ -314,9 +316,17 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === a.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
-                    <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
-                    <Link href="/architecture" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                    <div>
+                      <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
+                      <Link href="/architecture" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+                    </div>
+                    <VersionsPanel
+                      module="architecture"
+                      entityId={a.id}
+                      tier={tier}
+                      currentData={a.result as Record<string, unknown>}
+                    />
                   </div>
                 )}
               </div>

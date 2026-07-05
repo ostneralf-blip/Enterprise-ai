@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 import { hasAccess } from '@/lib/utils/tier-check'
+import { generateSummaryBlock } from '@/lib/utils/summary-priorities'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Executive Summary' }
@@ -217,6 +218,24 @@ export default async function ZusammenfassungPage() {
 
   const completedCount = modules.filter(m => m.done).length
 
+  const summary = generateSummaryBlock({
+    archetype:              latestAssessment?.archetype ?? null,
+    totalScore:             latestAssessment?.total_score ?? null,
+    usecaseCount:           usecaseCount ?? 0,
+    topUsecase:             topUsecase as { name: string; weighted_score: number } | null,
+    governanceResult:       latestGovernance?.result ?? null,
+    governanceUseCaseName:  latestGovernance?.use_case_name ?? null,
+    complianceRisk:         (latestCompliance as { notes?: string | null } | null)?.notes ?? null,
+    completedModules:       completedCount,
+    totalModules:           modules.length,
+  })
+
+  const URGENCY_STYLE = {
+    critical:    { dot: 'bg-red-500',    card: 'border-red-100 bg-red-50',    title: 'text-red-800',    label: 'Kritisch' },
+    recommended: { dot: 'bg-amber-400',  card: 'border-amber-100 bg-amber-50', title: 'text-amber-800',  label: 'Empfohlen' },
+    next:        { dot: 'bg-blue-400',   card: 'border-blue-100 bg-blue-50',  title: 'text-blue-800',   label: 'Nächster Schritt' },
+  }
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
@@ -235,6 +254,36 @@ export default async function ZusammenfassungPage() {
           PDF exportieren{!hasAccess(tier, 'pro') && <span className="text-xs opacity-60">· Pro</span>}
         </a>
       </div>
+
+      {/* ── KI-Priorisierungs-Summary ─────────────────────────── */}
+      {summary.actions.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-slate-900 mb-1">{summary.headline}</h2>
+          <p className="text-xs text-slate-500 mb-4">{summary.subtext}</p>
+          <ul className="space-y-2.5" role="list">
+            {summary.actions.map((action, i) => {
+              const s = URGENCY_STYLE[action.urgency]
+              return (
+                <li key={i}>
+                  <Link
+                    href={action.href}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 hover:opacity-90 transition-opacity ${s.card}`}
+                  >
+                    <span className={`mt-1.5 flex-shrink-0 w-2 h-2 rounded-full ${s.dot}`} aria-hidden="true" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className={`text-[10px] font-semibold uppercase tracking-wide ${s.title}`}>{s.label}</span>
+                      </div>
+                      <p className={`text-xs font-medium ${s.title}`}>{action.title}</p>
+                      <p className="text-xs text-slate-600 mt-0.5">{action.description}</p>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-3">
         {modules.map(mod => {
