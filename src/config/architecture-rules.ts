@@ -262,3 +262,50 @@ export function recommendFromCatalog(
 
   return { layers, roleNames: [...new Set(roles)] }
 }
+
+export function generateDynamicKeyDecisions(components: CatalogComponent[]): string[] {
+  const vendors = new Set(components.map(c => c.vendor))
+  const decisions: string[] = []
+
+  if (vendors.has('SAP')) {
+    decisions.push('SAP BTP Lizenzmodell und AI Core Service-Tier vorab klären — Kosten skalieren mit Inferenz-Volumen')
+    decisions.push('SAP AI Core Deployment-Quota (GPU-Ressourcen) rechtzeitig beim SAP-Account-Team beantragen')
+  }
+  if (vendors.has('Microsoft')) {
+    decisions.push('Azure OpenAI Service Agreement: EU-Datenspeicherung (West Europe) und Zero-Retention-Option vertraglich sichern')
+  }
+  if (vendors.has('AWS')) {
+    decisions.push('AWS Bedrock Model Access in eu-central-1 (Frankfurt) vorab beantragen — nicht alle Modelle in EU verfügbar')
+  }
+  if (components.some(c => c.dsgvo_status === 'conditional')) {
+    decisions.push('DSGVO-Risiko: Mindestens eine Komponente mit bedingter Konformität — Auftragsverarbeitungsvertrag (AVV) zwingend abschließen')
+  }
+  if (components.some(c => c.eu_ai_act_risk === 'high' || c.eu_ai_act_risk === 'limited')) {
+    decisions.push('EU AI Act: Hochrisiko-Einstufung prüfen — Technische Dokumentation und Risk Assessment vorbereiten')
+  }
+
+  return decisions
+}
+
+export function generateDynamicNextSteps(components: CatalogComponent[]): string[] {
+  const vendors = new Set(components.map(c => c.vendor))
+  const steps: string[] = []
+
+  if (vendors.has('SAP')) {
+    steps.push('SAP BTP Trial-Account oder Productive Account einrichten → AI Core Service aktivieren → ersten Deployment-Workspace anlegen')
+  }
+  if (vendors.has('Microsoft')) {
+    steps.push('Azure OpenAI Service in West Europe beantragen → Modell-Quota konfigurieren → Content-Filter-Policy festlegen')
+  }
+  if (vendors.has('AWS')) {
+    steps.push('AWS Bedrock Konsole: Zugriff auf Wunschmodelle in eu-central-1 aktivieren → IAM-Rollen für Least Privilege einrichten')
+  }
+  if (components.some(c => c.dsgvo_status === 'conditional')) {
+    steps.push('AVV mit allen Drittanbietern mit bedingter DSGVO-Konformität abschließen — Vorlage beim Datenschutzbeauftragten anfordern')
+  }
+  if (vendors.size > 0 && !vendors.has('SAP') && !vendors.has('Microsoft') && !vendors.has('AWS')) {
+    steps.push('Proof-of-Concept mit gewählten Komponenten aufsetzen und interne Akzeptanzkriterien definieren')
+  }
+
+  return steps
+}

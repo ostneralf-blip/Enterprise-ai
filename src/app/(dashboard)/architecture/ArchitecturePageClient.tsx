@@ -5,7 +5,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent, Canvas, UseCase } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
@@ -489,42 +489,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
 
-        {/* Architecture layers */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Architektur-Schichten</h3>
-          <div className="space-y-4">
-            {result.layers.map((layer, i) => (
-              <section key={i} aria-labelledby={`layer-${i}`} className="border border-slate-100 rounded-xl p-3.5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-slate-400 text-sm" aria-hidden="true">{LAYER_ICONS[i]}</span>
-                  <h4 id={`layer-${i}`} className="text-sm font-semibold text-slate-800">{layer.name}</h4>
-                </div>
-                <p className="text-xs text-slate-500 mb-2">{layer.role}</p>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {layer.components.map((comp, j) => {
-                    const catalogComp = recComponents.find(c => c.name === comp)
-                    if (catalogComp) {
-                      return (
-                        <button
-                          key={j}
-                          onClick={() => setSelectedComp(catalogComp)}
-                          className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full hover:bg-blue-100 hover:text-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          {comp}
-                        </button>
-                      )
-                    }
-                    return (
-                      <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{comp}</span>
-                    )
-                  })}
-                </div>
-                <p className="text-xs text-slate-400 italic">{layer.examples}</p>
-              </section>
-            ))}
-          </div>
-        </div>
-
         {/* Architecture diagram */}
         {catalogRecs && (
           <ArchitectureDiagram
@@ -559,34 +523,42 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <JouleUseCasesCard useCases={jouleUseCases} />
 
         {/* Key decisions + Next steps */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">Schlüssel-Entscheidungen</h3>
-            <ul className="space-y-2.5" role="list">
-              {result.keyDecisions.map((decision, i) => (
-                <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                  <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
-                    {i + 1}
-                  </span>
-                  <span className="min-w-0">{decision}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">Nächste Schritte</h3>
-            <ul className="space-y-2.5" role="list">
-              {result.nextSteps.map((s, i) => (
-                <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                  <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
-                    {i + 1}
-                  </span>
-                  <span className="min-w-0">{s}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        {(() => {
+          const dynamicDecisions = generateDynamicKeyDecisions(recComponents)
+          const dynamicSteps = generateDynamicNextSteps(recComponents)
+          const allDecisions = [...dynamicDecisions, ...result.keyDecisions.filter(d => !dynamicDecisions.includes(d))]
+          const allSteps = [...dynamicSteps, ...result.nextSteps.filter(s => !dynamicSteps.includes(s))]
+          return (
+            <div className="space-y-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">Schlüssel-Entscheidungen</h3>
+                <ul className="space-y-2.5" role="list">
+                  {allDecisions.map((decision, i) => (
+                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                        {i + 1}
+                      </span>
+                      <span className="min-w-0">{decision}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">Nächste Schritte</h3>
+                <ul className="space-y-2.5" role="list">
+                  {allSteps.map((s, i) => (
+                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                        {i + 1}
+                      </span>
+                      <span className="min-w-0">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-3">
