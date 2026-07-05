@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['host.docker.internal'],
+  allowedDevOrigins: ['host.docker.internal', '192.168.178.121'],
   async headers() {
     return [
       {

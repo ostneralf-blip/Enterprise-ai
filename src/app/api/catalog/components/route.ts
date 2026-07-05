@@ -19,6 +19,7 @@ export async function GET(request: Request) {
     .select('*')
     .eq('is_active', true)
     .order('name', { ascending: true })
+    .limit(2000)
 
   if (vendor)        query = query.eq('vendor', vendor)
   if (layer)         query = query.eq('architecture_layer', layer)
