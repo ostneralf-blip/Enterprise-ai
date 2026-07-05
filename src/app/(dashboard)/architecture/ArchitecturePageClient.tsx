@@ -565,9 +565,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </>
         )}
 
-        {/* DSGVO-Warnung bei bedingter Konformität */}
+        {/* DSGVO-Warnung bei bedingter Konformität — nur Komponenten die im Diagramm aktiv sind */}
         {(() => {
-          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional')
+          const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional' && activeNames.has(c.name))
           if (conditionalComps.length === 0) return null
           return (
             <div role="alert" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5">
