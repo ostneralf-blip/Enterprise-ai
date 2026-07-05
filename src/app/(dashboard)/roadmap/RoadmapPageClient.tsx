@@ -6,7 +6,15 @@ import { QUADRANT_META } from '@/config/usecase-data'
 import { InfoHint } from '@/components/shared/InfoHint'
 import type { Archetype, Tier } from '@/types'
 
-type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }
+type GovernanceVerdict = 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve'
+type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null; governance_result: GovernanceVerdict | null }
+
+const GOVERNANCE_BADGE: Record<GovernanceVerdict, { label: string; className: string }> = {
+  approve:    { label: '✓ Freigegeben',  className: 'bg-emerald-100 text-emerald-700' },
+  improve:    { label: '⚠ Bedingt',      className: 'bg-amber-100 text-amber-700' },
+  stop_risk:  { label: '✗ Risiko-Stop',  className: 'bg-red-100 text-red-700' },
+  stop_dsgvo: { label: '✗ DSGVO-Stop',   className: 'bg-red-100 text-red-700' },
+}
 type MilestoneStatus = 'not_started' | 'in_progress' | 'done'
 type SavedRoadmap = { id: string; archetype: string; phases: unknown[] }
 type LinkedCanvas = { id: string; title: string; archetype: string | null; data: Record<string, string> }
@@ -196,14 +204,24 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             {topUseCases.map((uc, i) => {
               const qMeta = uc.quadrant ? QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META] : null
               return (
-                <div key={uc.id} className="flex items-center gap-2 bg-white border border-blue-100 rounded-xl px-3 py-2 text-sm min-w-0">
+                <div key={uc.id} className={cn(
+                  'flex items-center gap-2 bg-white border rounded-xl px-3 py-2 text-sm min-w-0',
+                  uc.governance_result === 'stop_dsgvo' || uc.governance_result === 'stop_risk'
+                    ? 'border-red-200 opacity-75'
+                    : 'border-blue-100'
+                )}>
                   <span className="text-slate-400 text-xs flex-shrink-0">#{i + 1}</span>
-                  <span className="font-medium text-slate-900 truncate max-w-[140px]">{uc.name}</span>
+                  <span className="font-medium text-slate-900 truncate max-w-[120px]">{uc.name}</span>
                   {uc.weighted_score != null && (
                     <span className="text-xs text-slate-500 flex-shrink-0">{Number(uc.weighted_score).toFixed(1)}</span>
                   )}
                   {qMeta && (
                     <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
+                  )}
+                  {uc.governance_result && (
+                    <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0', GOVERNANCE_BADGE[uc.governance_result].className)}>
+                      {GOVERNANCE_BADGE[uc.governance_result].label}
+                    </span>
                   )}
                 </div>
               )

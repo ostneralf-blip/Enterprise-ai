@@ -52,10 +52,20 @@ const WEIGHT_DOT: Record<string, string> = {
   green: 'bg-emerald-500',
 }
 
-export function GovernancePageClient({ tier, sessions, initialUseCaseName }: { tier: Tier; sessions: GovernanceSession[]; initialUseCaseName?: string }) {
+export function GovernancePageClient({
+  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId,
+}: {
+  tier: Tier
+  sessions: GovernanceSession[]
+  useCases?: { id: string; name: string }[]
+  initialUseCaseName?: string
+  initialUseCaseId?: string
+}) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [useCaseName, setUseCaseName] = useState(initialUseCaseName ?? '')
+  const [useCaseId, setUseCaseId] = useState<string | null>(initialUseCaseId ?? null)
+  const [manualEntry, setManualEntry] = useState(!initialUseCaseId && !!initialUseCaseName)
   const [showResult, setShowResult] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -87,6 +97,9 @@ export function GovernancePageClient({ tier, sessions, initialUseCaseName }: { t
     setCurrentStep(0)
     setShowResult(false)
     setSaved(false)
+    setUseCaseId(null)
+    setUseCaseName('')
+    setManualEntry(false)
   }
 
   const handleSave = async (verdictLevel: VerdictLevel) => {
@@ -97,6 +110,7 @@ export function GovernancePageClient({ tier, sessions, initialUseCaseName }: { t
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           use_case_name: useCaseName.trim() || null,
+          use_case_id: useCaseId ?? null,
           answers,
           result: VERDICT_TO_API[verdictLevel],
         }),
@@ -214,20 +228,60 @@ export function GovernancePageClient({ tier, sessions, initialUseCaseName }: { t
         <span className="block mt-1 text-xs opacity-75">Tipp: Wählen Sie die Antwort, die den aktuellen Stand Ihres Projekts am besten beschreibt — nicht den Soll-Zustand.</span>
       </HintBox>
 
-      {/* Use-Case-Name */}
+      {/* Use-Case-Auswahl */}
       <div className="mb-5">
-        <label htmlFor="governance-usecase-name" className="block text-xs font-medium text-slate-600 mb-1.5">
+        <label htmlFor="governance-usecase-select" className="block text-xs font-medium text-slate-600 mb-1.5">
           Use Case <span className="text-slate-400 font-normal">(optional)</span>
         </label>
-        <input
-          id="governance-usecase-name"
-          type="text"
-          value={useCaseName}
-          onChange={e => setUseCaseName(e.target.value)}
-          placeholder="Name des zu prüfenden AI-Use-Cases"
-          maxLength={200}
-          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+        {useCases.length > 0 && !manualEntry ? (
+          <select
+            id="governance-usecase-select"
+            value={useCaseId ?? ''}
+            onChange={e => {
+              const val = e.target.value
+              if (val === '__manual__') {
+                setUseCaseId(null)
+                setUseCaseName('')
+                setManualEntry(true)
+              } else if (val === '') {
+                setUseCaseId(null)
+                setUseCaseName('')
+              } else {
+                const found = useCases.find(uc => uc.id === val)
+                setUseCaseId(val)
+                setUseCaseName(found?.name ?? '')
+              }
+            }}
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          >
+            <option value="">— Keinen (globaler Check) —</option>
+            {useCases.map(uc => (
+              <option key={uc.id} value={uc.id}>{uc.name}</option>
+            ))}
+            <option value="__manual__">Anderen Namen eingeben…</option>
+          </select>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              id="governance-usecase-name"
+              type="text"
+              value={useCaseName}
+              onChange={e => setUseCaseName(e.target.value)}
+              placeholder="Name des zu prüfenden AI-Use-Cases"
+              maxLength={200}
+              className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            {useCases.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setManualEntry(false); setUseCaseName(''); setUseCaseId(null) }}
+                className="text-xs text-blue-600 hover:text-blue-500 whitespace-nowrap px-2"
+              >
+                ← Aus Liste wählen
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Progress */}

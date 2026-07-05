@@ -12,6 +12,7 @@ const BASE_UC: UseCase = {
   domain: 'Finanzen',
   description: 'Automatische Rechnungsverarbeitung',
   canvas_id: null,
+  governance_result: null,
   scores: { value: 4, feasibility: 3, data_readiness: 3, risk: 2, speed: 4 },
   weighted_score: 3.5,
   quadrant: 'quick_win',

@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 const SaveSchema = z.object({
   use_case_name: z.string().max(200).nullable().optional(),
+  use_case_id:   z.string().uuid().nullable().optional(),
   answers:       z.record(z.string(), z.string()),
   result:        z.enum(['approve', 'stop_dsgvo', 'stop_risk', 'improve']),
   protocol:      z.array(z.unknown()).optional(),
@@ -42,5 +43,15 @@ export async function POST(req: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Result auf den verknüpften Use Case zurückschreiben
+  if (parsed.data.use_case_id) {
+    await supabase
+      .from('use_cases')
+      .update({ governance_result: parsed.data.result })
+      .eq('id', parsed.data.use_case_id)
+      .eq('user_id', user.id)
+  }
+
   return NextResponse.json({ data })
 }

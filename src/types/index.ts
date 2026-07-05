@@ -170,6 +170,8 @@ export type UseCaseWeights = {
   speed: number
 }
 
+export type GovernanceVerdict = 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve'
+
 export interface UseCase {
   id: string
   portfolio_id: string
@@ -180,8 +182,20 @@ export interface UseCase {
   weighted_score: number
   quadrant: 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid'
   canvas_id: string | null
+  governance_result: GovernanceVerdict | null
   created_at: string
   updated_at: string
+}
+
+export interface GovernanceSession {
+  id: string
+  user_id: string
+  use_case_name: string | null
+  use_case_id: string | null
+  answers: Record<string, string>
+  result: GovernanceVerdict
+  protocol: unknown[]
+  created_at: string
 }
 
 export interface UseCasePortfolio {

@@ -31,7 +31,7 @@ const mockUseCase = (overrides: Partial<UseCase> = {}): UseCase => ({
   id: 'uc1', portfolio_id: 'p1', name: 'OCR Rechnungsverarbeitung',
   domain: 'Finance', description: null,
   scores: { value: 4, feasibility: 4, data_readiness: 4, risk: 3, speed: 4 },
-  weighted_score: 4.2, quadrant: 'quick_win', canvas_id: null,
+  weighted_score: 4.2, quadrant: 'quick_win', canvas_id: null, governance_result: null,
   created_at: '', updated_at: '',
   ...overrides,
 })

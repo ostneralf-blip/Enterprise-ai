@@ -28,7 +28,8 @@ export default async function RoadmapPage() {
       .single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('use_cases')
-      .select('id, name, domain, weighted_score, quadrant, canvas_id')
+      .select('id, name, domain, weighted_score, quadrant, canvas_id, governance_result, use_case_portfolios!inner(user_id)')
+      .eq('use_case_portfolios.user_id', user.id)
       .order('weighted_score', { ascending: false })
       .limit(3),
     supabase
@@ -68,7 +69,7 @@ export default async function RoadmapPage() {
         initialArchetype={archetype}
         fromAssessment={!!latestResult?.archetype}
         tier={tier}
-        topUseCases={(topUseCases ?? []) as Array<{ id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null }>}
+        topUseCases={(topUseCases ?? []) as Array<{ id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null; governance_result: import('@/types').GovernanceVerdict | null }>}
         savedRoadmap={latestRoadmap ?? null}
         linkedCanvas={linkedCanvas}
       />

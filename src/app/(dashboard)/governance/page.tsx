@@ -14,27 +14,41 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   const params = await searchParams
 
-  const [{ data: profileData }, { data: sessions }] = await Promise.all([
+  const [{ data: profileData }, { data: sessions }, { data: portfolioData }] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('governance_sessions')
-      .select('id, use_case_name, answers, result, created_at')
+      .select('id, use_case_name, use_case_id, answers, result, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10),
+    supabase
+      .from('use_case_portfolios')
+      .select('use_cases(id, name)')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const tier = (profileData?.tier ?? 'free') as Tier
+  const useCases = ((portfolioData?.use_cases ?? []) as { id: string; name: string }[])
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
 
   let initialUseCaseName: string | undefined
+  let initialUseCaseId: string | undefined
   if (params.from === 'usecase' && params.id) {
-    const { data: uc } = await supabase
-      .from('use_cases')
-      .select('name')
-      .eq('id', params.id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-    initialUseCaseName = uc?.name ?? undefined
+    const found = useCases.find(uc => uc.id === params.id)
+    if (found) {
+      initialUseCaseName = found.name
+      initialUseCaseId = found.id
+    } else {
+      const { data: uc } = await supabase
+        .from('use_cases')
+        .select('name')
+        .eq('id', params.id)
+        .maybeSingle()
+      if (uc) { initialUseCaseName = uc.name; initialUseCaseId = params.id }
+    }
   }
 
   return (
@@ -45,7 +59,13 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>
       </div>
-      <GovernancePageClient tier={tier} sessions={sessions ?? []} initialUseCaseName={initialUseCaseName} />
+      <GovernancePageClient
+        tier={tier}
+        sessions={sessions ?? []}
+        useCases={useCases}
+        initialUseCaseName={initialUseCaseName}
+        initialUseCaseId={initialUseCaseId}
+      />
     </div>
   )
 }
