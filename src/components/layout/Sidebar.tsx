@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { MODULES } from '@/config/modules'
+import { CHANGELOG } from '@/config/changelog'
 import type { UserProfile } from '@/types'
 import { useMobileNav } from './MobileNavContext'
 
@@ -96,7 +97,7 @@ export function Sidebar({ profile }: SidebarProps) {
         </div>
         <div className="flex items-center justify-between">
           <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
-          <span className="text-xs text-slate-400">v0.5.0</span>
+          <span className="text-xs text-slate-400">v{CHANGELOG[0].version}</span>
         </div>
         <div className="pt-1 border-t border-slate-200">
           <span className="text-xs text-slate-400">📖 Basiert auf: </span>
@@ -124,10 +125,14 @@ export function Sidebar({ profile }: SidebarProps) {
       {isOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={close} aria-hidden="true" />
       )}
-      <aside className={cn(
-        'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-white border-r border-slate-200 shrink-0 transition-transform duration-200',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
+      <aside
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        className={cn(
+          'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-white border-r border-slate-200 shrink-0 transition-transform duration-200',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
         {content}
       </aside>
     </>
@@ -139,6 +144,7 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
 }) {
   return (
     <Link href={locked ? '/upgrade' : href} onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
         active
