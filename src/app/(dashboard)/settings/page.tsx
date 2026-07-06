@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('full_name, company, role, tier, stripe_customer_id, phone, mobile, street, zip, city, guided_path_reset_at')
+    .select('full_name, company, role, tier, stripe_customer_id, phone, mobile, street, zip, city, guided_path_reset_at, theme')
     .eq('id', user.id)
     .single() as {
       data: {
@@ -29,6 +29,7 @@ export default async function SettingsPage() {
         zip: string | null
         city: string | null
         guided_path_reset_at: string | null
+        theme: string | null
       } | null
     }
 
@@ -44,6 +45,7 @@ export default async function SettingsPage() {
     zip: profileData?.zip ?? null,
     city: profileData?.city ?? null,
     guided_path_reset_at: profileData?.guided_path_reset_at ?? null,
+    theme: (profileData?.theme ?? 'book') as 'book' | 'teal' | 'indigo' | 'dark',
   }
 
   return (

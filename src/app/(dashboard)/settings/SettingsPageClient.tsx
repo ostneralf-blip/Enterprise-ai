@@ -18,9 +18,17 @@ interface Props {
     zip: string | null
     city: string | null
     guided_path_reset_at: string | null
+    theme: 'book' | 'teal' | 'indigo' | 'dark'
   }
   email: string
 }
+
+const THEMES = [
+  { id: 'book'   as const, label: 'Buch-Blau',  swatch: '#1D4ED8' },
+  { id: 'teal'   as const, label: 'Teal',        swatch: '#0D9488' },
+  { id: 'indigo' as const, label: 'Indigo',      swatch: '#4F46E5' },
+  { id: 'dark'   as const, label: 'Dark Mode',   swatch: '#0F172A' },
+]
 
 const TIER_LABELS: Record<Tier, string> = {
   free: 'Free',
@@ -61,6 +69,24 @@ export function SettingsPageClient({ profile, email }: Props) {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const [currentTheme, setCurrentTheme] = useState<'book' | 'teal' | 'indigo' | 'dark'>(profile.theme)
+  const [themeSaving, setThemeSaving] = useState(false)
+
+  const handleThemeChange = async (t: 'book' | 'teal' | 'indigo' | 'dark') => {
+    setCurrentTheme(t)
+    document.documentElement.setAttribute('data-theme', t)  // sofortige Vorschau
+    setThemeSaving(true)
+    try {
+      await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: fullName || profile.full_name || 'User', theme: t }),
+      })
+    } finally {
+      setThemeSaving(false)
+    }
+  }
 
   const [wizardResetting, setWizardResetting] = useState(false)
   const [wizardResetAt, setWizardResetAt] = useState<string | null>(profile.guided_path_reset_at)
@@ -425,16 +451,37 @@ export function SettingsPageClient({ profile, email }: Props) {
         </div>
       </section>
 
-      {/* Darstellung — Demnächst */}
-      <section aria-labelledby="display-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
-        <div className="flex items-center gap-2 mb-1">
+      {/* Darstellung */}
+      <section aria-labelledby="display-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-1">
           <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-slate-900">Darstellung</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+          {themeSaving && <span className="text-xs text-slate-400">Wird gespeichert…</span>}
         </div>
-        <p className="text-sm text-slate-400 mb-4">UI-Theme, Schriftgröße und Farbschema anpassen.</p>
-        <div className="flex gap-2">
-          {['Hell', 'Dunkel', 'System'].map(opt => (
-            <div key={opt} className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-400 cursor-not-allowed">{opt}</div>
+        <p className="text-sm text-slate-500 mb-5">Farbtheme der App anpassen. Kostenlos für alle Nutzer.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {THEMES.map(t => (
+            <button
+              key={t.id}
+              onClick={() => handleThemeChange(t.id)}
+              className={cn(
+                'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
+                currentTheme === t.id
+                  ? 'border-primary bg-primary-soft'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              )}
+              aria-pressed={currentTheme === t.id}
+              aria-label={`Theme ${t.label} aktivieren`}
+            >
+              <div
+                className="w-8 h-8 rounded-full border-2 border-white shadow-md"
+                style={{ background: t.swatch }}
+                aria-hidden="true"
+              />
+              <span className="text-xs font-medium text-slate-700">{t.label}</span>
+              {currentTheme === t.id && (
+                <span className="text-[10px] text-primary font-semibold">Aktiv</span>
+              )}
+            </button>
           ))}
         </div>
       </section>

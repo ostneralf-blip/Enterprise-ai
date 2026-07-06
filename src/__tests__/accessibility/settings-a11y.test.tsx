@@ -16,6 +16,7 @@ const FREE_PROFILE = {
   zip: null,
   city: null,
   guided_path_reset_at: null,
+  theme: 'book' as const,
 }
 
 const PRO_PROFILE = {

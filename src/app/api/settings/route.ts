@@ -11,6 +11,7 @@ const ProfileUpdateSchema = z.object({
   street:    z.string().max(200).nullable().optional(),
   zip:       z.string().max(20).nullable().optional(),
   city:      z.string().max(100).nullable().optional(),
+  theme:     z.enum(['book', 'teal', 'indigo', 'dark']).optional(),
 })
 
 export async function PATCH(req: Request) {
@@ -35,10 +36,11 @@ export async function PATCH(req: Request) {
         street: street ?? null,
         zip: zip ?? null,
         city: city ?? null,
+        ...(parse.data.theme ? { theme: parse.data.theme } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq('id', user.id)
-      .select('id, full_name, company, role, phone, mobile, street, zip, city')
+      .select('id, full_name, company, role, phone, mobile, street, zip, city, theme')
       .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

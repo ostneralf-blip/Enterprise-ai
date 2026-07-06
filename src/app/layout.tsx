@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Lora } from 'next/font/google'
 import './globals.css'
+import { createClient } from '@/lib/supabase/server'
 
 const lora = Lora({
   subsets: ['latin'],
@@ -20,9 +21,22 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let theme = 'book'
+  if (user) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('theme')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (data?.theme) theme = data.theme
+  }
+
   return (
-    <html lang="de" suppressHydrationWarning className={lora.variable}>
+    <html lang="de" suppressHydrationWarning className={lora.variable} data-theme={theme}>
       <body className="font-sans antialiased bg-ivory text-slate-900">
         {children}
       </body>
