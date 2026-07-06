@@ -330,7 +330,7 @@ export default async function ZusammenfassungPage() {
       </div>
 
       {tier === 'free' && (
-        <div className="mt-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 flex items-center justify-between gap-4">
+        <div className="mt-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-5 flex items-center justify-between gap-4">
           <div>
             <div className="text-white font-semibold text-sm mb-1">Auf Professional upgraden</div>
             <div className="text-blue-200 text-xs">Compliance, Architektur und PDF-Export freischalten.</div>
