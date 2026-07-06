@@ -147,13 +147,37 @@ interface AssessmentPdfData {
   companyName?: string
 }
 
-const ASSESSMENT_RECS: Record<string, string> = {
-  data:       'Data-Governance-Initiative starten, Masterdatenmodell definieren.',
-  skills:     'AI-Upskilling-Programm aufsetzen, AI-Champions benennen.',
-  governance: 'AI-Policy und RACI in den nächsten 4 Wochen dokumentieren.',
-  tech:       'API-Strategie für Kernsysteme entwickeln, Cloud-Readiness prüfen.',
-  strategy:   'AI-Strategie im nächsten Board-Meeting verabschieden.',
-  culture:    'Executive-Sponsorship sichern, AI-Kulturprogramm starten.',
+const ASSESSMENT_RECS: Record<string, Rec3> = {
+  data: {
+    title:  'Datenstrategie und -governance aufbauen',
+    why:    'EU AI Act Art. 10 schreibt für Hochrisiko-KI explizit hochwertige Datenverwaltungspraktiken vor — fehlt diese, drohen Bußgelder bis 3 % des globalen Jahresumsatzes (Art. 99 Abs. 3). Laut McKinsey (2023) nennen 72 % der Unternehmen mangelnde Datenqualität als Haupthindernis für KI-Skalierung.¹',
+    action: 'Masterdatenmodell + Data Governance Charter in 60 Tagen mit CDO/CTO definieren; Datenqualitäts-KPIs für kritische Felder einführen.',
+  },
+  skills: {
+    title:  'AI-Kompetenzen systematisch aufbauen',
+    why:    'EU AI Act Art. 4 macht ausreichende KI-Kenntnisse für alle Mitarbeiter zur Pflicht, die KI-Systeme einsetzen oder beaufsichtigen. Laut WEF Future of Jobs Report 2025 sehen 69 % der Unternehmen AI/ML-Kompetenzen als kritischen Engpass bis 2027.¹',
+    action: 'AI-Champion pro Fachbereich benennen; strukturiertes Upskilling-Programm (min. 40 Stunden/Jahr) für Fachteams starten; ML Engineer als Recruiting-Priorität setzen.',
+  },
+  governance: {
+    title:  'AI-Governance-Rahmen in 4 Wochen etablieren',
+    why:    'EU AI Act Art. 9 verlangt ein dokumentiertes Risikomanagementsystem für Hochrisiko-KI. Unternehmen ohne Governance-Strukturen riskieren Bußgelder bis 3 % des globalen Jahresumsatzes (Art. 99 Abs. 3) sowie Projektstopps durch interne Compliance-Teams.¹',
+    action: 'RACI-Matrix für AI-Entscheidungen, schriftlichen Freigabeprozess und Risikoklassifizierung nach EU AI Act Anhang III in 4 Wochen dokumentieren.',
+  },
+  tech: {
+    title:  'Technische Integrations- und Cloud-Strategie entwickeln',
+    why:    'EU AI Act Art. 17 verpflichtet Anbieter von Hochrisiko-KI zu einem dokumentierten Qualitätsmanagementsystem inkl. technischer Dokumentation. Gartner (2024) zufolge scheitern 85 % der KI-Projekte an fehlender Integration in Kernsysteme (ERP, CRM).¹',
+    action: 'API-Strategie für alle Kernsysteme in 90 Tagen mit IT-Leitung entwickeln; Cloud-Readiness-Assessment durchführen und Lücken priorisieren.',
+  },
+  strategy: {
+    title:  'Formale AI-Strategie auf Board-Ebene verabschieden',
+    why:    'McKinsey Global AI Survey 2024: Unternehmen mit formaler AI-Strategie erzielen 3,5× höheren ROI als Ad-hoc-Implementierer. Ohne strategischen Rahmen fehlen Budget-Kontinuität, Ressourcen-Commitment und die Durchsetzungskraft für nachhaltige KI-Transformation.¹',
+    action: 'AI-Strategie mit Vision, messbaren 12-Monats-Zielen und Investitionsrahmen im nächsten Board-Meeting verabschieden; quartalsliches AI-Steering-Meeting etablieren.',
+  },
+  culture: {
+    title:  'Kulturwandel mit Executive-Sponsorship anstoßen',
+    why:    'Forrester Research (2024): In 79 % aller fehlgeschlagenen KI-Transformationen war Cultural Resistance der entscheidende Faktor — nicht Technologie. EU AI Act Art. 4 verlangt zudem ausreichende KI-Kenntnisse auf allen Organisationsebenen.¹',
+    action: 'AI-Sponsor auf C-Level formalisieren; AI-Literacy-Programm (8 Stunden) für alle Führungskräfte einführen; AI-Champion-Netzwerk über alle Fachbereiche aufbauen.',
+  },
 }
 
 function DimBar({ label, score }: { label: string; score: number }) {
@@ -178,12 +202,20 @@ export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
 
   return (
     <Document title="AI-Readiness Assessment">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title="AI-Readiness Assessment"
+        subtitle={data.companyName}
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Ergebnisse */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>AI-Readiness Assessment</Text>
         <Text style={s.sub}>Ergebnisbericht · 6 Dimensionen · Enterprise AI Navigator</Text>
 
-        <View style={{ backgroundColor: C.dark, borderRadius: 10, padding: 20, flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+        <View wrap={false} style={{ backgroundColor: C.dark, borderRadius: 10, padding: 20, flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={{ marginRight: 24 }}>
             <Text style={{ fontSize: 36, fontWeight: 'bold', color: scoreColor }}>{data.totalScore.toFixed(1)}</Text>
             <Text style={{ fontSize: 9, color: C.gray2 }}>von 5,0</Text>
@@ -199,22 +231,26 @@ export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
           <DimBar key={dim.id} label={dim.label} score={data.dimScores[dim.id] ?? 0} />
         ))}
 
-        <Text style={s.h2}>Top Handlungsempfehlungen</Text>
-        {topDims.map(([dimId, score]) => {
-          const dim = ASSESSMENT_DIMENSIONS.find(d => d.id === dimId)
-          return (
-            <View key={dimId} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand, marginRight: 8, marginTop: 3 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 10 }}>
-                  <Text style={{ fontWeight: 'bold' }}>{dim?.label ?? dimId}</Text>
-                  {` (${score.toFixed(1)}/5): ${ASSESSMENT_RECS[dimId] ?? 'Handlungsfeld analysieren.'}`}
-                </Text>
-              </View>
-            </View>
-          )
-        })}
-        <PdfFooter />
+        <PdfFooterEs company={data.companyName} />
+      </Page>
+
+      {/* Seite 3: Handlungsempfehlungen */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>AI-Readiness Assessment · Enterprise AI Navigator</Text>
+
+        {topDims.map(([dimId], i) => (
+          <RecCard3
+            key={dimId}
+            rec={ASSESSMENT_RECS[dimId] ?? { title: dimId, why: '', action: '' }}
+            index={i}
+            color={scoreColor}
+          />
+        ))}
+
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
