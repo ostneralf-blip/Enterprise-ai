@@ -83,6 +83,62 @@ const ARCHETYPE_LABELS: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
 }
 
+// ─── SHARED PDF BUILDING BLOCKS ──────────────────────────────────────────────
+interface Rec3 { title: string; why: string; action: string }
+
+function PdfCoverPage({ title, subtitle, companyName }: {
+  title: string; subtitle?: string; companyName?: string
+}) {
+  const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return (
+    <Page size="A4" style={{ padding: 40, fontFamily: 'Helvetica', backgroundColor: '#0f172a', justifyContent: 'space-between' }}>
+      <Text style={{ fontSize: 8, color: '#64748b' }}>AI Navigator · Enterprise AI</Text>
+      <View>
+        <Text style={{ fontSize: 28, fontWeight: 'bold', color: 'white', marginBottom: 12, lineHeight: 1.2 }}>{title}</Text>
+        {subtitle && <Text style={{ fontSize: 12, color: '#3b82f6', marginTop: 4 }}>{subtitle}</Text>}
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ fontSize: 9, color: '#64748b' }}>{companyName ?? ''}</Text>
+        <Text style={{ fontSize: 9, color: '#64748b' }}>{today}</Text>
+      </View>
+    </Page>
+  )
+}
+
+function RecCard3({ rec, index, color }: { rec: Rec3; index: number; color: string }) {
+  return (
+    <View wrap={false} style={{
+      borderWidth: 1, borderColor: C.border,
+      borderLeftWidth: 3, borderLeftColor: color,
+      borderRadius: 6, backgroundColor: C.light,
+      padding: 10, marginBottom: 8,
+    }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 5 }}>
+        <View style={{
+          backgroundColor: color, borderRadius: 9, width: 18, height: 18,
+          alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8,
+        }}>
+          <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{index + 1}</Text>
+        </View>
+        <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, flex: 1 }}>{rec.title}</Text>
+      </View>
+      <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5, marginBottom: 5 }}>{rec.why}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <Text style={{ fontSize: 9, color: color, marginRight: 5, flexShrink: 0 }}>{'>'}</Text>
+        <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec.action}</Text>
+      </View>
+    </View>
+  )
+}
+
+function PdfLegalNote() {
+  return (
+    <Text style={{ fontSize: 7, color: C.gray, marginTop: 20, lineHeight: 1.4 }}>
+      {'¹'} Rechtliche und regulatorische Hinweise in diesem Bericht dienen der Orientierung und ersetzen keine individuelle Rechts- oder Compliance-Beratung.
+    </Text>
+  )
+}
+
 // ─── ASSESSMENT ──────────────────────────────────────────────────────────────
 interface AssessmentPdfData {
   totalScore: number
