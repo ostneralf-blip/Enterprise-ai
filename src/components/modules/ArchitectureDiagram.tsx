@@ -106,13 +106,13 @@ function ComponentButton({
     <div className={cn(
       'inline-flex items-center rounded-lg border text-xs font-medium transition-all',
       isChecked
-        ? 'border-blue-400 bg-primary-soft text-blue-800 shadow-sm'
+        ? 'border-primary-ring bg-primary-soft text-primary shadow-sm'
         : isConflicting
         ? 'border-red-400 bg-red-50 text-red-800'
         : isSuggested
         ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
         : 'border-slate-200 bg-white text-slate-700',
-      isFocused && 'ring-2 ring-blue-400 ring-offset-1',
+      isFocused && 'ring-2 ring-primary-ring ring-offset-1',
     )}
     title={
       isConflicting ? `Inkompatibel mit einer ausgewählten Komponente` :

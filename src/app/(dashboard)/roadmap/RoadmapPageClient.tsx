@@ -130,7 +130,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       {linkedCanvas && (
         <div className="mb-5 bg-primary-soft border border-primary-border rounded-2xl p-4">
           <div className="flex items-start gap-2 mb-2">
-            <span className="text-xs font-semibold text-blue-800">Canvas verknüpft</span>
+            <span className="text-xs font-semibold text-primary">Canvas verknüpft</span>
             <InfoHint title="Wie beeinflusst der Canvas die Roadmap?" side="bottom">
               <p>Der verknüpfte Canvas stammt von Ihrem am höchsten bewerteten Use Case. Er liefert strategischen Kontext wie Plattform, Compliance-Anforderungen und Stakeholder-Situation.</p>
               <p className="mt-1.5">Die erkannten Signale helfen Ihnen, bei der Phasenplanung gezielt zu priorisieren. Wechseln Sie in der Sidebar zu <strong>Canvas</strong>, um den Inhalt zu bearbeiten.</p>
@@ -156,7 +156,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
           {canvasInsights.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {canvasInsights.map(insight => (
-                <span key={insight} className="text-[11px] bg-blue-100 text-primary-hover rounded-full px-2 py-0.5 font-medium">
+                <span key={insight} className="text-[11px] bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">
                   {insight}
                 </span>
               ))}
@@ -208,7 +208,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   'flex items-center gap-2 bg-white border rounded-xl px-3 py-2 text-sm min-w-0',
                   uc.governance_result === 'stop_dsgvo' || uc.governance_result === 'stop_risk'
                     ? 'border-red-200 opacity-75'
-                    : 'border-blue-100'
+                    : 'border-primary-soft'
                 )}>
                   <span className="text-slate-400 text-xs flex-shrink-0">#{i + 1}</span>
                   <span className="font-medium text-slate-900 truncate max-w-[120px]">{uc.name}</span>

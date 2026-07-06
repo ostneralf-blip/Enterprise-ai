@@ -30,11 +30,11 @@ const TIER_LABELS: Record<Tier, string> = {
 
 const TIER_COLORS: Record<Tier, string> = {
   free: 'bg-slate-100 text-slate-600',
-  pro: 'bg-blue-100 text-primary-hover',
+  pro: 'bg-primary-soft text-primary-hover',
   enterprise: 'bg-violet-100 text-violet-700',
 }
 
-const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-400'
+const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring disabled:bg-slate-50 disabled:text-slate-400'
 const labelClass = 'block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5'
 
 export function SettingsPageClient({ profile, email }: Props) {
@@ -287,7 +287,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               disabled={saving}
               className={cn(
                 'px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
-                saving ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-primary text-white hover:bg-primary'
+                saving ? 'bg-primary-ring text-white cursor-not-allowed' : 'bg-primary text-white hover:bg-primary'
               )}
             >
               {saving ? 'Speichern...' : 'Speichern'}

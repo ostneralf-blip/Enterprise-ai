@@ -197,7 +197,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             </button>
           ) : (
             <button onClick={() => { setCompareMode(true); setCompareIds([]) }}
-              className="px-3 py-1.5 text-xs font-medium text-primary border border-primary-border bg-primary-soft rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap">
+              className="px-3 py-1.5 text-xs font-medium text-primary border border-primary-border bg-primary-soft rounded-lg hover:bg-primary-soft transition-colors whitespace-nowrap">
               ⇄ Vergleichen
             </button>
           )}
@@ -227,7 +227,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {assessments.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
-              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
                 <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
                   {compareMode && (
@@ -317,7 +317,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {architectures.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
-              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
                 <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
                   {compareMode && (
@@ -449,7 +449,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             const isSelected = compareIds.includes(g.id)
             return (
-              <div key={g.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+              <div key={g.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
                 <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(g.id) : toggle(g.id)}>
                   {compareMode && (
@@ -546,7 +546,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {roadmaps.map(r => {
             const isSelected = compareIds.includes(r.id)
             return (
-              <div key={r.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+              <div key={r.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
                 <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(r.id) : toggle(r.id)}>
                   {compareMode && (
@@ -663,7 +663,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const isSelected = compareIds.includes(c.id)
             const filledFields = Object.values(c.data ?? {}).filter(v => v?.trim()).length
             return (
-              <div key={c.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-blue-400 ring-1 ring-blue-300' : 'border-slate-200')}>
+              <div key={c.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
                 <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(c.id) : toggle(c.id)}>
                   {compareMode && (

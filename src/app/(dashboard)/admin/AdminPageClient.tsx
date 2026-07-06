@@ -1038,7 +1038,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   setUploadResult(null)
                   if (f) handlePreview(f)
                 }}
-                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-hover hover:file:bg-blue-100 cursor-pointer"
+                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-hover hover:file:bg-primary-soft cursor-pointer"
               />
               {previewing && <span className="text-[10px] text-slate-400 animate-pulse whitespace-nowrap">Analysiere Datei…</span>}
             </div>
@@ -1049,7 +1049,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <div className="border border-primary-border bg-primary-soft rounded-lg p-3 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-blue-800">{uploadPreview.formatLabel}</span>
+                    <span className="text-xs font-semibold text-primary">{uploadPreview.formatLabel}</span>
                     <span className="text-xs text-primary">· {uploadPreview.row_count} Einträge</span>
                     {uploadPreview.ambiguous && (
                       <span className="text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
@@ -1223,7 +1223,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               onClick={() => setTagEditingId(tagEditingId === c.id ? null : c.id)}
                               aria-label="Tag hinzufügen"
                               aria-expanded={tagEditingId === c.id}
-                              className="px-1.5 py-0.5 text-xs text-primary hover:text-blue-800 hover:bg-primary-soft rounded border border-primary-border leading-none"
+                              className="px-1.5 py-0.5 text-xs text-primary hover:text-primary hover:bg-primary-soft rounded border border-primary-border leading-none"
                             >+</button>
                             {tagSavingId === c.id && (
                               <span className="text-[10px] text-slate-400 self-center">…</span>
@@ -1235,7 +1235,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 <button
                                   key={t}
                                   onClick={() => { addTag(c.id, c.tags, t); setTagEditingId(null) }}
-                                  className="px-1.5 py-0.5 bg-primary-soft text-primary text-[11px] rounded border border-primary-border hover:bg-blue-100 transition-colors"
+                                  className="px-1.5 py-0.5 bg-primary-soft text-primary text-[11px] rounded border border-primary-border hover:bg-primary-soft transition-colors"
                                 >+{t}</button>
                               ))}
                             </div>
@@ -1247,7 +1247,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             <div className="space-y-1.5 min-w-[220px]">
                               {([
                                 { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-red-200 focus:ring-red-400' },
-                                { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-primary-border focus:ring-blue-400' },
+                                { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-primary-border focus:ring-primary-ring' },
                                 { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-emerald-200 focus:ring-emerald-400' },
                               ] as const).map(({ key, label, color }) => (
                                 <div key={key}>

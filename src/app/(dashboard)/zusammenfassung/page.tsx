@@ -233,7 +233,7 @@ export default async function ZusammenfassungPage() {
   const URGENCY_STYLE = {
     critical:    { dot: 'bg-red-500',    card: 'border-red-100 bg-red-50',    title: 'text-red-800',    label: 'Kritisch' },
     recommended: { dot: 'bg-amber-400',  card: 'border-amber-100 bg-amber-50', title: 'text-amber-800',  label: 'Empfohlen' },
-    next:        { dot: 'bg-blue-400',   card: 'border-blue-100 bg-primary-soft',  title: 'text-blue-800',   label: 'Nächster Schritt' },
+    next:        { dot: 'bg-primary-ring',   card: 'border-primary-soft bg-primary-soft',  title: 'text-primary',   label: 'Nächster Schritt' },
   }
 
   return (

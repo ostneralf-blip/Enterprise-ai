@@ -39,7 +39,7 @@ export function TopBar({ profile }: TopBarProps) {
           {profile?.email}
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
-          profile?.tier === 'pro' ? 'bg-blue-100 text-primary-hover' :
+          profile?.tier === 'pro' ? 'bg-primary-soft text-primary-hover' :
           profile?.tier === 'enterprise' ? 'bg-emerald-100 text-emerald-700' :
           'bg-slate-100 text-slate-600'
         }`}>

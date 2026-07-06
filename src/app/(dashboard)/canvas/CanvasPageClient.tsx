@@ -134,7 +134,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             value={active.title}
             onChange={e => setActive(prev => prev ? { ...prev, title: e.target.value } : prev)}
             placeholder="Canvas-Titel eingeben…"
-            className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-blue-400 focus:bg-white focus:outline-none transition-colors"
+            className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-primary-ring focus:bg-white focus:outline-none transition-colors"
             aria-label="Canvas-Titel"
           />
           <button
@@ -225,7 +225,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 {insights.platform.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {insights.platform.map(p => (
-                      <span key={p} className="text-xs bg-blue-100 text-primary-hover rounded-full px-2 py-0.5 font-medium">{p}</span>
+                      <span key={p} className="text-xs bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">{p}</span>
                     ))}
                   </div>
                 ) : (

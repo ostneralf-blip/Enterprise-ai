@@ -137,7 +137,7 @@ function ArchitectureShareView({ entity }: { entity: { title: string | null; res
           <ul className="space-y-2">
             {result.nextSteps.map((s, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
-                <span className="flex-shrink-0 w-4 h-4 bg-blue-100 text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
+                <span className="flex-shrink-0 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
                 <span className="min-w-0">{s}</span>
               </li>
             ))}

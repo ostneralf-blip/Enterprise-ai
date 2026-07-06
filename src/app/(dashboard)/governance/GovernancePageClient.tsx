@@ -321,7 +321,7 @@ export function GovernancePageClient({
             onChange={e => setExtraName(e.target.value)}
             placeholder="Name des zu prüfenden AI-Use-Cases"
             maxLength={200}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring"
           />
         )}
       </div>
@@ -357,7 +357,7 @@ export function GovernancePageClient({
                   className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors select-none',
                     isSelected
-                      ? 'border-blue-500 bg-primary-soft'
+                      ? 'border-primary-ring bg-primary-soft'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   )}
                 >

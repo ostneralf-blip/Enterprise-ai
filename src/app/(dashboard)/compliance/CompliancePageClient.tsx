@@ -220,7 +220,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     className={cn(
                       'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isSelected
-                        ? `${cls.color.bg} ${cls.color.border} ring-2 ring-blue-400`
+                        ? `${cls.color.bg} ${cls.color.border} ring-2 ring-primary-ring`
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     )}
                   >
@@ -317,7 +317,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-primary mb-0.5">{item.article}</p>
                           <p className={cn('text-sm font-medium',
-                            status === 'compliant' ? 'text-blue-800 line-through' :
+                            status === 'compliant' ? 'text-primary line-through' :
                             status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
                           )}>
                             {item.label}
@@ -648,7 +648,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                           <div className="min-w-0">
                             <p className="text-xs font-semibold text-primary mb-0.5">{item.category}</p>
                             <p className={cn('text-sm font-medium',
-                              status === 'compliant' ? 'text-blue-800 line-through' :
+                              status === 'compliant' ? 'text-primary line-through' :
                               status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
                             )}>
                               {item.label}
@@ -699,7 +699,7 @@ function StatusIcon({
         onClick={onClick}
         disabled={disabled}
         aria-label="Offen — anklicken für Erfüllt"
-        className={cn(base, 'border-slate-300 bg-white hover:border-blue-400 focus:ring-primary-ring')}
+        className={cn(base, 'border-slate-300 bg-white hover:border-primary-ring focus:ring-primary-ring')}
       />
     )
   }

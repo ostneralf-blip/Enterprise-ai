@@ -8,16 +8,16 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-[#FCFCFA] text-slate-900">
       {/* Nav */}
-      <nav className="border-b border-slate-800 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
+      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm">N</div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm text-white">N</div>
           <span className="font-semibold">AI Navigator</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">Anmelden</Link>
-          <Link href="/register" className="bg-primary hover:bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+          <Link href="/login" className="text-slate-500 hover:text-slate-900 text-sm transition-colors">Anmelden</Link>
+          <Link href="/register" className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Kostenlos starten
           </Link>
         </div>
@@ -25,23 +25,23 @@ export default function LandingPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-block bg-primary/20 border border-primary/30 text-primary/70 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
+        <div className="inline-block bg-primary-soft border border-primary-border text-primary tracking-widest text-xs font-semibold uppercase px-3 py-1 rounded-full mb-6">
           Enterprise AI Toolset · Version 1.0
         </div>
-        <h1 className="text-5xl font-semibold leading-tight mb-6">
+        <h1 className="text-5xl font-semibold font-serif leading-tight mb-6">
           Enterprise AI.<br />
-          <span className="text-blue-400">Strukturiert navigiert.</span>
+          <span className="text-primary">Strukturiert navigiert.</span>
         </h1>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          7 interaktive Tools für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur — 
+        <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+          7 interaktive Tools für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur —
           direkt aus dem Enterprise AI Best-Practice-Leitfaden.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link href="/register"
-            className="bg-primary hover:bg-primary text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
+            className="bg-primary hover:bg-primary-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
             Kostenlos registrieren
           </Link>
-          <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">
+          <Link href="/login" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">
             Bereits registriert? Anmelden →
           </Link>
         </div>
@@ -55,8 +55,8 @@ export default function LandingPage() {
             { n: '5,5%', l: 'erzielen messbaren ROI' },
             { n: '7', l: 'strukturierte Tools' },
           ].map(s => (
-            <div key={s.n} className="bg-slate-800/50 border border-slate-700 rounded-xl py-6">
-              <div className="text-3xl font-bold text-blue-400 mb-1">{s.n}</div>
+            <div key={s.n} className="bg-white border border-slate-200 rounded-xl py-6">
+              <div className="text-3xl font-bold font-serif text-primary mb-1">{s.n}</div>
               <div className="text-slate-500 text-sm">{s.l}</div>
             </div>
           ))}
@@ -64,7 +64,7 @@ export default function LandingPage() {
       </div>
 
       {/* Trust Bar */}
-      <div className="border-t border-slate-800 bg-slate-900/60 py-5">
+      <div className="border-t border-slate-200 bg-white py-5">
         <div className="max-w-4xl mx-auto px-6">
           <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wide font-medium">Sicherheit & Compliance</p>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
@@ -75,14 +75,14 @@ export default function LandingPage() {
               { icon: '💳', label: 'Stripe PCI-DSS' },
               { icon: '👁', label: 'Cookieless Analytics' },
             ].map(b => (
-              <div key={b.label} className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div key={b.label} className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span>{b.icon}</span>
                 <span>{b.label}</span>
               </div>
             ))}
           </div>
           <p className="text-center mt-3">
-            <Link href="/trust" className="text-xs text-slate-500 hover:text-slate-300 underline transition-colors">
+            <Link href="/trust" className="text-xs text-slate-500 hover:text-slate-700 underline transition-colors">
               Details zur Sicherheit & Datenschutz →
             </Link>
           </p>
@@ -90,11 +90,11 @@ export default function LandingPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 py-6 text-center text-slate-600 text-xs">
+      <footer className="border-t border-slate-200 py-6 text-center text-slate-500 text-xs">
         © 2026 AI Navigator · enterprise-ai.biz ·{' '}
-        <Link href="/datenschutz" className="hover:text-slate-400">Datenschutz</Link> ·{' '}
-        <Link href="/impressum" className="hover:text-slate-400">Impressum</Link> ·{' '}
-        <Link href="/trust" className="hover:text-slate-400">Sicherheit</Link>
+        <Link href="/datenschutz" className="hover:text-slate-700">Datenschutz</Link> ·{' '}
+        <Link href="/impressum" className="hover:text-slate-700">Impressum</Link> ·{' '}
+        <Link href="/trust" className="hover:text-slate-700">Sicherheit</Link>
       </footer>
     </div>
   )

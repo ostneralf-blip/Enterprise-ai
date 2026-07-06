@@ -69,7 +69,7 @@ export function UpgradePageClient() {
         <button
           onClick={() => handleUpgrade('monthly')}
           disabled={loading !== null}
-          className="border-2 border-slate-200 hover:border-blue-400 rounded-2xl p-6 text-center transition-all disabled:opacity-50"
+          className="border-2 border-slate-200 hover:border-primary-ring rounded-2xl p-6 text-center transition-all disabled:opacity-50"
         >
           <div className="text-3xl font-semibold text-slate-900 mb-1">€49</div>
           <div className="text-sm text-slate-500 mb-4">pro Monat</div>
@@ -81,7 +81,7 @@ export function UpgradePageClient() {
         <button
           onClick={() => handleUpgrade('yearly')}
           disabled={loading !== null}
-          className="border-2 border-blue-500 bg-primary-soft rounded-2xl p-6 text-center transition-all disabled:opacity-50 relative"
+          className="border-2 border-primary-ring bg-primary-soft rounded-2xl p-6 text-center transition-all disabled:opacity-50 relative"
         >
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full">
             2 Monate gratis

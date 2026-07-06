@@ -55,14 +55,14 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
         <div>
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Name *</label>
           <input value={name} onChange={e => setName(e.target.value)} required placeholder="z. B. KI-gestützter Kundenservice"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 transition-colors" />
+            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary-ring transition-colors" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label htmlFor="uc-domain" className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Bereich</label>
             <select id="uc-domain" value={domain} onChange={e => setDomain(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 transition-colors bg-white">
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors bg-white">
               <option value="">Kein Bereich</option>
               {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
@@ -70,7 +70,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
           <div>
             <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Beschreibung</label>
             <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 transition-colors" />
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
               id="uc-canvas"
               value={canvasId}
               onChange={e => setCanvasId(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-blue-500 transition-colors bg-white"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors bg-white"
             >
               <option value="">Kein Canvas verknüpft</option>
               {canvases.map(c => (

@@ -55,7 +55,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
             onChange={e => setSearch(e.target.value)}
             placeholder="Use Cases suchen…"
             aria-label="Use Cases suchen"
-            className="w-full sm:w-64 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500"
+            className="w-full sm:w-64 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring"
           />
         </div>
       )}

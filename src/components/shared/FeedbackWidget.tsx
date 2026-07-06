@@ -68,7 +68,7 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
           <textarea value={comment} onChange={e => setComment(e.target.value)}
             placeholder="Was hätten Sie sich gewünscht? (Optional)"
             rows={3}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 resize-none mb-2"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary-ring resize-none mb-2"
           />
           <button onClick={() => submit('negative', comment)} disabled={loading}
             className={`${buttonBase} w-full bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500 disabled:opacity-60`}>

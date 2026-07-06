@@ -45,7 +45,7 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
 
         <div className="grid grid-cols-2 gap-3">
           <button onClick={() => handleUpgrade('monthly')} disabled={loading}
-            className="border border-slate-200 hover:border-blue-400 rounded-xl p-4 text-center transition-all">
+            className="border border-slate-200 hover:border-primary-ring rounded-xl p-4 text-center transition-all">
             <div className="font-semibold text-slate-900">€49</div>
             <div className="text-xs text-slate-500">pro Monat</div>
           </button>

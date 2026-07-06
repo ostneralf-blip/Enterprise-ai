@@ -85,7 +85,7 @@ interface ContextBannerProps {
 function ContextBanner({ assessmentContext, governanceContext, compliancePreset, roadmapContext }: ContextBannerProps) {
   if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
   return (
-    <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-1.5">
+    <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-primary space-y-1.5">
       <p className="font-semibold text-blue-900">Kontext aus anderen Modulen</p>
       {assessmentContext?.archetype && (
         <p>
@@ -641,7 +641,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 <ul className="space-y-2.5" role="list">
                   {allSteps.map((s, i) => (
                     <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-blue-100 text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
+                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
                         {i + 1}
                       </span>
                       <span className="min-w-0">{s}</span>
@@ -766,7 +766,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors select-none',
                     isSelected
-                      ? 'border-blue-500 bg-primary-soft'
+                      ? 'border-primary-ring bg-primary-soft'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   )}
                 >

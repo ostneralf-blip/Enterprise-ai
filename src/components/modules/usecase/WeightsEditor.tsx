@@ -56,7 +56,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
               <input
                 type="number" min={0} max={100} value={pct[c.id] ?? 0}
                 onChange={e => handleChange(c.id, parseInt(e.target.value) || 0)}
-                className="w-14 text-sm text-right border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
+                className="w-14 text-sm text-right border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-ring"
                 aria-label={`${c.label} Gewichtung`}
               />
               <span className="text-xs text-slate-400 w-4">%</span>

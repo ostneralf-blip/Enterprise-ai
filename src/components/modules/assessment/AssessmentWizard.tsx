@@ -143,7 +143,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
               aria-pressed={selectedScore === score}
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 ${
                 selectedScore === score
-                  ? 'border-blue-500 bg-primary-soft'
+                  ? 'border-primary-ring bg-primary-soft'
                   : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
               }`}
             >
@@ -226,7 +226,7 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void })
                 <div className="text-sm font-medium text-slate-700 group-hover:text-primary-hover">{d.label}</div>
                 <div className="text-xs text-slate-400">Gewicht: {d.weight}</div>
               </div>
-              <span className="text-slate-300 group-hover:text-blue-400 text-xs shrink-0">→</span>
+              <span className="text-slate-300 group-hover:text-primary text-xs shrink-0">→</span>
             </Link>
           ))}
         </div>
