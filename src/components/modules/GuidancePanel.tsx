@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { GuidanceCard, type GuidanceCategory } from './GuidanceCard'
+import { GuidanceDrawer } from './GuidanceDrawer'
+import type { GuidanceCategory } from './GuidanceCard'
 
 interface Props {
   module: string
@@ -18,21 +19,18 @@ export async function GuidancePanel({ module, contextKey }: Props) {
 
   if (!data || data.length === 0) return null
 
+  const entries = data.map(e => ({
+    id: e.id,
+    title: e.title,
+    content: e.content,
+    category: e.category as GuidanceCategory,
+    source: e.source,
+    context_key: e.context_key,
+  }))
+
   return (
-    <div className="space-y-2 my-4">
-      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1">Wissens-Layer</p>
-      {data.map(entry => (
-        <GuidanceCard
-          key={entry.id}
-          id={entry.id}
-          title={entry.title}
-          content={entry.content}
-          category={entry.category as GuidanceCategory}
-          source={entry.source}
-          context_key={entry.context_key}
-          module={module}
-        />
-      ))}
+    <div className="flex justify-end mb-4 -mt-2">
+      <GuidanceDrawer entries={entries} module={module} />
     </div>
   )
 }
