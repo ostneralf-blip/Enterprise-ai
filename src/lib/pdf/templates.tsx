@@ -53,15 +53,6 @@ function PdfHeader({ company }: { company?: string }) {
   )
 }
 
-function PdfFooter() {
-  return (
-    <View fixed style={s.footer}>
-      <Text style={s.footerTxt}>
-        AI Navigator · enterprise-ai.biz · Dieser Bericht ersetzt keine individuelle Rechts- oder Unternehmensberatung.
-      </Text>
-    </View>
-  )
-}
 
 function PdfFooterEs({ company }: { company?: string }) {
   return (

@@ -251,3 +251,109 @@ describe('Ergebnisse: UseCase-Tab', () => {
     })
   })
 })
+
+// ── Primary-Badge + RowActions — Compliance ───────────────────────────────────
+
+describe('Primary-Badge: Compliance', () => {
+
+  it('zeigt "★ Primär"-Badge wenn primary_compliance_id mit Zeile übereinstimmt', () => {
+    render(
+      <ErgebnissePageClient
+        assessments={[]} architectures={[]} governanceSessions={[]} roadmaps={[]} canvases={[]}
+        complianceChecks={COMPLIANCE_ROWS}
+        useCases={[]}
+        initialPreferences={{ ...BASE_PREFS, primary_compliance_id: 'c1' }}
+        tier="free"
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /compliance/i }))
+    expect(screen.getByText('★ Primär')).toBeInTheDocument()
+  })
+
+  it('zeigt "Als Primär"-Button wenn Zeile nicht primär ist', () => {
+    renderCompliance()
+    expect(screen.getAllByRole('button', { name: /als primär/i }).length).toBeGreaterThan(0)
+  })
+
+  it('"Als Primär"-Klick ruft PUT /api/preferences mit primary_compliance_id auf', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+    renderCompliance()
+    const primärBtn = screen.getAllByRole('button', { name: /als primär/i })[0]
+    fireEvent.click(primärBtn)
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/preferences',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.stringContaining('primary_compliance_id'),
+      })
+    )
+  })
+
+  it('Löschen-Fluss: Bestätigung erforderlich, dann DELETE /api/compliance/{id}', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({ ok: true })
+    renderCompliance()
+    const löschenBtns = screen.getAllByRole('button', { name: /^löschen$/i })
+    fireEvent.click(löschenBtns[0])
+    const jaBtn = screen.getByRole('button', { name: /ja, löschen/i })
+    expect(jaBtn).toBeInTheDocument()
+    fireEvent.click(jaBtn)
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/api\/compliance\/c/),
+      expect.objectContaining({ method: 'DELETE' })
+    )
+  })
+
+  it('Abbrechen schließt den Bestätigungs-Dialog ohne DELETE-Aufruf', () => {
+    renderCompliance()
+    const löschenBtns = screen.getAllByRole('button', { name: /^löschen$/i })
+    fireEvent.click(löschenBtns[0])
+    fireEvent.click(screen.getByRole('button', { name: /abbrechen/i }))
+    expect(screen.queryByRole('button', { name: /ja, löschen/i })).not.toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+})
+
+// ── Primary-Badge + RowActions — UseCase ──────────────────────────────────────
+
+describe('Primary-Badge: UseCase', () => {
+
+  it('zeigt "★ Primär"-Badge wenn primary_usecase_id mit Zeile übereinstimmt', () => {
+    render(
+      <ErgebnissePageClient
+        assessments={[]} architectures={[]} governanceSessions={[]} roadmaps={[]} canvases={[]}
+        complianceChecks={[]}
+        useCases={USE_CASE_ROWS}
+        initialPreferences={{ ...BASE_PREFS, primary_usecase_id: 'u1' }}
+        tier="free"
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /use cases/i }))
+    expect(screen.getByText('★ Primär')).toBeInTheDocument()
+  })
+
+  it('"Als Primär"-Klick ruft PUT /api/preferences mit primary_usecase_id auf', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+    renderUseCase()
+    const primärBtn = screen.getAllByRole('button', { name: /als primär/i })[0]
+    fireEvent.click(primärBtn)
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/preferences',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.stringContaining('primary_usecase_id'),
+      })
+    )
+  })
+
+  it('Löschen-Fluss: Bestätigung erforderlich, dann DELETE /api/usecase/{id}', async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({ ok: true })
+    renderUseCase()
+    const löschenBtns = screen.getAllByRole('button', { name: /^löschen$/i })
+    fireEvent.click(löschenBtns[0])
+    fireEvent.click(screen.getByRole('button', { name: /ja, löschen/i }))
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/api\/usecase\/u/),
+      expect.objectContaining({ method: 'DELETE' })
+    )
+  })
+})

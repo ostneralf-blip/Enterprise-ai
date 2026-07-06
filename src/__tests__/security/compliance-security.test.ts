@@ -61,4 +61,70 @@ describe('Security: Compliance Center', () => {
       expect(source).toContain("from '@/config/compliance-data'")
     })
   })
+
+  describe('DELETE /api/compliance/[id] — Eigentumscheck', () => {
+    it('Route-Datei existiert', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/compliance/[id]/route.ts'), 'utf-8')
+      expect(source.length).toBeGreaterThan(0)
+    })
+
+    it('DELETE-Handler prüft Auth via supabase.auth.getUser()', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/compliance/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('getUser()')
+    })
+
+    it('DELETE-Handler filtert nach user_id (verhindert Löschen fremder Daten)', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/compliance/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('user_id')
+      expect(source).toContain('user.id')
+    })
+
+    it('DELETE-Handler filtert nach der übergebenen id (kein Bulk-Delete)', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/compliance/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('.eq(')
+      expect(source).toContain("'id'")
+    })
+  })
+
+  describe('DELETE /api/usecase/[id] — Eigentumscheck via uc_portfolios', () => {
+    it('UseCase-DELETE prüft Auth via supabase.auth.getUser()', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/usecase/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('getUser()')
+    })
+
+    it('UseCase-DELETE nutzt uc_portfolios-Join für Eigentumsverifikation', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/usecase/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('uc_portfolios')
+      expect(source).toContain('user_id')
+    })
+
+    it('UseCase-DELETE gibt 403 zurück wenn kein Eigentum nachgewiesen', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/usecase/[id]/route.ts'), 'utf-8')
+      expect(source).toContain('403')
+    })
+  })
+
+  describe('Preferences-API — primary_compliance_id + primary_usecase_id', () => {
+    it('/api/preferences enthält primary_compliance_id im Schema', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/preferences/route.ts'), 'utf-8')
+      expect(source).toContain('primary_compliance_id')
+    })
+
+    it('/api/preferences enthält primary_usecase_id im Schema', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/preferences/route.ts'), 'utf-8')
+      expect(source).toContain('primary_usecase_id')
+    })
+
+    it('Governance-Page nutzt primary_compliance_id aus user_preferences als Fallback-Quelle', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/governance/page.tsx'), 'utf-8')
+      expect(source).toContain('primary_compliance_id')
+      expect(source).toContain('user_preferences')
+    })
+
+    it('UseCase-Page nutzt primary_compliance_id aus user_preferences als Fallback-Quelle', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/usecase/page.tsx'), 'utf-8')
+      expect(source).toContain('primary_compliance_id')
+      expect(source).toContain('user_preferences')
+    })
+  })
 })

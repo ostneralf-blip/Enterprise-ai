@@ -16,7 +16,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   const params = await searchParams
 
-  const [{ data: profileData }, { data: sessions }, { data: allUseCases }, { data: complianceRisk }] = await Promise.all([
+  const [{ data: profileData }, { data: sessions }, { data: allUseCases }, { data: latestCompliance }, { data: prefs }] = await Promise.all([
     supabase.from('profiles').select('tier').eq('id', user.id).single() as unknown as Promise<{ data: { tier: string } | null }>,
     supabase
       .from('governance_sessions')
@@ -36,7 +36,24 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle() as unknown as Promise<{ data: { notes: string | null } | null }>,
+    supabase
+      .from('user_preferences')
+      .select('primary_compliance_id')
+      .eq('user_id', user.id)
+      .maybeSingle() as unknown as Promise<{ data: { primary_compliance_id: string | null } | null }>,
   ])
+
+  let complianceRiskNotes = latestCompliance?.notes ?? null
+  if (prefs?.primary_compliance_id) {
+    const primaryResult = await supabase
+      .from('compliance_checks')
+      .select('notes')
+      .eq('id', prefs.primary_compliance_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    const primaryCheck = primaryResult.data as { notes: string | null } | null
+    if (primaryCheck?.notes) complianceRiskNotes = primaryCheck.notes
+  }
 
   const tier = (profileData?.tier ?? 'free') as Tier
   type UCRow = { use_cases: { id: string; name: string } | { id: string; name: string }[] | null }
@@ -79,7 +96,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
         useCases={useCases}
         initialUseCaseName={initialUseCaseName}
         initialUseCaseId={initialUseCaseId}
-        complianceRisk={complianceRisk?.notes ?? null}
+        complianceRisk={complianceRiskNotes}
       />
     </div>
   )
