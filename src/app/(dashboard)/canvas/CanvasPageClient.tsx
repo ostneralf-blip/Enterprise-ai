@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { VersionsPanel } from '@/components/shared/VersionsPanel'
+import { ShareButton } from '@/components/shared/ShareButton'
 import type { Canvas, CanvasData, Archetype, Tier } from '@/types'
 
 function analyzeCanvasData(data: CanvasData) {
@@ -151,6 +153,8 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           >
             PDF{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
+          <VersionsPanel module="canvas" entityId={active.id} tier={tier} currentData={active.data as unknown as Record<string, unknown>} />
+          <ShareButton module="canvas" entityId={active.id} tier={tier} />
         </div>
 
         <div className="flex gap-2 mb-5" role="group" aria-label="Unternehmensarchetyp">

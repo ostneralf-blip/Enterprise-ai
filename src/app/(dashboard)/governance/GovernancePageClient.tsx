@@ -12,6 +12,8 @@ import {
 import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
+import { VersionsPanel } from '@/components/shared/VersionsPanel'
+import { ShareButton } from '@/components/shared/ShareButton'
 
 const VERDICT_TO_API: Record<VerdictLevel, string> = {
   unlawful: 'stop_dsgvo',
@@ -71,6 +73,7 @@ export function GovernancePageClient({
   const [showResult, setShowResult] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedId, setSavedId] = useState<string | null>(null)
 
   const toggleUseCase = (id: string) => {
     setUseCaseIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -109,6 +112,7 @@ export function GovernancePageClient({
     setCurrentStep(0)
     setShowResult(false)
     setSaved(false)
+    setSavedId(null)
     setUseCaseIds([])
     setExtraName('')
     setShowExtraInput(false)
@@ -128,7 +132,11 @@ export function GovernancePageClient({
           result: VERDICT_TO_API[verdictLevel],
         }),
       })
-      if (res.ok) setSaved(true)
+      if (res.ok) {
+        const { data } = await res.json() as { data: { id: string } | null }
+        if (data?.id) setSavedId(data.id)
+        setSaved(true)
+      }
     } finally {
       setSaving(false)
     }
@@ -227,6 +235,12 @@ export function GovernancePageClient({
           >
             PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
+          {savedId && (
+            <>
+              <VersionsPanel module="governance" entityId={savedId} tier={tier} currentData={{ result: VERDICT_TO_API[verdict.level], answers: answers as Record<string, unknown> }} />
+              <ShareButton module="governance" entityId={savedId} tier={tier} />
+            </>
+          )}
         </div>
 
         <GovernanceHistory sessions={sessions} />
