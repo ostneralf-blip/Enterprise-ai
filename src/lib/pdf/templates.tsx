@@ -63,6 +63,22 @@ function PdfFooter() {
   )
 }
 
+function PdfFooterEs({ company }: { company?: string }) {
+  return (
+    <View fixed style={[s.footer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+      <Text style={[s.footerTxt, { textAlign: 'left', flex: 1 }]}>
+        AI Navigator · enterprise-ai.biz{company ? ` · ${company}` : ''} · Kein Ersatz für individuelle Beratung.
+      </Text>
+      <Text
+        style={[s.footerTxt, { flexShrink: 0, paddingLeft: 12 }]}
+        render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+          `Seite ${pageNumber} / ${totalPages}`
+        }
+      />
+    </View>
+  )
+}
+
 const ARCHETYPE_LABELS: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
 }
@@ -782,118 +798,167 @@ function archRecs(data: ExecutiveSummaryPdfData): string[] {
 }
 
 export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactElement {
-  const scoreColor = data.assessment
-    ? data.assessment.totalScore >= 4 ? C.ok : data.assessment.totalScore >= 3 ? C.warn : C.danger
-    : C.gray
+  const score = data.assessment?.totalScore ?? 0
+  const govResult = data.governance?.result ?? ''
+  const completionPct = data.completedModules / Math.max(data.totalModules, 1)
+  const scoreColor = score >= 4 ? C.ok : score >= 3 ? C.warn : score > 0 ? C.danger : C.gray
+
+  const ampelKey: 'gruen' | 'gelb' | 'rot' =
+    (score > 0 && score < 2.5) || govResult.startsWith('stop') ? 'rot' :
+    score >= 4 && completionPct >= 0.7 ? 'gruen' : 'gelb'
+
+  const AMPEL: Record<string, { label: string; color: string; bg: string; text: string }> = {
+    gruen: { label: 'Bereit zur Skalierung',      color: C.ok,     bg: C.greenBg, text: C.green },
+    gelb:  { label: 'Aufbauphase',                color: C.warn,   bg: C.amberBg, text: C.amber },
+    rot:   { label: 'Kritischer Handlungsbedarf', color: C.danger, bg: C.redBg,   text: C.red },
+  }
+  const ampel = AMPEL[ampelKey]
+  const top3 = boardRecs(data).slice(0, 3)
 
   return (
     <Document title="Executive Summary">
 
-      {/* ── SEITE 1: Überblick / Dashboard ─────────────────────────────────── */}
+      {/* ── SEITE 1: DECKBLATT ─────────────────────────────────────────────── */}
+      <Page size="A4" style={{ fontFamily: 'Helvetica', flexDirection: 'column', backgroundColor: C.dark }}>
+        <View style={{ backgroundColor: C.brand, height: 5 }} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 60 }}>
+          <Text style={{ fontSize: 36, fontWeight: 'bold', color: C.brand, marginBottom: 6 }}>AI Navigator</Text>
+          <Text style={{ fontSize: 10, color: C.gray2, letterSpacing: 2, marginBottom: 50 }}>ENTERPRISE AI. STRUKTURIERT NAVIGIERT.</Text>
+          <View style={{ width: 200, height: 1, backgroundColor: C.brand, opacity: 0.3, marginBottom: 50 }} />
+          <Text style={{ fontSize: 9, color: C.gray, letterSpacing: 3, marginBottom: 14 }}>EXECUTIVE SUMMARY</Text>
+          {data.companyName ? (
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white', textAlign: 'center', marginBottom: 6 }}>
+              {data.companyName}
+            </Text>
+          ) : null}
+          <Text style={{ fontSize: 9, color: C.gray, marginTop: 20 }}>Erstellt am {formatDate(new Date())}</Text>
+        </View>
+        <View style={{ paddingHorizontal: 60, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.dark2, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 9, color: C.gray }}>enterprise-ai.biz</Text>
+          <Text style={{ fontSize: 9, color: C.gray }}>{data.completedModules}/{data.totalModules} Module abgeschlossen</Text>
+        </View>
+      </Page>
+
+      {/* ── SEITE 2: EXECUTIVE SUMMARY ─────────────────────────────────────── */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Executive Summary</Text>
-        <Text style={s.sub}>Enterprise AI Navigator · {data.completedModules} von {data.totalModules} Modulen abgeschlossen</Text>
 
-        <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: scoreColor }}>
-              {data.assessment ? data.assessment.totalScore.toFixed(1) : '–'}
+        {/* Gesamtstatus-Zeile */}
+        <View style={[s.row, { gap: 10, marginBottom: 18 }]}>
+          {/* Ampel */}
+          <View style={{
+            backgroundColor: ampel.bg, borderRadius: 8, padding: 14,
+            alignItems: 'center', justifyContent: 'center', width: 130,
+            borderWidth: 1, borderColor: ampel.color,
+          }}>
+            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ampel.color, marginBottom: 6 }} />
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: ampel.text, textAlign: 'center', lineHeight: 1.3 }}>
+              {ampel.label}
             </Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>AI-Readiness Score</Text>
+            <Text style={{ fontSize: 7, color: C.gray, marginTop: 3 }}>Gesamtstatus</Text>
           </View>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Use Cases bewertet</Text>
-          </View>
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: data.completedModules >= 5 ? C.ok : C.warn }}>
-              {data.completedModules}/{data.totalModules}
-            </Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Module abgeschlossen</Text>
-          </View>
-          {data.governance && (
-            <View style={[s.card, { flex: 1, alignItems: 'center', padding: 12, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
-                {GOV_CFG_ES[data.governance.result]?.label ?? data.governance.result}
+          {/* KPIs */}
+          <View style={[s.row, { flex: 1, gap: 8 }]}>
+            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: scoreColor }}>
+                {score > 0 ? score.toFixed(1) : '–'}
               </Text>
-              <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Governance</Text>
+              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Readiness{'\n'}Score /5,0</Text>
             </View>
-          )}
+            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
+              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Use Cases{'\n'}bewertet</Text>
+            </View>
+            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: completionPct >= 0.8 ? C.ok : C.warn }}>
+                {data.completedModules}/{data.totalModules}
+              </Text>
+              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Module{'\n'}abgeschlossen</Text>
+            </View>
+            {data.governance ? (
+              <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
+                  {GOV_CFG_ES[data.governance.result]?.label ?? '–'}
+                </Text>
+                <Text style={{ fontSize: 7, color: C.gray, marginTop: 3 }}>Governance</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
 
-        {data.assessment && (
-          <>
-            <Text style={s.h2}>AI-Archetyp</Text>
-            <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }]}>
-              <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center' }}>
-                <Text style={{ fontSize: 26, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
-                <Text style={{ fontSize: 8, color: C.gray2, textAlign: 'center' }}>/ 5,0</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
-                  {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
-                </Text>
-                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
-                  {data.assessment.archetype === 'starter' && 'Am Anfang der AI-Reise — Fokus auf erste Pilotprojekte mit klarem ROI.'}
-                  {data.assessment.archetype === 'scaler' && 'Erfolgreiche Piloten vorhanden — systematische Skalierung und AI-Kompetenzaufbau.'}
-                  {data.assessment.archetype === 'transformer' && 'AI als Teil der Unternehmens-DNA — Differenzierung durch proprietäre Daten und Modelle.'}
-                </Text>
-              </View>
+        {/* Top-3 Empfehlungen */}
+        <Text style={s.h2}>Top-3 Handlungsempfehlungen</Text>
+        {top3.map((rec, i) => (
+          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.brand, flexDirection: 'row', alignItems: 'flex-start', gap: 8 }]}>
+            <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+              <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
             </View>
-          </>
-        )}
-
-        <Text style={s.h2}>Modulübersicht</Text>
-        {data.moduleStatus.map((m, i) => (
-          <View key={i} style={[s.row, { alignItems: 'center', gap: 8, paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: C.border }]}>
-            <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: m.done ? C.ok : C.border, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {m.done && <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>✓</Text>}
-            </View>
-            <Text style={{ fontSize: 10, color: m.done ? C.dark : C.gray, flex: 1 }}>{m.label}</Text>
-            <Text style={{ fontSize: 9, color: m.done ? C.ok : C.gray2, fontWeight: m.done ? 'bold' : 'normal' }}>
-              {m.done ? 'Abgeschlossen' : 'Ausstehend'}
-            </Text>
+            <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
           </View>
         ))}
 
-        <PdfFooter />
+        {/* Modulübersicht als Grid */}
+        <Text style={s.h2}>Modulübersicht</Text>
+        <View style={[s.row, { flexWrap: 'wrap', gap: 5 }]}>
+          {data.moduleStatus.map((m, i) => (
+            <View key={i} style={{
+              width: '31%', flexDirection: 'row', alignItems: 'center', gap: 5,
+              backgroundColor: m.done ? C.greenBg : C.light,
+              borderWidth: 1, borderColor: m.done ? C.ok : C.border,
+              borderRadius: 6, paddingHorizontal: 7, paddingVertical: 5,
+            }}>
+              <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: m.done ? C.ok : C.border, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {m.done ? <Text style={{ fontSize: 5, color: 'white', fontWeight: 'bold' }}>✓</Text> : null}
+              </View>
+              <Text style={{ fontSize: 8, color: m.done ? C.green : C.gray }}>{m.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <PdfFooterEs company={data.companyName} />
       </Page>
 
-      {/* ── SEITE 2: Assessment-Details ─────────────────────────────────────── */}
-      {data.assessment && (
+      {/* ── SEITE 3: ASSESSMENT ────────────────────────────────────────────── */}
+      {data.assessment ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>AI-Readiness Assessment</Text>
-          <Text style={s.sub}>Detailauswertung der 6 Dimensionen</Text>
 
-          <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 }]}>
-            <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center' }}>
-              <Text style={{ fontSize: 30, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
-              <Text style={{ fontSize: 8, color: C.gray2, textAlign: 'center' }}>/ 5,0</Text>
+          {/* Result-Banner */}
+          <View style={{
+            backgroundColor: scoreColor === C.ok ? C.greenBg : scoreColor === C.warn ? C.amberBg : scoreColor === C.danger ? C.redBg : C.light,
+            borderRadius: 8, padding: 14, marginBottom: 16,
+            flexDirection: 'row', alignItems: 'center', gap: 14,
+            borderWidth: 1, borderColor: scoreColor,
+          }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 32, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
+              <Text style={{ fontSize: 8, color: C.gray }}>/ 5,0</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>
                 {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
               </Text>
               <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
-                Gesamt-Score basiert auf 6 Dimensionen. Skala: 1 (sehr schwach) bis 5 (sehr stark).
+                {data.assessment.archetype === 'starter' ? 'Am Anfang der AI-Reise — Fokus auf erste Pilotprojekte mit klarem ROI.'
+                  : data.assessment.archetype === 'scaler' ? 'Erfolgreiche Piloten vorhanden — systematische Skalierung und AI-Kompetenzaufbau.'
+                  : 'AI als Teil der Unternehmens-DNA — Differenzierung durch proprietäre Daten und Modelle.'}
               </Text>
             </View>
           </View>
 
           <Text style={s.h2}>Dimensionen im Detail</Text>
-          {Object.entries(data.assessment.dimScores).map(([dim, score]) => {
-            const n = Number(score)
+          {Object.entries(data.assessment.dimScores).map(([dim, dimScore]) => {
+            const n = Number(dimScore)
             const col = n >= 4 ? C.ok : n >= 3 ? C.warn : C.danger
             return (
-              <View key={dim} style={{ marginBottom: 12 }}>
+              <View key={dim} style={{ marginBottom: 10 }}>
                 <View style={[s.row, { justifyContent: 'space-between', marginBottom: 3 }]}>
                   <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
                   <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} / 5,0</Text>
                 </View>
-                <View style={{ backgroundColor: C.border, borderRadius: 4, height: 10 }}>
-                  <View style={{ backgroundColor: col, borderRadius: 4, height: 10, width: `${(n / 5) * 100}%` }} />
+                <View style={{ backgroundColor: C.border, borderRadius: 4, height: 9 }}>
+                  <View style={{ backgroundColor: col, borderRadius: 4, height: 9, width: `${(n / 5) * 100}%` }} />
                 </View>
                 <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>
                   {n >= 4 ? 'Stärke — weiter ausbauen' : n >= 3 ? 'Solide Basis — gezielt verbessern' : 'Handlungsbedarf — priorisiert adressieren'}
@@ -903,7 +968,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
           })}
 
           {(() => {
-            const gaps = Object.entries(data.assessment.dimScores)
+            const gaps = Object.entries(data.assessment!.dimScores)
               .sort(([, a], [, b]) => Number(a) - Number(b))
               .slice(0, 3)
               .filter(([, v]) => Number(v) < 4)
@@ -918,10 +983,10 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             return gaps.length > 0 ? (
               <>
                 <Text style={s.h2}>Prioritäre Verbesserungsfelder</Text>
-                {gaps.map(([dim, score], i) => (
-                  <View key={dim} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.danger }]}>
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>
-                      {i + 1}. {DIM_LABELS_ES[dim] ?? dim} — Score {Number(score).toFixed(1)}/5,0
+                {gaps.map(([dim, gapScore], i) => (
+                  <View key={dim} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.danger }]}>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
+                      {i + 1}. {DIM_LABELS_ES[dim] ?? dim} — Score {Number(gapScore).toFixed(1)}/5,0
                     </Text>
                     <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>{gapHints[dim] ?? ''}</Text>
                   </View>
@@ -930,33 +995,41 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             ) : null
           })()}
 
-          <PdfFooter />
+          <PdfFooterEs company={data.companyName} />
         </Page>
-      )}
+      ) : null}
 
-      {/* ── SEITE 3: Use-Case Portfolio ─────────────────────────────────────── */}
-      {data.topUseCases.length > 0 && (
+      {/* ── SEITE 4: USE-CASE PORTFOLIO ─────────────────────────────────────── */}
+      {data.topUseCases.length > 0 ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>Use-Case Portfolio</Text>
-          <Text style={s.sub}>Top {data.topUseCases.length} Use Cases nach Score · {data.useCaseCount} gesamt bewertet</Text>
 
-          {(() => {
-            const counts: Record<string, number> = { quick_win: 0, strategic_bet: 0, low_hanging_fruit: 0, avoid: 0 }
-            data.topUseCases.forEach(u => { if (u.quadrant && u.quadrant in counts) counts[u.quadrant]++ })
-            const labels: Record<string, string> = { quick_win: 'Quick Win', strategic_bet: 'Strategisch', low_hanging_fruit: 'Geringer Aufwand', avoid: 'Vermeiden' }
-            return (
-              <View style={[s.row, { gap: 8, marginBottom: 16 }]}>
-                {Object.entries(labels).map(([key, label]) => (
-                  <View key={key} style={[s.card, { flex: 1, alignItems: 'center', padding: 8, marginBottom: 0 }]}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: C.brand }}>{counts[key] ?? 0}</Text>
-                    <Text style={{ fontSize: 8, color: C.gray, textAlign: 'center', marginTop: 2 }}>{label}</Text>
-                  </View>
-                ))}
-              </View>
-            )
-          })()}
+          {/* Result-Banner */}
+          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: C.brand }}>
+            <View style={{ alignItems: 'center', width: 54 }}>
+              <Text style={{ fontSize: 28, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
+              <Text style={{ fontSize: 7, color: C.gray }}>Use Cases</Text>
+            </View>
+            <View style={{ width: 1, height: 40, backgroundColor: C.border }} />
+            {(() => {
+              const counts: Record<string, number> = { quick_win: 0, strategic_bet: 0, low_hanging_fruit: 0, avoid: 0 }
+              data.topUseCases.forEach(u => { if (u.quadrant && u.quadrant in counts) counts[u.quadrant]++ })
+              const qlabels: Record<string, { label: string; color: string }> = {
+                quick_win:         { label: 'Quick Win',    color: C.ok },
+                strategic_bet:     { label: 'Strategisch',  color: C.brand },
+                low_hanging_fruit: { label: 'Niedr. Aufw.', color: C.warn },
+                avoid:             { label: 'Vermeiden',    color: C.danger },
+              }
+              return Object.entries(qlabels).map(([key, cfg]) => (
+                <View key={key} style={{ alignItems: 'center', flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: cfg.color }}>{counts[key] ?? 0}</Text>
+                  <Text style={{ fontSize: 7, color: C.gray, textAlign: 'center' }}>{cfg.label}</Text>
+                </View>
+              ))
+            })()}
+          </View>
 
+          <Text style={s.h2}>Top Use Cases nach Score</Text>
           <View style={s.row}>
             <Text style={[s.th, { flex: 3 }]}>Use Case</Text>
             <Text style={[s.th, { flex: 1.2 }]}>Domäne</Text>
@@ -977,224 +1050,260 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               </View>
             )
           })}
-          {data.useCaseCount > data.topUseCases.length && (
+          {data.useCaseCount > data.topUseCases.length ? (
             <Text style={{ fontSize: 9, color: C.gray, marginTop: 8, textAlign: 'center' }}>
               + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im Portfolio
             </Text>
-          )}
+          ) : null}
 
-          <PdfFooter />
+          <PdfFooterEs company={data.companyName} />
         </Page>
-      )}
+      ) : null}
 
-      {/* ── SEITE Use Cases: Handlungsempfehlungen ──────────────────────────── */}
-      {data.topUseCases.length > 0 && (
+      {/* ── SEITE 5: GOVERNANCE ────────────────────────────────────────────── */}
+      {data.governance ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>Handlungsempfehlungen</Text>
-          <Text style={s.sub}>Use-Case Portfolio · Enterprise AI Navigator</Text>
 
+          {/* Result-Banner */}
           {(() => {
-            const quickWins = data.topUseCases.filter(u => u.quadrant === 'quick_win')
-            const strategic = data.topUseCases.filter(u => u.quadrant === 'strategic_bet')
-            const avoid     = data.topUseCases.filter(u => u.quadrant === 'avoid')
-            const recs: Array<{ title: string; text: string; color: string }> = []
-
-            if (quickWins.length > 0)
-              recs.push({ title: `${quickWins.length} Quick Win${quickWins.length > 1 ? 's' : ''} sofort starten`, color: C.ok,
-                text: `${quickWins.map(u => u.name).join(', ')} — Hoher Wert bei geringem Umsetzungsaufwand. Direkt in die Umsetzungsplanung aufnehmen und innerhalb von 60 Tagen pilotieren.` })
-
-            if (strategic.length > 0)
-              recs.push({ title: `${strategic.length} strategische${strategic.length > 1 ? ' Use Cases' : 'r Use Case'} budgetieren`, color: C.brand,
-                text: `${strategic.map(u => u.name).join(', ')} — Langfristiger strategischer Wert. In Jahresbudget und Roadmap verankern, dediziertes Team einplanen.` })
-
-            recs.push({ title: 'Scoring regelmäßig aktualisieren', color: C.warn,
-              text: 'Use-Case-Bewertungen quartalsweise überprüfen — Marktbedingungen, Datenlage und Ressourcenverfügbarkeit ändern sich. Gewichtungen ggf. anpassen.' })
-
-            if (avoid.length > 0)
-              recs.push({ title: `${avoid.length} Use Case${avoid.length > 1 ? 's' : ''} deprioritisieren`, color: C.danger,
-                text: `${avoid.map(u => u.name).join(', ')} — Derzeit nicht empfohlen. Ressourcen auf Quick Wins und strategische Use Cases fokussieren.` })
-
-            recs.push({ title: 'Governance-Check für Top-Use-Cases durchführen', color: C.dark2,
-              text: 'Vor Pilotstart jeden High-Score-Use-Case durch den AI-Governance-Check führen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen.' })
-
-            return recs.map((rec, i) => (
-              <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: rec.color }]}>
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: rec.color, marginBottom: 4 }}>{i + 1}. {rec.title}</Text>
-                <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{rec.text}</Text>
+            const cfg = GOV_CFG_ES[data.governance!.result]
+            return (
+              <View style={{
+                backgroundColor: cfg?.bg ?? C.light, borderRadius: 8, padding: 14,
+                marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 14,
+                borderWidth: 1, borderColor: cfg?.color ?? C.border,
+              }}>
+                <View style={{ backgroundColor: cfg?.color ?? C.gray, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center', minWidth: 90 }}>
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>
+                    {cfg?.label ?? data.governance!.result}
+                  </Text>
+                  <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Governance</Text>
+                </View>
+                {data.governance!.useCaseName ? (
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Geprüfter Use Case</Text>
+                    <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark }}>{data.governance!.useCaseName}</Text>
+                  </View>
+                ) : null}
               </View>
-            ))
+            )
           })()}
 
-          <PdfFooter />
-        </Page>
-      )}
+          <Text style={s.h2}>Prüfprotokoll</Text>
+          {data.governance.protocol && data.governance.protocol.length > 0 ? (
+            data.governance.protocol.slice(0, 12).map((step, i) => {
+              const q = step.question ?? step.label ?? ''
+              const a = step.answer ?? step.value ?? ''
+              if (!q && !a) return null
+              return (
+                <View key={i} style={{ marginBottom: 7, borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 8 }}>
+                  {q ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 1 }}>{q}</Text> : null}
+                  {a ? <Text style={{ fontSize: 10, color: C.dark, fontWeight: 'bold' }}>{a}</Text> : null}
+                </View>
+              )
+            })
+          ) : (
+            <Text style={{ fontSize: 9, color: C.gray }}>Kein Protokoll verfügbar.</Text>
+          )}
 
-      {/* ── SEITE 4: Governance ─────────────────────────────────────────────── */}
-      {data.governance && (
+          <PdfFooterEs company={data.companyName} />
+        </Page>
+      ) : null}
+
+      {/* ── SEITE 6: ROADMAP ───────────────────────────────────────────────── */}
+      {data.roadmap ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>Governance-Check</Text>
-          <Text style={s.sub}>Ethische, rechtliche und EU-AI-Act-Prüfung des Use Cases</Text>
 
-          <View style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 }]}>
-            {data.governance.useCaseName && (
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Geprüfter Use Case</Text>
-                <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark }}>{data.governance.useCaseName}</Text>
-              </View>
-            )}
-            <View style={{
-              backgroundColor: GOV_CFG_ES[data.governance.result]?.bg ?? C.light,
-              borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center',
-            }}>
-              <Text style={{ fontSize: 13, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.dark }}>
-                {GOV_CFG_ES[data.governance.result]?.label ?? data.governance.result}
-              </Text>
-              <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Ergebnis</Text>
+          {/* Result-Banner */}
+          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: C.brand }}>
+            <View style={{ backgroundColor: C.brand, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', minWidth: 60 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>{data.roadmap.phases.length}</Text>
+              <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)' }}>Phasen</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.roadmap.title}</Text>
+              {data.roadmap.archetype ? (
+                <Text style={{ fontSize: 9, color: C.gray }}>{ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}</Text>
+              ) : null}
             </View>
           </View>
 
-          {data.governance.protocol && data.governance.protocol.length > 0 && (
-            <>
-              <Text style={s.h2}>Prüfprotokoll</Text>
-              {data.governance.protocol.slice(0, 14).map((step, i) => {
-                const q = step.question ?? step.label ?? ''
-                const a = step.answer ?? step.value ?? ''
-                if (!q && !a) return null
-                return (
-                  <View key={i} style={{ marginBottom: 8, borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 8 }}>
-                    {q ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>{q}</Text> : null}
-                    {a ? <Text style={{ fontSize: 10, color: C.dark, fontWeight: 'bold' }}>{a}</Text> : null}
-                  </View>
-                )
-              })}
-            </>
-          )}
-
-          <PdfFooter />
-        </Page>
-      )}
-
-      {/* ── SEITE 5: Roadmap ────────────────────────────────────────────────── */}
-      {data.roadmap && (
-        <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>AI-Roadmap</Text>
-          <Text style={s.sub}>
-            {data.roadmap.title}
-            {data.roadmap.archetype ? ` · ${ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}` : ''}
-            {` · ${data.roadmap.phases.length} Phasen`}
-          </Text>
-
           {data.roadmap.phases.map((phase, i) => (
-            <View key={i} style={[s.card, { marginBottom: 10 }]}>
-              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }]}>
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark }}>Phase {i + 1}: {phase.title}</Text>
-                {phase.duration && <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold' }}>{phase.duration}</Text>}
+            <View key={i} style={[s.card, { marginBottom: 8 }]}>
+              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 }]}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>Phase {i + 1}: {phase.title}</Text>
+                {phase.duration ? <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold' }}>{phase.duration}</Text> : null}
               </View>
-              {phase.focus && <Text style={{ fontSize: 9, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{phase.focus}</Text>}
-              {phase.actions && phase.actions.length > 0 && (
-                <View style={{ marginBottom: 4 }}>
-                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.dark2, marginBottom: 3 }}>Maßnahmen:</Text>
-                  {phase.actions.slice(0, 5).map((a, j) => (
+              {phase.focus ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 5, lineHeight: 1.4 }}>{phase.focus}</Text> : null}
+              {phase.actions && phase.actions.length > 0 ? (
+                <View>
+                  {phase.actions.slice(0, 4).map((a, j) => (
                     <View key={j} style={[s.row, { gap: 4, marginBottom: 2 }]}>
                       <Text style={{ fontSize: 9, color: C.brand }}>▸</Text>
                       <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{a.label}</Text>
                     </View>
                   ))}
                 </View>
-              )}
-              {phase.kpis && phase.kpis.length > 0 && (
-                <View>
-                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.dark2, marginBottom: 3 }}>KPIs:</Text>
-                  <Text style={{ fontSize: 9, color: C.gray }}>{phase.kpis.slice(0, 3).join(' · ')}</Text>
-                </View>
-              )}
+              ) : null}
+              {phase.kpis && phase.kpis.length > 0 ? (
+                <Text style={{ fontSize: 8, color: C.gray, marginTop: 4 }}>KPIs: {phase.kpis.slice(0, 3).join(' · ')}</Text>
+              ) : null}
             </View>
           ))}
 
-          <PdfFooter />
+          <PdfFooterEs company={data.companyName} />
         </Page>
-      )}
+      ) : null}
 
-      {/* ── SEITE 6: Canvas ─────────────────────────────────────────────────── */}
-      {data.canvas && (
+      {/* ── SEITE 7: CANVAS ────────────────────────────────────────────────── */}
+      {data.canvas ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>AI Use-Case Canvas</Text>
-          <Text style={s.sub}>{data.canvas.title} · 8-Felder-Canvas</Text>
 
-          <View style={[s.row, { flexWrap: 'wrap', gap: 10 }]}>
+          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: C.brand }}>
+            <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.canvas.title}</Text>
+            <Text style={{ fontSize: 9, color: C.gray }}>AI Use-Case Canvas · 8 Felder</Text>
+          </View>
+
+          <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
             {CANVAS_FIELD_ORDER.map(key => {
               const value = data.canvas!.data[key] ?? ''
               if (!value.trim()) return null
               return (
                 <View key={key} style={[s.card, { width: '47%', marginBottom: 0 }]}>
-                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 4 }}>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 3 }}>
                     {CANVAS_LABELS_ES[key] ?? key}
                   </Text>
                   <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.4 }}>
-                    {value.length > 220 ? value.slice(0, 220) + '...' : value}
+                    {value.length > 200 ? value.slice(0, 200) + '…' : value}
                   </Text>
                 </View>
               )
             })}
           </View>
 
-          <PdfFooter />
+          <PdfFooterEs company={data.companyName} />
         </Page>
-      )}
+      ) : null}
 
-      {/* ── SEITE 7: Architektur ────────────────────────────────────────────── */}
-      {data.architecture && (
+      {/* ── SEITE 8: ARCHITEKTUR ───────────────────────────────────────────── */}
+      {data.architecture ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
-          <Text style={s.h1}>Enterprise AI Architektur</Text>
-          <Text style={s.sub}>{data.architecture.title} · Muster: {data.architecture.result.pattern}</Text>
 
-          {data.architecture.result.description && (
-            <View style={[s.card, { marginBottom: 14 }]}>
-              <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{data.architecture.result.description}</Text>
+          {/* Result-Banner */}
+          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: C.brand }}>
+            <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', minWidth: 70 }}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.brand }}>{data.architecture.result.pattern}</Text>
+              <Text style={{ fontSize: 7, color: C.gray2 }}>Muster</Text>
             </View>
-          )}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.architecture.title}</Text>
+              {data.architecture.result.description ? (
+                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.3 }}>
+                  {data.architecture.result.description.length > 120 ? data.architecture.result.description.slice(0, 120) + '…' : data.architecture.result.description}
+                </Text>
+              ) : null}
+            </View>
+          </View>
 
           <Text style={s.h2}>Architektur-Schichten</Text>
           {data.architecture.result.layers.map((layer, i) => (
-            <View key={i} style={[s.card, { marginBottom: 8 }]}>
-              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }]}>
+            <View key={i} style={[s.card, { marginBottom: 7 }]}>
+              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }]}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{layer.name}</Text>
                 <Text style={{ fontSize: 9, color: C.gray }}>{layer.role}</Text>
               </View>
-              {layer.components.length > 0 && (
-                <View style={[s.row, { flexWrap: 'wrap', gap: 4 }]}>
+              {layer.components.length > 0 ? (
+                <View style={[s.row, { flexWrap: 'wrap', gap: 3 }]}>
                   {layer.components.map((comp, j) => (
-                    <View key={j} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <View key={j} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 }}>
                       <Text style={{ fontSize: 8, color: C.dark }}>{comp}</Text>
                     </View>
                   ))}
                 </View>
-              )}
+              ) : null}
             </View>
           ))}
 
-          {data.architecture.result.nextSteps && data.architecture.result.nextSteps.length > 0 && (
+          {data.architecture.result.nextSteps && data.architecture.result.nextSteps.length > 0 ? (
             <>
               <Text style={s.h2}>Nächste Schritte</Text>
-              {data.architecture.result.nextSteps.slice(0, 5).map((step, i) => (
-                <View key={i} style={[s.row, { gap: 6, marginBottom: 5 }]}>
+              {data.architecture.result.nextSteps.slice(0, 4).map((step, i) => (
+                <View key={i} style={[s.row, { gap: 5, marginBottom: 4 }]}>
                   <Text style={{ fontSize: 10, color: C.brand, fontWeight: 'bold' }}>{i + 1}.</Text>
-                  <Text style={{ fontSize: 10, color: C.dark, flex: 1 }}>{step}</Text>
+                  <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{step}</Text>
                 </View>
               ))}
             </>
-          )}
+          ) : null}
 
-          <PdfFooter />
+          <PdfFooterEs company={data.companyName} />
         </Page>
-      )}
+      ) : null}
 
-      {/* ── SEITE 8: Strategische Empfehlungen ─────────────────────────────── */}
+      {/* ── SEITE 9: COMPLIANCE-ÜBERBLICK (NEU) ─────────────────────────────── */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Compliance-Überblick</Text>
+        <Text style={s.sub}>Regulatorische Anforderungen · Enterprise AI</Text>
+
+        {(() => {
+          const aiActStatus = govResult.startsWith('stop') ? 'Blocker — Sofortmaßnahme'
+            : govResult === 'approve' ? 'Geprüft — Freigegeben'
+            : govResult === 'conditional' ? 'Bedingt freigegeben'
+            : 'Ausstehend'
+          const aiActColor = govResult.startsWith('stop') ? C.danger
+            : govResult === 'approve' ? C.ok
+            : govResult === 'conditional' ? C.warn
+            : C.gray
+
+          const dsgvoStatus = govResult === 'stop_dsgvo' ? 'Prüfung erforderlich'
+            : govResult === 'approve' ? 'Geprüft'
+            : 'Ausstehend'
+
+          const regs: Array<{ name: string; scope: string; status: string; color: string }> = [
+            { name: 'EU AI Act', scope: 'KI-Systeme — Risikoklassifizierung, Hochrisiko-Pflichten, Transparenz', status: aiActStatus, color: aiActColor },
+            { name: 'DSGVO / GDPR', scope: 'Personenbezogene Daten — Rechtsgrundlage, DSFA, Auftragsverarbeitung', status: dsgvoStatus, color: dsgvoStatus === 'Geprüft' ? C.ok : dsgvoStatus === 'Prüfung erforderlich' ? C.warn : C.gray },
+            { name: 'ISO 27001', scope: 'Informationssicherheit — ISMS, Risikobehandlung, Audit-Trail', status: 'Eigenverantwortlich prüfen', color: C.gray },
+            { name: 'NIS2-Richtlinie', scope: 'KRITIS-Betreiber — Meldepflichten, Sicherheitsmaßnahmen, Lieferkette', status: 'Eigenverantwortlich prüfen', color: C.gray },
+          ]
+
+          return (
+            <>
+              <View style={s.row}>
+                <Text style={[s.th, { flex: 1.2 }]}>Regulierung</Text>
+                <Text style={[s.th, { flex: 2.5 }]}>Anwendungsbereich</Text>
+                <Text style={[s.th, { flex: 1.3 }]}>Status</Text>
+              </View>
+              {regs.map((reg, i) => (
+                <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
+                  <Text style={[s.td, { flex: 1.2, fontWeight: 'bold' }]}>{reg.name}</Text>
+                  <Text style={[s.td, { flex: 2.5, lineHeight: 1.4 }]}>{reg.scope}</Text>
+                  <Text style={[s.td, { flex: 1.3, color: reg.color, fontWeight: 'bold' }]}>{reg.status}</Text>
+                </View>
+              ))}
+            </>
+          )
+        })()}
+
+        <View style={{ marginTop: 20 }}>
+          <Text style={s.h2}>Hinweis</Text>
+          <View style={[s.card, { borderLeftWidth: 3, borderLeftColor: C.warn }]}>
+            <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5 }}>
+              Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen.
+              Eine vollständige Compliance-Prüfung erfordert individuelle Rechts- und Fachberatung.
+              Führen Sie das Compliance Center im AI Navigator für eine detaillierte Checkliste durch.
+            </Text>
+          </View>
+        </View>
+
+        <PdfFooterEs company={data.companyName} />
+      </Page>
+
+      {/* ── SEITE 10: STRATEGISCHE EMPFEHLUNGEN ─────────────────────────────── */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Strategische Empfehlungen</Text>
@@ -1202,10 +1311,10 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
 
         <Text style={s.h2}>Für den Vorstand / C-Level</Text>
         {boardRecs(data).map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
+          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
             <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
-              <View style={{ backgroundColor: C.brand, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
+              <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
               </View>
               <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
             </View>
@@ -1214,25 +1323,25 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
 
         <Text style={s.h2}>Für den AI-Architekten / Technical Lead</Text>
         {archRecs(data).map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 8, borderLeftWidth: 3, borderLeftColor: C.ok }]}>
+          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.ok }]}>
             <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
-              <View style={{ backgroundColor: C.ok, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
+              <View style={{ backgroundColor: C.ok, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
               </View>
               <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
             </View>
           </View>
         ))}
 
-        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
-          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Quarterly AI Health Review</Text>
+        <View style={{ marginTop: 14, backgroundColor: C.dark, borderRadius: 8, padding: 12 }}>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 5 }}>Quarterly AI Health Review</Text>
           <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
             Empfehlung: Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen.
             AI-Readiness ist kein einmaliges Projekt, sondern ein kontinuierlicher Verbesserungsprozess.
           </Text>
         </View>
 
-        <PdfFooter />
+        <PdfFooterEs company={data.companyName} />
       </Page>
 
     </Document>
