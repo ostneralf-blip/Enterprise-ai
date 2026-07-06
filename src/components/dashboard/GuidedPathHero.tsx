@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
 
-interface PathStep {
+export interface PathStep {
   step: number
   icon: string
   title: string

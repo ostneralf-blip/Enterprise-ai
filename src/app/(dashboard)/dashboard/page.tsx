@@ -7,7 +7,7 @@ import type { Tier } from '@/types'
 import {
   ClipboardCheck, Target, LayoutGrid, Shield, Map, Scale, Layers, FileText, type LucideIcon
 } from 'lucide-react'
-import { GuidedPathHero } from '@/components/dashboard/GuidedPathHero'
+import { GuidedPathHero, type PathStep } from '@/components/dashboard/GuidedPathHero'
 import { CountUp } from '@/components/dashboard/CountUp'
 
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -38,10 +38,6 @@ const MODULE_CHIP_COLORS: Record<string, { bg: string; icon: string }> = {
   roadmap:      { bg: 'bg-amber-50',      icon: 'text-amber-600' },
   compliance:   { bg: 'bg-emerald-50',    icon: 'text-emerald-600' },
   architecture: { bg: 'bg-slate-100',     icon: 'text-slate-600' },
-}
-
-interface PathStep {
-  step: number; icon: string; title: string; desc: string; href: string; done: boolean; proOnly?: boolean
 }
 
 export default async function DashboardPage() {
@@ -79,7 +75,7 @@ export default async function DashboardPage() {
     cnt('governance_sessions', { user_id: uid }),
     cnt('roadmaps',            { user_id: uid }),
     cnt('assessment_sessions', { user_id: uid, completed: true }),
-    cnt('use_cases'),
+    cnt('use_cases',            { user_id: uid }),
     cnt('canvases',            { user_id: uid }),
     cnt('compliance_checks',   { user_id: uid }),
   ])
@@ -107,7 +103,7 @@ export default async function DashboardPage() {
     { step: 2, icon: '⊞', title: 'Use-Case',     desc: 'Prioritäten setzen',              href: '/usecase',         done: (usecaseCount ?? 0) > 0 },
     { step: 3, icon: '◧', title: 'Canvas',       desc: 'Use-Case ausarbeiten',            href: '/canvas',          done: (canvasCount ?? 0) > 0 },
     { step: 4, icon: '⚖', title: 'Governance',   desc: 'Use-Case freigeben',              href: '/governance',      done: (governanceCount ?? 0) > 0 },
-    { step: 5, icon: '✓', title: 'Compliance',   desc: 'EU AI Act & DSGVO',               href: '/compliance',      done: (complianceCount ?? 0) > 0 },
+    { step: 5, icon: '⚖', title: 'Compliance',   desc: 'EU AI Act & DSGVO',               href: '/compliance',      done: (complianceCount ?? 0) > 0 },
     { step: 6, icon: '⬡', title: 'Architektur',  desc: 'AI-Architektur definieren',       href: '/architecture',    done: (architectureCount ?? 0) > 0 },
     { step: 7, icon: '□', title: 'Summary',      desc: 'PDF-Export & Überblick',          href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && (usecaseCount ?? 0) > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
   ]
@@ -163,9 +159,9 @@ export default async function DashboardPage() {
               Ihr letztes Assessment ist {assessmentWeeksSince} Wochen alt. Regelmäßige Reviews sichern Ihren AI-Fortschritt.
             </p>
           </div>
-          <a href="/assessment" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0">
+          <Link href="/assessment" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0">
             Assessment neu starten →
-          </a>
+          </Link>
         </div>
       )}
 
