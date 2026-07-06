@@ -49,6 +49,12 @@ const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
 }
 const fmt = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
+const EMPTY_PREFS: Prefs = {
+  primary_assessment_id: null, primary_governance_id: null,
+  primary_roadmap_id: null, primary_architecture_id: null,
+  primary_canvas_id: null, primary_compliance_id: null, primary_usecase_id: null,
+}
+
 interface RowActionsProps {
   isPrimary:       boolean
   isConfirmDelete: boolean
@@ -105,9 +111,8 @@ interface Props {
 }
 
 export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, complianceChecks: initCC, useCases: initUC, initialPreferences, tier }: Props) {
-  const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null, primary_compliance_id: null, primary_usecase_id: null }
   const [tab,           setTab]           = useState<Tab>('assessment')
-  const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? emptyPrefs)
+  const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? EMPTY_PREFS)
   const [expanded,      setExpanded]      = useState<string | null>(null)
   const [confirmId,     setConfirmId]     = useState<string | null>(null)
   const [assessments,   setAssessments]   = useState(initA)
@@ -166,8 +171,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
     { key: 'governance'   as Tab, label: 'Governance',  count: governance.length,       comparable: true },
     { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length,         comparable: true },
     { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length,         comparable: true },
-    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: true },
-    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: true },
+    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: false },
+    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: false },
   ]
 
   return (

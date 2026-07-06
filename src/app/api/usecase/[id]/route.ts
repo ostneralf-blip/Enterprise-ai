@@ -97,13 +97,23 @@ export async function DELETE(
     const { id } = await params
     if (!id) return NextResponse.json({ error: 'ID fehlt' }, { status: 400 })
 
+    // Ownership prüfen: use_cases gehört via uc_portfolios dem User
+    const { data: existing } = await supabase
+      .from('use_cases')
+      .select('uc_portfolios!inner(user_id)')
+      .eq('id', id)
+      .single() as { data: { uc_portfolios: { user_id: string } } | null }
+    if (!existing || existing.uc_portfolios.user_id !== user.id) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
     const { error } = await supabase
       .from('use_cases')
       .delete()
       .eq('id', id)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ success: true })
+    return new NextResponse(null, { status: 204 })
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }

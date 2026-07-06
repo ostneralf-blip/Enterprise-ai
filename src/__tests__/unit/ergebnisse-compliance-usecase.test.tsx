@@ -140,9 +140,9 @@ describe('Ergebnisse: Compliance-Tab', () => {
   })
 
   describe('Vergleich-Button', () => {
-    it('zeigt Vergleichen-Button im Compliance-Tab wenn >= 2 Einträge', () => {
+    it('zeigt keinen Vergleichen-Button im Compliance-Tab (Compare-Panel noch nicht implementiert)', () => {
       renderCompliance()
-      expect(screen.getByRole('button', { name: /vergleichen/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /vergleichen/i })).not.toBeInTheDocument()
     })
   })
 })
@@ -245,9 +245,9 @@ describe('Ergebnisse: UseCase-Tab', () => {
   })
 
   describe('Vergleich-Button', () => {
-    it('zeigt Vergleichen-Button im UseCase-Tab wenn >= 2 Einträge', () => {
+    it('zeigt keinen Vergleichen-Button im UseCase-Tab (Compare-Panel noch nicht implementiert)', () => {
       renderUseCase()
-      expect(screen.getByRole('button', { name: /vergleichen/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /vergleichen/i })).not.toBeInTheDocument()
     })
   })
 })
