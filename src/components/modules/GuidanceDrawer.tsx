@@ -94,9 +94,6 @@ export function GuidanceDrawer({ entries, module }: Props) {
                     {isOpen && (
                       <div className="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50">
                         <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{entry.content}</p>
-                        {entry.source && (
-                          <p className="text-xs text-slate-400 mt-3 italic">Quelle: {entry.source}</p>
-                        )}
                       </div>
                     )}
                   </div>
