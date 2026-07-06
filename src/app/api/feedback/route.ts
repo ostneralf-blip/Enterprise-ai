@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 
+const AttachmentSchema = z.object({
+  filename: z.string().min(1).max(255),
+  content:  z.string().max(7_000_000), // base64 von max 5 MB
+})
+
 // Vollständiges Feedback-Formular (Feedback-Seite)
 const FormSchema = z.object({
-  category: z.enum(['bug', 'feature', 'frage', 'sonstiges']),
-  message:  z.string().min(1).max(5000),
+  category:   z.enum(['bug', 'feature', 'frage', 'sonstiges']),
+  message:    z.string().min(1).max(5000),
+  attachment: AttachmentSchema.optional(),
 })
 
 // Quick-Widget (Daumen hoch/runter in Modul-Ergebnissen)
@@ -22,13 +28,16 @@ const CATEGORY_LABELS: Record<string, string> = {
   sonstiges: 'Sonstiges',
 }
 
-function normalizeBody(body: unknown): { category: string; message: string; categoryLabel: string } | null {
+type Attachment = { filename: string; content: string }
+
+function normalizeBody(body: unknown): { category: string; message: string; categoryLabel: string; attachment?: Attachment } | null {
   const form = FormSchema.safeParse(body)
   if (form.success) {
     return {
       category: form.data.category,
       message: form.data.message,
       categoryLabel: CATEGORY_LABELS[form.data.category] ?? form.data.category,
+      attachment: form.data.attachment,
     }
   }
   const widget = WidgetSchema.safeParse(body)
@@ -63,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ungültige Eingabe' }, { status: 400 })
   }
 
-  const { message, categoryLabel } = normalized
+  const { message, categoryLabel, attachment } = normalized
   const senderName  = (profile?.full_name as string | null) ?? 'Unbekannt'
   const senderEmail = (profile?.email as string | null) ?? user.email ?? 'unbekannt'
 
@@ -90,6 +99,7 @@ export async function POST(request: Request) {
           '',
           message,
         ].join('\n'),
+        ...(attachment ? { attachments: [{ filename: attachment.filename, content: attachment.content }] } : {}),
       }),
     })
     if (!res.ok) {

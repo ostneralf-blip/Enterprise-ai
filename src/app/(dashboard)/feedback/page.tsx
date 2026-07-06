@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { CHANGELOG } from '@/config/changelog'
+
+const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
 
 const CATEGORIES = [
   { value: 'bug',     label: 'Fehler melden' },
@@ -10,15 +12,45 @@ const CATEGORIES = [
   { value: 'sonstiges', label: 'Sonstiges' },
 ]
 
+type Attachment = { filename: string; content: string; previewUrl: string }
+
 export default function FeedbackPage() {
   const router = useRouter()
   const [category, setCategory] = useState('frage')
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null)
-  const [message,  setMessage]  = useState('')
-  const [sending,  setSending]  = useState(false)
-  const [sent,     setSent]     = useState(false)
-  const [error,    setError]    = useState<string | null>(null)
+  const [message,    setMessage]    = useState('')
+  const [attachment, setAttachment] = useState<Attachment | null>(null)
+  const [fileError,  setFileError]  = useState<string | null>(null)
+  const [sending,    setSending]    = useState(false)
+  const [sent,       setSent]       = useState(false)
+  const [error,      setError]      = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setFileError(null)
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > MAX_FILE_BYTES) {
+      setFileError('Datei zu groß — maximal 5 MB erlaubt.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      // Nur den base64-Teil ohne "data:image/png;base64," Prefix
+      const base64 = dataUrl.split(',')[1] ?? ''
+      setAttachment({ filename: file.name, content: base64, previewUrl: dataUrl })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function removeAttachment() {
+    setAttachment(null)
+    setFileError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -26,10 +58,12 @@ export default function FeedbackPage() {
     setSending(true)
     setError(null)
     try {
+      const body: Record<string, unknown> = { category, message: message.trim() }
+      if (attachment) body.attachment = { filename: attachment.filename, content: attachment.content }
       const res = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, message: message.trim() }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler beim Senden')
       setSent(true)
@@ -54,7 +88,7 @@ export default function FeedbackPage() {
           <p className="text-sm font-semibold text-emerald-800">Vielen Dank für Ihr Feedback!</p>
           <p className="text-xs text-emerald-700">Wir haben Ihre Nachricht erhalten und melden uns bei Bedarf.</p>
           <button
-            onClick={() => { setSent(false); setMessage(''); setCategory('frage') }}
+            onClick={() => { setSent(false); setMessage(''); setCategory('frage'); setAttachment(null) }}
             className="text-xs text-emerald-700 hover:text-emerald-900 underline"
           >
             Weiteres Feedback senden
@@ -117,6 +151,44 @@ export default function FeedbackPage() {
               }
               className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y"
             />
+          </div>
+
+          {/* Screenshot-Anhang */}
+          <div>
+            <p className="text-sm font-medium text-slate-700 mb-1.5">Screenshot anhängen <span className="text-slate-400 font-normal">(optional, max. 5 MB)</span></p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+              id="fb-attachment"
+            />
+            {attachment ? (
+              <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={attachment.previewUrl} alt="Vorschau" className="h-12 w-12 object-cover rounded border border-slate-200 shrink-0" />
+                <span className="text-sm text-slate-600 min-w-0 truncate">{attachment.filename}</span>
+                <button
+                  type="button"
+                  onClick={removeAttachment}
+                  className="ml-auto shrink-0 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  aria-label="Anhang entfernen"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="fb-attachment"
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
+              >
+                <span aria-hidden="true">📎</span> Bild auswählen
+              </label>
+            )}
+            {fileError && (
+              <p role="alert" className="mt-1.5 text-xs text-red-600">{fileError}</p>
+            )}
           </div>
 
           <div className="flex gap-3 pt-1">
