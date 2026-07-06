@@ -1707,9 +1707,9 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
         <Text style={s.h1}>{data.portfolioName}</Text>
         <Text style={s.sub}>Use-Case Portfolio · {data.useCases.length} Use Cases · Enterprise AI Navigator</Text>
 
-        <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
-          {Object.entries(QUADRANT_CFG).map(([key, cfg]) => (
-            <View key={key} style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+        <View style={[s.row, { marginBottom: 18 }]}>
+          {Object.entries(QUADRANT_CFG).map(([key, cfg], i, arr) => (
+            <View key={key} style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0, ...(i < arr.length - 1 ? { marginRight: 8 } : {}) }]}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: cfg.color }}>{counts[key] ?? 0}</Text>
               <Text style={{ fontSize: 9, color: C.gray, marginTop: 2 }}>{cfg.label}</Text>
             </View>
@@ -1754,7 +1754,7 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
             </View>
           )
         })}
-        <PdfFooter />
+        <PdfFooterEs company={data.companyName} />
       </Page>
 
       {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
@@ -1806,7 +1806,7 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
           ))
         })()}
 
-        <PdfFooter />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
