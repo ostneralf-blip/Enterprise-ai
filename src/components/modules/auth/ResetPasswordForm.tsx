@@ -50,12 +50,12 @@ export function ResetPasswordForm() {
 
   if (hasValidSession === false) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">⚠️</div>
-        <h2 className="text-white text-lg font-semibold mb-2">Link abgelaufen oder ungültig</h2>
-        <p className="text-slate-400 text-sm leading-relaxed">
+        <h2 className="text-slate-900 text-lg font-semibold mb-2">Link abgelaufen oder ungültig</h2>
+        <p className="text-slate-500 text-sm leading-relaxed">
           Bitte fordern Sie über{' '}
-          <a href="/forgot-password" className="text-blue-400 hover:text-blue-300">
+          <a href="/forgot-password" className="text-primary hover:text-primary-hover">
             Passwort vergessen
           </a>{' '}
           einen neuen Link an.
@@ -66,43 +66,43 @@ export function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✅</div>
-        <h2 className="text-white text-lg font-semibold mb-2">Passwort aktualisiert</h2>
-        <p className="text-slate-400 text-sm">Sie werden weitergeleitet…</p>
+        <h2 className="text-slate-900 text-lg font-semibold mb-2">Passwort aktualisiert</h2>
+        <p className="text-slate-500 text-sm">Sie werden weitergeleitet…</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
-      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-6">Neues Passwort festlegen</h1>
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-6">Neues Passwort festlegen</h1>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-slate-400 text-xs mb-1.5 font-medium">NEUES PASSWORT</label>
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">NEUES PASSWORT</label>
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8}
             placeholder="Mindestens 8 Zeichen"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors"
           />
         </div>
         <div>
-          <label className="block text-slate-400 text-xs mb-1.5 font-medium">PASSWORT BESTÄTIGEN</label>
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">PASSWORT BESTÄTIGEN</label>
           <input
             type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={8}
             placeholder="Passwort wiederholen"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors"
           />
         </div>
         <button type="submit" disabled={loading}
-          className="w-full bg-primary hover:bg-primary disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+          className="w-full bg-primary hover:bg-primary-hover disabled:bg-slate-200 disabled:text-slate-400 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird gespeichert…' : 'Passwort aktualisieren'}
         </button>
       </form>

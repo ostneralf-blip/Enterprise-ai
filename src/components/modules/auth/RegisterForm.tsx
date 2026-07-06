@@ -77,11 +77,11 @@ export function RegisterForm() {
 
   if (done) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8 text-center">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✉️</div>
-        <h2 className="text-white text-lg font-semibold mb-2">E-Mail bestätigen</h2>
-        <p className="text-slate-400 text-sm leading-relaxed">
-          Wir haben eine Bestätigungsmail an <strong className="text-white">{email}</strong> gesendet.
+        <h2 className="text-slate-900 text-lg font-semibold mb-2">E-Mail bestätigen</h2>
+        <p className="text-slate-500 text-sm leading-relaxed">
+          Wir haben eine Bestätigungsmail an <strong className="text-slate-900">{email}</strong> gesendet.
           Bitte klicken Sie auf den Link, um Ihr Konto zu aktivieren.
         </p>
       </div>
@@ -89,36 +89,36 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-8">
-      <h1 className="text-white text-xl sm:text-2xl font-semibold mb-2">Kostenlosen Account erstellen</h1>
-      <p className="text-slate-400 text-sm mb-6">Keine Kreditkarte erforderlich.</p>
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
+      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-2">Kostenlosen Account erstellen</h1>
+      <p className="text-slate-500 text-sm mb-6">Keine Kreditkarte erforderlich.</p>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">{error}</div>
       )}
 
       <form onSubmit={handleRegister} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-slate-400 text-xs mb-1.5 font-medium">NAME</label>
+            <label className="block text-slate-500 text-xs mb-1.5 font-medium">NAME</label>
             <input value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Max Mustermann"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
           <div>
-            <label className="block text-slate-400 text-xs mb-1.5 font-medium">UNTERNEHMEN</label>
+            <label className="block text-slate-500 text-xs mb-1.5 font-medium">UNTERNEHMEN</label>
             <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Optional"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
         </div>
         <div>
-          <label className="block text-slate-400 text-xs mb-1.5 font-medium">E-MAIL</label>
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">E-MAIL</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="name@unternehmen.de"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
+            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
         </div>
         <div>
-          <label className="block text-slate-400 text-xs mb-1.5 font-medium">PASSWORT</label>
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">PASSWORT</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Mindestens 8 Zeichen"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors" />
+            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           {password.length > 0 && (
             <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
               {([
@@ -126,7 +126,7 @@ export function RegisterForm() {
                 { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
                 { ok: pwRules.number,    label: 'Mindestens 1 Zahl oder Sonderzeichen' },
               ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
-                <li key={label} className={`text-xs flex items-center gap-1.5 transition-colors ${ok ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <li key={label} className={`text-xs flex items-center gap-1.5 transition-colors ${ok ? 'text-emerald-600' : 'text-slate-400'}`}>
                   <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
                 </li>
               ))}
@@ -140,21 +140,21 @@ export function RegisterForm() {
             onVerify={setCaptchaToken}
             onExpire={() => setCaptchaToken(null)}
             ref={captchaRef}
-            theme="dark"
+            theme="light"
           />
         </div>
 
         <button type="submit" disabled={loading || !captchaToken}
-          className="w-full bg-primary hover:bg-primary disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+          className="w-full bg-primary hover:bg-primary-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird registriert…' : 'Kostenlosen Account erstellen'}
         </button>
       </form>
 
       <p className="text-center text-slate-500 text-xs mt-4">
         Bereits registriert?{' '}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300">Anmelden</Link>
+        <Link href="/login" className="text-primary hover:text-primary-hover">Anmelden</Link>
       </p>
-      <p className="text-center text-slate-600 text-xs mt-2">
+      <p className="text-center text-slate-400 text-xs mt-2">
         Mit der Registrierung akzeptieren Sie unsere{' '}
         <Link href="/agb" className="underline">AGB</Link> und{' '}
         <Link href="/datenschutz" className="underline">Datenschutzerklärung</Link>.
