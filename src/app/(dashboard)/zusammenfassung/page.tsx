@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Executive Summary' }
 
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  scaler:      { label: 'AI Scaler',      color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  scaler:      { label: 'AI Scaler',      color: 'text-primary-hover bg-primary-soft border-primary-border' },
   transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
@@ -233,7 +233,7 @@ export default async function ZusammenfassungPage() {
   const URGENCY_STYLE = {
     critical:    { dot: 'bg-red-500',    card: 'border-red-100 bg-red-50',    title: 'text-red-800',    label: 'Kritisch' },
     recommended: { dot: 'bg-amber-400',  card: 'border-amber-100 bg-amber-50', title: 'text-amber-800',  label: 'Empfohlen' },
-    next:        { dot: 'bg-blue-400',   card: 'border-blue-100 bg-blue-50',  title: 'text-blue-800',   label: 'Nächster Schritt' },
+    next:        { dot: 'bg-blue-400',   card: 'border-blue-100 bg-primary-soft',  title: 'text-blue-800',   label: 'Nächster Schritt' },
   }
 
   return (
@@ -249,7 +249,7 @@ export default async function ZusammenfassungPage() {
         <a
           href={hasAccess(tier, 'pro') ? '/api/export/pdf?module=executive_summary' : '/upgrade'}
           {...(hasAccess(tier, 'pro') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           PDF exportieren{!hasAccess(tier, 'pro') && <span className="text-xs opacity-60">· Pro</span>}
         </a>
@@ -295,7 +295,7 @@ export default async function ZusammenfassungPage() {
               className="block bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 transition-colors group"
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-base text-slate-500 group-hover:border-blue-200 transition-colors">
+                <div className="flex-shrink-0 w-9 h-9 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-base text-slate-500 group-hover:border-primary-border transition-colors">
                   {mod.icon}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -303,7 +303,7 @@ export default async function ZusammenfassungPage() {
                     <span className="text-xs text-slate-400 font-medium tabular-nums">{mod.step}</span>
                     <span className="text-sm font-semibold text-slate-900">{mod.title}</span>
                     {locked && (
-                      <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-1.5 py-0.5 shrink-0">Pro</span>
+                      <span className="text-xs text-primary bg-primary-soft border border-primary-border rounded-md px-1.5 py-0.5 shrink-0">Pro</span>
                     )}
                   </div>
                   <p className="text-xs text-slate-400 mb-2">{mod.description}</p>
@@ -337,7 +337,7 @@ export default async function ZusammenfassungPage() {
           </div>
           <Link
             href="/upgrade"
-            className="bg-white text-blue-700 font-semibold text-sm px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors shrink-0 whitespace-nowrap"
+            className="bg-white text-primary-hover font-semibold text-sm px-4 py-2 rounded-lg hover:bg-primary-soft transition-colors shrink-0 whitespace-nowrap"
           >
             Upgrade →
           </Link>

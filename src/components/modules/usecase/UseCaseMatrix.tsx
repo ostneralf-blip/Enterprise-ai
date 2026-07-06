@@ -8,7 +8,7 @@ interface UseCaseMatrixProps {
 
 const QUADRANT_COLORS = {
   quick_win:        { bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-  strategic_bet:    { bg: 'bg-blue-50',    border: 'border-blue-200',    dot: 'bg-blue-500'    },
+  strategic_bet:    { bg: 'bg-primary-soft',    border: 'border-primary-border',    dot: 'bg-primary'    },
   low_hanging_fruit:{ bg: 'bg-amber-50',   border: 'border-amber-200',   dot: 'bg-amber-500'   },
   avoid:            { bg: 'bg-slate-50',   border: 'border-slate-200',   dot: 'bg-slate-400'   },
 }
@@ -34,8 +34,8 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
       <div className="relative w-full" style={{ paddingBottom: 'min(100%, 420px)' }}>
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-1">
           {/* Top-left: Strategic Bet (High Value, Low Feasibility) */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-2 flex flex-col justify-between">
-            <div className="text-xs font-medium text-blue-600">{QUADRANT_META.strategic_bet.icon} Strategic Bet</div>
+          <div className="bg-primary-soft border border-blue-100 rounded-xl p-2 flex flex-col justify-between">
+            <div className="text-xs font-medium text-primary">{QUADRANT_META.strategic_bet.icon} Strategic Bet</div>
           </div>
           {/* Top-right: Quick Win (High Value, High Feasibility) */}
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-2 flex flex-col justify-between">

@@ -20,7 +20,7 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
         <Link href="/dashboard" onClick={close} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-sm font-bold">N</div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm font-bold">N</div>
           <div>
             <div className="font-semibold text-sm tracking-wide">AI Navigator</div>
             <div className="text-xs text-slate-400">enterprise-ai.biz</div>
@@ -76,11 +76,11 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Tier Badge */}
       {tier === 'free' && (
         <div className="p-4 border-t border-slate-700">
-          <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-3">
+          <div className="bg-primary/20 border border-blue-500/30 rounded-lg p-3">
             <div className="text-xs font-semibold text-blue-400 mb-1">Explorer Plan</div>
             <div className="text-xs text-slate-400 mb-2">PDF-Export, Speichern und mehr mit Pro</div>
             <Link href="/upgrade" onClick={close}
-              className="block text-center text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-md py-1.5 transition-colors">
+              className="block text-center text-xs font-semibold text-white bg-primary hover:bg-primary rounded-md py-1.5 transition-colors">
               Upgrade auf Pro →
             </Link>
           </div>
@@ -142,7 +142,7 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
         active
-          ? 'bg-blue-600 text-white'
+          ? 'bg-primary text-white'
           : locked
           ? 'text-slate-600 cursor-pointer hover:text-slate-400'
           : 'text-slate-300 hover:bg-slate-800 hover:text-white'

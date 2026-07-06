@@ -12,12 +12,12 @@ export default function LandingPage() {
       {/* Nav */}
       <nav className="border-b border-slate-800 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-sm">N</div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm">N</div>
           <span className="font-semibold">AI Navigator</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">Anmelden</Link>
-          <Link href="/register" className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+          <Link href="/register" className="bg-primary hover:bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Kostenlos starten
           </Link>
         </div>
@@ -25,7 +25,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-block bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
+        <div className="inline-block bg-primary/20 border border-blue-500/30 text-blue-400 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
           Enterprise AI Toolset · Version 1.0
         </div>
         <h1 className="text-5xl font-semibold leading-tight mb-6">
@@ -38,7 +38,7 @@ export default function LandingPage() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link href="/register"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
+            className="bg-primary hover:bg-primary text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
             Kostenlos registrieren
           </Link>
           <Link href="/login" className="text-slate-400 hover:text-white text-sm transition-colors">

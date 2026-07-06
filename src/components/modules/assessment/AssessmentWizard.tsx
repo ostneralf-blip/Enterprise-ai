@@ -115,7 +115,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
         </div>
         <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+            className="h-full bg-primary rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
             role="progressbar"
             aria-valuenow={progress}
@@ -128,7 +128,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
 
       {/* Question card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 mb-4">
-        <div className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-3">
+        <div className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
           {currentDim?.label}
         </div>
         <h2 className="text-base sm:text-lg font-medium text-slate-900 mb-6 sm:mb-8 leading-relaxed">
@@ -141,15 +141,15 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
               key={score}
               onClick={() => handleSelect(score)}
               aria-pressed={selectedScore === score}
-              className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 ${
                 selectedScore === score
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-blue-500 bg-primary-soft'
                   : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-4">
                 <span className={`text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                  selectedScore === score ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500'
+                  selectedScore === score ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {score}
                 </span>
@@ -170,7 +170,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={() => currentIdx === 0 ? setState('intro') : setCurrentIdx(i => i - 1)}
-          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           aria-label={currentIdx === 0 ? 'Zurück zur Übersicht' : 'Vorherige Frage'}
         >
           ← Zurück
@@ -178,7 +178,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
         <button
           onClick={handleNext}
           disabled={!selectedScore}
-          className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           {currentIdx === totalQ - 1 ? 'Auswertung →' : 'Weiter →'}
         </button>
@@ -219,11 +219,11 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void })
             <Link
               key={d.id}
               href={`/assessment/dimensionen#${d.id}`}
-              className="bg-slate-50 hover:bg-blue-50 hover:border-blue-200 border border-transparent rounded-xl p-3 flex items-center gap-3 min-w-0 transition-colors group"
+              className="bg-slate-50 hover:bg-primary-soft hover:border-primary-border border border-transparent rounded-xl p-3 flex items-center gap-3 min-w-0 transition-colors group"
             >
               <span className="shrink-0">{d.icon}</span>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-slate-700 group-hover:text-blue-700">{d.label}</div>
+                <div className="text-sm font-medium text-slate-700 group-hover:text-primary-hover">{d.label}</div>
                 <div className="text-xs text-slate-400">Gewicht: {d.weight}</div>
               </div>
               <span className="text-slate-300 group-hover:text-blue-400 text-xs shrink-0">→</span>
@@ -236,7 +236,7 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void })
 
         <button
           onClick={onStart}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-primary hover:bg-primary text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           aria-label="Assessment starten"
         >
           Assessment starten →

@@ -73,7 +73,7 @@ export function UpgradePageClient() {
         >
           <div className="text-3xl font-semibold text-slate-900 mb-1">€49</div>
           <div className="text-sm text-slate-500 mb-4">pro Monat</div>
-          <div className="text-sm font-medium text-blue-600">
+          <div className="text-sm font-medium text-primary">
             {loading === 'monthly' ? 'Wird geladen…' : 'Monatlich upgraden →'}
           </div>
         </button>
@@ -81,14 +81,14 @@ export function UpgradePageClient() {
         <button
           onClick={() => handleUpgrade('yearly')}
           disabled={loading !== null}
-          className="border-2 border-blue-500 bg-blue-50 rounded-2xl p-6 text-center transition-all disabled:opacity-50 relative"
+          className="border-2 border-blue-500 bg-primary-soft rounded-2xl p-6 text-center transition-all disabled:opacity-50 relative"
         >
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full">
             2 Monate gratis
           </div>
           <div className="text-3xl font-semibold text-slate-900 mb-1">€399</div>
           <div className="text-sm text-slate-500 mb-4">pro Jahr</div>
-          <div className="text-sm font-medium text-blue-600">
+          <div className="text-sm font-medium text-primary">
             {loading === 'yearly' ? 'Wird geladen…' : 'Jährlich upgraden →'}
           </div>
         </button>

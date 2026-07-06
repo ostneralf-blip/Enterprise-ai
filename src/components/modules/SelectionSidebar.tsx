@@ -31,7 +31,7 @@ export function SelectionSidebar({
       )}
     >
       <p className="text-xs font-bold text-slate-800">Meine Architektur</p>
-      <p className="text-xs text-blue-600 font-medium">
+      <p className="text-xs text-primary font-medium">
         {checkedList.length} Komponente{checkedList.length !== 1 ? 'n' : ''} ausgewählt
       </p>
 

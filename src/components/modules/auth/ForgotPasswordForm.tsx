@@ -88,7 +88,7 @@ export function ForgotPasswordForm() {
         </div>
 
         <button type="submit" disabled={loading || !captchaToken}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+          className="w-full bg-primary hover:bg-primary disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird gesendet…' : 'Link zum Zurücksetzen senden'}
         </button>
       </form>

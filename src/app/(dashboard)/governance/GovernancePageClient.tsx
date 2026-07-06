@@ -204,7 +204,7 @@ export function GovernancePageClient({
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleReset}
-            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             Neu starten
           </button>
@@ -212,7 +212,7 @@ export function GovernancePageClient({
             <button
               onClick={() => handleSave(verdict.level)}
               disabled={saving}
-              className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
               {saving ? 'Wird gespeichert…' : 'Ergebnis speichern'}
             </button>
@@ -223,7 +223,7 @@ export function GovernancePageClient({
           <a
             href={tier !== 'free' ? '/api/export/pdf?module=governance' : '/upgrade'}
             {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
           >
             PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
@@ -258,7 +258,7 @@ export function GovernancePageClient({
                     className={cn(
                       'flex items-center gap-3 px-3 py-2.5 cursor-pointer select-none transition-colors',
                       idx > 0 && 'border-t border-slate-100',
-                      checked ? 'bg-blue-50' : 'hover:bg-slate-50'
+                      checked ? 'bg-primary-soft' : 'hover:bg-slate-50'
                     )}
                     onClick={() => toggleUseCase(uc.id)}
                   >
@@ -280,7 +280,7 @@ export function GovernancePageClient({
                   </li>
                 )
               })}
-              <li className={cn('border-t border-slate-100', showExtraInput ? 'bg-blue-50' : 'hover:bg-slate-50')}>
+              <li className={cn('border-t border-slate-100', showExtraInput ? 'bg-primary-soft' : 'hover:bg-slate-50')}>
                 {showExtraInput ? (
                   <div className="flex items-center gap-2 px-3 py-2">
                     <input
@@ -305,7 +305,7 @@ export function GovernancePageClient({
                   <button
                     type="button"
                     onClick={() => setShowExtraInput(true)}
-                    className="w-full text-left px-3 py-2.5 text-sm text-blue-600 hover:text-blue-500"
+                    className="w-full text-left px-3 py-2.5 text-sm text-primary hover:text-primary"
                   >
                     + Anderen Namen eingeben…
                   </button>
@@ -321,7 +321,7 @@ export function GovernancePageClient({
             onChange={e => setExtraName(e.target.value)}
             placeholder="Name des zu prüfenden AI-Use-Cases"
             maxLength={200}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500"
           />
         )}
       </div>
@@ -334,7 +334,7 @@ export function GovernancePageClient({
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+            className="h-full bg-primary rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -342,7 +342,7 @@ export function GovernancePageClient({
 
       {/* Gate card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
-        <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-2">Gate {gate.step}</p>
+        <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Gate {gate.step}</p>
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{gate.question}</h2>
         <p className="text-sm text-slate-500 mb-5">{gate.context}</p>
 
@@ -357,7 +357,7 @@ export function GovernancePageClient({
                   className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors select-none',
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-blue-500 bg-primary-soft'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   )}
                 >
@@ -387,14 +387,14 @@ export function GovernancePageClient({
         <button
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           ← Zurück
         </button>
         <button
           onClick={handleNext}
           disabled={!selectedOptionId}
-          className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           {isLastStep ? 'Ergebnis anzeigen' : 'Weiter →'}
         </button>

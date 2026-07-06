@@ -73,7 +73,7 @@ export const EU_AI_ACT_RISK_CLASSES: EuAiActRiskClassDef[] = [
     badge: 'Transparenzpflichten',
     articleRef: 'Art. 50 EU AI Act',
     summary: 'Nutzer müssen wissen, dass sie mit einem KI-System interagieren. KI-generierte Inhalte sind maschinenlesbar zu kennzeichnen.',
-    color: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', title: 'text-blue-800' },
+    color: { bg: 'bg-primary-soft', border: 'border-primary-border', badge: 'bg-blue-100 text-primary-hover', title: 'text-blue-800' },
     examples: [
       'Chatbots und virtuelle Assistenten mit Kundenkontakt',
       'KI-generierte Texte, Bilder, Videos (Deepfakes, synthetische Medien)',
@@ -314,7 +314,7 @@ export const RISK_MATRIX: RiskMatrixConfig = {
     },
     {
       maxImpact: 4, maxProbability: 2,
-      label: 'Moderat', color: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700' },
+      label: 'Moderat', color: { bg: 'bg-primary-soft', border: 'border-primary-border', badge: 'bg-blue-100 text-primary-hover' },
       action: 'Monitoring einrichten',
       examples: ['Performance-Degradation', 'Modell-Drift', 'Nutzerbeschwerden'],
     },

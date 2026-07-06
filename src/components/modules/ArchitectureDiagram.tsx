@@ -7,7 +7,7 @@ import { SelectionSidebar } from '@/components/modules/SelectionSidebar'
 import { findConflicts, findSuggestions } from '@/lib/utils/catalog-compatibility'
 
 const LAYER_META: Record<string, { label: string; band: string; dot: string; cross?: boolean }> = {
-  data:        { label: 'Daten',      band: 'bg-blue-50 border-blue-200',     dot: 'bg-blue-500' },
+  data:        { label: 'Daten',      band: 'bg-primary-soft border-primary-border',     dot: 'bg-primary' },
   model:       { label: 'Modell',     band: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
   mlops:       { label: 'MLOps',      band: 'bg-amber-50 border-amber-200',   dot: 'bg-amber-500' },
   serving:     { label: 'Serving',    band: 'bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
@@ -60,7 +60,7 @@ function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
               {comp.description && <p className="text-slate-500 leading-relaxed mt-1">{comp.description}</p>}
               {comp.website_url && (
                 <a href={comp.website_url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 text-blue-600 hover:underline">
+                  className="inline-flex items-center gap-0.5 text-primary hover:underline">
                   Website ↗
                 </a>
               )}
@@ -70,7 +70,7 @@ function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
           )}
         </div>
         <button onClick={onClose} aria-label="Details schließen"
-          className="text-slate-400 hover:text-slate-600 text-xl leading-none flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded">
+          className="text-slate-400 hover:text-slate-600 text-xl leading-none flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 rounded">
           ×
         </button>
       </div>
@@ -106,7 +106,7 @@ function ComponentButton({
     <div className={cn(
       'inline-flex items-center rounded-lg border text-xs font-medium transition-all',
       isChecked
-        ? 'border-blue-400 bg-blue-50 text-blue-800 shadow-sm'
+        ? 'border-blue-400 bg-primary-soft text-blue-800 shadow-sm'
         : isConflicting
         ? 'border-red-400 bg-red-50 text-red-800'
         : isSuggested
@@ -132,7 +132,7 @@ function ComponentButton({
       <button
         onClick={onFocus}
         aria-pressed={isFocused}
-        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded"
+        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring focus-visible:rounded"
       >
         {name}
       </button>
@@ -358,7 +358,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-sm font-semibold text-slate-900 truncate">{pattern}</h3>
             {archetype && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap flex-shrink-0">
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-blue-100 whitespace-nowrap flex-shrink-0">
                 {archetype}
               </span>
             )}
@@ -420,7 +420,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
             {totalComponents} Komponenten in {mainLayers.length} Schichten — verfügbar ab Pro
           </p>
           <a href="/upgrade"
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors">
+            className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors">
             Jetzt upgraden →
           </a>
         </div>

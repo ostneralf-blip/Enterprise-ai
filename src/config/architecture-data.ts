@@ -211,7 +211,7 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
   cloud_native: {
     pattern: 'Cloud-native AI Platform',
     summary: 'Vollständig cloud-basierte ML-Plattform mit eigenem Team. Maximale Skalierbarkeit und Entwicklungsgeschwindigkeit — bei bewusstem Umgang mit Cloud-Abhängigkeit.',
-    color: { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-700', title: 'text-blue-800' },
+    color: { bg: 'bg-primary-soft', border: 'border-primary-border', badge: 'bg-blue-100 text-primary-hover', title: 'text-blue-800' },
     layers: [
       { name: 'Daten-Infrastruktur', role: 'Zentrale Datenbasis für Training und Inference', components: ['Cloud Data Warehouse', 'Object Storage (Data Lake)', 'Stream Processing', 'Data Catalog'], examples: 'z. B. Snowflake/BigQuery + S3/GCS + Kafka + Apache Atlas' },
       { name: 'Modell & Entwicklung', role: 'Training, Experimente, Feature Engineering', components: ['Cloud ML Platform', 'Feature Store', 'Model Registry', 'Experiment Tracking'], examples: 'z. B. Azure ML / SageMaker / Vertex AI + MLflow' },

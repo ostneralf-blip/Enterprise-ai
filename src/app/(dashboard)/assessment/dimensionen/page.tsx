@@ -43,7 +43,7 @@ export default function DimensionenPage() {
       <div className="mb-6">
         <Link
           href="/assessment"
-          className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 transition-colors mb-4"
+          className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary transition-colors mb-4"
         >
           ← Zurück zum Assessment
         </Link>
@@ -71,7 +71,7 @@ export default function DimensionenPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h2 className="text-base sm:text-lg font-semibold text-slate-900">{dim.label}</h2>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 whitespace-nowrap">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-blue-100 whitespace-nowrap">
                       {weightPct}% Gewichtung
                     </span>
                   </div>
@@ -110,7 +110,7 @@ export default function DimensionenPage() {
       <div className="mt-6">
         <Link
           href="/assessment"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary text-white text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           Assessment starten →
         </Link>

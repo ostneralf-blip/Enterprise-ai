@@ -31,7 +31,7 @@ const MILESTONE_ICON: Record<MilestoneStatus, string> = {
 }
 const MILESTONE_COLOR: Record<MilestoneStatus, string> = {
   not_started: 'text-slate-300 hover:text-slate-400',
-  in_progress: 'text-blue-500 hover:text-blue-600',
+  in_progress: 'text-primary hover:text-primary',
   done: 'text-emerald-500 hover:text-emerald-600',
 }
 
@@ -128,7 +128,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
     <div>
       {/* Canvas-Kontext-Banner */}
       {linkedCanvas && (
-        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+        <div className="mb-5 bg-primary-soft border border-primary-border rounded-2xl p-4">
           <div className="flex items-start gap-2 mb-2">
             <span className="text-xs font-semibold text-blue-800">Canvas verknüpft</span>
             <InfoHint title="Wie beeinflusst der Canvas die Roadmap?" side="bottom">
@@ -136,17 +136,17 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
               <p className="mt-1.5">Die erkannten Signale helfen Ihnen, bei der Phasenplanung gezielt zu priorisieren. Wechseln Sie in der Sidebar zu <strong>Canvas</strong>, um den Inhalt zu bearbeiten.</p>
             </InfoHint>
           </div>
-          <p className="text-xs text-blue-700 font-medium mb-1">{linkedCanvas.title}</p>
+          <p className="text-xs text-primary-hover font-medium mb-1">{linkedCanvas.title}</p>
           {(linkedCanvas.data.problem || linkedCanvas.data.kpis) && (
             <div className="mt-1 mb-2 space-y-1">
               {linkedCanvas.data.problem && (
-                <p className="text-xs text-blue-700 opacity-90">
+                <p className="text-xs text-primary-hover opacity-90">
                   <span className="font-medium">Problem: </span>
                   {linkedCanvas.data.problem.length > 120 ? `${linkedCanvas.data.problem.slice(0, 120)}…` : linkedCanvas.data.problem}
                 </p>
               )}
               {linkedCanvas.data.kpis && (
-                <p className="text-xs text-blue-700 opacity-90">
+                <p className="text-xs text-primary-hover opacity-90">
                   <span className="font-medium">KPIs: </span>
                   {linkedCanvas.data.kpis.length > 100 ? `${linkedCanvas.data.kpis.slice(0, 100)}…` : linkedCanvas.data.kpis}
                 </p>
@@ -156,14 +156,14 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
           {canvasInsights.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {canvasInsights.map(insight => (
-                <span key={insight} className="text-[11px] bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+                <span key={insight} className="text-[11px] bg-blue-100 text-primary-hover rounded-full px-2 py-0.5 font-medium">
                   {insight}
                 </span>
               ))}
             </div>
           )}
           {canvasInsights.length === 0 && (
-            <p className="text-xs text-blue-600 opacity-70">Keine spezifischen Plattform- oder Compliance-Signale erkannt.</p>
+            <p className="text-xs text-primary opacity-70">Keine spezifischen Plattform- oder Compliance-Signale erkannt.</p>
           )}
         </div>
       )}
@@ -182,8 +182,8 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             return (
               <button key={a} onClick={() => handleArchetypeChange(a)} aria-pressed={active}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                  active ? 'bg-blue-600 border-blue-600 text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
+                  active ? 'bg-primary border-blue-600 text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                 )}>
                 <span aria-hidden="true">{meta.icon}</span>
                 {meta.label}
@@ -196,8 +196,8 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
       {/* Top Use-Cases aus Scoring */}
       {topUseCases.length > 0 && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-          <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-2.5">
+        <div className="mb-6 bg-primary-soft border border-primary-border rounded-2xl p-4">
+          <p className="text-xs font-medium text-primary-hover uppercase tracking-wide mb-2.5">
             Ihre Top-Use-Cases (aus Use-Case-Scoring)
           </p>
           <div className="flex flex-wrap gap-2">
@@ -327,14 +327,14 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       <div className="flex flex-wrap items-center gap-3 mt-6">
         {!saved && (
           <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
           </button>
         )}
         {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
         <a href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5">
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5">
           PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
         </a>
       </div>

@@ -184,9 +184,9 @@ export function CompliancePageClient({ initialChecks }: Props) {
             aria-controls={`panel-${t.id}`}
             onClick={() => setTab(t.id)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
               tab === t.id
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-blue-600 text-primary'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             )}
           >
@@ -218,7 +218,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     onClick={() => setRiskClass(cls.id)}
                     aria-pressed={isSelected}
                     className={cn(
-                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isSelected
                         ? `${cls.color.bg} ${cls.color.border} ring-2 ring-blue-400`
                         : 'bg-white border-slate-200 hover:border-slate-300'
@@ -290,7 +290,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
               </div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
+                  className="h-full bg-primary rounded-full transition-all"
                   style={{ width: `${(euAiActDone / obligations.length) * 100}%` }}
                   role="progressbar"
                   aria-valuenow={euAiActDone}
@@ -308,14 +308,14 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     <li key={item.id}>
                       <div className={cn(
                         'flex items-start gap-3 p-3.5 rounded-xl border transition-colors',
-                        status === 'compliant' ? 'bg-blue-50 border-blue-200' :
+                        status === 'compliant' ? 'bg-primary-soft border-primary-border' :
                         status === 'non_compliant' ? 'bg-red-50 border-red-200' :
                         'bg-white border-slate-200',
                         isSaving && 'opacity-60'
                       )}>
                         <StatusIcon status={status} onClick={() => toggleItem('eu_ai_act', item.id)} disabled={isSaving} />
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.article}</p>
+                          <p className="text-xs font-semibold text-primary mb-0.5">{item.article}</p>
                           <p className={cn('text-sm font-medium',
                             status === 'compliant' ? 'text-blue-800 line-through' :
                             status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
@@ -390,7 +390,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                   )}>
                     <StatusIcon status={status} onClick={() => toggleItem('dsgvo', item.id)} disabled={isSaving} />
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.article}</p>
+                      <p className="text-xs font-semibold text-primary mb-0.5">{item.article}</p>
                       <p className={cn('text-sm font-medium',
                         status === 'compliant' ? 'text-emerald-800 line-through' :
                         status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
@@ -399,7 +399,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
                       {item.relevance && (
-                        <p className="text-xs text-blue-700 bg-blue-50 rounded px-2 py-1 mt-1.5">
+                        <p className="text-xs text-primary-hover bg-primary-soft rounded px-2 py-1 mt-1.5">
                           AI-Relevanz: {item.relevance}
                         </p>
                       )}
@@ -526,7 +526,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                 <button
                   onClick={() => handleCopy(tpl.id, tpl.content)}
                   aria-label={`${tpl.title} in Zwischenablage kopieren`}
-                  className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                  className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                 >
                   {copied === tpl.id ? '✓ Kopiert' : 'Kopieren'}
                 </button>
@@ -568,17 +568,17 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     onClick={() => toggleReg(reg.id)}
                     aria-pressed={isActive}
                     className={cn(
-                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                      'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isActive
-                        ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300'
+                        ? 'bg-primary-soft border-blue-300 ring-1 ring-blue-300'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     )}
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600')}>
+                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600')}>
                         {reg.shortLabel}
                       </span>
-                      <span className={cn('text-xs font-medium', isActive ? 'text-blue-600' : 'text-slate-400')}>
+                      <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-slate-400')}>
                         {isActive ? '✓ Aktiv' : 'Aktivieren'}
                       </span>
                     </div>
@@ -621,7 +621,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-blue-500 rounded-full transition-all"
+                    className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(regDone / reg.items.length) * 100}%` }}
                     role="progressbar"
                     aria-valuenow={regDone}
@@ -639,14 +639,14 @@ export function CompliancePageClient({ initialChecks }: Props) {
                       <li key={item.id}>
                         <div className={cn(
                           'flex items-start gap-3 p-3 rounded-xl border transition-colors',
-                          status === 'compliant' ? 'bg-blue-50 border-blue-200' :
+                          status === 'compliant' ? 'bg-primary-soft border-primary-border' :
                           status === 'non_compliant' ? 'bg-red-50 border-red-200' :
                           'bg-white border-slate-200',
                           isSaving && 'opacity-60'
                         )}>
                           <StatusIcon status={status} onClick={() => toggleItem(reg.id, item.id)} disabled={isSaving} />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-blue-600 mb-0.5">{item.category}</p>
+                            <p className="text-xs font-semibold text-primary mb-0.5">{item.category}</p>
                             <p className={cn('text-sm font-medium',
                               status === 'compliant' ? 'text-blue-800 line-through' :
                               status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
@@ -671,7 +671,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
           href="/api/export/pdf?module=compliance"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
         >
           PDF exportieren
         </a>
@@ -699,7 +699,7 @@ function StatusIcon({
         onClick={onClick}
         disabled={disabled}
         aria-label="Offen — anklicken für Erfüllt"
-        className={cn(base, 'border-slate-300 bg-white hover:border-blue-400 focus:ring-blue-500')}
+        className={cn(base, 'border-slate-300 bg-white hover:border-blue-400 focus:ring-primary-ring')}
       />
     )
   }
@@ -776,9 +776,9 @@ function RiskMatrixSelector({
               onClick={() => onChange({ ...value, impact: i + 1 })}
               aria-pressed={value.impact === i + 1}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.impact === i + 1
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-primary text-white border-blue-600'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
@@ -799,9 +799,9 @@ function RiskMatrixSelector({
               onClick={() => onChange({ ...value, probability: i + 1 })}
               aria-pressed={value.probability === i + 1}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.probability === i + 1
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-primary text-white border-blue-600'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >

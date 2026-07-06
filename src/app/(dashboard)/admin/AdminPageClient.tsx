@@ -571,9 +571,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={cn(
-              'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+              'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
-                ? 'border-blue-600 text-blue-700'
+                ? 'border-blue-600 text-primary-hover'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             )}
           >
@@ -590,7 +590,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <p className="text-sm text-slate-500">{entries.length} Einträge</p>
             <button
               onClick={openCreate}
-              className="whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="whitespace-nowrap px-4 py-2 bg-primary hover:bg-primary text-white text-sm font-semibold rounded-lg transition-colors"
             >
               + Neuer Eintrag
             </button>
@@ -606,7 +606,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 className={cn(
                   'px-3 py-1 rounded-full text-xs font-medium transition-colors',
                   filterModule === m
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 )}
               >
@@ -631,7 +631,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 <div>
                   <label htmlFor="admin-module" className="block text-xs font-medium text-slate-700 mb-1">Modul</label>
                   <select id="admin-module" value={form.module} onChange={e => setForm(f => ({ ...f, module: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
                     <option value="">— wählen —</option>
                     {MODULES.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -641,20 +641,20 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <input id="admin-category" type="text" value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                     placeholder="z. B. gesetz, beispiel, quelle"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
               </div>
               <div>
                 <label htmlFor="admin-title" className="block text-xs font-medium text-slate-700 mb-1">Titel</label>
                 <input id="admin-title" type="text" value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
               </div>
               <div>
                 <label htmlFor="admin-content" className="block text-xs font-medium text-slate-700 mb-1">Inhalt</label>
                 <textarea id="admin-content" value={form.content} rows={5}
                   onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y" />
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -662,19 +662,19 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <input id="admin-source" type="text" value={form.source}
                     onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
                     placeholder="z. B. EU AI Act Art. 6"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
                 <div>
                   <label htmlFor="admin-tags" className="block text-xs font-medium text-slate-700 mb-1">Tags (kommagetrennt)</label>
                   <input id="admin-tags" type="text" value={form.tags}
                     onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
                     placeholder="tag1, tag2"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleSave} disabled={saving}
-                  className="whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
+                  className="whitespace-nowrap px-4 py-2 bg-primary hover:bg-primary disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors">
                   {saving ? 'Speichert…' : 'Speichern'}
                 </button>
                 <button onClick={cancel} disabled={saving}
@@ -720,7 +720,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button onClick={() => openEdit(entry)}
                           aria-label={`${entry.title} bearbeiten`}
-                          className="text-xs text-blue-600 hover:text-blue-500 font-medium mr-3">
+                          className="text-xs text-primary hover:text-primary font-medium mr-3">
                           Bearbeiten
                         </button>
                         <button onClick={() => handleDelete(entry)}
@@ -769,7 +769,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       value={newSourceForm.name}
                       onChange={e => setNewSourceForm(f => ({ ...f, name: e.target.value }))}
                       placeholder="z. B. Meine OpenAI Integration"
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                     />
                   </div>
                   <div>
@@ -777,7 +777,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <select
                       value={newSourceForm.type}
                       onChange={e => changeNewSourceType(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                     >
                       {KNOWN_SOURCE_TYPES.map(t => (
                         <option key={t} value={t}>
@@ -797,7 +797,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     value={newSourceForm.url}
                     onChange={e => setNewSourceForm(f => ({ ...f, url: e.target.value }))}
                     placeholder="https://…"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                   />
                 </div>
                 {(SOURCE_TYPE_SCHEMAS[newSourceForm.type]?.fields ?? []).map(field => (
@@ -806,7 +806,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       {field.label}
                       {field.required && <span className="text-red-500 ml-0.5">*</span>}
                       {field.helpUrl && (
-                        <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">↗</a>
+                        <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-primary hover:underline">↗</a>
                       )}
                     </label>
                     <input
@@ -815,7 +815,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       onChange={e => setNewSourceForm(f => ({ ...f, config: { ...f.config, [field.key]: e.target.value } }))}
                       placeholder={field.placeholder}
                       autoComplete="off"
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                     />
                     {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
                   </div>
@@ -824,7 +824,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <button
                     onClick={handleAddSource}
                     disabled={addingSource}
-                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors"
+                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-primary hover:bg-primary disabled:opacity-50 text-white rounded-lg transition-colors"
                   >
                     {addingSource ? 'Speichert…' : 'Quelle hinzufügen'}
                   </button>
@@ -858,7 +858,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
                             {schema && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium whitespace-nowrap">{schema.technology}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-soft text-primary font-medium whitespace-nowrap">{schema.technology}</span>
                             )}
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
                             {src.sync_status === 'success'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
@@ -892,7 +892,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             onClick={() => handleSync(src.id)}
                             disabled={isSyncing || syncingId !== null || missingRequired.length > 0}
                             title={missingRequired.length > 0 ? `Konfigurieren: ${missingRequired.map(f => f.label).join(', ')}` : undefined}
-                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors"
+                            className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-primary hover:bg-primary disabled:opacity-40 text-white rounded-lg transition-colors"
                           >
                             {isSyncing ? 'Synct…' : '↻ Sync'}
                           </button>
@@ -916,7 +916,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               value={editingSourceUrl}
                               onChange={e => setEditingSourceUrl(e.target.value)}
                               placeholder="https://…"
-                              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                             />
                           </div>
                           {/* Schema-gesteuerte Config-Felder */}
@@ -926,7 +926,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 {field.label}
                                 {field.required && <span className="text-red-500 ml-0.5">*</span>}
                                 {field.helpUrl && (
-                                  <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 hover:underline">↗</a>
+                                  <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-primary hover:underline">↗</a>
                                 )}
                               </label>
                               <input
@@ -935,7 +935,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 onChange={e => setEditingSourceConfig(c => ({ ...c, [field.key]: e.target.value }))}
                                 placeholder={field.placeholder}
                                 autoComplete="off"
-                                className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                               />
                               {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
                             </div>
@@ -978,7 +978,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           </div>
                           <button
                             onClick={() => startEditUrl(src)}
-                            className="whitespace-nowrap text-xs text-blue-600 hover:text-blue-500 font-medium flex-shrink-0"
+                            className="whitespace-nowrap text-xs text-primary hover:text-primary font-medium flex-shrink-0"
                           >
                             ✎ Konfigurieren
                           </button>
@@ -1038,7 +1038,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   setUploadResult(null)
                   if (f) handlePreview(f)
                 }}
-                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-hover hover:file:bg-blue-100 cursor-pointer"
               />
               {previewing && <span className="text-[10px] text-slate-400 animate-pulse whitespace-nowrap">Analysiere Datei…</span>}
             </div>
@@ -1046,11 +1046,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
             {/* Preview / Bestätigung */}
             {uploadPreview && (
-              <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 space-y-3">
+              <div className="border border-primary-border bg-primary-soft rounded-lg p-3 space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-semibold text-blue-800">{uploadPreview.formatLabel}</span>
-                    <span className="text-xs text-blue-600">· {uploadPreview.row_count} Einträge</span>
+                    <span className="text-xs text-primary">· {uploadPreview.row_count} Einträge</span>
                     {uploadPreview.ambiguous && (
                       <span className="text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
                         Layer unklar — bitte prüfen
@@ -1069,7 +1069,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 </div>
 
                 {uploadPreview.sample_names.length > 0 && (
-                  <p className="text-[10px] text-blue-600 truncate">
+                  <p className="text-[10px] text-primary truncate">
                     Beispiele: {uploadPreview.sample_names.join(' · ')}
                   </p>
                 )}
@@ -1080,7 +1080,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <select
                       value={uploadVendor}
                       onChange={e => setUploadVendor(e.target.value)}
-                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
                     >
                       <option value="">— Aus Datei übernehmen —</option>
                       {KNOWN_VENDORS.map(v => <option key={v} value={v}>{v}</option>)}
@@ -1091,7 +1091,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <select
                       value={uploadLayer}
                       onChange={e => setUploadLayer(e.target.value)}
-                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
                     >
                       <option value="">— Aus Datei übernehmen —</option>
                       {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -1119,7 +1119,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <button
                 onClick={handleUpload}
                 disabled={!uploadFile || uploading}
-                className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg transition-colors"
+                className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-primary hover:bg-primary disabled:opacity-40 text-white rounded-lg transition-colors"
               >
                 {uploading ? 'Importiert…' : uploadPreview ? `↑ Importieren (${uploadPreview.row_count} Einträge)` : '↑ Importieren'}
               </button>
@@ -1133,13 +1133,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               value={catalogSearch}
               onChange={e => setCatalogSearch(e.target.value)}
               placeholder="Name oder Vendor suchen…"
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring w-full sm:w-64"
             />
             <select
               value={catalogLayer}
               onChange={e => setCatalogLayer(e.target.value)}
               aria-label="Nach Layer filtern"
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Layer</option>
               {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -1148,7 +1148,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               value={catalogCloud}
               onChange={e => setCatalogCloud(e.target.value)}
               aria-label="Nach Cloud-Provider filtern"
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Provider</option>
               {CLOUD_PROVIDERS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -1223,7 +1223,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               onClick={() => setTagEditingId(tagEditingId === c.id ? null : c.id)}
                               aria-label="Tag hinzufügen"
                               aria-expanded={tagEditingId === c.id}
-                              className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded border border-blue-200 leading-none"
+                              className="px-1.5 py-0.5 text-xs text-primary hover:text-blue-800 hover:bg-primary-soft rounded border border-primary-border leading-none"
                             >+</button>
                             {tagSavingId === c.id && (
                               <span className="text-[10px] text-slate-400 self-center">…</span>
@@ -1235,7 +1235,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 <button
                                   key={t}
                                   onClick={() => { addTag(c.id, c.tags, t); setTagEditingId(null) }}
-                                  className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[11px] rounded border border-blue-200 hover:bg-blue-100 transition-colors"
+                                  className="px-1.5 py-0.5 bg-primary-soft text-primary text-[11px] rounded border border-primary-border hover:bg-blue-100 transition-colors"
                                 >+{t}</button>
                               ))}
                             </div>
@@ -1247,7 +1247,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             <div className="space-y-1.5 min-w-[220px]">
                               {([
                                 { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-red-200 focus:ring-red-400' },
-                                { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-blue-200 focus:ring-blue-400' },
+                                { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-primary-border focus:ring-blue-400' },
                                 { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-emerald-200 focus:ring-emerald-400' },
                               ] as const).map(({ key, label, color }) => (
                                 <div key={key}>
@@ -1283,7 +1283,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 <p className="text-[10px] text-red-600 truncate max-w-[160px]">✗ {c.incompatible_with.join(', ')}</p>
                               )}
                               {c.requires.length > 0 && (
-                                <p className="text-[10px] text-blue-600 truncate max-w-[160px]">⬆ {c.requires.join(', ')}</p>
+                                <p className="text-[10px] text-primary truncate max-w-[160px]">⬆ {c.requires.join(', ')}</p>
                               )}
                               {c.suggests.length > 0 && (
                                 <p className="text-[10px] text-emerald-600 truncate max-w-[160px]">💡 {c.suggests.join(', ')}</p>
@@ -1343,7 +1343,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <td className="px-4 py-2 font-medium text-slate-700 max-w-[180px] truncate">
                           <span className={cn(
                             'mr-1.5 px-1 py-0.5 rounded text-[10px] font-semibold',
-                            log.source === 'seed' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                            log.source === 'seed' ? 'bg-purple-50 text-purple-700' : 'bg-primary-soft text-primary-hover'
                           )}>
                             {log.source === 'seed' ? 'SEED' : 'CSV/JSON'}
                           </span>
@@ -1391,7 +1391,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               placeholder="E-Mail oder Name suchen…"
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
             />
           </div>
 
@@ -1421,7 +1421,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           value={u.tier}
                           disabled={isUpdating}
                           onChange={e => patchUser(u.id, { tier: e.target.value as Tier })}
-                          className="border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring disabled:opacity-50"
                         >
                           {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -1506,7 +1506,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                   className={cn(
                                     'px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50',
                                     active
-                                      ? 'bg-blue-600 border-blue-600 text-white'
+                                      ? 'bg-primary border-blue-600 text-white'
                                       : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                                   )}
                                 >

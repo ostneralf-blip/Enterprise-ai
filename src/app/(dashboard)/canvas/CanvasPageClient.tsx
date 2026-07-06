@@ -126,7 +126,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
         <div className="flex items-center gap-3 mb-5">
           <button
             onClick={() => setActive(null)}
-            className="text-sm text-slate-500 hover:text-slate-700 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded"
+            className="text-sm text-slate-500 hover:text-slate-700 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 rounded"
           >
             ← Zurück
           </button>
@@ -140,14 +140,14 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             {saved ? '✓ Gespeichert' : saving ? 'Speichern…' : 'Speichern'}
           </button>
           <a
             href={tier !== 'free' ? '/api/export/pdf?module=canvas' : '/upgrade'}
             {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+            className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
           >
             PDF{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
@@ -160,9 +160,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
               onClick={() => setActive(prev => prev ? { ...prev, archetype: id } : prev)}
               aria-pressed={active.archetype === id}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+                'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                 active.archetype === id
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-primary text-white border-blue-600'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
@@ -225,7 +225,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 {insights.platform.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {insights.platform.map(p => (
-                      <span key={p} className="text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">{p}</span>
+                      <span key={p} className="text-xs bg-blue-100 text-primary-hover rounded-full px-2 py-0.5 font-medium">{p}</span>
                     ))}
                   </div>
                 ) : (
@@ -269,10 +269,10 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
 
             <div className="flex gap-3 pt-1 border-t border-slate-200">
               <p className="text-xs text-slate-500 flex-1">Erkannte Signale automatisch in anderen Modulen verwenden:</p>
-              <Link href="/architecture" className="text-xs text-blue-600 hover:underline whitespace-nowrap font-medium">
+              <Link href="/architecture" className="text-xs text-primary hover:underline whitespace-nowrap font-medium">
                 → Architektur
               </Link>
-              <Link href="/compliance" className="text-xs text-blue-600 hover:underline whitespace-nowrap font-medium">
+              <Link href="/compliance" className="text-xs text-primary hover:underline whitespace-nowrap font-medium">
                 → Compliance
               </Link>
             </div>
@@ -290,7 +290,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
         </p>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           + Neues Canvas
         </button>
@@ -304,7 +304,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           </p>
           <button
             onClick={handleCreate}
-            className="px-5 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             Canvas erstellen
           </button>
@@ -327,7 +327,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setActive(canvas)}
-                    className="flex-1 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    className="flex-1 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                   >
                     Öffnen
                   </button>

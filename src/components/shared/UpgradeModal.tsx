@@ -50,7 +50,7 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
             <div className="text-xs text-slate-500">pro Monat</div>
           </button>
           <button onClick={() => handleUpgrade('yearly')} disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 rounded-xl p-4 text-center transition-all">
+            className="bg-primary hover:bg-primary rounded-xl p-4 text-center transition-all">
             <div className="font-semibold text-white">€399</div>
             <div className="text-xs text-blue-200">pro Jahr · 2 Monate gratis</div>
           </button>

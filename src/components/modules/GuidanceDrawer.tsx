@@ -5,7 +5,7 @@ import { track } from '@/lib/posthog/client'
 import type { GuidanceEntry, GuidanceCategory } from './GuidanceCard'
 
 const CAT: Record<GuidanceCategory, { label: string; icon: string; pill: string; bar: string }> = {
-  definition:      { label: 'Definition',      icon: '▪',  pill: 'text-blue-700 bg-blue-50 border-blue-200',    bar: 'bg-blue-500' },
+  definition:      { label: 'Definition',      icon: '▪',  pill: 'text-primary-hover bg-primary-soft border-primary-border',    bar: 'bg-primary' },
   best_practice:   { label: 'Best Practice',   icon: '✓',  pill: 'text-emerald-700 bg-emerald-50 border-emerald-200', bar: 'bg-emerald-500' },
   anti_pattern:    { label: 'Anti-Pattern',    icon: '⚠',  pill: 'text-amber-700 bg-amber-50 border-amber-200',  bar: 'bg-amber-500' },
   policy_template: { label: 'Policy-Template', icon: '📋', pill: 'text-indigo-700 bg-indigo-50 border-indigo-200', bar: 'bg-indigo-500' },

@@ -102,7 +102,7 @@ export function ResetPasswordForm() {
           />
         </div>
         <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
+          className="w-full bg-primary hover:bg-primary disabled:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
           {loading ? 'Wird gespeichert…' : 'Passwort aktualisieren'}
         </button>
       </form>

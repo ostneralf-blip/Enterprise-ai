@@ -19,7 +19,7 @@ interface Props extends GuidanceEntry {
 }
 
 const CATEGORY_CONFIG: Record<GuidanceCategory, { label: string; icon: string; color: string }> = {
-  definition:      { label: 'Definition',      icon: '■', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  definition:      { label: 'Definition',      icon: '■', color: 'text-primary-hover bg-primary-soft border-primary-border' },
   best_practice:   { label: 'Best Practice',   icon: '✓', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   anti_pattern:    { label: 'Anti-Pattern',    icon: '⚠', color: 'text-amber-700 bg-amber-50 border-amber-200' },
   policy_template: { label: 'Policy-Template', icon: '📋', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },

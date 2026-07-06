@@ -29,7 +29,7 @@ export function InfoHint({ title, children, className, side = 'top' }: InfoHintP
         onClick={() => setOpen(v => !v)}
         aria-label={`Info: ${title}`}
         aria-expanded={open}
-        className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex-shrink-0"
+        className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 hover:bg-primary-soft hover:text-primary text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 flex-shrink-0"
       >
         ?
       </button>
@@ -72,7 +72,7 @@ export function HintBox({ children, className, dismissible = false, variant = 'i
   if (!visible) return null
 
   const colors = {
-    info:    'bg-blue-50 border-blue-100 text-blue-800',
+    info:    'bg-primary-soft border-blue-100 text-blue-800',
     tip:     'bg-emerald-50 border-emerald-100 text-emerald-800',
     warning: 'bg-amber-50 border-amber-200 text-amber-800',
   }

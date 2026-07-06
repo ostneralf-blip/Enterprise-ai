@@ -35,7 +35,7 @@ function resolveGate(gateId: string, optionId: string) {
 function ScenarioCompare({ a, b, onBack }: { a: GovernanceSession; b: GovernanceSession; onBack: () => void }) {
   return (
     <div>
-      <button onClick={onBack} className="text-xs text-blue-600 mb-4 hover:underline">← Zurück zum Verlauf</button>
+      <button onClick={onBack} className="text-xs text-primary mb-4 hover:underline">← Zurück zum Verlauf</button>
       <h3 className="text-sm font-semibold text-slate-900 mb-3">Scenario-Vergleich</h3>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {[a, b].map(s => (
@@ -109,7 +109,7 @@ export function GovernanceHistory({ sessions }: { sessions: GovernanceSession[] 
         <h3 className="text-sm font-semibold text-slate-900">Letzte Prüfungen</h3>
         {compareIds.length === 2 ? (
           <button onClick={() => setComparing(true)}
-            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors">
+            className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors">
             Vergleichen
           </button>
         ) : compareIds.length === 1 ? (

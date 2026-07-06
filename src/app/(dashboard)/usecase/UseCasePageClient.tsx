@@ -98,7 +98,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
             ⚙️ Gewichte
           </button>
           <button onClick={handleAddClick}
-            className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             + Use Case
           </button>
         </div>
@@ -107,7 +107,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
       {tier === 'free' && (
         <div className="flex items-center gap-2 mb-4 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
           <span>{useCases.length} / {FREE_LIMIT} Use Cases (Free)</span>
-          {atFreeLimit && <span className="text-blue-600 font-medium cursor-pointer hover:underline" onClick={() => setShowUpgrade(true)}>Upgrade für mehr →</span>}
+          {atFreeLimit && <span className="text-primary font-medium cursor-pointer hover:underline" onClick={() => setShowUpgrade(true)}>Upgrade für mehr →</span>}
         </div>
       )}
 
@@ -134,7 +134,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
         <a
           href={tier !== 'free' ? '/api/export/pdf?module=usecase' : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 inline-flex items-center gap-1.5"
+          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
         >
           PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
         </a>

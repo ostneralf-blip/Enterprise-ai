@@ -69,7 +69,7 @@ function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCan
         )
         : (
           <span className="flex items-center gap-1">
-            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
+            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-blue-300 rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
             <InfoHint title="Was bedeutet Primär?" side="bottom">
               <p>Das als Primär markierte Ergebnis wird als Standard-Kontext in anderen Modulen verwendet.</p>
               <p className="mt-1.5">Nur ein Ergebnis pro Modul-Typ kann gleichzeitig Primär sein.</p>
@@ -169,7 +169,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       <div className="flex items-center gap-1 mb-3 border-b border-slate-200 overflow-x-auto">
         {TABS.map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null); exitCompare() }}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-blue-600 text-primary-hover' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             {t.label}
             {t.count > 0 && <span className="ml-1.5 text-xs bg-slate-100 text-slate-500 rounded-full px-1.5">{t.count}</span>}
           </button>
@@ -186,7 +186,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             </button>
           ) : (
             <button onClick={() => { setCompareMode(true); setCompareIds([]) }}
-              className="px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap">
+              className="px-3 py-1.5 text-xs font-medium text-primary border border-primary-border bg-primary-soft rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap">
               ⇄ Vergleichen
             </button>
           )}
@@ -212,7 +212,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Assessment ─────────────────────────────────────────── */}
       {tab === 'assessment' && (
         <div className="space-y-2">
-          {assessments.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Assessment abgeschlossen. <Link href="/assessment" className="text-blue-600 hover:underline">Jetzt starten →</Link></p>}
+          {assessments.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Assessment abgeschlossen. <Link href="/assessment" className="text-primary hover:underline">Jetzt starten →</Link></p>}
           {assessments.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -223,7 +223,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={`Assessment vom ${fmt(a.created_at)} zum Vergleich auswählen`}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
@@ -248,7 +248,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                         </div>
                       ))}
                     </div>
-                    <Link href="/assessment" className="text-xs text-blue-600 hover:underline">Vollständiges Ergebnis ansehen →</Link>
+                    <Link href="/assessment" className="text-xs text-primary hover:underline">Vollständiges Ergebnis ansehen →</Link>
                   </div>
                 )}
               </div>
@@ -268,7 +268,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Dimension</div>
-                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Number(a1.total_score).toFixed(1)}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.created_at)}</div>
                   </div>
@@ -302,7 +302,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Architektur ────────────────────────────────────────── */}
       {tab === 'architecture' && (
         <div className="space-y-2">
-          {architectures.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Architektur gespeichert. <Link href="/architecture" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
+          {architectures.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Architektur gespeichert. <Link href="/architecture" className="text-primary hover:underline">Jetzt erstellen →</Link></p>}
           {architectures.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -313,7 +313,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={`Architektur „${a.title}" zum Vergleich auswählen`}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-sm font-medium text-slate-700 truncate">{a.title}</span>
@@ -331,7 +331,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
                     <div>
                       <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
-                      <Link href="/architecture" className="text-xs text-blue-600 hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+                      <Link href="/architecture" className="text-xs text-primary hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
                     </div>
                     <VersionsPanel
                       module="architecture"
@@ -361,14 +361,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
                   <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Architekturen</p>
                   <div className="flex flex-wrap gap-3 mt-1.5">
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-blue-50 border-blue-200" />nur in A1</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-primary-soft border-primary-border" />nur in A1</span>
                     <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-emerald-50 border-emerald-200" />nur in A2</span>
                     <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-slate-50 border-slate-200" />in beiden</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
-                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {a1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.updated_at)}</div>
                   </div>
@@ -399,7 +399,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                                 <span key={ci} className={cn('text-[10px] px-1.5 py-0.5 rounded border',
                                   (l2?.components ?? []).includes(c)
                                     ? 'bg-slate-50 text-slate-600 border-slate-200'
-                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : 'bg-primary-soft text-primary-hover border-primary-border'
                                 )}>{c}</span>
                               ))}
                               {(l1.components ?? []).length === 0 && <span className="text-slate-300 text-sm">—</span>}
@@ -433,7 +433,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Governance ─────────────────────────────────────────── */}
       {tab === 'governance' && (
         <div className="space-y-2">
-          {governance.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Governance-Check gespeichert. <Link href="/governance" className="text-blue-600 hover:underline">Jetzt prüfen →</Link></p>}
+          {governance.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Governance-Check gespeichert. <Link href="/governance" className="text-primary hover:underline">Jetzt prüfen →</Link></p>}
           {governance.map(g => {
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             const isSelected = compareIds.includes(g.id)
@@ -445,7 +445,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(g.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={`Governance-Check „${g.use_case_name ?? fmt(g.created_at)}" zum Vergleich auswählen`}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${v.color}`}>{v.label}</span>
@@ -487,7 +487,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
-                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {g1.use_case_name ?? '—'}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(g1.created_at)}</div>
                   </div>
@@ -531,7 +531,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Roadmap ────────────────────────────────────────────── */}
       {tab === 'roadmap' && (
         <div className="space-y-2">
-          {roadmaps.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Roadmap gespeichert. <Link href="/roadmap" className="text-blue-600 hover:underline">Jetzt erstellen →</Link></p>}
+          {roadmaps.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Roadmap gespeichert. <Link href="/roadmap" className="text-primary hover:underline">Jetzt erstellen →</Link></p>}
           {roadmaps.map(r => {
             const isSelected = compareIds.includes(r.id)
             return (
@@ -541,7 +541,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(r.id)}
                       onClick={e => e.stopPropagation()}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-sm font-medium text-slate-700 truncate">{r.title}</span>
@@ -560,7 +560,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
                     <div>
                       <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
-                      <Link href="/roadmap" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+                      <Link href="/roadmap" className="text-xs text-primary hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
                     </div>
                     <VersionsPanel module="roadmap" entityId={r.id} tier={tier} currentData={{ title: r.title, archetype: r.archetype, phases: r.phases } as Record<string, unknown>} />
                   </div>
@@ -584,7 +584,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
-                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {r1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(r1.updated_at)}</div>
                   </div>
@@ -644,7 +644,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
           {canvases.length === 0 && (
             <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keinen Canvas gespeichert. <Link href="/canvas" className="text-blue-600 hover:underline">Jetzt erstellen →</Link>
+              Noch keinen Canvas gespeichert. <Link href="/canvas" className="text-primary hover:underline">Jetzt erstellen →</Link>
             </p>
           )}
 
@@ -658,7 +658,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(c.id)}
                       onClick={e => e.stopPropagation()}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-sm font-medium text-slate-700 truncate">{c.title}</span>
@@ -684,7 +684,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                           <span className="text-slate-500 line-clamp-2">{value}</span>
                         </div>
                       ))}
-                      <Link href="/canvas" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
+                      <Link href="/canvas" className="text-xs text-primary hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
                     </div>
                     <VersionsPanel module="canvas" entityId={c.id} tier={tier} currentData={c.data as Record<string, unknown>} />
                   </div>
@@ -705,7 +705,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 </div>
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Feld</div>
-                  <div className="px-4 py-2 font-medium text-blue-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {c1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(c1.updated_at)}</div>
                   </div>
@@ -732,7 +732,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
         <div className="space-y-2">
           {complianceChecks.length === 0 && (
             <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keine Compliance-Prüfungen gespeichert. <Link href="/compliance" className="text-blue-600 hover:underline">Jetzt prüfen →</Link>
+              Noch keine Compliance-Prüfungen gespeichert. <Link href="/compliance" className="text-primary hover:underline">Jetzt prüfen →</Link>
             </p>
           )}
           {complianceChecks.map(cc => {
@@ -761,7 +761,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 {expanded === cc.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
                     {cc.notes && <p className="text-xs text-slate-600">Notiz: {cc.notes}</p>}
-                    <Link href="/compliance" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Compliance öffnen →</Link>
+                    <Link href="/compliance" className="text-xs text-primary hover:underline mt-1 inline-block">In Compliance öffnen →</Link>
                   </div>
                 )}
               </div>
@@ -775,13 +775,13 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
         <div className="space-y-2">
           {useCases.length === 0 && (
             <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keine Use Cases bewertet. <Link href="/usecase" className="text-blue-600 hover:underline">Jetzt bewerten →</Link>
+              Noch keine Use Cases bewertet. <Link href="/usecase" className="text-primary hover:underline">Jetzt bewerten →</Link>
             </p>
           )}
           {useCases.map(uc => {
             const quadrantColor =
               uc.quadrant === 'build'        ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
-              uc.quadrant === 'pilot'        ? 'text-blue-700 bg-blue-50 border-blue-200' :
+              uc.quadrant === 'pilot'        ? 'text-primary-hover bg-primary-soft border-primary-border' :
               uc.quadrant === 'evaluate'     ? 'text-amber-700 bg-amber-50 border-amber-200' :
               'text-slate-500 bg-slate-50 border-slate-200'
             const quadrantLabel =
@@ -811,7 +811,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {gov && (
                       <p className="text-xs text-slate-600">Governance: <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
                     )}
-                    <Link href="/usecase" className="text-xs text-blue-600 hover:underline mt-1 inline-block">In Use Cases öffnen →</Link>
+                    <Link href="/usecase" className="text-xs text-primary hover:underline mt-1 inline-block">In Use Cases öffnen →</Link>
                   </div>
                 )}
               </div>

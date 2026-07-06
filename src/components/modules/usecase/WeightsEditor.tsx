@@ -47,7 +47,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
             <div className="flex-1 min-w-0">
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all"
+                  className="h-full bg-primary rounded-full transition-all"
                   style={{ width: `${Math.min(pct[c.id] ?? 0, 100)}%` }}
                 />
               </div>
@@ -77,7 +77,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
           Abbrechen
         </button>
         <button onClick={handleSave} disabled={saving || !valid}
-          className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
           {saving ? 'Wird gespeichert…' : 'Speichern & neu berechnen'}
         </button>
       </div>

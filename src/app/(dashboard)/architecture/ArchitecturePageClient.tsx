@@ -86,7 +86,7 @@ interface ContextBannerProps {
 function ContextBanner({ assessmentContext, governanceContext, compliancePreset, roadmapContext }: ContextBannerProps) {
   if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-1.5">
+    <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-blue-800 space-y-1.5">
       <p className="font-semibold text-blue-900">Kontext aus anderen Modulen</p>
       {assessmentContext?.archetype && (
         <p>
@@ -124,7 +124,7 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset,
 const TAG_COLORS: Record<DetectedTag['type'], string> = {
   score:      'bg-emerald-50 text-emerald-700 border-emerald-200',
   industry:   'bg-slate-100 text-slate-700 border-slate-200',
-  usecase:    'bg-blue-50 text-blue-700 border-blue-200',
+  usecase:    'bg-primary-soft text-primary-hover border-primary-border',
   platform:   'bg-violet-50 text-violet-700 border-violet-200',
   compliance: 'bg-amber-50 text-amber-700 border-amber-200',
 }
@@ -202,7 +202,7 @@ const LAYER_LABEL: Record<string, string> = {
 
 const JOULE_DOMAIN_BADGE: Record<string, string> = {
   Finance: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'Supply Chain': 'bg-blue-50 text-blue-700 border-blue-200',
+  'Supply Chain': 'bg-primary-soft text-primary-hover border-primary-border',
   HR: 'bg-violet-50 text-violet-700 border-violet-200',
   Procurement: 'bg-amber-50 text-amber-700 border-amber-200',
   CX: 'bg-pink-50 text-pink-700 border-pink-200',
@@ -226,7 +226,7 @@ function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
               </span>
               <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', {
                 starter:     'bg-slate-50 text-slate-500 border-slate-200',
-                scaler:      'bg-blue-50 text-blue-600 border-blue-200',
+                scaler:      'bg-primary-soft text-primary border-primary-border',
                 transformer: 'bg-violet-50 text-violet-600 border-violet-200',
               }[uc.complexity])}>
                 {uc.complexity === 'starter' ? 'Einstieg' : uc.complexity === 'scaler' ? 'Mittelstufe' : 'Fortgeschritten'}
@@ -277,7 +277,7 @@ function CatalogRecommendationsCard({
                     <button
                       key={name}
                       onClick={() => onSelectComp(comp)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-blue-300 hover:bg-primary-soft transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                     >
                       <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
                       {comp.dsgvo_status && (
@@ -302,7 +302,7 @@ function CatalogRecommendationsCard({
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Empfohlene Rollen</p>
         <div className="flex flex-wrap gap-1.5">
           {recs.roleNames.map(role => (
-            <span key={role} className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 font-medium">{role}</span>
+            <span key={role} className="px-2.5 py-1 bg-primary-soft border border-primary-border rounded-lg text-xs text-primary-hover font-medium">{role}</span>
           ))}
         </div>
       </div>
@@ -473,7 +473,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <h2 className="text-sm font-semibold text-slate-900">Gespeicherte Architekturen ({architectures.length})</h2>
           <button
             onClick={handleNewWizard}
-            className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             Neue Architektur →
           </button>
@@ -497,7 +497,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   <div className="flex gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleViewSaved(arch)}
-                      className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                      className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                     >
                       Ansehen
                     </button>
@@ -642,7 +642,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 <ul className="space-y-2.5" role="list">
                   {allSteps.map((s, i) => (
                     <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-blue-100 text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
                         {i + 1}
                       </span>
                       <span className="min-w-0">{s}</span>
@@ -658,7 +658,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleNewWizard}
-            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             Neue Architektur generieren
           </button>
@@ -669,7 +669,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 onClick={handleSave}
                 disabled={saving || needsDsgvoConfirm}
                 title={needsDsgvoConfirm ? 'Bitte zuerst den DSGVO-Hinweis bestätigen' : undefined}
-                className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
               >
                 {saving ? 'Wird gespeichert…' : needsDsgvoConfirm ? 'DSGVO-Hinweis bestätigen ↑' : 'Architektur speichern'}
               </button>
@@ -682,7 +682,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             href="/api/export/pdf?module=architecture"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             PDF exportieren
           </a>
@@ -700,7 +700,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           {architectures.length > 0 && (
             <button
               onClick={() => setView('list')}
-              className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
               Alle Architekturen
             </button>
@@ -708,12 +708,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         </div>
 
         {/* Canvas CTA */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="bg-primary-soft border border-primary-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-blue-900">Nächster Schritt: AI Business Canvas</p>
-            <p className="text-xs text-blue-700 mt-0.5">Übersetzen Sie Ihre Architektur in einen konkreten Business Case — mit Problem, Lösung, KPIs und Stakeholdern.</p>
+            <p className="text-xs text-primary-hover mt-0.5">Übersetzen Sie Ihre Architektur in einen konkreten Business Case — mit Problem, Lösung, KPIs und Stakeholdern.</p>
           </div>
-          <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             Canvas öffnen →
           </a>
         </div>
@@ -746,13 +746,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <span>{progress}%</span>
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       {/* Question card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
-        <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-2">Schritt {step.step}</p>
+        <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Schritt {step.step}</p>
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{step.question}</h2>
         <p className="text-sm text-slate-500 mb-5">{step.context}</p>
 
@@ -767,7 +767,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors select-none',
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-blue-500 bg-primary-soft'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   )}
                 >
@@ -795,14 +795,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <button
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           ← Zurück
         </button>
         {architectures.length > 0 && (
           <button
             onClick={() => setView('list')}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             Übersicht
           </button>
@@ -810,7 +810,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <button
           onClick={handleNext}
           disabled={!selectedOptionId}
-          className="px-5 py-2 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           {isLastStep ? 'Architektur generieren' : 'Weiter →'}
         </button>
@@ -836,7 +836,7 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
           <button
             onClick={onClose}
             aria-label="Schließen"
-            className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-0.5"
+            className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5"
           >✕</button>
         </div>
         {comp.description && (
@@ -873,7 +873,7 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
                   href={comp.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline break-all"
+                  className="text-xs text-primary hover:underline break-all"
                 >
                   {comp.website_url.replace(/^https?:\/\//, '')} ↗
                 </a>

@@ -15,7 +15,7 @@ const quadrantBadge = (q: UseCase['quadrant']) => {
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
       m.color === 'emerald' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-      m.color === 'blue'    ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+      m.color === 'blue'    ? 'bg-primary-soft text-primary-hover border border-primary-border' :
       m.color === 'amber'   ? 'bg-amber-50 text-amber-700 border border-amber-200' :
       'bg-slate-100 text-slate-600 border border-slate-200'
     }`}>
@@ -55,7 +55,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
             onChange={e => setSearch(e.target.value)}
             placeholder="Use Cases suchen…"
             aria-label="Use Cases suchen"
-            className="w-full sm:w-64 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full sm:w-64 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500"
           />
         </div>
       )}
@@ -131,7 +131,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
                       ⬣ Governance
                     </a>
                     <button onClick={() => onEdit(uc)} aria-label="Bearbeiten"
-                      className="p-1.5 text-slate-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50">✏️</button>
+                      className="p-1.5 text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-primary-soft">✏️</button>
                     <button onClick={() => onDelete(uc.id)} aria-label="Löschen"
                       className="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">🗑️</button>
                   </div>

@@ -65,7 +65,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
       >
         Teilen
       </button>
@@ -95,7 +95,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                         className={cn(
                           'flex-1 px-2 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap',
                           expiryDays === opt.days
-                            ? 'bg-blue-600 text-white border-blue-600'
+                            ? 'bg-primary text-white border-blue-600'
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         )}
                       >
@@ -107,7 +107,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                 <button
                   onClick={handleCreate}
                   disabled={creating}
-                  className="w-full py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="w-full py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
                 >
                   {creating ? 'Link wird erstellt…' : 'Link erstellen'}
                 </button>
@@ -125,7 +125,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                   <button
                     onClick={handleCopy}
                     aria-label="Link kopieren"
-                    className="px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
                   >
                     {copied ? '✓' : 'Kopieren'}
                   </button>

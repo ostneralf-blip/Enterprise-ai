@@ -91,7 +91,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
               ))}
             </select>
             {canvasId && (
-              <p className="text-[11px] text-blue-600 mt-1">
+              <p className="text-[11px] text-primary mt-1">
                 ◧ Verknüpfter Canvas wird im Architektur-Generator berücksichtigt.
               </p>
             )}
@@ -113,8 +113,8 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
                       <button key={v} type="button" onClick={() => setScores(s => ({ ...s, [c.id]: v }))}
                         aria-pressed={scores[c.id] === v}
                         aria-label={`${c.label}: ${v}`}
-                        className={`flex-1 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          scores[c.id] === v ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        className={`flex-1 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring ${
+                          scores[c.id] === v ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                         }`}>
                         {v}
                       </button>
@@ -132,7 +132,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
 
         <div className={`flex items-center gap-2 p-3 rounded-xl border text-sm ${
           qMeta.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
-          qMeta.color === 'blue'    ? 'bg-blue-50 border-blue-200' :
+          qMeta.color === 'blue'    ? 'bg-primary-soft border-primary-border' :
           qMeta.color === 'amber'   ? 'bg-amber-50 border-amber-200' :
           'bg-slate-50 border-slate-200'
         }`}>
@@ -149,7 +149,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
             Abbrechen
           </button>
           <button type="submit" disabled={saving}
-            className="px-5 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {saving ? 'Wird gespeichert…' : editing ? 'Aktualisieren' : 'Use Case hinzufügen'}
           </button>
         </div>

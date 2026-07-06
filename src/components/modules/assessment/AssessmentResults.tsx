@@ -107,7 +107,7 @@ export function AssessmentResults({
         </div>
 
         {/* Recommendations based on weakest dims */}
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+        <div className="bg-primary-soft border border-primary-border rounded-2xl p-6">
           <h3 className="font-semibold text-slate-900 mb-3">Top Handlungsempfehlungen</h3>
           <div className="space-y-2">
             {Object.entries(dimScores)
@@ -117,7 +117,7 @@ export function AssessmentResults({
                 const dim = ASSESSMENT_DIMENSIONS.find(d => d.id === dimId)!
                 return (
                   <div key={dimId} className="flex gap-3 text-sm">
-                    <span className="text-blue-500 shrink-0 mt-0.5">→</span>
+                    <span className="text-primary shrink-0 mt-0.5">→</span>
                     <span className="text-slate-700">
                       <strong>{dim.label}</strong> ({score.toFixed(1)}/5): {
                         dimId === 'data' ? 'Data-Governance-Initiative starten, Masterdatenmodell definieren' :
@@ -149,7 +149,7 @@ export function AssessmentResults({
           <button onClick={handleExportPDF}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-300 text-slate-700 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
             📄 PDF exportieren
-            {tier === 'free' && <span className="text-xs text-blue-600 ml-1">Pro</span>}
+            {tier === 'free' && <span className="text-xs text-primary ml-1">Pro</span>}
           </button>
 
           <button onClick={onRestart}

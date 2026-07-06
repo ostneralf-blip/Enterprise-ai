@@ -89,7 +89,7 @@ export default function FeedbackPage() {
                   aria-pressed={category === c.value}
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                     category === c.value
-                      ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                      ? 'bg-primary border-blue-600 text-white font-medium'
                       : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -115,7 +115,7 @@ export default function FeedbackPage() {
                   ? 'Welches Feature wünschen Sie sich? Warum wäre es hilfreich?'
                   : 'Wie können wir helfen?'
               }
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y"
             />
           </div>
 
@@ -123,7 +123,7 @@ export default function FeedbackPage() {
             <button
               type="submit"
               disabled={sending || !message.trim()}
-              className="whitespace-nowrap px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="whitespace-nowrap px-5 py-2.5 bg-primary hover:bg-primary disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
             >
               {sending ? 'Wird gesendet…' : 'Absenden'}
             </button>
@@ -156,7 +156,7 @@ export default function FeedbackPage() {
                   className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 border border-blue-100 rounded px-1.5 py-0.5 shrink-0">
+                    <span className="text-xs font-mono font-semibold text-primary-hover bg-primary-soft border border-blue-100 rounded px-1.5 py-0.5 shrink-0">
                       v{entry.version}
                     </span>
                     <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{entry.label}</span>

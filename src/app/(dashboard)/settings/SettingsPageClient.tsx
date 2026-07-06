@@ -30,11 +30,11 @@ const TIER_LABELS: Record<Tier, string> = {
 
 const TIER_COLORS: Record<Tier, string> = {
   free: 'bg-slate-100 text-slate-600',
-  pro: 'bg-blue-100 text-blue-700',
+  pro: 'bg-blue-100 text-primary-hover',
   enterprise: 'bg-violet-100 text-violet-700',
 }
 
-const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-400'
+const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-400'
 const labelClass = 'block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5'
 
 export function SettingsPageClient({ profile, email }: Props) {
@@ -286,8 +286,8 @@ export function SettingsPageClient({ profile, email }: Props) {
               type="submit"
               disabled={saving}
               className={cn(
-                'px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                saving ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-500'
+                'px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
+                saving ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-primary text-white hover:bg-primary'
               )}
             >
               {saving ? 'Speichern...' : 'Speichern'}
@@ -356,7 +356,7 @@ export function SettingsPageClient({ profile, email }: Props) {
           {pwError && <p role="alert" className="text-sm text-red-600">{pwError}</p>}
           {pwSaved && <p role="status" className="text-sm text-emerald-600 font-medium">✓ Passwort erfolgreich geändert</p>}
           <button type="button" onClick={handlePasswordChange} disabled={!pwValid || pwSaving}
-            className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-primary text-white hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {pwSaving ? 'Wird gespeichert…' : 'Passwort ändern'}
           </button>
         </div>
@@ -379,7 +379,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               onClick={handlePortal}
               disabled={portalLoading}
               className={cn(
-                'px-5 py-2 text-sm font-medium rounded-xl border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                'px-5 py-2 text-sm font-medium rounded-xl border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
                 portalLoading
                   ? 'border-slate-200 text-slate-400 cursor-not-allowed'
                   : 'border-slate-300 text-slate-700 hover:bg-slate-50'
@@ -417,7 +417,7 @@ export function SettingsPageClient({ profile, email }: Props) {
             <button
               onClick={handleWizardReset}
               disabled={wizardResetting}
-              className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
               {wizardResetting ? 'Wird zurückgesetzt…' : 'Pfad zurücksetzen'}
             </button>

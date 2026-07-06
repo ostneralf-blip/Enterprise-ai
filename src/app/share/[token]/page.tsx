@@ -137,7 +137,7 @@ function ArchitectureShareView({ entity }: { entity: { title: string | null; res
           <ul className="space-y-2">
             {result.nextSteps.map((s, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
-                <span className="flex-shrink-0 w-4 h-4 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
+                <span className="flex-shrink-0 w-4 h-4 bg-blue-100 text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
                 <span className="min-w-0">{s}</span>
               </li>
             ))}
@@ -167,7 +167,7 @@ function AssessmentShareView({ entity }: { entity: { archetype: string; total_sc
         <p className="text-xs text-slate-500 mb-1">Archetype</p>
         <p className="text-2xl font-bold text-slate-900">{ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype}</p>
         <p className="text-sm text-slate-500 mt-3">Reifegrad-Score</p>
-        <p className="text-4xl font-bold text-blue-600 mt-1">{entity.total_score.toFixed(2)}</p>
+        <p className="text-4xl font-bold text-primary mt-1">{entity.total_score.toFixed(2)}</p>
         <p className="text-xs text-slate-400 mt-1">von 5.0</p>
       </div>
     </>

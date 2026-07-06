@@ -11,7 +11,7 @@ const NOW = Date.now()
 
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  scaler:      { label: 'AI Scaler',      color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  scaler:      { label: 'AI Scaler',      color: 'text-sky-700 bg-sky-100 border-sky-200' },
   transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
@@ -41,7 +41,7 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
       {/* Progress bar */}
       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
         <div
-          className="h-full bg-blue-500 rounded-full transition-all"
+          className="h-full bg-primary rounded-full transition-all"
           style={{ width: `${progressPct}%` }}
           role="progressbar"
           aria-valuenow={progressPct}
@@ -55,7 +55,7 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
       {nextStep && (
         <Link
           href={nextStep.proOnly && tier === 'free' ? '/upgrade' : nextStep.href}
-          className="flex items-center gap-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-3.5 mb-4 transition-colors group"
+          className="flex items-center gap-4 bg-primary hover:bg-primary text-white rounded-xl px-4 py-3.5 mb-4 transition-colors group"
           aria-label={`Nächster Schritt: ${nextStep.title}`}
         >
           <div className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-base">
@@ -98,7 +98,7 @@ function GuidedPath({ steps, tier }: { steps: PathStep[]; tier: Tier }) {
                 s.done
                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                   : isCurrent
-                    ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
+                    ? 'bg-primary-soft border-blue-300 text-primary-hover ring-1 ring-blue-300'
                     : 'bg-slate-50 border-slate-200 text-slate-400',
               ].join(' ')}
             >
@@ -249,7 +249,7 @@ export default async function DashboardPage() {
             Assessments, Architekturen, Governance & Roadmaps — primär markierte Ergebnisse fließen als Kontext in den Architektur-Generator ein.
           </div>
           {savedCount >= 2 && (
-            <div className="text-[10px] text-blue-600 mt-1 font-medium">Ergebnisse vergleichen →</div>
+            <div className="text-[10px] text-primary mt-1 font-medium">Ergebnisse vergleichen →</div>
           )}
         </Link>
       </div>
@@ -301,13 +301,13 @@ export default async function DashboardPage() {
                     <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 font-medium">✓ Erledigt</span>
                   )}
                   <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-md px-2 py-0.5">{mod.duration}</span>
-                  {locked && <span className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 font-medium">Pro</span>}
+                  {locked && <span className="text-xs text-primary bg-primary-soft border border-primary-border rounded-md px-2 py-0.5 font-medium">Pro</span>}
                 </div>
               </div>
-              <h3 className={`font-semibold text-slate-900 mb-1 transition-colors ${!locked ? 'group-hover:text-blue-700' : ''}`}>{mod.title}</h3>
+              <h3 className={`font-semibold text-slate-900 mb-1 transition-colors ${!locked ? 'group-hover:text-primary-hover' : ''}`}>{mod.title}</h3>
               <p className="text-xs text-slate-500 mb-1">{(tier !== 'free' && mod.subtitlePro) ? mod.subtitlePro : mod.subtitle}</p>
               <p className="text-sm text-slate-600 leading-relaxed mt-3">{mod.description}</p>
-              <div className={`mt-4 text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600 group-hover:text-emerald-700' : 'text-blue-600 group-hover:text-blue-700'}`}>
+              <div className={`mt-4 text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600 group-hover:text-emerald-700' : 'text-primary group-hover:text-primary-hover'}`}>
                 {locked ? '🔒 Pro erforderlich →' : done ? 'Ergebnis ansehen →' : 'Starten →'}
               </div>
               {hint && (
@@ -325,7 +325,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-[1fr_60px_60px] bg-slate-50 border-b border-slate-100">
               <div className="px-4 py-2.5 text-xs font-medium text-slate-500">Feature</div>
               <div className="px-3 py-2.5 text-xs font-medium text-slate-500 text-center">Free</div>
-              <div className="px-3 py-2.5 text-xs font-medium text-blue-600 text-center">Pro</div>
+              <div className="px-3 py-2.5 text-xs font-medium text-primary text-center">Pro</div>
             </div>
             {([
               { label: '5 Basis-Tools (Assessment, Scoring, Governance, Roadmap, Canvas)', free: true, pro: true },
@@ -338,7 +338,7 @@ export default async function DashboardPage() {
               <div key={label} className="grid grid-cols-[1fr_60px_60px] border-t border-slate-100">
                 <div className="px-4 py-2.5 text-sm text-slate-700">{label}</div>
                 <div className="px-3 py-2.5 text-center text-sm">{free ? <span className="text-emerald-600 font-medium">✓</span> : <span className="text-slate-300">—</span>}</div>
-                <div className="px-3 py-2.5 text-center text-sm">{pro ? <span className="text-blue-600 font-medium">✓</span> : <span className="text-slate-300">—</span>}</div>
+                <div className="px-3 py-2.5 text-center text-sm">{pro ? <span className="text-primary font-medium">✓</span> : <span className="text-slate-300">—</span>}</div>
               </div>
             ))}
           </div>
@@ -352,7 +352,7 @@ export default async function DashboardPage() {
             <div className="text-blue-200 text-sm">PDF-Export, Ergebnisse speichern, Versionierung und alle 7 Tools.</div>
           </div>
           <Link href="/upgrade"
-            className="bg-white text-blue-700 font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">
+            className="bg-white text-primary-hover font-semibold text-sm px-5 py-2.5 rounded-lg hover:bg-primary-soft transition-colors shrink-0">
             Ab €49/Monat →
           </Link>
         </div>
