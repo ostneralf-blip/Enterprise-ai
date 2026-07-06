@@ -22,10 +22,13 @@ function analyzeCanvasData(data: CanvasData) {
     /vision|bilderkennung|computer.?vision/.test(text) ? 'Computer Vision' : null
 
   const compliance: string[] = []
-  if (/dsgvo|datenschutz|personenbezogen/.test(text)) compliance.push('DSGVO relevant')
-  if (/eu.?ai.?act|hochrisiko/.test(text)) compliance.push('EU AI Act relevant')
-  if (/eu.hosting|eu.server|frankfurt|irland/.test(text)) compliance.push('EU-Hosting bevorzugt')
-  if (/iso.?27001|isms/.test(text)) compliance.push('ISO 27001 relevant')
+  if (/dsgvo|datenschutz|personenbezogen|gdpr|art\.?\s*6|art\.?\s*9|betroffene|auskunftsrecht|lösch|auftragsverarbeitung|\bavv\b|datenschutzbeauftragte|privacy|\bdpo\b|einwilligung|verarbeitungsverzeichnis/.test(text)) compliance.push('DSGVO relevant')
+  if (/eu.?ai.?act|ki.?verordnung|hochrisiko|high.?risk|verbotene ki|prohibited|transparenzpflicht|konformitätsbewertung|technische dokumentation|ce.?kennzeichnung/.test(text)) compliance.push('EU AI Act relevant')
+  if (/eu.hosting|eu.server|frankfurt|irland|amsterdam|rechenzentrum europa|cloud act|schrems|drittland|standardvertragsklausel|angemessenheitsbeschluss|onshore|datensouveränität/.test(text)) compliance.push('EU-Hosting / Datensouveränität')
+  if (/iso.?27001|isms|informationssicherheit|it.?sicherheit|soc.?2|soc2|penetrationstest|pentest|schwachstellen/.test(text)) compliance.push('ISO 27001 / IT-Sicherheit relevant')
+  if (/nis.?2|nis2|kritis|kritische infrastruktur|netzwerk.*informationssicherheit|cyber.?sicherheit|meldepflicht.*vorfall/.test(text)) compliance.push('NIS2 / KRITIS relevant')
+  if (/gesundheit|patientendaten|medizin|klinik|krankenhaus|hipaa|mdr|medizinprodukt/.test(text)) compliance.push('Gesundheitsdaten / MDR relevant')
+  if (/finanz|banking|zahlungs|psd2|mifid|bafin|kreditinstitut|versicherung/.test(text)) compliance.push('Finanzregulierung relevant')
 
   const filledCount = Object.values(data).filter(v => v?.trim()).length
   return { platform, usecaseType, compliance, filledCount }

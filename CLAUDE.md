@@ -110,6 +110,25 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - NIEMALS `.env*`-Dateien oder Backups davon (`.env.local.backup` etc.) committen — vor jedem `git add .` einen `git status`-Check auf unerwartete Dateien durchführen (siehe Incident vom 20.06.2026 in `docs/testing/rls-verification-results.md`)
 - NIEMALS Migrationen manuell im SQL-Editor ausführen — immer `supabase migration new` + `db push` (siehe Abschnitt oben)
 
+### Obsidian Vault — Pflicht nach jedem finalen Push (seit 06.07.2026)
+Nach jedem `git push origin main` (finaler Push, nicht feature-branch) muss der Obsidian Vault
+aktualisiert werden. Drei Kategorien:
+
+**1. DB-Schema-Änderungen** (jede neue Migration):
+- Neue Tabellen, Spalten, Constraints, RLS-Policies → Note `AI Navigator/Datenbankstruktur.md` aktualisieren
+- Format: `| Tabelle | Spalte/Änderung | Typ | Migration | Datum |`
+
+**2. Neue Features und Architekturentscheidungen**:
+- Sprint-Abschluss → Note `AI Navigator/Sprint-Log.md` mit Commit-Hash, Feature-Beschreibung, betroffene Dateien
+- Neue API-Routen, neue Komponenten-Typen, neue Datenflüsse dokumentieren
+
+**3. Bugfixes mit Architektur-Relevanz**:
+- Fixes die das DB-Schema, Auth-Flow, Tier-Gating oder RLS betreffen → in Obsidian vermerken
+
+**Werkzeug:** MCP-Obsidian-Integration (`obsidian_patch_content` / `obsidian_append_content`) oder
+manuell in der Obsidian-App. Vault-Pfad und Note-Struktur aus bestehenden Notes übernehmen.
+Kein separater Commit nötig — Vault-Updates sind kein Git-Artefakt.
+
 ### Umgang mit laufenden Korrekturen & Feature-Wünschen
 Während der Entwicklung kommen ständig kleine Korrekturen oder neue Feature-Ideen auf. Diese werden nach folgender Klassifikation behandelt, nicht jedes Mal einzeln rückgefragt:
 
