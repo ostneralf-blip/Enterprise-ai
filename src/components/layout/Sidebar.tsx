@@ -18,16 +18,16 @@ export function Sidebar({ profile }: SidebarProps) {
   const content = (
     <>
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-700 flex items-center justify-between">
+      <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
         <Link href="/dashboard" onClick={close} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm font-bold">N</div>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm font-bold text-white">N</div>
           <div>
-            <div className="font-semibold text-sm tracking-wide">AI Navigator</div>
+            <div className="font-semibold text-sm tracking-wide text-slate-900">AI Navigator</div>
             <div className="text-xs text-slate-400">enterprise-ai.biz</div>
           </div>
         </Link>
         <button onClick={close} aria-label="Menü schließen"
-          className="lg:hidden text-slate-400 hover:text-white p-1 -mr-1">
+          className="lg:hidden text-slate-400 hover:text-slate-600 p-1 -mr-1">
           ✕
         </button>
       </div>
@@ -37,7 +37,7 @@ export function Sidebar({ profile }: SidebarProps) {
         <NavItem href="/dashboard" icon="◎" label="Geführter Pfad" active={pathname === '/dashboard'} onNavigate={close} />
 
         <div className="pt-4 pb-1 px-3">
-          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tools</span>
+          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">Tools</span>
         </div>
 
         {MODULES.map(mod => {
@@ -64,7 +64,7 @@ export function Sidebar({ profile }: SidebarProps) {
         />
 
         <div className="pt-4 pb-1 px-3">
-          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Konto</span>
+          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">Konto</span>
         </div>
         <NavItem href="/settings" icon="⚙" label="Einstellungen" active={pathname === '/settings'} onNavigate={close} />
         <NavItem href="/feedback" icon="✉" label="Feedback & Support" active={pathname === '/feedback'} onNavigate={close} />
@@ -73,14 +73,14 @@ export function Sidebar({ profile }: SidebarProps) {
         )}
       </nav>
 
-      {/* Tier Badge */}
+      {/* Tier Badge — helles Editorial-Design */}
       {tier === 'free' && (
-        <div className="p-4 border-t border-slate-700">
-          <div className="bg-primary/20 border border-blue-500/30 rounded-lg p-3">
-            <div className="text-xs font-semibold text-blue-400 mb-1">Explorer Plan</div>
-            <div className="text-xs text-slate-400 mb-2">PDF-Export, Speichern und mehr mit Pro</div>
+        <div className="p-4 border-t border-slate-200">
+          <div className="bg-primary-soft border border-primary-border rounded-lg p-3">
+            <div className="text-xs font-semibold text-primary mb-1">Explorer Plan</div>
+            <div className="text-xs text-slate-500 mb-2">PDF-Export, Speichern und mehr mit Pro</div>
             <Link href="/upgrade" onClick={close}
-              className="block text-center text-xs font-semibold text-white bg-primary hover:bg-primary rounded-md py-1.5 transition-colors">
+              className="block text-center text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-md py-1.5 transition-colors">
               Upgrade auf Pro →
             </Link>
           </div>
@@ -88,23 +88,23 @@ export function Sidebar({ profile }: SidebarProps) {
       )}
 
       {/* Legal-Footer */}
-      <div className="px-4 py-3 border-t border-slate-800 space-y-2">
+      <div className="px-4 py-3 border-t border-slate-200 space-y-2">
         <div className="flex gap-3">
-          <Link href="/impressum" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Impressum</Link>
-          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Datenschutz</Link>
-          <Link href="/agb" target="_blank" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">AGB</Link>
+          <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Impressum</Link>
+          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Datenschutz</Link>
+          <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">AGB</Link>
         </div>
         <div className="flex items-center justify-between">
-          <Link href="/trust" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
-          <span className="text-xs text-slate-700">v0.5.0</span>
+          <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
+          <span className="text-xs text-slate-400">v0.5.0</span>
         </div>
-        <div className="pt-1 border-t border-slate-800/60">
-          <span className="text-xs text-slate-700">📖 Basiert auf: </span>
+        <div className="pt-1 border-t border-slate-200">
+          <span className="text-xs text-slate-400">📖 Basiert auf: </span>
           <a
             href="https://enterprise-ai.biz"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
             Enterprise AI Leitfaden · Daniel Ostner
           </a>
@@ -116,16 +116,16 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* Desktop: statische Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-slate-900 text-white shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
         {content}
       </aside>
 
       {/* Mobile: Backdrop + Slide-in-Drawer */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/50" onClick={close} aria-hidden="true" />
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={close} aria-hidden="true" />
       )}
       <aside className={cn(
-        'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-slate-900 text-white shrink-0 transition-transform duration-200',
+        'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-white border-r border-slate-200 shrink-0 transition-transform duration-200',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         {content}
@@ -142,14 +142,14 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
         active
-          ? 'bg-primary text-white'
+          ? 'bg-primary-soft text-primary border-l-[3px] border-primary -ml-px pl-[11px]'
           : locked
-          ? 'text-slate-600 cursor-pointer hover:text-slate-400'
-          : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+          ? 'text-slate-400 cursor-pointer hover:text-slate-500'
+          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
       )}>
       <span className="text-base w-5 text-center shrink-0">{icon}</span>
       <span className="flex-1 truncate">{label}</span>
-      {locked && <span className="text-xs text-slate-600 shrink-0">Pro</span>}
+      {locked && <span className="text-xs text-slate-400 shrink-0">Pro</span>}
     </Link>
   )
 }

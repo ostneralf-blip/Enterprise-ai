@@ -1,5 +1,13 @@
 import type { Metadata } from 'next'
+import { Lora } from 'next/font/google'
 import './globals.css'
+
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  display: 'swap',
+  variable: '--font-lora',
+})
 
 export const metadata: Metadata = {
   title: { default: 'AI Navigator', template: '%s | AI Navigator' },
@@ -14,8 +22,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" suppressHydrationWarning>
-      <body className="font-sans antialiased bg-slate-50 text-slate-900">
+    <html lang="de" suppressHydrationWarning className={lora.variable}>
+      <body className="font-sans antialiased bg-ivory text-slate-900">
         {children}
       </body>
     </html>

@@ -24,11 +24,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <MobileNavProvider>
-      {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt (dynamische Viewport-Höhe) */}
-      <div className="flex h-[100dvh] overflow-hidden bg-slate-50">
+      {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt */}
+      <div className="flex h-[100dvh] overflow-hidden bg-ivory">
         <BfcacheGuard />
         <Sidebar profile={profile} />
         <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+          {/* 3px Cover-Blau Deckenlinie — Buch-Branding */}
+          <div className="h-[3px] bg-primary shrink-0" aria-hidden="true" />
           <TopBar profile={profile} />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">

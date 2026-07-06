@@ -11,12 +11,18 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Semantische Primärfarb-Tokens — Initialwerte = heutige Blues (kein visueller Diff) */
-  --color-primary:        #2563EB;
-  --color-primary-hover:  #1D4ED8;
+  /* Theme D — Cover-Blau (WCAG AA: #1D4ED8 auf #FFF = 6,3:1 ✓) */
+  --color-primary:        #1D4ED8;
+  --color-primary-hover:  #2563EB;
   --color-primary-soft:   #EFF6FF;
   --color-primary-border: #BFDBFE;
   --color-primary-ring:   #3B82F6;
+
+  /* Ivory-Content-Hintergrund */
+  --color-ivory: #FCFCFA;
+
+  /* Serifenschrift (Lora via next/font/google, geladen in layout.tsx) */
+  --font-serif: var(--font-lora);
 }
 
 @media (prefers-color-scheme: dark) {
