@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { CompliancePageClient } from './CompliancePageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import type { Tier } from '@/types'
 import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
@@ -37,6 +39,9 @@ export default async function CompliancePage() {
           EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="compliance" contextKey="compliance.policies" />
+      </Suspense>
       <CompliancePageClient initialChecks={(checks ?? []) as CheckRow[]} />
     </div>
   )

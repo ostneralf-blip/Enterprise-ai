@@ -1,6 +1,8 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { RoadmapPageClient } from './RoadmapPageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import type { Metadata } from 'next'
 import type { Archetype, Tier } from '@/types'
 
@@ -65,6 +67,9 @@ export default async function RoadmapPage() {
           3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="roadmap" contextKey="roadmap.phase0" />
+      </Suspense>
       <RoadmapPageClient
         initialArchetype={archetype}
         fromAssessment={!!latestResult?.archetype}

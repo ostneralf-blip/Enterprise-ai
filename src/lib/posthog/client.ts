@@ -25,6 +25,7 @@ export type TrackingEvent =
   | 'register_started'
   | 'register_completed'
   | 'login'
+  | 'guidance_viewed'
 
 export function track(event: TrackingEvent, props?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && posthog.__loaded) {

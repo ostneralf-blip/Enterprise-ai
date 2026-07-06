@@ -1,6 +1,8 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { GovernancePageClient } from './GovernancePageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 
@@ -68,6 +70,9 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="governance" contextKey="governance.raci" />
+      </Suspense>
       <GovernancePageClient
         tier={tier}
         sessions={sessions ?? []}

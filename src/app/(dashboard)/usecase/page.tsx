@@ -1,6 +1,8 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { UseCasePageClient } from './UseCasePageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { DEFAULT_WEIGHTS } from '@/config/usecase-data'
 import type { Metadata } from 'next'
 import type { Tier, UseCasePortfolio, UseCase, UseCaseWeights } from '@/types'
@@ -73,6 +75,9 @@ export default async function UseCasePage() {
           5 Kriterien · Portfolio-Matrix · Priorisierung nach gewichtetem Score
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="usecase" contextKey="scoring.gates" />
+      </Suspense>
       <UseCasePageClient
         initialPortfolio={safePortfolio}
         initialCases={rawCases ?? []}

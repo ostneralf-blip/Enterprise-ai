@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import type { Tier, Archetype } from '@/types'
 import type { Metadata } from 'next'
 
@@ -137,6 +139,9 @@ export default async function ArchitecturePage({
           5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="architecture" contextKey="architecture.prinzipien" />
+      </Suspense>
       <ArchitecturePageClient
         initialArchitectures={architectures ?? []}
         assessmentContext={latestAssessment ? {

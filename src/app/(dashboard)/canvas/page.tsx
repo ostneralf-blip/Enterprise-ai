@@ -1,6 +1,8 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CanvasPageClient } from './CanvasPageClient'
+import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import type { Metadata } from 'next'
 import type { Canvas, Tier } from '@/types'
 
@@ -36,6 +38,9 @@ export default async function CanvasPage() {
           8 Felder · Vollständiges Template · Problem bis nächste Schritte
         </p>
       </div>
+      <Suspense fallback={null}>
+        <GuidancePanel module="canvas" contextKey="canvas.intro" />
+      </Suspense>
       <CanvasPageClient initialCanvases={canvases} tier={tier} />
     </div>
   )
