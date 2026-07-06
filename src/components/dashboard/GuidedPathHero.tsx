@@ -21,12 +21,14 @@ interface Props {
 
 export function GuidedPathHero({ steps, tier }: Props) {
   const [mounted, setMounted] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, [])
 
   const [animatedDone, setAnimatedDone] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (!mounted) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnimatedDone(new Set())
     const doneSteps = steps.filter(s => s.done).map(s => s.step)
     const timers: ReturnType<typeof setTimeout>[] = []

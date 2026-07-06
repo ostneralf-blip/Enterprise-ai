@@ -12,7 +12,6 @@ import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/li
 
 const NOW = Date.now()
 
-const LAYER_ICONS = ['◎', '◐', '▷', '□']
 
 const ARCHETYPE_LABELS: Record<string, string> = {
   starter: 'Starter',
