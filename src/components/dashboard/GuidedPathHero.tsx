@@ -27,12 +27,15 @@ export function GuidedPathHero({ steps, tier }: Props) {
 
   useEffect(() => {
     if (!mounted) return
+    setAnimatedDone(new Set())
     const doneSteps = steps.filter(s => s.done).map(s => s.step)
+    const timers: ReturnType<typeof setTimeout>[] = []
     doneSteps.forEach((step, i) => {
-      setTimeout(() => {
+      timers.push(setTimeout(() => {
         setAnimatedDone(prev => new Set([...prev, step]))
-      }, i * 80)
+      }, i * 80))
     })
+    return () => timers.forEach(clearTimeout)
   }, [mounted, steps])
 
   const completedCount = steps.filter(s => s.done).length
