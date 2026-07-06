@@ -27,6 +27,7 @@ export interface ContentLibraryEntry {
   content: string
   source: string | null
   tags: string[]
+  min_tier: string
   created_at: string
   updated_at: string
 }

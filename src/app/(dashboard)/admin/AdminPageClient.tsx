@@ -42,9 +42,10 @@ type FormState = {
   content: string
   source: string
   tags: string
+  min_tier: string
 }
 
-const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '' }
+const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
 
 export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [] }: Props) {
   const [tab, setTab] = useState<Tab>('content')
@@ -128,6 +129,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       content: entry.content,
       source: entry.source ?? '',
       tags: entry.tags.join(', '),
+      min_tier: entry.min_tier ?? 'free',
     })
     setError(null)
     setShowForm(true)
@@ -150,6 +152,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       content: form.content.trim(),
       source: form.source.trim() || null,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      min_tier: form.min_tier || 'free',
     }
     try {
       if (editing) {
@@ -671,6 +674,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     placeholder="tag1, tag2"
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
+                <div>
+                  <label htmlFor="admin-min-tier" className="block text-xs font-medium text-slate-700 mb-1">Sichtbar ab Tier</label>
+                  <select id="admin-min-tier" value={form.min_tier}
+                    onChange={e => setForm(f => ({ ...f, min_tier: e.target.value }))}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
+                    {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleSave} disabled={saving}
@@ -699,6 +710,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Kategorie</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs min-w-0">Titel</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden sm:table-cell">Tags</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Tier</th>
                     <th className="text-right px-4 py-3 font-medium text-slate-600 text-xs"><span className="sr-only">Aktionen</span></th>
                   </tr>
                 </thead>
@@ -716,6 +728,15 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             <span key={tag} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">{tag}</span>
                           ))}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {(entry.min_tier ?? 'free') !== 'free' ? (
+                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                            {entry.min_tier}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">free</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button onClick={() => openEdit(entry)}

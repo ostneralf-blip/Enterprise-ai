@@ -16,9 +16,16 @@ const CAT: Record<GuidanceCategory, { label: string; icon: string; pill: string;
 interface Props {
   entries: GuidanceEntry[]
   module: string
+  userTier: string
 }
 
-export function GuidanceDrawer({ entries, module }: Props) {
+function isLocked(entry: GuidanceEntry, userTier: string) {
+  if (entry.min_tier === 'pro' && userTier === 'free') return true
+  if (entry.min_tier === 'enterprise' && userTier !== 'enterprise') return true
+  return false
+}
+
+export function GuidanceDrawer({ entries, module, userTier }: Props) {
   const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -66,7 +73,26 @@ export function GuidanceDrawer({ entries, module }: Props) {
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {entries.map(entry => {
                 const cfg = CAT[entry.category]
+                const locked = isLocked(entry, userTier)
                 const isOpen = expanded === entry.id
+                if (locked) {
+                  return (
+                    <div key={entry.id} className="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden opacity-70">
+                      <div className="flex items-center gap-3 px-3 py-3 min-h-[44px]">
+                        <span className={cn('w-1 self-stretch rounded-full shrink-0', cfg.bar)} aria-hidden="true" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-none mb-0.5">
+                            {cfg.label}
+                          </p>
+                          <p className="text-sm text-slate-500 font-medium leading-snug">{entry.title}</p>
+                        </div>
+                        <span className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 whitespace-nowrap">
+                          Pro
+                        </span>
+                      </div>
+                    </div>
+                  )
+                }
                 return (
                   <div key={entry.id} className="border border-slate-200 rounded-xl bg-white overflow-hidden">
                     <button

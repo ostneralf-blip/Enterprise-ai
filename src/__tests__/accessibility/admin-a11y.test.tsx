@@ -14,6 +14,7 @@ const MOCK_ENTRIES: ContentLibraryEntry[] = [
     content: 'Hochrisikoklassifikation nach Anhang III...',
     source: 'EU AI Act',
     tags: ['eu-ai-act', 'hochrisiko'],
+    min_tier: 'free',
     created_at: '2026-06-01T00:00:00Z',
     updated_at: '2026-06-01T00:00:00Z',
   },

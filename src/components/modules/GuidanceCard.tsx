@@ -12,6 +12,7 @@ export interface GuidanceEntry {
   category: GuidanceCategory
   source: string | null
   context_key: string | null
+  min_tier: string
 }
 
 interface Props extends GuidanceEntry {

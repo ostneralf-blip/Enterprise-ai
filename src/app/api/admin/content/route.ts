@@ -5,6 +5,8 @@ import { requireAdmin } from '@/lib/utils/admin-check'
 
 const CATEGORIES = ['definition', 'best_practice', 'anti_pattern', 'policy_template', 'checkliste', 'hinweis'] as const
 
+const TIERS = ['free', 'pro', 'enterprise'] as const
+
 const CreateSchema = z.object({
   module:        z.string().min(1).max(50),
   category:      z.enum(CATEGORIES),
@@ -15,6 +17,7 @@ const CreateSchema = z.object({
   context_key:   z.string().max(100).nullable().optional(),
   display_order: z.number().int().min(0).optional(),
   is_published:  z.boolean().optional(),
+  min_tier:      z.enum(TIERS).optional(),
 })
 
 const PatchSchema = z.object({
@@ -26,6 +29,7 @@ const PatchSchema = z.object({
   context_key:   z.string().max(100).nullable().optional(),
   display_order: z.number().int().min(0).optional(),
   is_published:  z.boolean().optional(),
+  min_tier:      z.enum(TIERS).optional(),
 })
 
 export async function GET() {
