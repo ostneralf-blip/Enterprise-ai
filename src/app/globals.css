@@ -5,7 +5,7 @@
   --foreground: #171717;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -25,7 +25,7 @@
   --font-serif: var(--font-lora);
 }
 
-/* ── Theme: book (Default — Cover-Blau, bereits in @theme inline gesetzt) ── */
+/* ── Theme: book (Default — Cover-Blau, bereits in @theme gesetzt) ── */
 [data-theme="book"] {
   --color-primary:        #1D4ED8;
   --color-primary-hover:  #2563EB;
