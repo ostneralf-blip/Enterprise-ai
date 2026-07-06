@@ -798,8 +798,8 @@ function archRecs(data: ExecutiveSummaryPdfData): string[] {
 }
 
 export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactElement {
-  const score = data.assessment?.totalScore ?? 0
-  const govResult = data.governance?.result ?? ''
+  const score      = data.assessment?.totalScore ?? 0
+  const govResult  = data.governance?.result ?? ''
   const completionPct = data.completedModules / Math.max(data.totalModules, 1)
   const scoreColor = score >= 4 ? C.ok : score >= 3 ? C.warn : score > 0 ? C.danger : C.gray
 
@@ -807,13 +807,20 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
     (score > 0 && score < 2.5) || govResult.startsWith('stop') ? 'rot' :
     score >= 4 && completionPct >= 0.7 ? 'gruen' : 'gelb'
 
-  const AMPEL: Record<string, { label: string; color: string; bg: string; text: string }> = {
-    gruen: { label: 'Bereit zur Skalierung',      color: C.ok,     bg: C.greenBg, text: C.green },
-    gelb:  { label: 'Aufbauphase',                color: C.warn,   bg: C.amberBg, text: C.amber },
-    rot:   { label: 'Kritischer Handlungsbedarf', color: C.danger, bg: C.redBg,   text: C.red },
+  const AMPEL: Record<string, { label: string; color: string; bg: string; text: string; desc: string }> = {
+    gruen: { label: 'Bereit zur Skalierung',      color: C.ok,     bg: C.greenBg, text: C.green,
+      desc: `Mit einem Score von ${score > 0 ? score.toFixed(1) : '–'}/5,0 und ${data.completedModules}/${data.totalModules} abgeschlossenen Modulen ist Ihr Unternehmen solide aufgestellt. Jetzt kommt es auf konsequente Skalierung an.` },
+    gelb:  { label: 'Aufbauphase',                color: C.warn,   bg: C.amberBg, text: C.amber,
+      desc: `Score ${score > 0 ? score.toFixed(1) : '–'}/5,0 — die Grundlagen sind vorhanden. Gezielte Investitionen in die identifizierten Lücken sind der Schlüssel zu erfolgreichen KI-Projekten.` },
+    rot:   { label: 'Kritischer Handlungsbedarf', color: C.danger, bg: C.redBg,   text: C.red,
+      desc: `Score ${score > 0 ? score.toFixed(1) : '–'}/5,0 — bevor KI-Projekte starten, müssen die kritischen Grundlagenfelder adressiert werden. Strukturiertes Aufbauprogramm spart langfristig erhebliche Kosten.` },
   }
   const ampel = AMPEL[ampelKey]
-  const top3 = boardRecs(data).slice(0, 3)
+  const top3  = boardRecs(data).slice(0, 3)
+
+  // Modul-Übersicht in expliziten Dreier-Reihen (kein flexWrap + %)
+  const moduleRows: Array<typeof data.moduleStatus> = []
+  for (let i = 0; i < data.moduleStatus.length; i += 3) moduleRows.push(data.moduleStatus.slice(i, i + 3))
 
   return (
     <Document title="Executive Summary">
@@ -824,7 +831,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 60 }}>
           <Text style={{ fontSize: 36, fontWeight: 'bold', color: C.brand, marginBottom: 6 }}>AI Navigator</Text>
           <Text style={{ fontSize: 10, color: C.gray2, letterSpacing: 2, marginBottom: 50 }}>ENTERPRISE AI. STRUKTURIERT NAVIGIERT.</Text>
-          <View style={{ width: 200, height: 1, backgroundColor: C.brand, opacity: 0.3, marginBottom: 50 }} />
+          <View style={{ width: 200, height: 1, backgroundColor: C.brand, marginBottom: 50 }} />
           <Text style={{ fontSize: 9, color: C.gray, letterSpacing: 3, marginBottom: 14 }}>EXECUTIVE SUMMARY</Text>
           {data.companyName ? (
             <Text style={{ fontSize: 24, fontWeight: 'bold', color: 'white', textAlign: 'center', marginBottom: 6 }}>
@@ -844,311 +851,321 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Executive Summary</Text>
 
-        {/* Gesamtstatus-Zeile */}
-        <View style={[s.row, { gap: 10, marginBottom: 18 }]}>
-          {/* Ampel */}
-          <View style={{
-            backgroundColor: ampel.bg, borderRadius: 8, padding: 14,
-            alignItems: 'center', justifyContent: 'center', width: 130,
-            borderWidth: 1, borderColor: ampel.color,
-          }}>
-            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: ampel.color, marginBottom: 6 }} />
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: ampel.text, textAlign: 'center', lineHeight: 1.3 }}>
-              {ampel.label}
-            </Text>
-            <Text style={{ fontSize: 7, color: C.gray, marginTop: 3 }}>Gesamtstatus</Text>
-          </View>
-          {/* KPIs */}
-          <View style={[s.row, { flex: 1, gap: 8 }]}>
-            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: scoreColor }}>
-                {score > 0 ? score.toFixed(1) : '–'}
-              </Text>
-              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Readiness{'\n'}Score /5,0</Text>
-            </View>
-            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
-              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Use Cases{'\n'}bewertet</Text>
-            </View>
-            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: completionPct >= 0.8 ? C.ok : C.warn }}>
-                {data.completedModules}/{data.totalModules}
-              </Text>
-              <Text style={{ fontSize: 7, color: C.gray, marginTop: 3, textAlign: 'center' }}>Module{'\n'}abgeschlossen</Text>
-            </View>
-            {data.governance ? (
-              <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 12, marginBottom: 0 }]}>
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
-                  {GOV_CFG_ES[data.governance.result]?.label ?? '–'}
-                </Text>
-                <Text style={{ fontSize: 7, color: C.gray, marginTop: 3 }}>Governance</Text>
+        {/* Gesamtstatus — volle Breite, kein split */}
+        <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: ampel.color, backgroundColor: ampel.bg, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+            <View style={{ backgroundColor: ampel.color, width: 6, borderRadius: 6 }} />
+            <View style={{ flex: 1, padding: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: ampel.color, marginRight: 7 }} />
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: ampel.text }}>{ampel.label}</Text>
               </View>
-            ) : null}
+              <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5 }}>{ampel.desc}</Text>
+            </View>
           </View>
+        </View>
+
+        {/* KPI-Zeile — marginRight statt gap */}
+        <View wrap={false} style={{ flexDirection: 'row', marginBottom: 14 }}>
+          <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: 6 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: scoreColor }}>{score > 0 ? score.toFixed(1) : '–'}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Readiness Score{'\n'}/5,0</Text>
+          </View>
+          <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: 6 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Use Cases{'\n'}bewertet</Text>
+          </View>
+          <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: data.governance ? 6 : 0 }]}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: completionPct >= 0.8 ? C.ok : C.warn }}>
+              {data.completedModules}/{data.totalModules}
+            </Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Module{'\n'}abgeschlossen</Text>
+          </View>
+          {data.governance ? (
+            <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0 }]}>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
+                {GOV_CFG_ES[data.governance.result]?.label ?? '–'}
+              </Text>
+              <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Governance</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Top-3 Empfehlungen */}
         <Text style={s.h2}>Top-3 Handlungsempfehlungen</Text>
         {top3.map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.brand, flexDirection: 'row', alignItems: 'flex-start', gap: 8 }]}>
-            <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+          <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+            <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
               <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
             </View>
             <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
           </View>
         ))}
 
-        {/* Modulübersicht als Grid */}
+        {/* Modulübersicht — explizite Rows à 3, kein flexWrap+% */}
         <Text style={s.h2}>Modulübersicht</Text>
-        <View style={[s.row, { flexWrap: 'wrap', gap: 5 }]}>
-          {data.moduleStatus.map((m, i) => (
-            <View key={i} style={{
-              width: '31%', flexDirection: 'row', alignItems: 'center', gap: 5,
-              backgroundColor: m.done ? C.greenBg : C.light,
-              borderWidth: 1, borderColor: m.done ? C.ok : C.border,
-              borderRadius: 6, paddingHorizontal: 7, paddingVertical: 5,
-            }}>
-              <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: m.done ? C.ok : C.border, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {m.done ? <Text style={{ fontSize: 5, color: 'white', fontWeight: 'bold' }}>✓</Text> : null}
+        {moduleRows.map((row, ri) => (
+          <View key={ri} style={{ flexDirection: 'row', marginBottom: 5 }}>
+            {row.map((m, ci) => (
+              <View key={ci} style={{
+                flex: 1, marginRight: ci < row.length - 1 ? 5 : 0,
+                flexDirection: 'row', alignItems: 'center',
+                backgroundColor: m.done ? C.greenBg : C.light,
+                borderWidth: 1, borderColor: m.done ? C.ok : C.border,
+                borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5,
+              }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: m.done ? C.ok : C.border, marginRight: 5, flexShrink: 0 }} />
+                <Text style={{ fontSize: 8, color: m.done ? C.green : C.gray, flex: 1 }}>{m.label}</Text>
               </View>
-              <Text style={{ fontSize: 8, color: m.done ? C.green : C.gray }}>{m.label}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ))}
 
         <PdfFooterEs company={data.companyName} />
       </Page>
 
       {/* ── SEITE 3: ASSESSMENT ────────────────────────────────────────────── */}
-      {data.assessment ? (
-        <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
+      {data.assessment ? (() => {
+        const dims     = data.assessment!.dimScores
+        const sorted   = Object.entries(dims).sort(([, a], [, b]) => Number(b) - Number(a))
+        const strongest = sorted[0]
+        const weakest   = sorted[sorted.length - 1]
+        const gapActions: Record<string, string> = {
+          data:       'Datenstrategie aufsetzen: Masterdatenmodell, Data Governance und Feature Store definieren — ohne Datenfundament kein skalierbares AI.',
+          skills:     'AI-Talentprogramm: Internes Upskilling für Fachteams + gezielte Rekrutierung von ML-Engineers und Data Scientists.',
+          governance: 'AI-Governance in 4 Wochen: RACI-Matrix, Risikoklassifizierung nach EU AI Act und Freigabeprozess dokumentieren.',
+          tech:       'Tech-Readiness: API-Strategie für Kernsysteme (ERP, CRM) entwickeln und Cloud-Infrastruktur für AI-Workloads vorbereiten.',
+          strategy:   'AI-Strategie verabschieden: Vision, messbare 12-Monats-Ziele und Investitionsrahmen im nächsten Board-Meeting beschließen.',
+          culture:    'Change-Management: AI-Literacy-Programm für Fachteams + Executive-Sponsorship sichern und erste sichtbare Quick Wins kommunizieren.',
+        }
+        return (
+          <Page size="A4" style={s.page}>
+            <PdfHeader company={data.companyName} />
 
-          {/* Result-Banner */}
-          <View style={{
-            backgroundColor: scoreColor === C.ok ? C.greenBg : scoreColor === C.warn ? C.amberBg : scoreColor === C.danger ? C.redBg : C.light,
-            borderRadius: 8, padding: 14, marginBottom: 16,
-            flexDirection: 'row', alignItems: 'center', gap: 14,
-            borderWidth: 1, borderColor: scoreColor,
-          }}>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 32, fontWeight: 'bold', color: scoreColor }}>{data.assessment.totalScore.toFixed(1)}</Text>
-              <Text style={{ fontSize: 8, color: C.gray }}>/ 5,0</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>
-                {ARCHETYPE_LABELS[data.assessment.archetype] ?? data.assessment.archetype}
-              </Text>
-              <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
-                {data.assessment.archetype === 'starter' ? 'Am Anfang der AI-Reise — Fokus auf erste Pilotprojekte mit klarem ROI.'
-                  : data.assessment.archetype === 'scaler' ? 'Erfolgreiche Piloten vorhanden — systematische Skalierung und AI-Kompetenzaufbau.'
-                  : 'AI als Teil der Unternehmens-DNA — Differenzierung durch proprietäre Daten und Modelle.'}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={s.h2}>Dimensionen im Detail</Text>
-          {Object.entries(data.assessment.dimScores).map(([dim, dimScore]) => {
-            const n = Number(dimScore)
-            const col = n >= 4 ? C.ok : n >= 3 ? C.warn : C.danger
-            return (
-              <View key={dim} style={{ marginBottom: 10 }}>
-                <View style={[s.row, { justifyContent: 'space-between', marginBottom: 3 }]}>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} / 5,0</Text>
-                </View>
-                <View style={{ backgroundColor: C.border, borderRadius: 4, height: 9 }}>
-                  <View style={{ backgroundColor: col, borderRadius: 4, height: 9, width: `${(n / 5) * 100}%` }} />
-                </View>
-                <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>
-                  {n >= 4 ? 'Stärke — weiter ausbauen' : n >= 3 ? 'Solide Basis — gezielt verbessern' : 'Handlungsbedarf — priorisiert adressieren'}
-                </Text>
+            {/* Score-Banner mit Stärken/Schwächen-Fazit */}
+            <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: scoreColor, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ alignItems: 'center', marginRight: 14, minWidth: 56 }}>
+                <Text style={{ fontSize: 34, fontWeight: 'bold', color: scoreColor, lineHeight: 1 }}>{data.assessment!.totalScore.toFixed(1)}</Text>
+                <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>/ 5,0</Text>
               </View>
-            )
-          })}
-
-          {(() => {
-            const gaps = Object.entries(data.assessment!.dimScores)
-              .sort(([, a], [, b]) => Number(a) - Number(b))
-              .slice(0, 3)
-              .filter(([, v]) => Number(v) < 4)
-            const gapHints: Record<string, string> = {
-              data:       'Datenstrategie, -qualität und -verfügbarkeit für AI-Anwendungen ausbauen.',
-              skills:     'AI/ML-Kompetenzen intern aufbauen und Recruiting für Data Scientists schärfen.',
-              governance: 'AI-Governance-Richtlinien, Risikoklassifizierung und Freigabeprozesse einführen.',
-              tech:       'Technische Infrastruktur und API-Readiness für AI-Workloads modernisieren.',
-              strategy:   'AI-Strategie formalisieren: Vision, messbare Ziele und Investitionsrahmen.',
-              culture:    'Change-Management und AI-Literacy-Programme etablieren, Führung als Vorbild.',
-            }
-            return gaps.length > 0 ? (
-              <>
-                <Text style={s.h2}>Prioritäre Verbesserungsfelder</Text>
-                {gaps.map(([dim, gapScore], i) => (
-                  <View key={dim} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.danger }]}>
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
-                      {i + 1}. {DIM_LABELS_ES[dim] ?? dim} — Score {Number(gapScore).toFixed(1)}/5,0
-                    </Text>
-                    <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>{gapHints[dim] ?? ''}</Text>
-                  </View>
-                ))}
-              </>
-            ) : null
-          })()}
-
-          <PdfFooterEs company={data.companyName} />
-        </Page>
-      ) : null}
-
-      {/* ── SEITE 4: USE-CASE PORTFOLIO ─────────────────────────────────────── */}
-      {data.topUseCases.length > 0 ? (
-        <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
-
-          {/* Result-Banner */}
-          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: C.brand }}>
-            <View style={{ alignItems: 'center', width: 54 }}>
-              <Text style={{ fontSize: 28, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
-              <Text style={{ fontSize: 7, color: C.gray }}>Use Cases</Text>
-            </View>
-            <View style={{ width: 1, height: 40, backgroundColor: C.border }} />
-            {(() => {
-              const counts: Record<string, number> = { quick_win: 0, strategic_bet: 0, low_hanging_fruit: 0, avoid: 0 }
-              data.topUseCases.forEach(u => { if (u.quadrant && u.quadrant in counts) counts[u.quadrant]++ })
-              const qlabels: Record<string, { label: string; color: string }> = {
-                quick_win:         { label: 'Quick Win',    color: C.ok },
-                strategic_bet:     { label: 'Strategisch',  color: C.brand },
-                low_hanging_fruit: { label: 'Niedr. Aufw.', color: C.warn },
-                avoid:             { label: 'Vermeiden',    color: C.danger },
-              }
-              return Object.entries(qlabels).map(([key, cfg]) => (
-                <View key={key} style={{ alignItems: 'center', flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', color: cfg.color }}>{counts[key] ?? 0}</Text>
-                  <Text style={{ fontSize: 7, color: C.gray, textAlign: 'center' }}>{cfg.label}</Text>
-                </View>
-              ))
-            })()}
-          </View>
-
-          <Text style={s.h2}>Top Use Cases nach Score</Text>
-          <View style={s.row}>
-            <Text style={[s.th, { flex: 3 }]}>Use Case</Text>
-            <Text style={[s.th, { flex: 1.2 }]}>Domäne</Text>
-            <Text style={[s.th, { flex: 0.8, textAlign: 'center' }]}>Score</Text>
-            <Text style={[s.th, { flex: 1.5 }]}>Kategorie</Text>
-          </View>
-          {data.topUseCases.map((uc, i) => {
-            const qLabel = QUADRANT_ES[uc.quadrant ?? ''] ?? uc.quadrant ?? '–'
-            const qColor = uc.quadrant === 'quick_win' ? C.ok : uc.quadrant === 'avoid' ? C.danger : C.warn
-            return (
-              <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
-                <Text style={[s.td, { flex: 3, fontWeight: i === 0 ? 'bold' : 'normal' }]}>{uc.name}</Text>
-                <Text style={[s.td, { flex: 1.2 }]}>{uc.domain ?? '–'}</Text>
-                <Text style={[s.td, { flex: 0.8, textAlign: 'center', fontWeight: 'bold', color: C.brand }]}>
-                  {uc.weightedScore != null ? uc.weightedScore.toFixed(2) : '–'}
+              <View style={{ width: 1, height: 48, backgroundColor: C.border, marginRight: 14 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
+                  {ARCHETYPE_LABELS[data.assessment!.archetype] ?? data.assessment!.archetype}
                 </Text>
-                <Text style={[s.td, { flex: 1.5, color: uc.quadrant ? qColor : C.gray }]}>{qLabel}</Text>
-              </View>
-            )
-          })}
-          {data.useCaseCount > data.topUseCases.length ? (
-            <Text style={{ fontSize: 9, color: C.gray, marginTop: 8, textAlign: 'center' }}>
-              + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im Portfolio
-            </Text>
-          ) : null}
-
-          <PdfFooterEs company={data.companyName} />
-        </Page>
-      ) : null}
-
-      {/* ── SEITE 5: GOVERNANCE ────────────────────────────────────────────── */}
-      {data.governance ? (
-        <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
-
-          {/* Result-Banner */}
-          {(() => {
-            const cfg = GOV_CFG_ES[data.governance!.result]
-            return (
-              <View style={{
-                backgroundColor: cfg?.bg ?? C.light, borderRadius: 8, padding: 14,
-                marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 14,
-                borderWidth: 1, borderColor: cfg?.color ?? C.border,
-              }}>
-                <View style={{ backgroundColor: cfg?.color ?? C.gray, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center', minWidth: 90 }}>
-                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'white', textAlign: 'center' }}>
-                    {cfg?.label ?? data.governance!.result}
+                {strongest && weakest ? (
+                  <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
+                    Stärkstes Feld: {DIM_LABELS_ES[strongest[0]] ?? strongest[0]} ({Number(strongest[1]).toFixed(1)}/5,0).
+                    {' '}Größter Hebel: {DIM_LABELS_ES[weakest[0]] ?? weakest[0]} ({Number(weakest[1]).toFixed(1)}/5,0).
                   </Text>
-                  <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Governance</Text>
-                </View>
-                {data.governance!.useCaseName ? (
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Geprüfter Use Case</Text>
-                    <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark }}>{data.governance!.useCaseName}</Text>
-                  </View>
                 ) : null}
               </View>
-            )
-          })()}
+            </View>
 
-          <Text style={s.h2}>Prüfprotokoll</Text>
-          {data.governance.protocol && data.governance.protocol.length > 0 ? (
-            data.governance.protocol.slice(0, 12).map((step, i) => {
-              const q = step.question ?? step.label ?? ''
-              const a = step.answer ?? step.value ?? ''
-              if (!q && !a) return null
+            <Text style={s.h2}>6 Dimensionen</Text>
+            {sorted.map(([dim, dimScore]) => {
+              const n   = Number(dimScore)
+              const col = n >= 4 ? C.ok : n >= 3 ? C.warn : C.danger
               return (
-                <View key={i} style={{ marginBottom: 7, borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 8 }}>
-                  {q ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 1 }}>{q}</Text> : null}
-                  {a ? <Text style={{ fontSize: 10, color: C.dark, fontWeight: 'bold' }}>{a}</Text> : null}
+                <View key={dim} wrap={false} style={{ marginBottom: 9 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} / 5,0</Text>
+                  </View>
+                  <View style={{ backgroundColor: C.border, borderRadius: 3, height: 8, marginBottom: 2 }}>
+                    <View style={{ backgroundColor: col, borderRadius: 3, height: 8, width: `${Math.round((n / 5) * 100)}%` }} />
+                  </View>
+                  <Text style={{ fontSize: 8, color: C.gray }}>
+                    {n >= 4 ? 'Stärke — ausbauen und als Vorteil nutzen' : n >= 3 ? 'Solide Basis — gezielt ausbauen' : 'Handlungsbedarf — mit Priorität adressieren'}
+                  </Text>
                 </View>
               )
-            })
-          ) : (
-            <Text style={{ fontSize: 9, color: C.gray }}>Kein Protokoll verfügbar.</Text>
-          )}
+            })}
 
-          <PdfFooterEs company={data.companyName} />
-        </Page>
-      ) : null}
+            {(() => {
+              const gaps = sorted.slice(-2).filter(([, v]) => Number(v) < 4).reverse()
+              return gaps.length > 0 ? (
+                <>
+                  <Text style={s.h2}>Prioritäre Handlungsfelder</Text>
+                  {gaps.map(([dim, gs], i) => (
+                    <View key={dim} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.danger, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+                      <Text style={{ fontSize: 9, color: C.danger, fontWeight: 'bold', marginRight: 8 }}>{i + 1}.</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
+                          {DIM_LABELS_ES[dim] ?? dim} — Score {Number(gs).toFixed(1)}/5,0
+                        </Text>
+                        <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>{gapActions[dim] ?? ''}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </>
+              ) : null
+            })()}
+
+            <PdfFooterEs company={data.companyName} />
+          </Page>
+        )
+      })() : null}
+
+      {/* ── SEITE 4: USE-CASE PORTFOLIO ─────────────────────────────────────── */}
+      {data.topUseCases.length > 0 ? (() => {
+        const counts: Record<string, number> = { quick_win: 0, strategic_bet: 0, low_hanging_fruit: 0, avoid: 0 }
+        data.topUseCases.forEach(u => { if (u.quadrant && u.quadrant in counts) counts[u.quadrant]++ })
+        const topUC   = data.topUseCases[0]
+        const qwCount = counts.quick_win
+        const quadrantMeta = [
+          { key: 'quick_win',         label: 'Quick Win',    color: C.ok,     bg: C.greenBg,  note: 'Sofort pilotieren' },
+          { key: 'strategic_bet',     label: 'Strategisch',  color: C.brand,  bg: '#dbeafe',  note: 'Budgetieren' },
+          { key: 'low_hanging_fruit', label: 'Niedr. Aufw.', color: C.warn,   bg: C.amberBg,  note: 'Evaluieren' },
+          { key: 'avoid',             label: 'Vermeiden',    color: C.danger, bg: C.redBg,    note: 'Zurückstellen' },
+        ]
+        return (
+          <Page size="A4" style={s.page}>
+            <PdfHeader company={data.companyName} />
+
+            {/* Insight-Banner */}
+            <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12 }}>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
+                {data.useCaseCount} Use Cases bewertet{qwCount > 0 ? ` · ${qwCount} sofort umsetzbar` : ''}
+              </Text>
+              {topUC ? (
+                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>
+                  {'Top-Use-Case: '}
+                  <Text style={{ fontWeight: 'bold', color: C.dark }}>{topUC.name}</Text>
+                  {topUC.weightedScore != null ? ` (Score ${topUC.weightedScore.toFixed(2)})` : ''}
+                  {topUC.quadrant === 'quick_win' ? ' — Quick Win: hoher Wert bei geringem Aufwand. Sofort pilotieren.' : topUC.quadrant === 'strategic_bet' ? ' — Strategisch: langfristiger Wert, Budgetplanung empfohlen.' : ''}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Quadrant-Tiles — marginRight statt gap */}
+            <View wrap={false} style={{ flexDirection: 'row', marginBottom: 14 }}>
+              {quadrantMeta.map((q, i) => (
+                <View key={q.key} style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: i < 3 ? 6 : 0, backgroundColor: q.bg, borderColor: q.color }]}>
+                  <Text style={{ fontSize: 22, fontWeight: 'bold', color: q.color }}>{counts[q.key] ?? 0}</Text>
+                  <Text style={{ fontSize: 8, fontWeight: 'bold', color: q.color, marginTop: 2 }}>{q.label}</Text>
+                  <Text style={{ fontSize: 7, color: C.gray, marginTop: 1 }}>{q.note}</Text>
+                </View>
+              ))}
+            </View>
+
+            <Text style={s.h2}>Top Use Cases nach Score</Text>
+            <View style={{ flexDirection: 'row', backgroundColor: C.dark2, borderRadius: 4 }}>
+              <Text style={[s.th, { flex: 3 }]}>Use Case</Text>
+              <Text style={[s.th, { flex: 1.2 }]}>Domäne</Text>
+              <Text style={[s.th, { flex: 0.8, textAlign: 'center' }]}>Score</Text>
+              <Text style={[s.th, { flex: 1.5 }]}>Kategorie</Text>
+            </View>
+            {data.topUseCases.map((uc, i) => {
+              const qLabel = QUADRANT_ES[uc.quadrant ?? ''] ?? '–'
+              const qColor = uc.quadrant === 'quick_win' ? C.ok : uc.quadrant === 'avoid' ? C.danger : uc.quadrant === 'strategic_bet' ? C.brand : C.warn
+              return (
+                <View key={i} wrap={false} style={{ flexDirection: 'row', backgroundColor: i % 2 === 1 ? C.light : 'white' }}>
+                  <Text style={[s.td, { flex: 3, fontWeight: i === 0 ? 'bold' : 'normal' }]}>{uc.name}</Text>
+                  <Text style={[s.td, { flex: 1.2 }]}>{uc.domain ?? '–'}</Text>
+                  <Text style={[s.td, { flex: 0.8, textAlign: 'center', fontWeight: 'bold', color: C.brand }]}>
+                    {uc.weightedScore != null ? uc.weightedScore.toFixed(2) : '–'}
+                  </Text>
+                  <Text style={[s.td, { flex: 1.5, color: qColor, fontWeight: 'bold' }]}>{qLabel}</Text>
+                </View>
+              )
+            })}
+            {data.useCaseCount > data.topUseCases.length ? (
+              <Text style={{ fontSize: 8, color: C.gray, marginTop: 6, textAlign: 'center' }}>
+                + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im vollständigen Portfolio
+              </Text>
+            ) : null}
+
+            <PdfFooterEs company={data.companyName} />
+          </Page>
+        )
+      })() : null}
+
+      {/* ── SEITE 5: GOVERNANCE ────────────────────────────────────────────── */}
+      {data.governance ? (() => {
+        const cfg = GOV_CFG_ES[data.governance!.result]
+        const resultDesc = data.governance!.result === 'approve'
+          ? 'Der Use Case hat die ethische, rechtliche und EU AI Act-Prüfung bestanden. Umsetzung kann beginnen.'
+          : data.governance!.result === 'conditional'
+          ? 'Umsetzung möglich unter Auflagen — die identifizierten Bedingungen müssen vor Go-Live erfüllt sein.'
+          : 'Umsetzung gestoppt — kritische Compliance-Blocker müssen behoben werden, bevor das Projekt fortgeführt wird.'
+        return (
+          <Page size="A4" style={s.page}>
+            <PdfHeader company={data.companyName} />
+
+            <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: cfg?.color ?? C.border, backgroundColor: cfg?.bg ?? C.light, padding: 14, marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <View style={{ backgroundColor: cfg?.color ?? C.gray, borderRadius: 5, paddingHorizontal: 12, paddingVertical: 6, marginRight: 12 }}>
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: 'white' }}>
+                    {cfg?.label ?? data.governance!.result}
+                  </Text>
+                </View>
+                {data.governance!.useCaseName ? (
+                  <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, flex: 1 }}>
+                    {data.governance!.useCaseName}
+                  </Text>
+                ) : null}
+              </View>
+              <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>{resultDesc}</Text>
+            </View>
+
+            <Text style={s.h2}>Prüfprotokoll</Text>
+            {data.governance!.protocol && data.governance!.protocol.length > 0 ? (
+              data.governance!.protocol.slice(0, 14).map((step, i) => {
+                const q = step.question ?? step.label ?? ''
+                const a = step.answer ?? step.value ?? ''
+                if (!q && !a) return null
+                return (
+                  <View key={i} wrap={false} style={{ borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 9, marginBottom: 7 }}>
+                    {q ? <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>{q}</Text> : null}
+                    {a ? <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{a}</Text> : null}
+                  </View>
+                )
+              })
+            ) : (
+              <Text style={{ fontSize: 9, color: C.gray }}>Kein Protokoll verfügbar.</Text>
+            )}
+
+            <PdfFooterEs company={data.companyName} />
+          </Page>
+        )
+      })() : null}
 
       {/* ── SEITE 6: ROADMAP ───────────────────────────────────────────────── */}
       {data.roadmap ? (
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
 
-          {/* Result-Banner */}
-          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: C.brand }}>
-            <View style={{ backgroundColor: C.brand, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center', minWidth: 60 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: 'white' }}>{data.roadmap.phases.length}</Text>
-              <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)' }}>Phasen</Text>
+          <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ backgroundColor: C.brand, borderRadius: 5, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', marginRight: 14, minWidth: 56 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>{data.roadmap.phases.length}</Text>
+              <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.8)' }}>Phasen</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.roadmap.title}</Text>
-              {data.roadmap.archetype ? (
-                <Text style={{ fontSize: 9, color: C.gray }}>{ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype}</Text>
-              ) : null}
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>{data.roadmap.title}</Text>
+              <Text style={{ fontSize: 9, color: C.gray }}>
+                {data.roadmap.archetype ? (ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype) : ''}
+                {data.roadmap.phases[0]?.duration ? ` · Startphase: ${data.roadmap.phases[0].duration}` : ''}
+              </Text>
             </View>
           </View>
 
           {data.roadmap.phases.map((phase, i) => (
-            <View key={i} style={[s.card, { marginBottom: 8 }]}>
-              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 }]}>
-                <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>Phase {i + 1}: {phase.title}</Text>
-                {phase.duration ? <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold' }}>{phase.duration}</Text> : null}
+            <View key={i} wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, flex: 1 }}>Phase {i + 1}: {phase.title}</Text>
+                {phase.duration ? <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold', marginLeft: 8 }}>{phase.duration}</Text> : null}
               </View>
-              {phase.focus ? <Text style={{ fontSize: 9, color: C.gray, marginBottom: 5, lineHeight: 1.4 }}>{phase.focus}</Text> : null}
-              {phase.actions && phase.actions.length > 0 ? (
-                <View>
-                  {phase.actions.slice(0, 4).map((a, j) => (
-                    <View key={j} style={[s.row, { gap: 4, marginBottom: 2 }]}>
-                      <Text style={{ fontSize: 9, color: C.brand }}>▸</Text>
-                      <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{a.label}</Text>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
+              {phase.focus ? <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4, marginBottom: 4 }}>{phase.focus}</Text> : null}
+              {phase.actions && phase.actions.length > 0 ?
+                phase.actions.slice(0, 4).map((a, j) => (
+                  <View key={j} style={{ flexDirection: 'row', marginBottom: 2 }}>
+                    <Text style={{ fontSize: 9, color: C.brand, marginRight: 4 }}>▸</Text>
+                    <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{a.label}</Text>
+                  </View>
+                )) : null}
               {phase.kpis && phase.kpis.length > 0 ? (
-                <Text style={{ fontSize: 8, color: C.gray, marginTop: 4 }}>KPIs: {phase.kpis.slice(0, 3).join(' · ')}</Text>
+                <Text style={{ fontSize: 8, color: C.gray, marginTop: 3 }}>KPIs: {phase.kpis.slice(0, 3).join(' · ')}</Text>
               ) : null}
             </View>
           ))}
@@ -1162,27 +1179,33 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
 
-          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: C.brand }}>
+          <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12 }}>
             <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.canvas.title}</Text>
             <Text style={{ fontSize: 9, color: C.gray }}>AI Use-Case Canvas · 8 Felder</Text>
           </View>
 
-          <View style={[s.row, { flexWrap: 'wrap', gap: 8 }]}>
-            {CANVAS_FIELD_ORDER.map(key => {
-              const value = data.canvas!.data[key] ?? ''
-              if (!value.trim()) return null
-              return (
-                <View key={key} style={[s.card, { width: '47%', marginBottom: 0 }]}>
-                  <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 3 }}>
-                    {CANVAS_LABELS_ES[key] ?? key}
-                  </Text>
-                  <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.4 }}>
-                    {value.length > 200 ? value.slice(0, 200) + '…' : value}
-                  </Text>
-                </View>
-              )
-            })}
-          </View>
+          {/* 2-Spalten-Grid als explizite Rows — kein flexWrap+% */}
+          {(() => {
+            const filled = CANVAS_FIELD_ORDER.filter(k => (data.canvas!.data[k] ?? '').trim())
+            const rows: string[][] = []
+            for (let i = 0; i < filled.length; i += 2) rows.push(filled.slice(i, i + 2))
+            return rows.map((row, ri) => (
+              <View key={ri} wrap={false} style={{ flexDirection: 'row', marginBottom: 8 }}>
+                {row.map((key, ci) => (
+                  <View key={key} style={[s.card, { flex: 1, marginRight: ci === 0 ? 8 : 0, marginBottom: 0 }]}>
+                    <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 3 }}>
+                      {CANVAS_LABELS_ES[key] ?? key}
+                    </Text>
+                    <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.4 }}>
+                      {(data.canvas!.data[key] ?? '').length > 180
+                        ? (data.canvas!.data[key] ?? '').slice(0, 180) + '…'
+                        : (data.canvas!.data[key] ?? '')}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ))
+          })()}
 
           <PdfFooterEs company={data.companyName} />
         </Page>
@@ -1193,33 +1216,30 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <Page size="A4" style={s.page}>
           <PdfHeader company={data.companyName} />
 
-          {/* Result-Banner */}
-          <View style={{ backgroundColor: C.light, borderRadius: 8, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: C.brand }}>
-            <View style={{ backgroundColor: C.dark, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', minWidth: 70 }}>
+          <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ backgroundColor: C.dark, borderRadius: 5, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', marginRight: 14, minWidth: 70 }}>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.brand }}>{data.architecture.result.pattern}</Text>
-              <Text style={{ fontSize: 7, color: C.gray2 }}>Muster</Text>
+              <Text style={{ fontSize: 7, color: C.gray2, marginTop: 2 }}>Muster</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.architecture.title}</Text>
+              <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>{data.architecture.title}</Text>
               {data.architecture.result.description ? (
-                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.3 }}>
-                  {data.architecture.result.description.length > 120 ? data.architecture.result.description.slice(0, 120) + '…' : data.architecture.result.description}
-                </Text>
+                <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.3 }}>{data.architecture.result.description}</Text>
               ) : null}
             </View>
           </View>
 
           <Text style={s.h2}>Architektur-Schichten</Text>
           {data.architecture.result.layers.map((layer, i) => (
-            <View key={i} style={[s.card, { marginBottom: 7 }]}>
-              <View style={[s.row, { justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }]}>
+            <View key={i} wrap={false} style={[s.card, { marginBottom: 7 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{layer.name}</Text>
                 <Text style={{ fontSize: 9, color: C.gray }}>{layer.role}</Text>
               </View>
               {layer.components.length > 0 ? (
-                <View style={[s.row, { flexWrap: 'wrap', gap: 3 }]}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                   {layer.components.map((comp, j) => (
-                    <View key={j} style={{ backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 }}>
+                    <View key={j} style={{ backgroundColor: C.border, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, marginRight: 4, marginBottom: 3 }}>
                       <Text style={{ fontSize: 8, color: C.dark }}>{comp}</Text>
                     </View>
                   ))}
@@ -1232,8 +1252,8 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             <>
               <Text style={s.h2}>Nächste Schritte</Text>
               {data.architecture.result.nextSteps.slice(0, 4).map((step, i) => (
-                <View key={i} style={[s.row, { gap: 5, marginBottom: 4 }]}>
-                  <Text style={{ fontSize: 10, color: C.brand, fontWeight: 'bold' }}>{i + 1}.</Text>
+                <View key={i} wrap={false} style={{ flexDirection: 'row', marginBottom: 5 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.brand, marginRight: 5 }}>{i + 1}.</Text>
                   <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{step}</Text>
                 </View>
               ))}
@@ -1244,60 +1264,60 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         </Page>
       ) : null}
 
-      {/* ── SEITE 9: COMPLIANCE-ÜBERBLICK (NEU) ─────────────────────────────── */}
+      {/* ── SEITE 9: COMPLIANCE ────────────────────────────────────────────── */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Compliance-Überblick</Text>
-        <Text style={s.sub}>Regulatorische Anforderungen · Enterprise AI</Text>
+        <Text style={s.sub}>Regulatorischer Rahmen für Enterprise AI · Stand 2026</Text>
 
-        {(() => {
-          const aiActStatus = govResult.startsWith('stop') ? 'Blocker — Sofortmaßnahme'
-            : govResult === 'approve' ? 'Geprüft — Freigegeben'
-            : govResult === 'conditional' ? 'Bedingt freigegeben'
-            : 'Ausstehend'
-          const aiActColor = govResult.startsWith('stop') ? C.danger
-            : govResult === 'approve' ? C.ok
-            : govResult === 'conditional' ? C.warn
-            : C.gray
-
-          const dsgvoStatus = govResult === 'stop_dsgvo' ? 'Prüfung erforderlich'
-            : govResult === 'approve' ? 'Geprüft'
-            : 'Ausstehend'
-
-          const regs: Array<{ name: string; scope: string; status: string; color: string }> = [
-            { name: 'EU AI Act', scope: 'KI-Systeme — Risikoklassifizierung, Hochrisiko-Pflichten, Transparenz', status: aiActStatus, color: aiActColor },
-            { name: 'DSGVO / GDPR', scope: 'Personenbezogene Daten — Rechtsgrundlage, DSFA, Auftragsverarbeitung', status: dsgvoStatus, color: dsgvoStatus === 'Geprüft' ? C.ok : dsgvoStatus === 'Prüfung erforderlich' ? C.warn : C.gray },
-            { name: 'ISO 27001', scope: 'Informationssicherheit — ISMS, Risikobehandlung, Audit-Trail', status: 'Eigenverantwortlich prüfen', color: C.gray },
-            { name: 'NIS2-Richtlinie', scope: 'KRITIS-Betreiber — Meldepflichten, Sicherheitsmaßnahmen, Lieferkette', status: 'Eigenverantwortlich prüfen', color: C.gray },
-          ]
-
-          return (
-            <>
-              <View style={s.row}>
-                <Text style={[s.th, { flex: 1.2 }]}>Regulierung</Text>
-                <Text style={[s.th, { flex: 2.5 }]}>Anwendungsbereich</Text>
-                <Text style={[s.th, { flex: 1.3 }]}>Status</Text>
+        {[
+          {
+            name: 'EU AI Act', articles: 'Art. 6–10, 13–17, 69',
+            scope: 'Risikoklassifizierung von KI-Systemen, Hochrisiko-Pflichten (Dokumentation, Audit-Log, menschliche Aufsicht), Transparenz gegenüber Nutzern.',
+            status: govResult.startsWith('stop') ? 'Stopp — Sofortmaßnahme'
+              : govResult === 'approve' ? 'Geprüft — Freigegeben'
+              : govResult === 'conditional' ? 'Geprüft — Auflagen'
+              : 'Ausstehend',
+            color: govResult.startsWith('stop') ? C.danger : govResult === 'approve' ? C.ok : govResult === 'conditional' ? C.warn : C.gray,
+          },
+          {
+            name: 'DSGVO / GDPR', articles: 'Art. 5, 22, 25, 35',
+            scope: 'Datenminimierung, Zweckbindung, automatisierte Entscheidungen (Art. 22), Datenschutz-Folgenabschätzung (DSFA) bei Hochrisiko-AI (Art. 35).',
+            status: govResult === 'stop_dsgvo' ? 'Prüfung erforderlich' : govResult === 'approve' ? 'Geprüft' : 'Ausstehend',
+            color: govResult === 'stop_dsgvo' ? C.warn : govResult === 'approve' ? C.ok : C.gray,
+          },
+          {
+            name: 'ISO 27001', articles: 'Annex A.8, A.12',
+            scope: 'Informationssicherheits-Management, Zugriffssteuerung für AI-Modelle und Trainingsdaten, Incident-Response für AI-Systeme.',
+            status: 'Eigenverantwortlich prüfen', color: C.gray,
+          },
+          {
+            name: 'NIS2-Richtlinie', articles: 'Art. 21, 23',
+            scope: 'Kritische Infrastrukturen: Sicherheitsmaßnahmen für KI-basierte Systeme, Meldepflichten bei AI-Sicherheitsvorfällen (24-Stunden-Frist).',
+            status: 'Eigenverantwortlich prüfen', color: C.gray,
+          },
+        ].map((reg, i) => (
+          <View key={i} wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderRadius: 6, marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.dark2, borderRadius: 5, paddingHorizontal: 10, paddingVertical: 7 }}>
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', flex: 1 }}>{reg.name}</Text>
+              <Text style={{ fontSize: 8, color: C.gray2, marginRight: 10 }}>{reg.articles}</Text>
+              <View style={{ backgroundColor: reg.color, borderRadius: 4, paddingHorizontal: 7, paddingVertical: 2 }}>
+                <Text style={{ fontSize: 8, fontWeight: 'bold', color: 'white' }}>{reg.status}</Text>
               </View>
-              {regs.map((reg, i) => (
-                <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
-                  <Text style={[s.td, { flex: 1.2, fontWeight: 'bold' }]}>{reg.name}</Text>
-                  <Text style={[s.td, { flex: 2.5, lineHeight: 1.4 }]}>{reg.scope}</Text>
-                  <Text style={[s.td, { flex: 1.3, color: reg.color, fontWeight: 'bold' }]}>{reg.status}</Text>
-                </View>
-              ))}
-            </>
-          )
-        })()}
-
-        <View style={{ marginTop: 20 }}>
-          <Text style={s.h2}>Hinweis</Text>
-          <View style={[s.card, { borderLeftWidth: 3, borderLeftColor: C.warn }]}>
-            <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5 }}>
-              Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen.
-              Eine vollständige Compliance-Prüfung erfordert individuelle Rechts- und Fachberatung.
-              Führen Sie das Compliance Center im AI Navigator für eine detaillierte Checkliste durch.
-            </Text>
+            </View>
+            <View style={{ padding: 10 }}>
+              <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>{reg.scope}</Text>
+            </View>
           </View>
+        ))}
+
+        <View wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.warn, borderRadius: 6, backgroundColor: C.amberBg, padding: 10, marginTop: 4 }}>
+          <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.amber, marginBottom: 3 }}>Wichtiger Hinweis</Text>
+          <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5 }}>
+            Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen.
+            Führen Sie das Compliance Center für die vollständige Checkliste durch.
+            Eine bindende Compliance-Bewertung erfordert individuelle Rechtsberatung.
+          </Text>
         </View>
 
         <PdfFooterEs company={data.companyName} />
@@ -1307,37 +1327,34 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Strategische Empfehlungen</Text>
-        <Text style={s.sub}>Basierend auf Ihrer vollständigen AI-Navigator-Analyse</Text>
+        <Text style={s.sub}>Individuell abgeleitet aus Ihrer AI-Navigator-Analyse</Text>
 
         <Text style={s.h2}>Für den Vorstand / C-Level</Text>
         {boardRecs(data).map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
-            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
-              <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
-              </View>
-              <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
+          <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+            <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
+              <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
             </View>
+            <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
           </View>
         ))}
 
         <Text style={s.h2}>Für den AI-Architekten / Technical Lead</Text>
         {archRecs(data).map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 7, borderLeftWidth: 3, borderLeftColor: C.ok }]}>
-            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
-              <View style={{ backgroundColor: C.ok, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
-              </View>
-              <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
+          <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.ok, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+            <View style={{ backgroundColor: C.ok, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
+              <Text style={{ fontSize: 8, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
             </View>
+            <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
           </View>
         ))}
 
-        <View style={{ marginTop: 14, backgroundColor: C.dark, borderRadius: 8, padding: 12 }}>
+        <View wrap={false} style={{ marginTop: 12, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
           <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 5 }}>Quarterly AI Health Review</Text>
           <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
-            Empfehlung: Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen.
-            AI-Readiness ist kein einmaliges Projekt, sondern ein kontinuierlicher Verbesserungsprozess.
+            Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen.
+            AI-Readiness ist kein einmaliges Projekt — die Markt- und Technologielage ändert sich.
+            Nutzen Sie den AI Navigator als kontinuierliches Steuerungsinstrument.
           </Text>
         </View>
 
