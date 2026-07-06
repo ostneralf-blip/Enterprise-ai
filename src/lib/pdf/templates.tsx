@@ -582,18 +582,54 @@ interface CanvasPdfData {
   title: string; archetype: string | null; data: CanvasData; companyName?: string
 }
 
-function CanvasSection({ label, value }: { label: string; value?: string }) {
-  return (
-    <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-      <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{label.toUpperCase()}</Text>
-      <Text style={{ fontSize: 10, color: C.dark2 }}>{value ?? '–'}</Text>
-    </View>
-  )
+function canvasRecs(d: CanvasData): Rec3[] {
+  return [
+    d.risks ? {
+      title:  'Identifizierte Risiken in Risikoregister überführen',
+      why:    'EU AI Act Art. 9 schreibt ein aktives Risikomanagementsystem über den gesamten Systemlebenszyklus vor — eine einmalige Risikodokumentation im Canvas genügt nicht. NIST AI RMF (2024): 58 % der KI-Vorfälle betreffen Risiken, die früh identifiziert, aber nicht aktiv gesteuert wurden.¹',
+      action: 'Canvas-Risiken in formales Risikoregister überführen; Verantwortlichen und Mitigationsmaßnahme pro Risiko benennen; Review-Termin in 6 Wochen setzen.',
+    } : {
+      title:  'Risikobewertung vor Pilotstart ergänzen',
+      why:    'EU AI Act Art. 9 verlangt eine Risikoanalyse vor Inbetriebnahme — fehlt sie, ist jeder Pilotstart regulatorisch unvollständig. Projekte ohne dokumentierte Risikobewertung scheitern laut Gartner (2024) 2,3× häufiger in der Skalierungsphase.¹',
+      action: 'Technische, rechtliche und betriebliche Risiken systematisch identifizieren (Workshop mit IT, Legal, Fachbereich); Canvas-Feld Risiken vor Pilotstart ausfüllen.',
+    },
+    d.kpis ? {
+      title:  'KPI-Baseline erfassen und 30/60/90-Tage-Review einplanen',
+      why:    'BCG (2024): KI-Projekte mit vorab definierten und gemessenen KPIs erhalten 4× häufiger Folgebudget. Ohne Baseline-Erfassung lässt sich der ROI des Use Cases nicht nachweisen — Budget-Entscheider fordern zunehmend Wirksamkeitsnachweise.¹',
+      action: 'Ist-Wert aller Canvas-KPIs vor Pilotstart erfassen; automatisiertes Reporting einrichten; Review-Termine nach 30, 60 und 90 Tagen als feste Kalendertermine setzen.',
+    } : {
+      title:  'Messbare Erfolgsindikatoren (KPIs) definieren',
+      why:    'Ohne KPIs ist der Projekterfolg nicht nachweisbar — laut Forrester (2024) werden 61 % der KI-Budgets ohne messbare Ergebnisse nach 12 Monaten gestrichen. EU AI Act Art. 9 verlangt zudem Monitoring-Metriken für Hochrisiko-Systeme.¹',
+      action: 'Min. 3 messbare KPIs definieren (z.B. Zeitersparnis in %, Fehlerrate, Nutzerzufriedenheit); Baseline-Erhebung vor Pilotstart einplanen.',
+    },
+    d.stakeholders ? {
+      title:  'Stakeholder-Kommunikationsplan und Change Management aufsetzen',
+      why:    'Forrester (2024): 79 % fehlgeschlagener KI-Transformationen scheitern an Cultural Resistance. EU AI Act Art. 14 verpflichtet zu menschlicher Aufsicht — betroffene Stakeholder müssen aktiv eingebunden, nicht nur informiert werden.¹',
+      action: 'Kommunikationsplan (Was, Wer, Wann, Kanal) für alle Canvas-Stakeholder erstellen; Change-Management-Bedarf pro Stakeholder-Gruppe einschätzen; Update-Rhythmus festlegen.',
+    } : {
+      title:  'Stakeholder-Analyse vertiefen und Change-Risiken adressieren',
+      why:    'Unvollständige Stakeholder-Analyse ist laut McKinsey (2024) in 54 % der Fälle Hauptursache für Projektverzögerungen. EU AI Act Art. 14 verlangt explizit die Einbindung natürlicher Personen in KI-Überwachungsprozesse.¹',
+      action: 'Alle betroffenen Nutzer, Entscheider und Systemabhängigkeiten erfassen; Change-Readiness pro Gruppe einschätzen; frühzeitig Piloten aus skeptischen Gruppen gewinnen.',
+    },
+    {
+      title:  'Governance-Check vor Pilotstart durchführen',
+      why:    'EU AI Act Art. 6 i.V.m. Anhang III klassifiziert mehrere KI-Anwendungsdomänen als Hochrisiko — diese erfordern zwingend einen Governance-Check vor Inbetriebnahme. Fehlendes Governance-Protokoll ist ein eigenständiger Bußgeldtatbestand (Art. 99 Abs. 3).¹',
+      action: 'Governance-Check-Modul im AI Navigator für diesen Use Case durchführen; Ergebnis im Canvas unter Nächste Schritte dokumentieren.',
+    },
+  ]
 }
 
 export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
   return (
     <Document title="AI Use-Case Canvas">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title={data.title}
+        subtitle={data.archetype ? ARCHETYPE_LABELS[data.archetype] : undefined}
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Canvas-Felder */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>{data.title}</Text>
@@ -602,48 +638,68 @@ export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
         </Text>
 
         <Text style={s.h2}>Problem &amp; Lösung</Text>
-        <View style={[s.row, { gap: 8, marginBottom: 8 }]}>
-          <CanvasSection label="Problem / Opportunität" value={data.data?.problem} />
-          <CanvasSection label="KI-Lösung" value={data.data?.solution} />
+        <View style={[s.row, { marginBottom: 8 }]}>
+          <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>PROBLEM / OPPORTUNITÄT</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.problem ?? '–'}</Text>
+          </View>
+          <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>KI-LÖSUNG</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.solution ?? '–'}</Text>
+          </View>
         </View>
 
         <Text style={s.h2}>Daten &amp; Stakeholder</Text>
-        <View style={[s.row, { gap: 8, marginBottom: 8 }]}>
-          <CanvasSection label="Datenquellen" value={data.data?.data_sources} />
-          <CanvasSection label="Stakeholder" value={data.data?.stakeholders} />
+        <View style={[s.row, { marginBottom: 8 }]}>
+          <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>DATENQUELLEN</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.data_sources ?? '–'}</Text>
+          </View>
+          <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>STAKEHOLDER</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.stakeholders ?? '–'}</Text>
+          </View>
         </View>
 
         <Text style={s.h2}>Erfolgsindikatoren &amp; Risiken</Text>
-        <View style={[s.row, { gap: 8, marginBottom: 8 }]}>
-          <CanvasSection label="KPIs / Erfolgsindikatoren" value={data.data?.kpis} />
-          <CanvasSection label="Risiken" value={data.data?.risks} />
+        <View style={[s.row, { marginBottom: 8 }]}>
+          <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>KPIS / ERFOLGSINDIKATOREN</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.kpis ?? '–'}</Text>
+          </View>
+          <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>RISIKEN</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.risks ?? '–'}</Text>
+          </View>
         </View>
 
         <Text style={s.h2}>Umsetzung</Text>
-        <View style={[s.row, { gap: 8, marginBottom: 8 }]}>
-          <CanvasSection label="Technische Architektur" value={data.data?.architecture} />
-          <CanvasSection label="Nächste Schritte" value={data.data?.next_steps} />
+        <View style={[s.row, { marginBottom: 8 }]}>
+          <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>TECHNISCHE ARCHITEKTUR</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.architecture ?? '–'}</Text>
+          </View>
+          <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>NÄCHSTE SCHRITTE</Text>
+            <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.next_steps ?? '–'}</Text>
+          </View>
         </View>
 
-        <Text style={s.h2}>Handlungsempfehlungen</Text>
-        {([
-          data.data?.risks
-            ? 'Identifizierte Risiken in Risikoregister übernehmen und Mitigationsmaßnahmen mit Verantwortlichen versehen.'
-            : 'Risikobewertung ergänzen: Technische, rechtliche und betriebliche Risiken systematisch identifizieren vor Pilotstart.',
-          data.data?.kpis
-            ? 'KPIs als Messgrundlage nutzen: Vor Pilotstart Baseline erfassen und nach 30, 60, 90 Tagen auswerten.'
-            : 'KPIs definieren: Messbare Erfolgsindikatoren (Zeit, Kosten, Qualität, Nutzerzufriedenheit) festlegen.',
-          data.data?.stakeholders
-            ? 'Stakeholder-Kommunikationsplan erstellen: Regelmäßige Updates einplanen, Change-Management-Bedarf adressieren.'
-            : 'Stakeholder-Analyse vertiefen: Betroffene Nutzer, Entscheider und Systemabhängigkeiten vollständig erfassen.',
-          'AI-Governance-Check durchführen: Use Case vor Pilotstart auf EU AI Act-Konformität und DSGVO-Anforderungen prüfen.',
-        ] as string[]).map((rec, i) => (
-          <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.brand, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
-            <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{rec}</Text>
-          </View>
+        <PdfFooterEs company={data.companyName} />
+      </Page>
+
+      {/* Seite 3: Handlungsempfehlungen */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>AI Use-Case Canvas · Enterprise AI Navigator</Text>
+
+        {canvasRecs(data.data ?? {}).map((rec, i) => (
+          <RecCard3 key={i} rec={rec} index={i} color={C.brand} />
         ))}
-        <PdfFooter />
+
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
