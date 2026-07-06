@@ -41,7 +41,7 @@ export default async function ErgebnissePage() {
       .eq('user_id', user!.id)
       .order('updated_at', { ascending: false }).limit(50),
     supabase.from('user_preferences')
-      .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id')
+      .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id')
       .eq('user_id', user!.id)
       .maybeSingle(),
     supabase.from('compliance_checks')

@@ -9,6 +9,9 @@ const PreferencesSchema = z.object({
   primary_governance_id:   uuidOrNull,
   primary_roadmap_id:      uuidOrNull,
   primary_architecture_id: uuidOrNull,
+  primary_canvas_id:       uuidOrNull,
+  primary_compliance_id:   uuidOrNull,
+  primary_usecase_id:      uuidOrNull,
 })
 
 export async function GET() {
@@ -18,7 +21,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from('user_preferences')
-    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id')
+    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -39,7 +42,7 @@ export async function PUT(req: Request) {
   const { data, error } = await supabase
     .from('user_preferences')
     .upsert({ user_id: user.id, ...parsed.data }, { onConflict: 'user_id' })
-    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id')
+    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

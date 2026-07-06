@@ -12,6 +12,8 @@ const BASE_PREFS = {
   primary_roadmap_id: null,
   primary_architecture_id: null,
   primary_canvas_id: null,
+  primary_compliance_id: null,
+  primary_usecase_id: null,
 }
 
 const GOVERNANCE_WITH_PROTOCOL: GovernanceRow[] = [

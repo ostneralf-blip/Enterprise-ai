@@ -9,6 +9,8 @@ const BASE_PREFS = {
   primary_roadmap_id: null,
   primary_architecture_id: null,
   primary_canvas_id: null,
+  primary_compliance_id: null,
+  primary_usecase_id: null,
 }
 
 const COMPLIANCE_ROWS: ComplianceRow[] = [
@@ -137,10 +139,10 @@ describe('Ergebnisse: Compliance-Tab', () => {
     })
   })
 
-  describe('Kein Vergleich-Button', () => {
-    it('zeigt keinen Vergleichen-Button im Compliance-Tab', () => {
+  describe('Vergleich-Button', () => {
+    it('zeigt Vergleichen-Button im Compliance-Tab wenn >= 2 Einträge', () => {
       renderCompliance()
-      expect(screen.queryByRole('button', { name: /vergleichen/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /vergleichen/i })).toBeInTheDocument()
     })
   })
 })
@@ -242,10 +244,10 @@ describe('Ergebnisse: UseCase-Tab', () => {
     })
   })
 
-  describe('Kein Vergleich-Button', () => {
-    it('zeigt keinen Vergleichen-Button im UseCase-Tab', () => {
+  describe('Vergleich-Button', () => {
+    it('zeigt Vergleichen-Button im UseCase-Tab wenn >= 2 Einträge', () => {
       renderUseCase()
-      expect(screen.queryByRole('button', { name: /vergleichen/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /vergleichen/i })).toBeInTheDocument()
     })
   })
 })

@@ -13,6 +13,8 @@ interface Prefs {
   primary_roadmap_id:      string | null
   primary_architecture_id: string | null
   primary_canvas_id:       string | null
+  primary_compliance_id:   string | null
+  primary_usecase_id:      string | null
 }
 
 export interface AssessmentRow    { id: string; archetype: string; total_score: number; dim_scores: Record<string, number>; created_at: string }
@@ -42,6 +44,8 @@ const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
   governance:   'primary_governance_id',
   roadmap:      'primary_roadmap_id',
   canvas:       'primary_canvas_id',
+  compliance:   'primary_compliance_id',
+  usecase:      'primary_usecase_id',
 }
 const fmt = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
@@ -101,7 +105,7 @@ interface Props {
 }
 
 export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, complianceChecks: initCC, useCases: initUC, initialPreferences, tier }: Props) {
-  const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null }
+  const emptyPrefs: Prefs = { primary_assessment_id: null, primary_governance_id: null, primary_roadmap_id: null, primary_architecture_id: null, primary_canvas_id: null, primary_compliance_id: null, primary_usecase_id: null }
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? emptyPrefs)
   const [expanded,      setExpanded]      = useState<string | null>(null)
@@ -111,8 +115,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const [governance,    setGovernance]    = useState(initG)
   const [roadmaps,      setRoadmaps]      = useState(initR)
   const [canvases,      setCanvases]      = useState(initC)
-  const [complianceChecks]                = useState(initCC)
-  const [useCases]                        = useState(initUC)
+  const [complianceChecks, setComplianceChecks] = useState(initCC)
+  const [useCases,         setUseCases]         = useState(initUC)
   const [compareMode,   setCompareMode]   = useState(false)
   const [compareIds,    setCompareIds]    = useState<string[]>([])
 
@@ -128,7 +132,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   }
 
   const deleteItem = async (category: Tab, id: string) => {
-    const paths: Partial<Record<Tab, string>> = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}`, canvas: `/api/canvas/${id}` }
+    const paths: Partial<Record<Tab, string>> = { assessment: `/api/assessment/${id}`, architecture: `/api/architecture/${id}`, governance: `/api/governance/${id}`, roadmap: `/api/roadmap/${id}`, canvas: `/api/canvas/${id}`, compliance: `/api/compliance/${id}`, usecase: `/api/usecase/${id}` }
     const path = paths[category]
     if (!path) return
     const res = await fetch(path, { method: 'DELETE' })
@@ -138,6 +142,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
     if (category === 'governance')   setGovernance(xs => xs.filter(x => x.id !== id))
     if (category === 'roadmap')      setRoadmaps(xs => xs.filter(x => x.id !== id))
     if (category === 'canvas')       setCanvases(xs => xs.filter(x => x.id !== id))
+    if (category === 'compliance')   setComplianceChecks(xs => xs.filter(x => x.id !== id))
+    if (category === 'usecase')      setUseCases(xs => xs.filter(x => x.id !== id))
     if (expanded === id) setExpanded(null)
     setConfirmId(null)
     const prefKey = PREF_KEY[category]
@@ -160,8 +166,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
     { key: 'governance'   as Tab, label: 'Governance',  count: governance.length,       comparable: true },
     { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length,         comparable: true },
     { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length,         comparable: true },
-    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: false },
-    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: false },
+    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: true },
+    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: true },
   ]
 
   return (
@@ -757,11 +763,20 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <span className="text-xs text-slate-500 shrink-0">{cc.check_type}</span>
                     <span className="text-xs text-slate-400 shrink-0">{fmt(cc.updated_at)}</span>
                   </div>
+                  <RowActions
+                    isPrimary={prefs.primary_compliance_id === cc.id}
+                    isConfirmDelete={confirmId === cc.id}
+                    onSetPrimary={e => { e.stopPropagation(); setPrimary('compliance', cc.id) }}
+                    onDelete={e => { e.stopPropagation(); deleteItem('compliance', cc.id) }}
+                    onConfirm={e => { e.stopPropagation(); setConfirmId(cc.id) }}
+                    onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                  />
                 </div>
                 {expanded === cc.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
                     {cc.notes && <p className="text-xs text-slate-600">Notiz: {cc.notes}</p>}
                     <Link href="/compliance" className="text-xs text-primary hover:underline mt-1 inline-block">In Compliance öffnen →</Link>
+                    <VersionsPanel module="compliance" entityId={cc.id} tier={tier} currentData={{ regulation: cc.regulation, check_type: cc.check_type, status: cc.status, notes: cc.notes } as Record<string, unknown>} />
                   </div>
                 )}
               </div>
@@ -805,6 +820,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                       <span className="text-xs text-slate-400 shrink-0">{Math.round(uc.weighted_score)} Pkt.</span>
                     )}
                   </div>
+                  <RowActions
+                    isPrimary={prefs.primary_usecase_id === uc.id}
+                    isConfirmDelete={confirmId === uc.id}
+                    onSetPrimary={e => { e.stopPropagation(); setPrimary('usecase', uc.id) }}
+                    onDelete={e => { e.stopPropagation(); deleteItem('usecase', uc.id) }}
+                    onConfirm={e => { e.stopPropagation(); setConfirmId(uc.id) }}
+                    onCancel={e => { e.stopPropagation(); setConfirmId(null) }}
+                  />
                 </div>
                 {expanded === uc.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
@@ -812,6 +835,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                       <p className="text-xs text-slate-600">Governance: <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
                     )}
                     <Link href="/usecase" className="text-xs text-primary hover:underline mt-1 inline-block">In Use Cases öffnen →</Link>
+                    <VersionsPanel module="usecase" entityId={uc.id} tier={tier} currentData={{ name: uc.name, domain: uc.domain, weighted_score: uc.weighted_score, quadrant: uc.quadrant } as Record<string, unknown>} />
                   </div>
                 )}
               </div>
