@@ -757,30 +757,48 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
   const nonCompliantEU   = euChecks.filter(c => c.status === 'non_compliant').length
   const nonCompliantDSGVO = dsgvoChecks.filter(c => c.status === 'non_compliant').length
   const pendingTotal     = data.checks.filter(c => c.status === 'pending').length
-  const complianceRecs: Array<{ title: string; text: string; color: string }> = []
+  const complianceRecs: Array<{ title: string; why: string; action: string; color: string }> = []
   if (nonCompliantEU > 0)
-    complianceRecs.push({ color: C.danger,
+    complianceRecs.push({
+      color: C.danger,
       title: `${nonCompliantEU} EU AI Act-Verstoß${nonCompliantEU > 1 ? 'e' : ''} beheben`,
-      text: 'Identifizierte Nicht-Konformitäten haben höchste Priorität vor Pilotstart. Transparenzpflichten (Art. 13–15), Dokumentationsanforderungen und Risikoklassifizierung adressieren.' })
+      why:   'Nicht-Konformitäten mit EU AI Act-Pflichten (Art. 9–15, 17) sind bußgeldfähig — bis 3 % des globalen Jahresumsatzes oder 15 Mio. EUR (Art. 99 Abs. 3). Aufsichtsbehörden können den Betrieb des Systems bis zur Behebung untersagen.¹',
+      action: 'Identifizierte Verstöße nach Kritikalität priorisieren; Verantwortlichen und Deadline (max. 4 Wochen) pro Verstoß benennen; Governance-Check nach Behebung erneut durchführen.',
+    })
   if (nonCompliantDSGVO > 0)
-    complianceRecs.push({ color: C.danger,
+    complianceRecs.push({
+      color: C.danger,
       title: `${nonCompliantDSGVO} DSGVO-Lücke${nonCompliantDSGVO > 1 ? 'n' : ''} schließen`,
-      text: 'Datenschutzbeauftragten einbeziehen. Technische Maßnahmen prüfen: Pseudonymisierung, Datensparsamkeit, Privacy-by-Design. Rechtsgrundlagen für alle AI-Datenverarbeitungen dokumentieren.' })
+      why:   'DSGVO-Verstöße können mit bis zu 20 Mio. EUR oder 4 % des weltweiten Jahresumsatzes geahndet werden (Art. 83 Abs. 5). Aufsichtsbehörden prüfen KI-Systeme zunehmend aktiv — fehlende Dokumentation gilt als erschwerender Umstand.¹',
+      action: 'Datenschutzbeauftragten einbeziehen; technische Maßnahmen (Pseudonymisierung, Datensparsamkeit, Privacy-by-Design) umsetzen; Rechtsgrundlagen für alle Datenverarbeitungen dokumentieren.',
+    })
   if (pendingTotal > 0)
-    complianceRecs.push({ color: C.warn,
+    complianceRecs.push({
+      color: C.warn,
       title: `${pendingTotal} ausstehende Prüfpunkte abschließen`,
-      text: 'Noch offene Compliance-Checks zeitnah bearbeiten — vollständiges Bild vor Pilotstart erforderlich. Verantwortliche benennen und verbindliche Termine setzen.' })
+      why:   'Unvollständige Compliance-Dokumentation gilt als mangelhaftes Qualitätsmanagementsystem nach EU AI Act Art. 17 — auch wenn einzelne Punkte noch nicht verletzt sind. ENISA (2024): 47 % der KI-Compliance-Bußgelder betreffen unvollständige Dokumentation, nicht aktive Verstöße.¹',
+      action: 'Verantwortlichen für jeden offenen Prüfpunkt benennen; verbindliche Abschlusstermine (max. 2 Wochen) setzen; vollständiges Bild vor Pilotstart sicherstellen.',
+    })
   if (euDone === euChecks.length && euChecks.length > 0)
-    complianceRecs.push({ color: C.ok,
+    complianceRecs.push({
+      color: C.ok,
       title: 'EU AI Act: Vollständige Konformität bestätigt',
-      text: 'Alle EU AI Act-Pflichten erfüllt. Status dokumentieren, Review-Zyklus (quartalsweise) einrichten. Compliance als Vertrauensmerkmal gegenüber Kunden und Aufsichtsbehörden kommunizieren.' })
+      why:   'Vollständige EU AI Act-Konformität ist ein nachweisbarer Vertrauensfaktor: 73 % der B2B-Kunden bewerten KI-Compliance als Kaufkriterium (Edelman Trust Barometer 2024). Regulatorische Konformität sichert zudem Zugang zu öffentlichen Aufträgen, die AI Act-Compliance zunehmend voraussetzen.¹',
+      action: 'Konformitätsstatus dokumentieren und für externe Kommunikation aufbereiten; quartalsliches Review einrichten; Änderungen in EU AI Act Anhang III aktiv beobachten.',
+    })
   if (dsgvoDone === dsgvoChecks.length && dsgvoChecks.length > 0)
-    complianceRecs.push({ color: C.ok,
+    complianceRecs.push({
+      color: C.ok,
       title: 'DSGVO: Vollständige Konformität bestätigt',
-      text: 'DSGVO-Compliance vollständig nachgewiesen. Verarbeitungsverzeichnis aktuell halten und bei Änderungen (neue Datenquellen, neue Modelle) erneut prüfen.' })
-  complianceRecs.push({ color: C.dark2,
-    title: 'Compliance-Monitoring etablieren',
-    text: 'EU AI Act und DSGVO-Anforderungen entwickeln sich laufend. Quartalsweiser Compliance-Check als festen Termin einplanen. Änderungen im EU AI Act-Annex III (Hochrisiko-Liste) aktiv beobachten.' })
+      why:   'Vollständige DSGVO-Konformität schützt vor Bußgeldern und stärkt das Kundenvertrauen: 81 % der Verbraucher brechen Geschäftsbeziehungen nach Datenschutzvorfällen ab (PwC Consumer Intelligence Series, 2024). Dokumentierte Compliance ist zudem Voraussetzung für Datenpartnerschaften.¹',
+      action: 'Verarbeitungsverzeichnis aktuell halten; bei Änderungen (neue Datenquellen, neue Modelle) erneute Prüfung auslösen; DSFA für neue Verarbeitungsvorgänge zeitnah durchführen.',
+    })
+  complianceRecs.push({
+    color: C.dark2,
+    title: 'Kontinuierliches Compliance-Monitoring etablieren',
+    why:   'EU AI Act und DSGVO entwickeln sich aktiv weiter — der AI Act Annex III wird regelmäßig durch die EU-Kommission aktualisiert. Unternehmen ohne laufendes Monitoring verpassen Änderungen und riskieren nachträgliche Nicht-Konformität.¹',
+    action: 'Quartalsweiser Compliance-Check im AI Navigator als festen Termin einrichten; Newsletter EU AI Office und EDPB für Gesetzesänderungen abonnieren; internen Compliance-Kalender führen.',
+  })
 
   const renderSection = (title: string, items: ComplianceCheck[]) => {
     if (items.length === 0) return null
@@ -809,20 +827,27 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
 
   return (
     <Document title="Compliance Status Report">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title="Compliance Status Report"
+        subtitle="EU AI Act · DSGVO · Risikomatrix"
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Checklisten (bisherige Seite 1 — gap-Fix in Summary-Cards) */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Compliance Status Report</Text>
         <Text style={s.sub}>EU AI Act · DSGVO · Risikomatrix · Enterprise AI Navigator</Text>
 
-        {/* Summary cards */}
-        <View style={[s.row, { gap: 8, marginBottom: 18 }]}>
+        <View style={[s.row, { marginBottom: 18 }]}>
           {riskClassName && (
-            <View style={[s.card, { flex: 2, padding: 10, marginBottom: 0 }]}>
+            <View style={[s.card, { flex: 2, padding: 10, marginBottom: 0, marginRight: 8 }]}>
               <Text style={{ fontSize: 8, color: C.gray, marginBottom: 3 }}>EU AI Act Risikoklasse</Text>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark }}>{riskClassName}</Text>
             </View>
           )}
-          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
+          <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0, marginRight: 8 }]}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: C.brand }}>{euDone}/{euChecks.length}</Text>
             <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>EU AI Act Pflichten</Text>
           </View>
@@ -842,30 +867,29 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
         {renderSection('EU AI Act — Pflichten-Checkliste', euChecks)}
         {renderSection('DSGVO-Checkliste', dsgvoChecks)}
 
-        <PdfFooter />
+        <PdfFooterEs company={data.companyName} />
       </Page>
 
-      {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
+      {/* Seite 3: Handlungsempfehlungen (bisherige Seite 2 — mit RecCard3) */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Handlungsempfehlungen</Text>
         <Text style={s.sub}>Compliance Status Report · Enterprise AI Navigator</Text>
 
-        {complianceRecs.map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: rec.color }]}>
-            <Text style={{ fontSize: 11, fontWeight: 'bold', color: rec.color, marginBottom: 4 }}>{i + 1}. {rec.title}</Text>
-            <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5 }}>{rec.text}</Text>
-          </View>
-        ))}
+        {complianceRecs.map((item, i) => {
+          const { color, ...rec } = item
+          return <RecCard3 key={i} rec={rec} index={i} color={color} />
+        })}
 
-        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
+        <View wrap={false} style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
           <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Nächster Schritt</Text>
           <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
             Governance-Check im AI Navigator für jeden High-Score-Use-Case durchführen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen (Art. 6, Annex III).
           </Text>
         </View>
 
-        <PdfFooter />
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
