@@ -346,7 +346,7 @@ export default async function DashboardPage() {
       )}
 
       {tier === 'free' && (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-primary to-primary-hover rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div>
             <div className="text-white font-semibold mb-1">Auf Professional upgraden</div>
             <div className="text-blue-200 text-sm">PDF-Export, Ergebnisse speichern, Versionierung und alle 7 Tools.</div>
