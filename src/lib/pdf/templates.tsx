@@ -271,26 +271,74 @@ const GOV_RESULT: Record<string, { label: string; color: string; bg: string }> =
   improve:    { label: 'Verbesserungsbedarf', color: C.amber,   bg: C.amberBg },
 }
 
-const GOV_RECS: Record<string, string[]> = {
-  approve:    [
-    'Ergebnis dokumentieren und im nächsten Sprint-Review präsentieren.',
-    'Governance-Freigabe als Meilenstein im Projektplan festhalten.',
-    'Regelmäßigen Review-Zyklus (quartalsweise) für laufende Compliance sicherstellen.',
+const GOV_RECS: Record<string, Rec3[]> = {
+  approve: [
+    {
+      title:  'Freigabe dokumentieren und Review-Zyklus festlegen',
+      why:    'EU AI Act Art. 9 Abs. 4 verlangt, dass das Risikomanagementsystem über den gesamten Lebenszyklus des Systems aktiv bleibt — einmalige Freigabe ohne Folge-Review genügt nicht. Laut ENISA AI Security Guidelines (2024) werden 43 % der KI-Sicherheitsvorfälle durch fehlende Überwachung nach Go-Live verursacht.¹',
+      action: 'Freigabeergebnis in Projektplan als Meilenstein dokumentieren; quartalsliches Compliance-Review (30 Minuten, AI-Owner + DSB) als Termin einrichten.',
+    },
+    {
+      title:  'Transparenzpflichten gegenüber Nutzern umsetzen',
+      why:    'EU AI Act Art. 13 schreibt für Hochrisiko-KI-Systeme verständliche Informationen für Nutzer vor — Nichterfüllung ist bußgeldfähig (Art. 99 Abs. 3: bis 3 % des globalen Jahresumsatzes). Transparenz ist zugleich Vertrauensfaktor: 67 % der Endnutzer akzeptieren KI-Entscheidungen eher, wenn sie eine Erklärung erhalten (Eurobarometer 2024).¹',
+      action: 'Nutzer-Dokumentation erstellen (Zweck, Grenzen, Kontaktpfad); KI-Kennung in allen Nutzer-Interfaces sichtbar machen.',
+    },
+    {
+      title:  'Menschliche Aufsicht als festen Prozess verankern',
+      why:    'EU AI Act Art. 14 macht menschliche Aufsicht für Hochrisiko-Systeme zur Pflicht — Entscheidungen müssen durch Menschen überwacht, hinterfragt und ggf. übersteuert werden können. Systeme ohne definierten Oversight-Prozess gelten regulatorisch als unkontrolliert.¹',
+      action: 'Oversight-Verantwortlichen benennen, Eskalationspfad dokumentieren und Eingriffsmöglichkeit (Override) technisch und prozessual sicherstellen.',
+    },
   ],
   stop_dsgvo: [
-    'Datenschutzbeauftragten einbeziehen und DSGVO-Analyse formalisieren.',
-    'Technische Maßnahmen prüfen: Pseudonymisierung, Datensparsamkeit, Einwilligungsmanagement.',
-    'Use Case erst nach erfolgreicher DSGVO-Klärung erneut dem Governance-Check unterziehen.',
+    {
+      title:  'Datenschutz-Folgenabschätzung (DSFA) zwingend durchführen',
+      why:    'DSGVO Art. 35 schreibt eine DSFA vor, wenn KI-Systeme personenbezogene Daten systematisch und umfangreich verarbeiten — Nichtdurchführung ist bußgeldfähig nach Art. 83 Abs. 4 (bis 10 Mio. EUR oder 2 % des weltweiten Jahresumsatzes). Die DSFA ist Voraussetzung, nicht Option.¹',
+      action: 'Datenschutzbeauftragten einbeziehen; DSFA-Template ausfüllen; Verarbeitungsverzeichnis aktualisieren — vor jedem weiteren Pilotschritt abzuschließen.',
+    },
+    {
+      title:  'Rechtsgrundlage für alle Datenverarbeitungen dokumentieren',
+      why:    'DSGVO Art. 6 verlangt für jede Verarbeitung personenbezogener Daten eine explizite Rechtsgrundlage. Fehlt die Dokumentation, gilt die Verarbeitung als unrechtmäßig — Bußgeld nach Art. 83 Abs. 5 bis 20 Mio. EUR oder 4 % des Jahresumsatzes.¹',
+      action: 'Für jede Datenquelle im Use Case die Rechtsgrundlage im Verarbeitungsverzeichnis eintragen; fehlende Einwilligungen oder Vertragsklauseln vor Pilotstart nachziehen.',
+    },
+    {
+      title:  'Technische Datenschutzmaßnahmen implementieren',
+      why:    'DSGVO Art. 25 (Privacy by Design) verlangt datenschutzfreundliche Voreinstellungen bereits bei der Systemgestaltung. Nachträgliche Korrekturen sind technisch aufwendiger und signalisieren Aufsichtsbehörden mangelnde Sorgfalt.¹',
+      action: 'Pseudonymisierung oder Anonymisierung für Trainingsdaten prüfen; Datensparsamkeit durchsetzen (nur notwendige Felder); Consent-Management-Prozess aufsetzen.',
+    },
   ],
-  stop_risk:  [
-    'Risikoregister anlegen und alle identifizierten Risiken mit Verantwortlichen versehen.',
-    'Risikominderungsmaßnahmen definieren: Transparenzpflichten, menschliche Überwachung, Fallback-Mechanismen.',
-    'Erneute Governance-Prüfung nach Umsetzung der Risikominderung einplanen.',
+  stop_risk: [
+    {
+      title:  'Formales Risikoregister anlegen und Maßnahmen benennen',
+      why:    'EU AI Act Art. 9 Abs. 2 schreibt ein systematisches Risikomanagementsystem vor — ohne dokumentiertes Register fehlt der Nachweis gegenüber Behörden. Unstrukturiertes Risikomanagement erhöht die Wahrscheinlichkeit von Schadensereignissen um den Faktor 2,3 (IRGC AI Risk Framework, 2024).¹',
+      action: 'Risikoregister anlegen; alle identifizierten Risiken mit Schweregrad, Eintrittswahrscheinlichkeit und Verantwortlichem versehen; Mitigationsmaßnahmen mit Deadline festhalten.',
+    },
+    {
+      title:  'Risikominderungsmaßnahmen vor Pilotstart umsetzen',
+      why:    'EU AI Act Art. 9 Abs. 6 verlangt für Hochrisiko-Systeme Restrisikobewertung und Dokumentation, dass verbleibende Risiken akzeptabel sind. Systeme, die mit bekannten, unbehandelten Risiken in Betrieb gehen, können von Aufsichtsbehörden gestoppt werden.¹',
+      action: 'Transparenzpflichten (Art. 13), menschliche Überwachung (Art. 14) und Fallback-Mechanismus implementieren; anschließend erneuten Governance-Check im AI Navigator durchführen.',
+    },
+    {
+      title:  'Notfallprotokoll und Incident-Response definieren',
+      why:    'EU AI Act Art. 73 verpflichtet zur Meldung schwerwiegender Vorfälle durch KI-Systeme innerhalb von 15 Arbeitstagen. Fehlt ein Incident-Response-Plan, können Reaktionszeiten dieses Fenster überschreiten und zusätzliche Sanktionen auslösen.¹',
+      action: 'Incident-Response-Plan erstellen (Erkennung, Bewertung, Meldekette, Abschaltprozedur); Verantwortlichen für Behördenmeldung benennen.',
+    },
   ],
-  improve:    [
-    'Identifizierte Schwachstellen priorisieren und Maßnahmenplan erstellen.',
-    'Zuständige Fachbereiche (Legal, Compliance, IT) in Verbesserungsmaßnahmen einbinden.',
-    'Verbesserten Use Case innerhalb von 4–6 Wochen erneut prüfen.',
+  improve: [
+    {
+      title:  'Identifizierte Schwachstellen priorisieren und Maßnahmenplan erstellen',
+      why:    'EU AI Act Art. 9 verlangt ein iteratives Risikomanagementsystem — erkannte Lücken müssen systematisch adressiert werden, nicht nur dokumentiert. Unbehandelte Compliance-Lücken können sich im späteren Betrieb zu bußgeldfähigen Verstößen ausweiten.¹',
+      action: 'Schwachstellen nach Kritikalität sortieren; für die Top-3 konkrete Maßnahmen mit Verantwortlichem und 4-Wochen-Deadline formulieren.',
+    },
+    {
+      title:  'Fachbereiche Legal, Compliance und IT einbinden',
+      why:    'EU AI Act Art. 17 schreibt ein Qualitätsmanagementsystem mit klaren Verantwortlichkeiten vor — AI-Entscheidungen allein durch ein Team ohne Compliance-Einbindung gelten als unzureichend dokumentiert. Projekte ohne frühzeitige Legal-Einbindung zeigen 2,7× höhere Nachbesserungskosten (Capgemini Research Institute, 2024).¹',
+      action: 'Kick-off mit DSB, Legal und IT-Sicherheit einberufen; Governance-Zuständigkeiten in RACI-Matrix festhalten; nächsten Governance-Check gemeinsam vorbereiten.',
+    },
+    {
+      title:  'Verbesserten Use Case in 4–6 Wochen erneut prüfen',
+      why:    'EU AI Act Art. 9 Abs. 4 erfordert kontinuierliche Überprüfung über den gesamten Systemlebenszyklus. Ein einmaliger Check ohne Folgebewertung nach Maßnahmenumsetzung genügt regulatorischen Anforderungen nicht.¹',
+      action: 'Follow-up-Termin für erneuten Governance-Check als verbindlichen Meilenstein im Projektplan eintragen (Zieldatum: 4–6 Wochen ab heute).',
+    },
   ],
 }
 
@@ -301,22 +349,22 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
 
   return (
     <Document title="AI-Governance Check">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title="AI-Governance Check"
+        subtitle={data.useCaseName ?? undefined}
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Ergebnisse + Protokoll */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>AI-Governance Check</Text>
         <Text style={s.sub}>{data.useCaseName ?? 'Use Case'} · Enterprise AI Navigator</Text>
 
-        <View style={{ backgroundColor: res.bg, borderRadius: 10, padding: 14, marginBottom: 18, alignSelf: 'flex-start' }}>
+        <View wrap={false} style={{ backgroundColor: res.bg, borderRadius: 10, padding: 14, marginBottom: 18, alignSelf: 'flex-start' }}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: res.color }}>{res.label}</Text>
         </View>
-
-        <Text style={s.h2}>Handlungsempfehlungen</Text>
-        {recs.map((rec, i) => (
-          <View key={i} style={[s.row, { marginBottom: 6, alignItems: 'flex-start' }]}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: res.color, marginRight: 8, marginTop: 3, flexShrink: 0 }} />
-            <Text style={{ flex: 1, fontSize: 10, color: C.dark, lineHeight: 1.4 }}>{rec}</Text>
-          </View>
-        ))}
 
         {rows.length > 0 && (
           <>
@@ -326,14 +374,29 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
               <Text style={[s.th, { flex: 2 }]}>Bewertung</Text>
             </View>
             {rows.map((item, i) => (
-              <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
+              <View key={i} wrap={false} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
                 <Text style={[s.td, { flex: 3 }]}>{item.question ?? item.label ?? ''}</Text>
                 <Text style={[s.td, { flex: 2 }]}>{item.answer ?? item.value ?? ''}</Text>
               </View>
             ))}
           </>
         )}
-        <PdfFooter />
+
+        <PdfFooterEs company={data.companyName} />
+      </Page>
+
+      {/* Seite 3: Handlungsempfehlungen */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <Text style={s.sub}>AI-Governance Check · Enterprise AI Navigator</Text>
+
+        {recs.map((rec, i) => (
+          <RecCard3 key={i} rec={rec} index={i} color={res.color} />
+        ))}
+
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
