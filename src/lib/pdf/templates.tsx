@@ -900,9 +900,35 @@ interface ArchitectureLayer { name: string; role: string; components: string[]; 
 interface ArchitectureResultData { pattern: string; description?: string; layers: ArchitectureLayer[]; nextSteps?: string[] }
 interface ArchitecturePdfData { title: string; result: ArchitectureResultData; companyName?: string }
 
+const ARCHITECTURE_RECS: Rec3[] = [
+  {
+    title:  'Technische Dokumentation nach EU AI Act Art. 17 sicherstellen',
+    why:    'EU AI Act Art. 17 verpflichtet Anbieter von Hochrisiko-KI zu einem vollständigen Qualitätsmanagementsystem mit technischer Dokumentation (Architektur, Daten, Performance-Metriken). Fehlt diese, ist das System nicht genehmigungsfähig — unabhängig von seiner technischen Qualität.¹',
+    action: 'Architektur-Dokument nach EU AI Act Anhang IV strukturieren (Layer-Übersicht, Schnittstellen, Datenflüsse); als lebendes Dokument im Confluence/Notion führen und bei Änderungen aktualisieren.',
+  },
+  {
+    title:  'MLOps-Infrastruktur für Modell-Monitoring aufbauen',
+    why:    'EU AI Act Art. 9 Abs. 4 schreibt kontinuierliche Systemüberwachung über den gesamten Lebenszyklus vor. NVIDIA Enterprise AI Survey (2024): 68 % der KI-Produktionsvorfälle entstehen durch unentdeckten Modell-Drift — ohne Monitoring-Infrastruktur sind diese nicht erkennbar.¹',
+    action: 'Drift-Detection (Daten- und Konzeptdrift), automatisiertes Retraining-Triggering und Performance-Alerting als MLOps-Komponenten in die Architektur integrieren.',
+  },
+  {
+    title:  'Menschliche Kontrollpunkte in die Systemarchitektur einbauen',
+    why:    'EU AI Act Art. 14 verpflichtet zu technischen Vorkehrungen für menschliche Aufsicht — Systeme ohne expliziten Override-Mechanismus gelten als nicht norm-konform für Hochrisiko-Anwendungen. Human-in-the-Loop-Designs reduzieren laut Stanford HAI (2024) kritische Fehlerauswirkungen um 64 %.¹',
+    action: 'Human-Review-Queue und Override-Mechanismus in die Architektur einzeichnen; Oversight-Schnittstelle (Dashboard, Alert-System) für den Aufsichtsverantwortlichen bereitstellen.',
+  },
+]
+
 export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
   return (
     <Document title="AI-Architektur">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title={data.title}
+        subtitle={data.result?.pattern ?? undefined}
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Architektur-Ebenen + Next Steps */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>{data.title}</Text>
@@ -916,12 +942,12 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
 
         <Text style={s.h2}>Architektur-Ebenen</Text>
         {(data.result?.layers ?? []).map((layer, i) => (
-          <View key={i} style={{ marginBottom: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 }}>
+          <View key={i} wrap={false} style={{ marginBottom: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 }}>
             <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark2 }}>{layer.name}</Text>
             <Text style={{ fontSize: 10, color: C.gray, marginTop: 2, marginBottom: 6 }}>{layer.role}</Text>
-            <View style={[s.row, { flexWrap: 'wrap', gap: 3 }]}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {layer.components.map((comp, ci) => (
-                <View key={ci} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <View key={ci} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 3, marginBottom: 3 }}>
                   <Text style={{ fontSize: 9, color: C.brand }}>{comp}</Text>
                 </View>
               ))}
@@ -933,7 +959,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
         {(data.result?.nextSteps ?? []).length > 0 && (
           <>
             <Text style={s.h2}>Empfohlene Nächste Schritte</Text>
-            {data.result.nextSteps!.map((step, i) => (
+            {data.result!.nextSteps!.map((step, i) => (
               <View key={i} style={[s.row, { marginBottom: 4, alignItems: 'flex-start' }]}>
                 <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.brand, marginRight: 7, marginTop: 3 }} />
                 <Text style={{ flex: 1, fontSize: 10 }}>{step}</Text>
@@ -941,7 +967,22 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
             ))}
           </>
         )}
-        <PdfFooter />
+
+        <PdfFooterEs company={data.companyName} />
+      </Page>
+
+      {/* Seite 3: Architektur-Best-Practices */}
+      <Page size="A4" style={s.page}>
+        <PdfHeader company={data.companyName} />
+        <Text style={s.h1}>Architektur-Empfehlungen</Text>
+        <Text style={s.sub}>AI-Architektur · Enterprise AI Navigator</Text>
+
+        {ARCHITECTURE_RECS.map((rec, i) => (
+          <RecCard3 key={i} rec={rec} index={i} color={C.brand} />
+        ))}
+
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
