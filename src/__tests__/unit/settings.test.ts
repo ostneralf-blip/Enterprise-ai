@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 const ProfileUpdateSchema = z.object({
   full_name: z.string().min(1).max(100),
@@ -46,5 +48,25 @@ describe('Settings: Profil-Update-Schema', () => {
   it('lässt XSS-Payload durch (Escaping ist Aufgabe der Ausgabe, nicht des Schemas)', () => {
     const r = ProfileUpdateSchema.safeParse({ full_name: '<script>alert(1)</script>' })
     expect(r.success).toBe(true)
+  })
+})
+
+describe('Theme-Picker: handleThemeChange', () => {
+  it('setzt data-theme via documentElement beim Theme-Wechsel', () => {
+    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    expect(source).toContain("documentElement.setAttribute('data-theme'")
+  })
+
+  it('Theme-API-Aufruf enthält theme-Feld im Body', () => {
+    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    expect(source).toContain("theme: t")
+  })
+
+  it('THEMES-Konstante enthält alle 4 Theme-IDs', () => {
+    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    expect(source).toContain("'book'")
+    expect(source).toContain("'teal'")
+    expect(source).toContain("'indigo'")
+    expect(source).toContain("'dark'")
   })
 })

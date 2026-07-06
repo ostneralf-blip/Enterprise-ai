@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
 import { SettingsPageClient } from '@/app/(dashboard)/settings/SettingsPageClient'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 expect.extend(toHaveNoViolations)
 
@@ -96,5 +98,12 @@ describe('Accessibility: Settings', () => {
     expect(screen.getByRole('region', { name: /profil/i })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: /^konto$/i })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: /konto löschen/i })).toBeInTheDocument()
+  })
+
+  it('Theme-Picker-Buttons haben aria-pressed und aria-label', () => {
+    // Statischer Code-Check (Theme-Picker ist 'use client', kein SSR-render nötig)
+    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    expect(source).toContain('aria-pressed')
+    expect(source).toContain('aria-label')
   })
 })

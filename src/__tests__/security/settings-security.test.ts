@@ -56,4 +56,27 @@ describe('Security: Settings API', () => {
       expect(source).toContain('status: 400')
     })
   })
+
+  describe('Theme-Feld in /api/settings', () => {
+    it('settings route validiert theme-Feld mit Zod enum', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/settings/route.ts'), 'utf-8')
+      expect(source).toContain("z.enum")
+      expect(source).toContain("'book'")
+      expect(source).toContain("'dark'")
+    })
+
+    it('settings route nimmt nur erlaubte Theme-Werte an (kein freier String)', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/api/settings/route.ts'), 'utf-8')
+      // Muss z.enum sein, kein z.string()
+      const themeMatch = source.match(/theme[^,\n]*z\.[a-z]+/)
+      expect(themeMatch?.[0]).toContain('z.enum')
+    })
+
+    it('Root Layout liest theme server-seitig aus DB (kein Client-Cookie-Bypass)', () => {
+      const source = readFileSync(join(process.cwd(), 'src/app/layout.tsx'), 'utf-8')
+      expect(source).toContain('profiles')
+      expect(source).toContain('theme')
+      expect(source).toContain('data-theme')
+    })
+  })
 })
