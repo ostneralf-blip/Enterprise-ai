@@ -25,7 +25,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-block bg-primary/20 border border-blue-500/30 text-blue-400 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
+        <div className="inline-block bg-primary/20 border border-primary/30 text-primary/70 text-xs font-medium px-3 py-1 rounded-full mb-6 tracking-wide">
           Enterprise AI Toolset · Version 1.0
         </div>
         <h1 className="text-5xl font-semibold leading-tight mb-6">

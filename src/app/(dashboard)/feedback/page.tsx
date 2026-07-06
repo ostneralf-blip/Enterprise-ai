@@ -89,7 +89,7 @@ export default function FeedbackPage() {
                   aria-pressed={category === c.value}
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                     category === c.value
-                      ? 'bg-primary border-blue-600 text-white font-medium'
+                      ? 'bg-primary border-primary text-white font-medium'
                       : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -156,7 +156,7 @@ export default function FeedbackPage() {
                   className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono font-semibold text-primary-hover bg-primary-soft border border-blue-100 rounded px-1.5 py-0.5 shrink-0">
+                    <span className="text-xs font-mono font-semibold text-primary-hover bg-primary-soft border border-primary-border rounded px-1.5 py-0.5 shrink-0">
                       v{entry.version}
                     </span>
                     <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{entry.label}</span>

@@ -358,7 +358,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-sm font-semibold text-slate-900 truncate">{pattern}</h3>
             {archetype && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-blue-100 whitespace-nowrap flex-shrink-0">
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-primary-border whitespace-nowrap flex-shrink-0">
                 {archetype}
               </span>
             )}

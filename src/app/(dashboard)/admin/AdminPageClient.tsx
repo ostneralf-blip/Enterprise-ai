@@ -1506,7 +1506,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                   className={cn(
                                     'px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50',
                                     active
-                                      ? 'bg-primary border-blue-600 text-white'
+                                      ? 'bg-primary border-primary text-white'
                                       : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                                   )}
                                 >

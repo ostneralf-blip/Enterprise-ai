@@ -34,7 +34,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
       <div className="relative w-full" style={{ paddingBottom: 'min(100%, 420px)' }}>
         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-1">
           {/* Top-left: Strategic Bet (High Value, Low Feasibility) */}
-          <div className="bg-primary-soft border border-blue-100 rounded-xl p-2 flex flex-col justify-between">
+          <div className="bg-primary-soft border border-primary-border rounded-xl p-2 flex flex-col justify-between">
             <div className="text-xs font-medium text-primary">{QUADRANT_META.strategic_bet.icon} Strategic Bet</div>
           </div>
           {/* Top-right: Quick Win (High Value, High Feasibility) */}

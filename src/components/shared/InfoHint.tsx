@@ -72,7 +72,7 @@ export function HintBox({ children, className, dismissible = false, variant = 'i
   if (!visible) return null
 
   const colors = {
-    info:    'bg-primary-soft border-blue-100 text-blue-800',
+    info:    'bg-primary-soft border-primary-border text-primary',
     tip:     'bg-emerald-50 border-emerald-100 text-emerald-800',
     warning: 'bg-amber-50 border-amber-200 text-amber-800',
   }

@@ -183,7 +183,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
               <button key={a} onClick={() => handleArchetypeChange(a)} aria-pressed={active}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
-                  active ? 'bg-primary border-blue-600 text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  active ? 'bg-primary border-primary text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                 )}>
                 <span aria-hidden="true">{meta.icon}</span>
                 {meta.label}

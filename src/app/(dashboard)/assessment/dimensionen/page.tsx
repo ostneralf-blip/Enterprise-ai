@@ -71,7 +71,7 @@ export default function DimensionenPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h2 className="text-base sm:text-lg font-semibold text-slate-900">{dim.label}</h2>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-blue-100 whitespace-nowrap">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-primary-border whitespace-nowrap">
                       {weightPct}% Gewichtung
                     </span>
                   </div>

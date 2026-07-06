@@ -162,7 +162,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                 active.archetype === id
-                  ? 'bg-primary text-white border-blue-600'
+                  ? 'bg-primary text-white border-primary'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >

@@ -95,7 +95,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                         className={cn(
                           'flex-1 px-2 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap',
                           expiryDays === opt.days
-                            ? 'bg-primary text-white border-blue-600'
+                            ? 'bg-primary text-white border-primary'
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         )}
                       >

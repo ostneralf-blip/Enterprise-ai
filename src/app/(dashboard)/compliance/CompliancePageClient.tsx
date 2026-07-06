@@ -570,7 +570,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     className={cn(
                       'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isActive
-                        ? 'bg-primary-soft border-blue-300 ring-1 ring-blue-300'
+                        ? 'bg-primary-soft border-primary-ring ring-1 ring-primary-ring'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     )}
                   >
@@ -778,7 +778,7 @@ function RiskMatrixSelector({
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.impact === i + 1
-                  ? 'bg-primary text-white border-blue-600'
+                  ? 'bg-primary text-white border-primary'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
@@ -801,7 +801,7 @@ function RiskMatrixSelector({
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.probability === i + 1
-                  ? 'bg-primary text-white border-blue-600'
+                  ? 'bg-primary text-white border-primary'
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
