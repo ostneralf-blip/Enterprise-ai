@@ -23,6 +23,18 @@ export function GuidedPathHero({ steps, tier }: Props) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
+  const [animatedDone, setAnimatedDone] = useState<Set<number>>(new Set())
+
+  useEffect(() => {
+    if (!mounted) return
+    const doneSteps = steps.filter(s => s.done).map(s => s.step)
+    doneSteps.forEach((step, i) => {
+      setTimeout(() => {
+        setAnimatedDone(prev => new Set([...prev, step]))
+      }, i * 80)
+    })
+  }, [mounted, steps])
+
   const completedCount = steps.filter(s => s.done).length
   const nextStep = steps.find(s => !s.done)
   const progressPct = Math.round((completedCount / steps.length) * 100)
@@ -72,7 +84,15 @@ export function GuidedPathHero({ steps, tier }: Props) {
                       : 'bg-slate-50 border-slate-200 text-slate-400',
                 )}
               >
-                <span className="text-sm leading-none">{s.done ? '✓' : s.icon}</span>
+                <span
+                  className={`text-sm leading-none transition-[transform] duration-300 motion-reduce:transition-none ${
+                    s.done
+                      ? `motion-reduce:scale-100 ${animatedDone.has(s.step) ? 'scale-100' : 'scale-0'}`
+                      : ''
+                  }`}
+                >
+                  {s.done ? '✓' : s.icon}
+                </span>
                 <span className="text-[9px] font-medium leading-tight line-clamp-2 text-center w-full">{s.title}</span>
               </Link>
             </li>
