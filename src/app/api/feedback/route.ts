@@ -92,9 +92,17 @@ export async function POST(request: Request) {
         ].join('\n'),
       }),
     })
-    if (!res.ok) console.error('[Feedback] Resend-Fehler:', await res.text())
+    if (!res.ok) {
+      const errorBody = await res.text()
+      console.error('[Feedback] Resend-Fehler:', res.status, errorBody)
+      return NextResponse.json(
+        { error: `E-Mail-Versand fehlgeschlagen (${res.status}): ${errorBody}` },
+        { status: 500 }
+      )
+    }
   } catch (err) {
     console.error('[Feedback] Netzwerkfehler:', err)
+    return NextResponse.json({ error: 'Netzwerkfehler beim E-Mail-Versand' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
