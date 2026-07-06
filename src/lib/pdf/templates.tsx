@@ -414,24 +414,72 @@ interface RoadmapPdfData {
 
 const PHASE_COLORS = ['#1d4ed8', '#0891b2', '#7c3aed']
 
-const ROADMAP_RECS: Record<string, string[]> = {
+const ROADMAP_RECS: Record<string, Rec3[]> = {
   starter: [
-    'Fokus auf 1–2 Pilotprojekte mit messbarem ROI — Tiefe vor Breite, schnelle Lernzyklen priorisieren.',
-    'Daten-Fundament sicherstellen: Datenverfügbarkeit und -qualität als KI-Voraussetzung prüfen und ggf. aufbauen.',
-    'Quick-Win-Use-Cases für erste Phase wählen — frühe Erfolge schaffen internes Vertrauen und Budget-Argumente.',
-    'Executive-Sponsorship auf C-Level frühzeitig sichern — AI-Projekte ohne Management-Commitment scheitern in der Skalierungsphase.',
+    {
+      title:  'Executive-Sponsorship auf C-Level vor Pilotstart sichern',
+      why:    'Forrester Research (2024): 79 % aller fehlgeschlagenen KI-Transformationen haben Cultural Resistance als Hauptursache — nicht Technologie. Ohne C-Level-Sponsor fehlen Ressourcen, Budget-Kontinuität und die organisatorische Durchsetzungskraft in der Skalierungsphase.¹',
+      action: 'AI-Sponsor im C-Level benennen; quartalsliches AI-Steering-Meeting einrichten; ersten Piloten als strategische Initiative im Jahresplan verankern.',
+    },
+    {
+      title:  'Datenfundament vor dem ersten Piloten validieren',
+      why:    'EU AI Act Art. 10 schreibt hochwertige Datenverwaltungspraktiken als Voraussetzung für Hochrisiko-KI vor. McKinsey (2023): 72 % der Unternehmen nennen Datenqualität als Haupthindernis für KI-Skalierung — ein schlechtes Datenfundament macht auch den besten Piloten wirkungslos.¹',
+      action: 'Datenqualitäts-Assessment für alle Piloten-Datenquellen durchführen; Mindestanforderungen (Vollständigkeit, Aktualität, Konsistenz) vor Modelltraining definieren.',
+    },
+    {
+      title:  '1–2 Quick-Win-Use-Cases mit messbarem ROI wählen',
+      why:    'BCG AI Adoption Report (2024): KI-Projekte mit klar definiertem ROI-Nachweis erhalten 4× häufiger Folgebudget als explorative Projekte ohne Business Case. Frühe Erfolge schaffen internes Vertrauen und sichern das Budget für die Skalierungsphase.¹',
+      action: 'Use-Case-Scoring im AI Navigator nutzen; Top-2-Use-Cases nach ROI-Potenzial und Umsetzbarkeit auswählen; Erfolgsmetriken vor Pilotstart in Baseline erfassen.',
+    },
+    {
+      title:  'Governance-Framework parallel zum Piloten aufbauen',
+      why:    'EU AI Act Art. 9 verlangt ein Risikomanagementsystem für Hochrisiko-KI — wer Governance erst nach dem Piloten aufbaut, riskiert Projektstopps und kostspielige Nachbesserungen (durchschnittlicher Nachrüst-Aufwand: 3× höher als präventive Implementierung, NIST AI RMF 2024).¹',
+      action: 'Governance-Check im AI Navigator für jeden Pilot-Use-Case durchführen; RACI-Matrix und Freigabeprozess vor Go-Live dokumentieren.',
+    },
   ],
   scaler: [
-    'Erfolgreiche Piloten dokumentieren und als Playbook auf weitere Bereiche übertragen — systematisches Ausrollen statt Einzelprojekte.',
-    'AI-Center-of-Excellence etablieren: Zentrale Kompetenzplattform für Methoden, Tools und Best Practices aufbauen.',
-    'KPI-Tracking professionalisieren: Roadmap-KPIs quartalsweise messen und in Management-Reviews berichten.',
-    'MLOps-Reife steigern: Automatisiertes Retraining, Drift-Monitoring und A/B-Testing für produktive Modelle implementieren.',
+    {
+      title:  'Erfolgreiche Piloten als Playbook systematisch ausrollen',
+      why:    'McKinsey Global AI Survey 2024: Unternehmen, die KI-Erfolge systematisch skalieren statt zu replizieren, erzielen 2,8× höhere Wertschöpfung. Ohne Playbook-Ansatz wiederholen Teams dieselben Lernkurven — Wissenstransfer bleibt ungenutzt.¹',
+      action: 'Pilot-Dokumentation (Architektur, Datenpipeline, Lessons Learned) in internes Playbook überführen; 2–3 Nachfolge-Teams mit Playbook onboarden.',
+    },
+    {
+      title:  'AI-Center-of-Excellence als interne Kompetenzplattform etablieren',
+      why:    'EU AI Act Art. 17 schreibt ein Qualitätsmanagementsystem mit zentraler Verantwortlichkeit vor. Gartner (2024): Unternehmen mit CoE erreichen KI-Deployments 40 % schneller und mit 30 % weniger Compliance-Nacharbeit als dezentralisierte Teams.¹',
+      action: 'CoE-Charter (Mandat, Ressourcen, KPIs) in 6 Wochen verabschieden; 3–5 Vollzeit-Äquivalente aus bestehenden Teams zuordnen; erste monatliche Best-Practice-Session einplanen.',
+    },
+    {
+      title:  'MLOps-Reife für produktive Modelle ausbauen',
+      why:    'EU AI Act Art. 9 Abs. 4 verlangt kontinuierliche Überwachung über den gesamten Systemlebenszyklus — manuelle Modellüberwachung skaliert nicht. NVIDIA Enterprise AI Survey (2024): 68 % der KI-Ausfälle in Produktion entstehen durch unentdeckten Modell-Drift.¹',
+      action: 'Automatisiertes Retraining-Pipeline, Drift-Monitoring und A/B-Testing-Framework für alle Produktionsmodelle implementieren; SLA für Modell-Degradation definieren.',
+    },
+    {
+      title:  'Roadmap-KPIs quartalsweise messen und berichten',
+      why:    'Ohne kontinuierliches KPI-Tracking verlieren KI-Projekte intern an Legitimität — laut Forrester (2024) werden 61 % der KI-Budgets gestrichen, die keine nachweisbaren Ergebnisse nach 12 Monaten liefern. Messung ist Voraussetzung für Investitionssicherheit.¹',
+      action: 'KPI-Dashboard für alle aktiven KI-Initiativen einrichten; quartalsliches Management-Reporting mit Vergleich zu Baseline-Werten einführen.',
+    },
   ],
   transformer: [
-    'AI als strategischen Wettbewerbsvorteil aktiv kommunizieren — intern als Kulturmerkmal, extern als Differenzierungsmerkmal.',
-    'Proprietäre Daten als strategischen Asset behandeln: Datenmonetarisierung und domänenspezifische Modelle vorantreiben.',
-    'Innovationsgeschwindigkeit aufrechterhalten: Dediziertes Experiments-Budget und Fail-Fast-Kultur etablieren.',
-    'AI-Ökosystem mitgestalten: Partnerschaften, Standards und Open-Source-Beiträge als strategische Hebel nutzen.',
+    {
+      title:  'Proprietäre Daten als strategischen Asset schützen und monetarisieren',
+      why:    'EU AI Act Art. 10 schreibt Datenverwaltungspraktiken vor; gleichzeitig sind proprietäre Datensätze der stärkste Wettbewerbsmoat im KI-Zeitalter. McKinsey (2024): Unternehmen mit domänenspezifischen Datenstrategien erzielen 5× höhere KI-Wertschöpfung als solche mit generischen Modellen.¹',
+      action: 'Daten-Asset-Register anlegen; Monetarisierungspfade für Top-3-Datensätze bewerten; Data-Governance-Struktur auf strategische Assets ausweiten.',
+    },
+    {
+      title:  'Innovationsgeschwindigkeit durch strukturierte Experimentierkultur sichern',
+      why:    'BCG Henderson Institute (2024): KI-Marktführer investieren 3× mehr in Experimentation als Nachzügler. Ohne dediziertes Experiments-Budget und Fail-Fast-Kultur verlangsamt sich die Innovationsrate, während Wettbewerber aufholen.¹',
+      action: 'Dediziertes Experiments-Budget (10–15 % des AI-Gesamtbudgets) formalisieren; Fail-Fast-Metriken definieren; monatliches Innovation-Sprint-Format einführen.',
+    },
+    {
+      title:  'AI als Differenzierungsmerkmal aktiv nach außen kommunizieren',
+      why:    'Edelman Trust Barometer 2024: 73 % der B2B-Kunden betrachten nachgewiesene AI-Kompetenz als Kaufkriterium. AI-Kompetenz ohne externe Kommunikation bleibt unsichtbarer Wettbewerbsvorteil. EU AI Act Art. 13 fördert zudem proaktive Transparenz als Vertrauensgrundlage.¹',
+      action: 'AI-Erfolgsstories für externe Kommunikation aufbereiten (Case Studies, Zertifizierungen, Whitepapers); KI-Kompetenz in Sales-Materialien und auf der Unternehmenswebsite integrieren.',
+    },
+    {
+      title:  'AI-Ökosystem aktiv mitgestalten',
+      why:    'Open-Source-Beiträge und Standards-Mitarbeit stärken Employer Branding und Technologie-Früherkennung: Unternehmen in AI-Standards-Gremien reduzieren Compliance-Anpassungskosten bei Regulierungsänderungen um bis zu 60 % (OECD AI Policy Observatory, 2024).¹',
+      action: 'Beteiligung an 1–2 AI-Standards-Gremien (ISO/IEC JTC 1/SC 42, EU AI Alliance) oder Open-Source-Projekten formalisieren; Partner-Ökosystem für AI-Komponenten aufbauen.',
+    },
   ],
 }
 
@@ -439,6 +487,14 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
   const archetypeRecs = ROADMAP_RECS[data.archetype ?? ''] ?? ROADMAP_RECS.starter
   return (
     <Document title="AI-Roadmap">
+      {/* Seite 1: Deckblatt */}
+      <PdfCoverPage
+        title={data.title}
+        subtitle={data.archetype ? ARCHETYPE_LABELS[data.archetype] : undefined}
+        companyName={data.companyName}
+      />
+
+      {/* Seite 2: Phasen */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>{data.title}</Text>
@@ -451,7 +507,7 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
           <Text style={{ fontSize: 10, color: C.gray }}>Noch keine Roadmap-Phasen gespeichert.</Text>
         )}
         {data.phases.map((phase, idx) => (
-          <View key={idx} style={{ borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[idx] ?? C.brand, paddingLeft: 12, marginBottom: 16 }}>
+          <View key={idx} wrap={false} style={{ borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[idx] ?? C.brand, paddingLeft: 12, marginBottom: 16 }}>
             <View style={[s.row, { justifyContent: 'space-between', marginBottom: 4 }]}>
               <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{phase.title}</Text>
               {phase.duration && <Text style={{ fontSize: 9, color: C.gray }}>{phase.duration}</Text>}
@@ -464,9 +520,9 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
               </View>
             ))}
             {(phase.kpis ?? []).length > 0 && (
-              <View style={[s.row, { flexWrap: 'wrap', gap: 4, marginTop: 6 }]}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
                 {(phase.kpis ?? []).map((k, ki) => (
-                  <View key={ki} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <View key={ki} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 3 }}>
                     <Text style={{ fontSize: 9, color: C.brand }}>{k}</Text>
                   </View>
                 ))}
@@ -477,10 +533,11 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
             )}
           </View>
         ))}
-        <PdfFooter />
+
+        <PdfFooterEs company={data.companyName} />
       </Page>
 
-      {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
+      {/* Seite 3: Handlungsempfehlungen */}
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} />
         <Text style={s.h1}>Handlungsempfehlungen</Text>
@@ -489,25 +546,18 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
         </Text>
 
         {archetypeRecs.map((rec, i) => (
-          <View key={i} style={[s.card, { marginBottom: 10, borderLeftWidth: 3, borderLeftColor: C.brand }]}>
-            <View style={[s.row, { alignItems: 'flex-start', gap: 8 }]}>
-              <View style={{ backgroundColor: C.brand, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
-                <Text style={{ fontSize: 9, color: 'white', fontWeight: 'bold' }}>{i + 1}</Text>
-              </View>
-              <Text style={{ fontSize: 10, color: C.dark, lineHeight: 1.5, flex: 1 }}>{rec}</Text>
-            </View>
-          </View>
+          <RecCard3 key={i} rec={rec} index={i} color={C.brand} />
         ))}
 
         {data.phases.length > 0 && (
           <>
             <Text style={s.h2}>Erste Phase — Fokusthemen</Text>
-            <View style={[s.card, { borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[0] }]}>
+            <View wrap={false} style={[s.card, { borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[0] }]}>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>{data.phases[0].title}</Text>
               {data.phases[0].focus && <Text style={{ fontSize: 10, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{data.phases[0].focus}</Text>}
               {(data.phases[0].actions ?? []).slice(0, 4).map((a, i) => (
-                <View key={i} style={[s.row, { gap: 4, marginBottom: 3 }]}>
-                  <Text style={{ fontSize: 9, color: C.brand }}>▸</Text>
+                <View key={i} style={[s.row, { marginBottom: 3 }]}>
+                  <Text style={{ fontSize: 9, color: C.brand, marginRight: 4 }}>{'>'}</Text>
                   <Text style={{ flex: 1, fontSize: 10 }}>{a.label}</Text>
                 </View>
               ))}
@@ -515,14 +565,8 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
           </>
         )}
 
-        <View style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
-          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Quarterly AI Health Review</Text>
-          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
-            Empfehlung: Roadmap-KPIs und AI-Readiness-Score quartalsweise überprüfen. Phasen-Ziele anpassen wenn sich Marktbedingungen, Ressourcen oder Prioritäten ändern.
-          </Text>
-        </View>
-
-        <PdfFooter />
+        <PdfLegalNote />
+        <PdfFooterEs company={data.companyName} />
       </Page>
     </Document>
   )
