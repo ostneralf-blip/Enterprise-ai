@@ -240,7 +240,7 @@ export default async function ZusammenfassungPage() {
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Executive Summary</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Executive Summary</h1>
           <p className="text-slate-500 text-sm mt-1">
             {company ? `${company} · ` : ''}
             {completedCount} von {modules.length} Modulen abgeschlossen

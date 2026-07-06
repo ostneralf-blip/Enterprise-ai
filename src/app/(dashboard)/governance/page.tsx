@@ -65,7 +65,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Governance-Check</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Governance-Check</h1>
         <p className="text-slate-500 text-sm mt-1">
           6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
         </p>

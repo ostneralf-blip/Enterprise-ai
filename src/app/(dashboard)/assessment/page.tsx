@@ -33,7 +33,7 @@ export default async function AssessmentPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900">AI-Readiness Assessment</h1>
+        <h1 className="text-2xl font-semibold font-serif text-slate-900">AI-Readiness Assessment</h1>
         <p className="text-slate-500 mt-1">{tier !== 'free' ? '6 Dimensionen · 42 Fragen · ~25 Minuten' : '6 Dimensionen · 16 Fragen · ~10 Minuten'}</p>
       </div>
       <Suspense fallback={null}>

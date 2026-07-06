@@ -44,7 +44,7 @@ export default function FeedbackPage() {
     <div className="max-w-xl space-y-10">
       <div>
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Feedback & Support</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Feedback & Support</h1>
         <p className="text-sm text-slate-500 mt-1">Fehler melden, Feature-Wünsche einreichen oder eine Frage stellen.</p>
       </div>
 

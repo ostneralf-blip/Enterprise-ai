@@ -45,7 +45,7 @@ export function UpgradePageClient() {
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-10">
         <div className="text-3xl mb-3">⬡</div>
-        <h1 className="text-2xl font-semibold text-slate-900 mb-2">Upgrade auf Professional</h1>
+        <h1 className="text-2xl font-semibold font-serif text-slate-900 mb-2">Upgrade auf Professional</h1>
         <p className="text-slate-500">Alle 7 Tools, unbegrenzt speichern, PDF-Export und mehr.</p>
       </div>
 

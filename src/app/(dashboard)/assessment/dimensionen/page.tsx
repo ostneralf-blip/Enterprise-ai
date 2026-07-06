@@ -47,7 +47,7 @@ export default function DimensionenPage() {
         >
           ← Zurück zum Assessment
         </Link>
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Assessment-Dimensionen</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Assessment-Dimensionen</h1>
         <p className="text-slate-500 text-sm mt-1 leading-relaxed">
           Das AI-Readiness Assessment bewertet Ihr Unternehmen in 6 Dimensionen. Die Gewichtungen
           spiegeln wider, welchen Einfluss jede Dimension erfahrungsgemäß auf den Gesamterfolg von

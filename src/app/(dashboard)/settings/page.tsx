@@ -49,7 +49,7 @@ export default async function SettingsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Einstellungen</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Einstellungen</h1>
         <p className="text-slate-500 text-sm mt-1">Profil und Konto verwalten</p>
       </div>
       <SettingsPageClient profile={profile} email={user.email ?? ''} />
