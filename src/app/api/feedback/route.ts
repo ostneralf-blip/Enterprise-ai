@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from:    'AI Navigator <noreply@enterprise-ai.biz>',
-        to:      ['ostneralf@freenet.de'],
+        to:      [process.env.FEEDBACK_TO_EMAIL ?? 'webmaster@enterprise-ai.biz'],
         subject: `[AI Navigator Feedback] ${categoryLabel} von ${senderName}`,
         text: [
           `Kategorie: ${categoryLabel}`,
