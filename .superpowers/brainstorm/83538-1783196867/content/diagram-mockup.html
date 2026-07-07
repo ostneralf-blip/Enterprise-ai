@@ -1,0 +1,139 @@
+<h2>Diagramm + Sidebar — Interaktions-Mockup</h2>
+<p class="subtitle">So sieht das Architekturdiagramm nach Block 2+3 aus</p>
+
+<div class="mockup">
+  <div class="mockup-header">Enterprise Architekturdiagramm · Zentriert &amp; Verfügbar · 14 Komponenten · 5 Schichten</div>
+  <div class="mockup-body" style="padding:0;display:flex;gap:0;min-height:340px">
+
+    <!-- Swimlane (70%) -->
+    <div style="flex:7;border-right:1px solid #e2e8f0;overflow:auto">
+      <!-- DATA -->
+      <div style="display:flex;border-bottom:1px solid #f1f5f9">
+        <div style="width:90px;min-width:90px;padding:8px 10px;background:#eff6ff;border-right:1px solid #dbeafe;display:flex;align-items:center;gap:6px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span>
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569">Daten</span>
+        </div>
+        <div style="padding:7px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+          <label style="display:flex;align-items:center;gap:4px;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" checked style="accent-color:#3b82f6;width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#1e40af">SAP Datasphere</span>
+            <span style="background:#f0fdf4;border:1px solid #bbf7d0;padding:0 3px;border-radius:3px;font-size:8px;color:#15803d">✓</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" checked style="accent-color:#3b82f6;width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#1e40af">SAP HANA Cloud</span>
+            <span style="background:#f0fdf4;border:1px solid #bbf7d0;padding:0 3px;border-radius:3px;font-size:8px;color:#15803d">✓</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" style="width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#475569">Databricks</span>
+            <span style="background:#fef9c3;border:1px solid #fde047;padding:0 3px;border-radius:3px;font-size:8px;color:#854d0e">~</span>
+          </label>
+        </div>
+      </div>
+      <!-- MODEL -->
+      <div style="display:flex;border-bottom:1px solid #f1f5f9">
+        <div style="width:90px;min-width:90px;padding:8px 10px;background:#f5f3ff;border-right:1px solid #ddd6fe;display:flex;align-items:center;gap:6px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#7c3aed;flex-shrink:0"></span>
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569">Modell</span>
+        </div>
+        <div style="padding:7px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+          <label style="display:flex;align-items:center;gap:4px;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" checked style="accent-color:#3b82f6;width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#1e40af">SAP AI Core</span>
+            <span style="background:#fef9c3;border:1px solid #fde047;padding:0 3px;border-radius:3px;font-size:8px;color:#854d0e">~</span>
+          </label>
+          <!-- Konflikt: rot umrandet -->
+          <label style="display:flex;align-items:center;gap:4px;background:#fef2f2;border:1.5px solid #fca5a5;padding:2px 7px;border-radius:5px;cursor:pointer" title="Inkompatibel mit SAP AI Core">
+            <input type="checkbox" style="width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#991b1b">vLLM</span>
+            <span style="font-size:8px;color:#ef4444">✗</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" style="width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#475569">Azure OpenAI</span>
+          </label>
+        </div>
+      </div>
+      <!-- SERVING -->
+      <div style="display:flex;border-bottom:1px solid #f1f5f9">
+        <div style="width:90px;min-width:90px;padding:8px 10px;background:#f0fdf4;border-right:1px solid #bbf7d0;display:flex;align-items:center;gap:6px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#16a34a;flex-shrink:0"></span>
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#475569">Serving</span>
+        </div>
+        <div style="padding:7px 10px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+          <!-- Vorschlag: grün umrandet -->
+          <label style="display:flex;align-items:center;gap:4px;background:#f0fdf4;border:1.5px solid #86efac;padding:2px 7px;border-radius:5px;cursor:pointer" title="Empfohlen für SAP AI Core">
+            <input type="checkbox" style="width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#15803d">SAP GenAI Hub</span>
+            <span style="font-size:8px;color:#16a34a">💡</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;padding:2px 7px;border-radius:5px;cursor:pointer">
+            <input type="checkbox" style="width:10px;height:10px">
+            <span style="font-size:10px;font-weight:500;color:#475569">LangServe</span>
+          </label>
+        </div>
+      </div>
+      <!-- QUERSCHNITT -->
+      <div style="border-top:2px dashed #e2e8f0;padding:6px 10px;background:#f8fafc">
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">Querschnittsfunktionen</span>
+      </div>
+      <div style="display:flex">
+        <div style="flex:1;padding:7px 10px;background:#fff7ed;border-right:1px solid #fed7aa">
+          <div style="font-size:9px;font-weight:700;color:#9a3412;margin-bottom:4px">⬤ GOVERNANCE</div>
+          <label style="display:flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:10px;color:#475569">
+            <input type="checkbox" style="width:9px;height:9px"> SAP AI Launchpad
+          </label>
+        </div>
+        <div style="flex:1;padding:7px 10px;background:#fef2f2">
+          <div style="font-size:9px;font-weight:700;color:#991b1b;margin-bottom:4px">⬤ SECURITY</div>
+          <label style="display:flex;align-items:center;gap:4px;background:#f8fafc;border:1px solid #e2e8f0;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:10px;color:#475569">
+            <input type="checkbox" style="width:9px;height:9px"> SAP Identity Auth.
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar (30%) -->
+    <div style="flex:3;padding:10px;background:#fafafa;display:flex;flex-direction:column;gap:8px;min-width:160px">
+      <div style="font-size:11px;font-weight:700;color:#1e293b">Meine Architektur</div>
+
+      <!-- Zähler -->
+      <div style="font-size:10px;color:#3b82f6;font-weight:600">3 Komponenten ausgewählt</div>
+
+      <!-- Konflikte -->
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:7px">
+        <div style="font-size:9px;font-weight:700;color:#991b1b;margin-bottom:4px">⚠ 1 Konflikt</div>
+        <div style="font-size:9px;color:#7f1d1d;margin-bottom:4px">SAP AI Core ✗ vLLM<br><span style="color:#6b7280">Konkurrierende Inference-Schicht</span></div>
+        <div style="font-size:9px;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;padding:4px;border-radius:4px">
+          💡 Alternative: SAP GenAI Hub
+        </div>
+      </div>
+
+      <!-- Vorschläge -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:7px">
+        <div style="font-size:9px;font-weight:700;color:#15803d;margin-bottom:4px">💡 1 Vorschlag</div>
+        <div style="font-size:9px;color:#14532d">SAP GenAI Hub<br><span style="color:#6b7280">Empfohlen für SAP AI Core</span></div>
+        <button style="margin-top:4px;font-size:9px;background:#16a34a;color:white;border:none;padding:2px 6px;border-radius:3px;cursor:pointer">+ Hinzufügen</button>
+      </div>
+
+      <!-- Ausgewählte Liste -->
+      <div style="border-top:1px solid #e2e8f0;padding-top:7px">
+        <div style="font-size:9px;font-weight:600;color:#64748b;margin-bottom:4px">Ausgewählt</div>
+        <div style="font-size:9px;color:#1e293b;line-height:1.7">
+          ☑ SAP Datasphere<br>
+          ☑ SAP HANA Cloud<br>
+          ☑ SAP AI Core
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:11px;color:#64748b">
+  <strong style="color:#1e293b">Legende:</strong>
+  <span style="margin-left:8px;background:#fef2f2;border:1.5px solid #fca5a5;padding:1px 6px;border-radius:4px;color:#991b1b;font-size:10px">Rot umrandet = inkompatibel</span>
+  <span style="margin-left:6px;background:#f0fdf4;border:1.5px solid #86efac;padding:1px 6px;border-radius:4px;color:#15803d;font-size:10px">Grün umrandet = Vorschlag</span>
+  <span style="margin-left:6px;background:#eff6ff;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px;color:#1e40af;font-size:10px">Blau = ausgewählt</span>
+</div>

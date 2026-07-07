@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { CanvasPageClient } from '@/app/(dashboard)/canvas/CanvasPageClient'
+import { CanvasPageClient } from '@/app/[locale]/(dashboard)/canvas/CanvasPageClient'
 import type { Canvas } from '@/types'
 
 expect.extend(toHaveNoViolations)

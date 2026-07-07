@@ -3,7 +3,7 @@ import { join } from 'path'
 
 describe('Security: Admin Panel', () => {
   describe('Admin page server-side gate', () => {
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/admin/page.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/admin/page.tsx'), 'utf-8')
 
     it('checks auth via supabase.auth.getUser()', () => {
       expect(source).toContain('supabase.auth.getUser()')
@@ -77,7 +77,7 @@ describe('Security: Admin Panel', () => {
   })
 
   describe('Client component: no direct DB access', () => {
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/admin/AdminPageClient.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/admin/AdminPageClient.tsx'), 'utf-8')
 
     it('does not import Supabase client', () => {
       expect(source).not.toContain("from '@/lib/supabase")

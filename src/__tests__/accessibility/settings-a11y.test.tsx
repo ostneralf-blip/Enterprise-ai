@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { SettingsPageClient } from '@/app/(dashboard)/settings/SettingsPageClient'
+import { SettingsPageClient } from '@/app/[locale]/(dashboard)/settings/SettingsPageClient'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
@@ -102,7 +102,7 @@ describe('Accessibility: Settings', () => {
 
   it('Theme-Picker-Buttons haben aria-pressed und aria-label', () => {
     // Statischer Code-Check (Theme-Picker ist 'use client', kein SSR-render nötig)
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
     expect(source).toContain('aria-pressed')
     expect(source).toContain('aria-label')
   })

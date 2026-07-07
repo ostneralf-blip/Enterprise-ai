@@ -3,9 +3,9 @@ import { join } from 'path'
 
 const versionsRoute = readFileSync(join(process.cwd(), 'src/app/api/versions/route.ts'), 'utf-8')
 const shareRoute    = readFileSync(join(process.cwd(), 'src/app/api/share/route.ts'), 'utf-8')
-const governanceClient  = readFileSync(join(process.cwd(), 'src/app/(dashboard)/governance/GovernancePageClient.tsx'), 'utf-8')
-const roadmapClient     = readFileSync(join(process.cwd(), 'src/app/(dashboard)/roadmap/RoadmapPageClient.tsx'), 'utf-8')
-const canvasClient      = readFileSync(join(process.cwd(), 'src/app/(dashboard)/canvas/CanvasPageClient.tsx'), 'utf-8')
+const governanceClient  = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/governance/GovernancePageClient.tsx'), 'utf-8')
+const roadmapClient     = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/roadmap/RoadmapPageClient.tsx'), 'utf-8')
+const canvasClient      = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/canvas/CanvasPageClient.tsx'), 'utf-8')
 
 describe('Security: /api/versions', () => {
   it('GET prüft Auth und gibt 401 zurück', () => {

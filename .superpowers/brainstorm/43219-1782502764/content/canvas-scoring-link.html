@@ -1,0 +1,94 @@
+<h2>Wie wird ein Canvas mit einem Use Case verknüpft?</h2>
+<p class="subtitle">Wo entsteht die Verbindung zwischen Canvas und Scoring-Eintrag?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Push vom Canvas</h3>
+      <p>Im Canvas gibt es einen "In Scoring aufnehmen"-Button. Dieser erzeugt automatisch einen Scoring-Eintrag mit vorausgefüllten Werten.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Canvas — "OCR im Finanzwesen" · Ergebnis-Ansicht</div>
+        <div class="mockup-body" style="font-size:12px; padding:12px">
+          <div style="background:#f1f5f9; border-radius:6px; padding:8px; margin-bottom:8px">
+            <span style="color:#475569; font-weight:600">Problem:</span> Manuelle Rechnungsverarbeitung, 3 FTE gebunden<br>
+            <span style="color:#475569; font-weight:600">Lösung:</span> OCR + SAP Document Intelligence<br>
+            <span style="color:#475569; font-weight:600">Branche:</span> Finance · <span style="color:#475569; font-weight:600">Backend:</span> SAP S/4HANA
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px">
+            <div style="flex:1; padding:8px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; text-align:center; font-size:11px; color:#1d4ed8; font-weight:600">PDF Export</div>
+            <div style="flex:1; padding:8px; background:#f0fdf4; border:2px solid #16a34a; border-radius:6px; text-align:center; font-size:11px; color:#166534; font-weight:600">✚ In Scoring aufnehmen →</div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Für</h4><ul><li>Canvas-Felder werden direkt in Scoring übertragen</li><li>Eindeutige Richtung: Canvas → Scoring</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Kein nachträgliches Verknüpfen möglich</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Pull im Scoring &nbsp;<span style="background:#fef3c7; color:#92400e; font-size:11px; padding:2px 8px; border-radius:4px">Empfohlen</span></h3>
+      <p>Jeder Use-Case-Eintrag im Scoring hat ein optionales "Canvas verknüpfen"-Dropdown. Bestehende Canvases sind auswählbar.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Use-Case Scoring — Eintrag bearbeiten</div>
+        <div class="mockup-body" style="font-size:12px; padding:12px">
+          <div style="margin-bottom:6px"><span style="color:#64748b; font-size:11px">Name</span><br>
+            <input class="mock-input" value="OCR Rechnungsverarbeitung" style="margin-top:3px">
+          </div>
+          <div style="margin-bottom:6px"><span style="color:#64748b; font-size:11px">Branche / Domäne</span><br>
+            <input class="mock-input" value="Finance" style="margin-top:3px">
+          </div>
+          <div style="margin-bottom:6px">
+            <span style="color:#64748b; font-size:11px">Canvas verknüpfen <span style="color:#94a3b8">(optional)</span></span><br>
+            <div style="margin-top:3px; border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; background:white; font-size:12px; display:flex; justify-content:space-between">
+              <span style="color:#1d4ed8">◧ OCR im Finanzwesen (Canvas)</span>
+              <span style="color:#94a3b8">▾</span>
+            </div>
+          </div>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:8px; font-size:11px; color:#1e40af; margin-top:4px">
+            ✓ Canvas verknüpft — Branche, Technologiekontext und DSGVO-Anforderungen werden im Architektur-Generator berücksichtigt.
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Für</h4><ul><li>Flexibel: Canvas nachträglich wählbar</li><li>Ein Scoring-Eintrag = ein Canvas (klare 1:1-Relation)</li><li>Keine Canvas-Pflicht, optionale Vertiefung</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Nutzer muss aktiv verknüpfen</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Beides — bidirektional</h3>
+      <p>Push vom Canvas UND Pull im Scoring. Beide Wege möglich, Verknüpfung immer sichtbar.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Verknüpfungs-Indikator (überall sichtbar)</div>
+        <div class="mockup-body" style="font-size:12px; padding:10px; display:flex; gap:12px">
+          <div style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:8px">
+            <div style="font-weight:600; color:#475569; margin-bottom:4px">◧ Canvas</div>
+            <div style="font-size:11px; color:#64748b">OCR im Finanzwesen</div>
+            <div style="margin-top:8px; font-size:10px; background:#f0fdf4; border:1px solid #bbf7d0; padding:4px 6px; border-radius:4px; color:#166534">⇄ Scoring: OCR Rechnung</div>
+          </div>
+          <div style="display:flex; align-items:center; color:#94a3b8; font-size:18px">⇄</div>
+          <div style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:8px">
+            <div style="font-weight:600; color:#475569; margin-bottom:4px">⊞ Scoring-Eintrag</div>
+            <div style="font-size:11px; color:#64748b">OCR Rechnungsverarb.</div>
+            <div style="margin-top:8px; font-size:10px; background:#eff6ff; border:1px solid #bfdbfe; padding:4px 6px; border-radius:4px; color:#1d4ed8">⇄ Canvas: OCR im Finanzw.</div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Für</h4><ul><li>Maximale Flexibilität</li><li>Überall sichtbarer Kontext</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Komplexerer Umbau</li><li>Zwei Wege = mehr Fehlerpotenzial</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<p style="margin-top:16px; font-size:13px; color:#64748b; text-align:center">Klicken Sie im Browser oder antworten Sie hier — oder "ohne Browser weiter" um den Visual Companion zu beenden.</p>

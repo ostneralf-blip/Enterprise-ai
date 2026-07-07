@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { GovernancePageClient } from '@/app/(dashboard)/governance/GovernancePageClient'
+import { GovernancePageClient } from '@/app/[locale]/(dashboard)/governance/GovernancePageClient'
 import { GOVERNANCE_GATES } from '@/config/governance-data'
 
 expect.extend(toHaveNoViolations)

@@ -1,0 +1,72 @@
+<h2>Wo erscheint die Zusammenfassung?</h2>
+<p class="subtitle">Die Zusammenfassung zeigt: ausgewählte Komponenten, Konflikte, Vorschläge</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Panel unterhalb des Diagramms</h3>
+      <p>Klappt auf sobald mindestens eine Komponente ausgewählt ist. Zeigt die Auswahl, Konflikte und Vorschläge direkt unter dem Swimlane-Diagramm. Einfach, keine Layout-Änderung.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-body" style="font-size:11px;padding:0">
+          <div style="padding:8px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:10px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Swimlane-Diagramm</div>
+          <div style="padding:8px 10px;display:flex;gap:6px;flex-wrap:wrap">
+            <span style="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;color:#1e40af;font-size:10px">☑ SAP Datasphere</span>
+            <span style="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;color:#1e40af;font-size:10px">☑ SAP AI Core</span>
+          </div>
+          <div style="border-top:2px solid #e2e8f0;padding:8px 10px;background:#fffbeb">
+            <div style="font-weight:600;color:#92400e;font-size:10px;margin-bottom:4px">⚠ 1 Konflikt · 2 Vorschläge</div>
+            <div style="color:#b45309;font-size:10px">SAP AI Core ✗ vLLM — Alternative: SAP GenAI Hub</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Sidebar rechts neben dem Diagramm</h3>
+      <p>Festes Panel rechts, immer sichtbar sobald eine Komponente gewählt ist. Diagramm nimmt ~70% Breite ein, Sidebar ~30%. Gut für Desktop, auf Mobile gestapelt.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-body" style="font-size:11px;padding:0;display:flex;gap:0">
+          <div style="flex:2;padding:8px 10px;border-right:1px solid #e2e8f0">
+            <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:6px">SWIMLANE</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <span style="background:#eff6ff;border:1px solid #bfdbfe;padding:2px 6px;border-radius:4px;color:#1e40af;font-size:10px">☑ SAP AI Core</span>
+              <span style="background:#f8fafc;border:1px solid #e2e8f0;padding:2px 6px;border-radius:4px;color:#64748b;font-size:10px">□ vLLM</span>
+            </div>
+          </div>
+          <div style="flex:1;padding:8px 10px;background:#fafafa">
+            <div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px">Meine Architektur</div>
+            <div style="font-size:10px;color:#3b82f6;margin-bottom:4px">2 Komponenten</div>
+            <div style="font-size:10px;color:#991b1b;background:#fef2f2;padding:4px;border-radius:4px;margin-bottom:4px">⚠ 1 Konflikt</div>
+            <div style="font-size:10px;color:#15803d;background:#f0fdf4;padding:4px;border-radius:4px">💡 1 Vorschlag</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Ausklappbarer Drawer (unten)</h3>
+      <p>Ein Balken am unteren Rand zeigt "X Komponenten ausgewählt · Y Konflikte". Klick klappt den vollständigen Drawer auf. Maximale Diagramm-Fläche solange kein Review nötig ist.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-body" style="font-size:11px;padding:0">
+          <div style="padding:8px 10px;background:#f8fafc;font-size:10px;color:#64748b">Swimlane — volle Breite…</div>
+          <div style="padding:6px 10px;background:#1e293b;color:white;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+            <span style="font-size:10px;font-weight:600">☑ 3 Komponenten · ⚠ 1 Konflikt · 💡 2 Vorschläge</span>
+            <span style="font-size:10px">▲ Details</span>
+          </div>
+          <div style="padding:8px 10px;background:#0f172a;color:#94a3b8;font-size:10px">
+            SAP Datasphere · SAP AI Core · SAP HANA Cloud<br>
+            <span style="color:#f87171">⚠ SAP AI Core ✗ vLLM</span><br>
+            <span style="color:#4ade80">💡 SAP GenAI Hub empfohlen</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

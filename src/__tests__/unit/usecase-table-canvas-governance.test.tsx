@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { UseCaseTable } from '@/components/modules/usecase/UseCaseTable'
-import { GovernancePageClient } from '@/app/(dashboard)/governance/GovernancePageClient'
+import { GovernancePageClient } from '@/app/[locale]/(dashboard)/governance/GovernancePageClient'
 import type { UseCase } from '@/types'
 
 global.fetch = jest.fn()

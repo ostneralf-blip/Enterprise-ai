@@ -53,17 +53,17 @@ describe('Settings: Profil-Update-Schema', () => {
 
 describe('Theme-Picker: handleThemeChange', () => {
   it('setzt data-theme via documentElement beim Theme-Wechsel', () => {
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
     expect(source).toContain("documentElement.setAttribute('data-theme'")
   })
 
   it('Theme-API-Aufruf enthält theme-Feld im Body', () => {
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
     expect(source).toContain("theme: t")
   })
 
   it('THEMES-Konstante enthält alle 4 Theme-IDs', () => {
-    const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
+    const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/settings/SettingsPageClient.tsx'), 'utf-8')
     expect(source).toContain("'book'")
     expect(source).toContain("'teal'")
     expect(source).toContain("'indigo'")

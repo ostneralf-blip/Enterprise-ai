@@ -5,13 +5,13 @@ describe('Security: AI Use-Case Canvas', () => {
 
   describe('Auth-Check (statischer Code-Check)', () => {
     it('Canvas-Page prüft Auth via supabase.auth.getUser()', () => {
-      const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/canvas/page.tsx'), 'utf-8')
+      const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/canvas/page.tsx'), 'utf-8')
       expect(source).toContain('supabase.auth.getUser()')
       expect(source).toContain("redirect('/login')")
     })
 
     it('Canvas-Page liest Canvases server-seitig mit user_id-Filter', () => {
-      const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/canvas/page.tsx'), 'utf-8')
+      const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/canvas/page.tsx'), 'utf-8')
       expect(source).toContain('canvases')
       expect(source).toContain('user_id')
     })
@@ -54,7 +54,7 @@ describe('Security: AI Use-Case Canvas', () => {
   describe('Client-Komponente kein direkter Supabase-Zugriff', () => {
     it('CanvasPageClient importiert keinen Supabase-Client', () => {
       const source = readFileSync(
-        join(process.cwd(), 'src/app/(dashboard)/canvas/CanvasPageClient.tsx'), 'utf-8'
+        join(process.cwd(), 'src/app/[locale]/(dashboard)/canvas/CanvasPageClient.tsx'), 'utf-8'
       )
       expect(source).not.toContain("from '@/lib/supabase")
     })

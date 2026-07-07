@@ -1,9 +1,10 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import type { UserProfile } from '@/types'
 import { reset } from '@/lib/posthog/client'
 import { useMobileNav } from './MobileNavContext'
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher'
 
 interface TopBarProps {
   profile: UserProfile | null
@@ -34,6 +35,7 @@ export function TopBar({ profile }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        <LanguageSwitcher />
         {/* E-Mail: nur ab md sichtbar, nimmt sonst zu viel Platz weg */}
         <div className="text-xs text-slate-500 hidden md:block truncate max-w-[180px]">
           {profile?.email}

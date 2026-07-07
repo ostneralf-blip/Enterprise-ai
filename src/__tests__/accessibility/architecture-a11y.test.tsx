@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { ArchitecturePageClient } from '@/app/(dashboard)/architecture/ArchitecturePageClient'
+import { ArchitecturePageClient } from '@/app/[locale]/(dashboard)/architecture/ArchitecturePageClient'
 import { WIZARD_STEPS } from '@/config/architecture-data'
 
 expect.extend(toHaveNoViolations)

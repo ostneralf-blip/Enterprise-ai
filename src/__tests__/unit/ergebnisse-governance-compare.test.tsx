@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { ErgebnissePageClient, type GovernanceRow } from '@/app/(dashboard)/ergebnisse/ErgebnissePageClient'
+import { ErgebnissePageClient, type GovernanceRow } from '@/app/[locale]/(dashboard)/ergebnisse/ErgebnissePageClient'
 
 global.fetch = jest.fn()
 

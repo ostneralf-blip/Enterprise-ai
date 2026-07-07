@@ -1,4 +1,4 @@
-import { platformToProvider, usecaseToApiType } from '@/app/(dashboard)/canvas/CanvasPageClient'
+import { platformToProvider, usecaseToApiType } from '@/app/[locale]/(dashboard)/canvas/CanvasPageClient'
 
 describe('platformToProvider', () => {
   it('SAP → sap', () => expect(platformToProvider('SAP')).toBe('sap'))

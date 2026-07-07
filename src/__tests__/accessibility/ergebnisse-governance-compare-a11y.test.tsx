@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { ErgebnissePageClient, type GovernanceRow } from '@/app/(dashboard)/ergebnisse/ErgebnissePageClient'
+import { ErgebnissePageClient, type GovernanceRow } from '@/app/[locale]/(dashboard)/ergebnisse/ErgebnissePageClient'
 
 expect.extend(toHaveNoViolations)
 

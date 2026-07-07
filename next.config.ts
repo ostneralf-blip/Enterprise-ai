@@ -1,13 +1,16 @@
 import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
+import createNextIntlPlugin from 'next-intl/plugin'
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['host.docker.internal', '192.168.178.121'],
   async headers() {
     return [
       {
-        // Alle Dashboard-Routen: Browser-Cache komplett deaktivieren
-        source: '/(dashboard|assessment|usecase|governance|roadmap|canvas|compliance|architecture)(.*)',
+        // Alle Dashboard-Routen: Browser-Cache komplett deaktivieren (mit und ohne /en/-Prefix)
+        source: '/(en/)?(dashboard|assessment|usecase|governance|roadmap|canvas|compliance|architecture)(.*)',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
           { key: 'Pragma', value: 'no-cache' },
@@ -18,7 +21,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,

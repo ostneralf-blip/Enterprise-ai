@@ -1,0 +1,27 @@
+{
+  "common": {
+    "signOut": "Abmelden",
+    "login": "Anmelden",
+    "register": "Kostenlos starten",
+    "language": "Sprache",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolgreich"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "assessment": "Assessment",
+    "usecase": "Use-Case-Scoring",
+    "canvas": "Canvas Intelligence",
+    "governance": "Governance-Check",
+    "compliance": "Compliance",
+    "architecture": "Architektur-Generator",
+    "roadmap": "Roadmap-Generator",
+    "zusammenfassung": "Executive Summary",
+    "ergebnisse": "Gespeicherte Ergebnisse",
+    "settings": "Einstellungen",
+    "admin": "Admin"
+  }
+}

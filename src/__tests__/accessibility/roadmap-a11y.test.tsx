@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { RoadmapPageClient } from '@/app/(dashboard)/roadmap/RoadmapPageClient'
+import { RoadmapPageClient } from '@/app/[locale]/(dashboard)/roadmap/RoadmapPageClient'
 
 expect.extend(toHaveNoViolations)
 

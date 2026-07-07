@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { CompliancePageClient } from '@/app/(dashboard)/compliance/CompliancePageClient'
+import { CompliancePageClient } from '@/app/[locale]/(dashboard)/compliance/CompliancePageClient'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
 import type { WatchlistItem } from '@/config/compliance-data'
 

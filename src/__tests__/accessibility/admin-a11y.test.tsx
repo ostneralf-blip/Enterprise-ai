@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
-import { AdminPageClient } from '@/app/(dashboard)/admin/AdminPageClient'
+import { AdminPageClient } from '@/app/[locale]/(dashboard)/admin/AdminPageClient'
 import type { ContentLibraryEntry } from '@/types'
 
 expect.extend(toHaveNoViolations)

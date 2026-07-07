@@ -1,0 +1,70 @@
+<h2>Wie soll der neue Modul-Fluss aussehen?</h2>
+<p class="subtitle">Wählen Sie die Variante, die am besten zu Ihrer Vorstellung passt</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Aktuelle Reihenfolge (Status quo)</h3>
+      <p>Use-Case Scoring → Canvas → Architektur-Generator</p>
+      <div style="margin-top:12px; font-family:monospace; font-size:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; line-height:2">
+        <div style="color:#94a3b8">1. ◎ Assessment</div>
+        <div style="color:#3b82f6; font-weight:600">2. ⊞ Use-Case Scoring &nbsp;<span style="background:#dbeafe; color:#1d4ed8; font-size:10px; padding:1px 6px; border-radius:4px">Score &amp; Matrix</span></div>
+        <div style="color:#3b82f6; font-weight:600">3. ◧ AI Use-Case Canvas &nbsp;<span style="background:#dbeafe; color:#1d4ed8; font-size:10px; padding:1px 6px; border-radius:4px">Detail</span></div>
+        <div style="color:#94a3b8">4. ⚖ Governance Check</div>
+        <div style="color:#94a3b8">5. ✓ Compliance Check</div>
+        <div style="color:#94a3b8">6. ⬡ Architektur-Generator</div>
+        <div style="color:#94a3b8">7. □ Executive Summary</div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Für</h4><ul><li>Keine Code-Änderungen nötig</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Canvas kommt zu spät</li><li>Keine Vorausfüllung im Architektur-Wizard</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Canvas zuerst, dann Scoring &nbsp;<span style="background:#fef3c7; color:#92400e; font-size:11px; padding:2px 8px; border-radius:4px">Empfohlen</span></h3>
+      <p>Canvas → Scoring (mit Canvas-Auswahl) → Architektur-Generator (nutzt beides)</p>
+      <div style="margin-top:12px; font-family:monospace; font-size:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; line-height:2">
+        <div style="color:#94a3b8">1. ◎ Assessment</div>
+        <div style="color:#10b981; font-weight:600">2. ◧ AI Use-Case Canvas &nbsp;<span style="background:#d1fae5; color:#065f46; font-size:10px; padding:1px 6px; border-radius:4px">Use-Case definieren</span></div>
+        <div style="color:#10b981; font-weight:600">3. ⊞ Use-Case Scoring &nbsp;<span style="background:#d1fae5; color:#065f46; font-size:10px; padding:1px 6px; border-radius:4px">Canvas verknüpfbar</span></div>
+        <div style="color:#94a3b8">4. ⚖ Governance Check</div>
+        <div style="color:#94a3b8">5. ✓ Compliance Check</div>
+        <div style="color:#10b981; font-weight:600">6. ⬡ Architektur-Generator &nbsp;<span style="background:#d1fae5; color:#065f46; font-size:10px; padding:1px 6px; border-radius:4px">Canvas + Score als Kontext</span></div>
+        <div style="color:#94a3b8">7. □ Executive Summary</div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Für</h4><ul><li>Logische Reihenfolge: erst Detail, dann Bewertung</li><li>Canvas-Daten fließen in Architektur ein</li><li>Industry/SAP/OCR-Kontext automatisch erkannt</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Menu-Reihenfolge ändert sich (Schritt 2↔3 tauschen)</li><li>Guided Path anpassen</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Zusammenführen zu einem Modul</h3>
+      <p>Canvas + Scoring als einheitliches "Use-Case"-Modul mit Tabs</p>
+      <div style="margin-top:12px; font-family:monospace; font-size:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; line-height:2">
+        <div style="color:#94a3b8">1. ◎ Assessment</div>
+        <div style="color:#8b5cf6; font-weight:600">2. ◧⊞ Use-Case Studio &nbsp;<span style="background:#ede9fe; color:#5b21b6; font-size:10px; padding:1px 6px; border-radius:4px">Canvas + Scoring</span></div>
+        <div style="color:#94a3b8">3. ⚖ Governance Check</div>
+        <div style="color:#94a3b8">4. ✓ Compliance Check</div>
+        <div style="color:#94a3b8">5. ⬡ Architektur-Generator</div>
+        <div style="color:#94a3b8">6. □ Executive Summary</div>
+      </div>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Für</h4><ul><li>Weniger Navigations-Schritte</li><li>Engste Kopplung</li></ul></div>
+        <div class="cons"><h4>Gegen</h4><ul><li>Größerer Umbau (URLs, Datenbankstruktur)</li><li>Verliert Klarheit der einzelnen Module</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:20px; font-size:13px; color:#64748b; text-align:center">Klicken Sie auf eine Option oder sagen Sie mir in der Konsole, welche Sie bevorzugen — oder "ohne Browser weiter" um den Visual Companion zu beenden.</p>

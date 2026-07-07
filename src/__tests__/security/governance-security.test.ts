@@ -7,7 +7,7 @@ describe('Security: Governance-Check', () => {
 
   describe('Auth-Check (statischer Code-Check)', () => {
     it('Governance-Page prüft Auth via supabase.auth.getUser()', () => {
-      const source = readFileSync(join(process.cwd(), 'src/app/(dashboard)/governance/page.tsx'), 'utf-8')
+      const source = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/governance/page.tsx'), 'utf-8')
       expect(source).toContain('supabase.auth.getUser()')
       expect(source).toContain("redirect('/login')")
     })

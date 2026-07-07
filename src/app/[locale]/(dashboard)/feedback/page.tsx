@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { CHANGELOG } from '@/config/changelog'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB

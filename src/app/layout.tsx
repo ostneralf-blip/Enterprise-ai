@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Lora } from 'next/font/google'
 import './globals.css'
 import { createClient } from '@/lib/supabase/server'
+import { getLocale } from 'next-intl/server'
 
 const lora = Lora({
   subsets: ['latin'],
@@ -22,7 +23,11 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
+  const [locale, supabase] = await Promise.all([
+    getLocale(),
+    createClient(),
+  ])
+
   const { data: { user } } = await supabase.auth.getUser()
 
   let theme = 'book'
@@ -36,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="de" suppressHydrationWarning className={lora.variable} data-theme={theme}>
+    <html lang={locale} suppressHydrationWarning className={lora.variable} data-theme={theme}>
       <body className="font-sans antialiased bg-ivory text-slate-900">
         {children}
       </body>
