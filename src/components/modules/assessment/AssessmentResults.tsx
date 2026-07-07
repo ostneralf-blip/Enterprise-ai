@@ -3,6 +3,7 @@ import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-dat
 import { ARCHETYPES } from '@/types'
 import { FeedbackWidget } from '@/components/shared/FeedbackWidget'
 import { UpgradeModal } from '@/components/shared/UpgradeModal'
+import { RadarChart } from './RadarChart'
 import { track } from '@/lib/posthog/client'
 import { useState } from 'react'
 import type { Tier } from '@/types'
@@ -66,6 +67,12 @@ export function AssessmentResults({
             </div>
             <div className="text-slate-400 text-sm break-words">{archetypeConfig.desc}</div>
           </div>
+        </div>
+
+        {/* Radar-Chart */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">AI-Readiness Profil</h3>
+          <RadarChart dimScores={dimScores} />
         </div>
 
         {/* Dimension Scores */}

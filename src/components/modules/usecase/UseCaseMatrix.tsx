@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { QUADRANT_META } from '@/config/usecase-data'
 import type { UseCase } from '@/types'
 
@@ -16,9 +17,28 @@ const QUADRANT_COLORS = {
 export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
   if (useCases.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
-        <div className="text-4xl mb-3">📊</div>
-        <p className="text-slate-500 text-sm">Fügen Sie Use Cases hinzu, um die Matrix zu sehen.</p>
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center gap-4 text-center">
+        <svg viewBox="0 0 120 120" className="w-[100px] h-[100px]" role="img" aria-label="Leere Portfolio-Matrix">
+          <rect x="10" y="10" width="100" height="100" rx="6" fill="none" stroke="#cbd5e1" strokeWidth="1"
+                strokeDasharray="400" strokeDashoffset="400" className="animate-dash-draw" />
+          <line x1="10" y1="60" x2="110" y2="60" stroke="#e2e8f0" strokeWidth="0.75"
+                strokeDasharray="100" strokeDashoffset="100" className="animate-dash-draw"
+                style={{ animationDelay: '400ms' }} />
+          <line x1="60" y1="10" x2="60" y2="110" stroke="#e2e8f0" strokeWidth="0.75"
+                strokeDasharray="100" strokeDashoffset="100" className="animate-dash-draw"
+                style={{ animationDelay: '600ms' }} />
+          <text x="35" y="38" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Strategic</text>
+          <text x="85" y="38" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Quick Win</text>
+          <text x="35" y="85" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Vermeiden</text>
+          <text x="85" y="85" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Low Hanging</text>
+        </svg>
+        <div className="space-y-1.5">
+          <h3 className="font-serif text-base text-slate-800">Noch keine Use Cases</h3>
+          <p className="text-sm text-slate-500">Legen Sie Ihren ersten Use Case an, um die Matrix zu befüllen.</p>
+        </div>
+        <Link href="/usecase" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+          Ersten Use Case anlegen →
+        </Link>
       </div>
     )
   }

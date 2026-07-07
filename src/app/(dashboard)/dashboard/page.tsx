@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { GuidedPathHero, type PathStep } from '@/components/dashboard/GuidedPathHero'
 import { CountUp } from '@/components/dashboard/CountUp'
+import { MiniPortfolioMatrix } from '@/components/modules/usecase/MiniPortfolioMatrix'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -60,13 +61,20 @@ export default async function DashboardPage() {
     return q
   }
 
+  // use_cases hat keine user_id-Spalte — Filterung läuft über RLS (via uc_portfolios.user_id)
+  const useCaseQuery = (() => {
+    let q = supabase.from('use_cases').select('id, quadrant, scores').order('created_at', { ascending: false }).limit(15)
+    if (resetAt) q = q.gt('created_at', resetAt)
+    return q
+  })()
+
   const [
     { data: latestAssessment },
     { count: architectureCount },
     { count: governanceCount },
     { count: roadmapCount },
     { count: assessmentCount },
-    { count: usecaseCount },
+    { data: useCaseData },
     { count: canvasCount },
     { count: complianceCount },
   ] = await Promise.all([
@@ -75,10 +83,13 @@ export default async function DashboardPage() {
     cnt('governance_sessions', { user_id: uid }),
     cnt('roadmaps',            { user_id: uid }),
     cnt('assessment_sessions', { user_id: uid, completed: true }),
-    cnt('use_cases',            { user_id: uid }),
+    useCaseQuery,
     cnt('canvases',            { user_id: uid }),
     cnt('compliance_checks',   { user_id: uid }),
   ])
+
+  const usecaseCount = useCaseData?.length ?? 0
+  const useCasePreview = (useCaseData ?? []) as Array<{ id: string; quadrant: string; scores: Record<string, number> }>
 
   const tier = (profileData?.tier ?? 'free') as Tier
   const firstName = profileData?.full_name?.split(' ')[0] ?? null
@@ -173,7 +184,7 @@ export default async function DashboardPage() {
         <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-start"
            data-reveal style={{ '--i': '2' } as React.CSSProperties}>
         {MODULES.map(mod => {
           const locked = !hasAccess(tier, mod.requiredTier)
@@ -206,6 +217,11 @@ export default async function DashboardPage() {
               </div>
               <h3 className={`text-sm font-semibold text-slate-900 mb-0.5 min-w-0 transition-colors ${!locked ? 'group-hover:text-primary' : ''}`}>{mod.title}</h3>
               <p className="text-xs text-slate-400 mb-3 line-clamp-1">{subtitle}</p>
+              {mod.id === 'usecase' && (
+                <div className="flex justify-center mb-3" aria-hidden="true">
+                  <MiniPortfolioMatrix useCases={useCasePreview} />
+                </div>
+              )}
               <div className={`text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600' : 'text-primary'}`}>
                 {locked ? '🔒 Pro erforderlich →' : done ? 'Ergebnis ansehen →' : 'Starten →'}
               </div>
