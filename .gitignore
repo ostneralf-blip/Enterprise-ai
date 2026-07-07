@@ -45,3 +45,8 @@ coverage/
 # Git worktrees
 .worktrees/
 .env*
+
+# Claude Code / Superpowers (lokale Artefakte, nicht im Repo)
+.mcp.json
+.superpowers/
+docs/superpowers/
