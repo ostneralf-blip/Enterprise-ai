@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 
 export type EmptyStateVariant = 'folder' | 'grid' | 'matrix'
 
@@ -102,16 +103,19 @@ const ILLUSTRATIONS: Record<EmptyStateVariant, () => React.JSX.Element> = {
 export function EmptyState({ variant, title, description, cta, className }: EmptyStateProps) {
   const Illustration = ILLUSTRATIONS[variant]
   return (
-    <div className={cn('flex flex-col items-center justify-center py-16 gap-5 text-center', className)}>
-      <Illustration />
-      <div className="space-y-1.5 max-w-xs">
-        <h3 className="font-serif text-lg text-slate-800">{title}</h3>
-        <p className="text-sm text-slate-500">{description}</p>
+    <div className={cn('relative overflow-hidden flex flex-col items-center justify-center py-16 gap-5 text-center', className)}>
+      <BrandWordcloud />
+      <div className="relative flex flex-col items-center gap-5">
+        <Illustration />
+        <div className="space-y-1.5 max-w-xs">
+          <h3 className="font-serif text-lg text-slate-800">{title}</h3>
+          <p className="text-sm text-slate-500">{description}</p>
+        </div>
+        <Link href={cta.href}
+          className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+          {cta.label} →
+        </Link>
       </div>
-      <Link href={cta.href}
-        className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
-        {cta.label} →
-      </Link>
     </div>
   )
 }
