@@ -9,11 +9,13 @@ import {
   getRiskLevel,
   POLICY_TEMPLATES,
   ADDITIONAL_REGULATIONS,
+  REGULATORY_WATCHLIST,
   type CheckRow,
   type CheckStatus,
   type EuAiActRiskClass,
 } from '@/config/compliance-data'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { WatchlistCard } from '@/components/modules/WatchlistCard'
 
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
 
@@ -664,6 +666,26 @@ export function CompliancePageClient({ initialChecks }: Props) {
           })}
         </div>
       )}
+
+      {/* Regulatorische Beobachtungsliste */}
+      <div className="border border-amber-200 rounded-xl bg-amber-50 p-4 sm:p-6 space-y-3 mt-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-amber-700">Regulatorische Beobachtungsliste</span>
+          <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full">
+            In Gesetzgebung — noch nicht verbindlich
+          </span>
+          <span className="text-xs text-amber-600 ml-auto">({REGULATORY_WATCHLIST.length})</span>
+        </div>
+        <p className="text-xs text-amber-600">
+          Diese Einträge sind keine Compliance-Pflichten. Sie zeigen an, was sich ändern könnte.
+          Erst nach Veröffentlichung im EU-Amtsblatt (EUR-Lex) werden sie in die Checklisten übernommen.
+        </p>
+        <div className="space-y-2">
+          {REGULATORY_WATCHLIST.map(item => (
+            <WatchlistCard key={item.id} item={item} />
+          ))}
+        </div>
+      </div>
 
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">

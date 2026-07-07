@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
 import { CompliancePageClient } from '@/app/(dashboard)/compliance/CompliancePageClient'
+import { WatchlistCard } from '@/components/modules/WatchlistCard'
+import type { WatchlistItem } from '@/config/compliance-data'
 
 expect.extend(toHaveNoViolations)
 
@@ -105,5 +107,46 @@ describe('Accessibility: Compliance Center', () => {
     render(<CompliancePageClient {...EMPTY_CHECKS} />)
     const riskButtons = screen.getAllByRole('button', { pressed: false })
     expect(riskButtons.length).toBeGreaterThan(0)
+  })
+})
+
+const MOCK_WATCHLIST_ITEM: WatchlistItem = {
+  id: 'test_item',
+  title: 'Test Regulierungsänderung',
+  status: 'in_gesetzgebung',
+  summary: 'Zusammenfassung der Änderung.',
+  potentialImpact: 'Betrifft Compliance-Checkliste.',
+  sourceUrl: 'https://example.com',
+  lastChecked: '2026-07-07',
+}
+
+describe('Accessibility: WatchlistCard', () => {
+  it('hat keine WCAG-Verstöße', async () => {
+    const { container } = render(<WatchlistCard item={MOCK_WATCHLIST_ITEM} />)
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
+  it('zeigt Titel und Status-Badge', () => {
+    render(<WatchlistCard item={MOCK_WATCHLIST_ITEM} />)
+    expect(screen.getByText('Test Regulierungsänderung')).toBeInTheDocument()
+    expect(screen.getByText('In Gesetzgebung')).toBeInTheDocument()
+  })
+
+  it('zeigt angekuendigt-Badge bei status=angekuendigt', () => {
+    render(<WatchlistCard item={{ ...MOCK_WATCHLIST_ITEM, status: 'angekuendigt' }} />)
+    expect(screen.getByText('Angekündigt')).toBeInTheDocument()
+  })
+
+  it('zeigt final-Badge bei status=final', () => {
+    render(<WatchlistCard item={{ ...MOCK_WATCHLIST_ITEM, status: 'final' }} />)
+    expect(screen.getByText('Final — Übernahme ausstehend')).toBeInTheDocument()
+  })
+
+  it('enthält Quellen-Link mit korrekter href', () => {
+    render(<WatchlistCard item={MOCK_WATCHLIST_ITEM} />)
+    const link = screen.getByRole('link', { name: /quelle/i })
+    expect(link).toHaveAttribute('href', 'https://example.com')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 })
