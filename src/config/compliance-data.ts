@@ -11,6 +11,8 @@ export interface ChecklistItem {
   description?: string
   relevance?: string  // warum relevant für AI
   category?: string   // für Regelwerke ohne Artikel-Referenz (ISO, NIS-2 etc.)
+  sourceUrl?: string  // Beleg-Link zur Primärquelle
+  lastVerified?: string // ISO-Datum (YYYY-MM-DD) der letzten Prüfung
 }
 
 export interface CheckRow {
@@ -108,6 +110,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Nutzer über KI-Interaktion informieren',
       description: 'Natürliche Personen müssen bei Chatbots und interaktiven KI-Systemen klar und verständlich informiert werden, dass sie mit einem KI-System interagieren.',
       relevance: 'Pflicht bei jedem KI-System mit direktem Nutzerkontakt, auch intern.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art50_2',
@@ -115,6 +119,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'KI-generierte Inhalte maschinenlesbar kennzeichnen',
       description: 'Synthetische Audio-, Bild-, Video- und Textinhalte (Deep Fakes, generierte Medien) müssen mit einem maschinenlesbaren Marker versehen werden.',
       relevance: 'Gilt für alle Systeme, die synthetische Inhalte erzeugen, unabhängig vom Verwendungszweck.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art50_3',
@@ -122,6 +128,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Deepfakes und synthetische Medien kennzeichnen (sichtbar)',
       description: 'Erzeugte Bilder, Videos oder Audios, die reale Personen, Orte oder Ereignisse täuschend nachahmen, müssen für Empfänger erkennbar als KI-generiert markiert sein.',
       relevance: 'Auch relevant bei internen Kommunikationsmaterialien oder Marketinginhalten.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
   ],
   high: [
@@ -131,6 +139,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Risikomanagementsystem implementieren',
       description: 'Fortlaufendes Risikomanagementsystem für den gesamten Lebenszyklus des Hochrisiko-KI-Systems einrichten. Bekannte und vorhersehbare Risiken identifizieren, analysieren und mitigieren.',
       relevance: 'Grundvoraussetzung: ohne Art. 9 sind alle weiteren Hochrisiko-Pflichten nicht erfüllbar.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art10',
@@ -138,6 +148,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Daten-Governance: Trainings- und Validierungsdaten dokumentieren',
       description: 'Datenverwaltungspraktiken festlegen: Herkunft, Erhebungsmethoden, vorgesehene Zwecke, bekannte Lücken. Trainingsdaten müssen hinsichtlich Bias geprüft sein.',
       relevance: 'Betrifft alle genutzten oder selbst entwickelten ML-Modelle für Hochrisiko-Anwendungen.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art11',
@@ -145,6 +157,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Technische Dokumentation nach Anhang IV erstellen',
       description: 'Vollständige technische Dokumentation vor Inbetriebnahme erstellen und aktuell halten: Zweck, Design, Algorithmen, Daten, Testergebnisse, Risikomaßnahmen.',
       relevance: 'Muss für Marktüberwachungsbehörden auf Anfrage bereitstehen.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art12',
@@ -152,6 +166,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Automatische Ereignisprotokollierung (Logging) einrichten',
       description: 'Hochrisiko-KI-Systeme müssen automatisch Ereignisse protokollieren (Log-Level), die Rückverfolgbarkeit über den Lebenszyklus ermöglichen.',
       relevance: 'Kritisch für Post-Incident-Analysen und Konformitätsnachweise.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art13',
@@ -159,6 +175,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Transparenz und Nutzerinformation sicherstellen',
       description: 'Nutzende von Hochrisiko-KI-Systemen müssen ausreichende Informationen erhalten: Zweck, Fähigkeiten und Grenzen, Überwachungshinweise.',
       relevance: 'Betrifft die Gebrauchsanweisung und Nutzer-Onboarding-Dokumentation.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art14',
@@ -166,6 +184,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Human Oversight verankern',
       description: 'Das System muss so gestaltet sein, dass natürliche Personen Entscheidungen wirksam überwachen, verstehen, eingreifen, stoppen oder überstimmen können.',
       relevance: 'Human-in-the-Loop ist Pflicht, keine Option.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art15',
@@ -173,6 +193,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Genauigkeit, Robustheit und Cybersicherheit gewährleisten',
       description: 'System muss ausreichende Genauigkeit, Konsistenz und Widerstandsfähigkeit gegen Angriffe (Adversarial Inputs, Datenmanipulation) während des gesamten Lebenszyklus aufweisen.',
       relevance: 'Regelmäßige Tests und Monitoring-Prozesse sind erforderlich.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art43',
@@ -180,6 +202,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Konformitätsbewertung durchführen',
       description: 'Vor Inbetriebnahme: interne Kontrolle (für die meisten Systeme) oder Prüfung durch benannte Stelle (für besonders kritische Systeme wie biometrische Identifikation).',
       relevance: 'Voraussetzung für CE-Kennzeichnung und Marktzulassung.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art46',
@@ -187,6 +211,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'CE-Kennzeichnung anbringen',
       description: 'Nach bestandener Konformitätsbewertung muss das KI-System mit der CE-Kennzeichnung versehen werden.',
       relevance: 'Rechtliche Voraussetzung für das Inverkehrbringen in der EU.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art71',
@@ -194,6 +220,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'System in EU-AI-Datenbank registrieren',
       description: 'Betreiber von Hochrisiko-KI-Systemen müssen diese vor Inbetriebnahme in der öffentlichen EU-KI-Datenbank (ai-act.eu) registrieren.',
       relevance: 'Ausnahme: Behörden in den Bereichen Strafverfolgung und Migration (nicht-öffentliche Datenbank).',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
     {
       id: 'euaiact_art72',
@@ -201,6 +229,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       label: 'Post-Market Monitoring einrichten',
       description: 'Fortlaufendes System zur Überwachung der Leistung nach Inbetriebnahme. Wesentliche Änderungen melden; Zwischenfälle (serious incidents) der Marktüberwachungsbehörde berichten.',
       relevance: 'Gilt auch für eingesetzte Drittanbieter-Modelle, wenn diese für Hochrisiko-Zwecke genutzt werden.',
+      sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689',
+      lastVerified: '2026-07-07',
     },
   ],
 }
@@ -284,6 +314,23 @@ export const DSGVO_CHECKLIST: ChecklistItem[] = [
     label: 'Drittlandstransfers geregelt (SCCs oder Angemessenheitsbeschluss)',
     description: 'Übermittlung von Daten außerhalb des EWR nur mit gültigem Mechanismus: Angemessenheitsbeschluss (z. B. EU-US Data Privacy Framework), SCCs oder Binding Corporate Rules.',
     relevance: 'US-Cloud-Dienste und KI-APIs (OpenAI, Anthropic, Google AI) = Drittlandstransfer. SCCs prüfen und in AVV verankern.',
+  },
+  {
+    id: 'dsgvo_edpb_cef2026',
+    article: 'Art. 12–14 DSGVO',
+    label: 'Transparenz- und Informationspflichten EDPB-prüfsicher (Schwerpunkt 2026)',
+    description:
+      'Der EDPB hat die Einhaltung der Transparenz- und Informationspflichten zum ' +
+      'EU-weiten Prüfschwerpunkt 2026 erklärt (Coordinated Enforcement Framework). ' +
+      'Datenschutzhinweise werden 2026 verstärkt auf Klarheit, Vollständigkeit und ' +
+      'korrekte KI-Kennzeichnung geprüft.',
+    relevance:
+      'KI-Systeme (Chatbots, Scoring, Profiling) müssen im Datenschutzhinweis ' +
+      'explizit benannt werden — inkl. Angabe, ob Trainingsdaten oder Profiling ' +
+      'betroffen sind. Copy-Paste-Datenschutzerklärungen ohne KI-Bezug sind das ' +
+      'häufigste Prüfrisiko.',
+    sourceUrl: 'https://www.edpb.europa.eu/news_de',
+    lastVerified: '2026-07-07',
   },
 ]
 
@@ -581,5 +628,68 @@ export const ADDITIONAL_REGULATIONS: AdditionalRegulation[] = [
       { id: 'lksg_ai_supply_chain', label: 'AI-spezifische Lieferkette auf Menschenrechtsrisiken geprüft (Datenerhebung, Annotation)', category: 'KI-spezifisch' },
       { id: 'lksg_reporting', label: 'Jahresbericht über Sorgfaltspflichten erstellt und veröffentlicht', category: 'Reporting' },
     ],
+  },
+]
+
+// ─── BEOBACHTUNGSLISTE — LAUFENDE GESETZGEBUNG (NICHT VERBINDLICH) ──────────
+// Diese Einträge sind KEINE Compliance-Pflichten. Sie zeigen an, was sich
+// ändern könnte. Erst nach Veröffentlichung im EU-Amtsblatt (EUR-Lex) in
+// DSGVO_CHECKLIST / EU_AI_ACT_OBLIGATIONS verschieben.
+
+export type WatchlistStatus = 'in_gesetzgebung' | 'angekuendigt' | 'final'
+
+export interface WatchlistItem {
+  id: string
+  title: string
+  status: WatchlistStatus
+  summary: string
+  potentialImpact: string
+  sourceUrl: string
+  lastChecked: string // ISO-Datum YYYY-MM-DD
+}
+
+export const REGULATORY_WATCHLIST: WatchlistItem[] = [
+  {
+    id: 'digital_omnibus_hrais_delay',
+    title: 'EU AI Act: Verschiebung der Hochrisiko-Pflichten (Annex III)',
+    status: 'in_gesetzgebung',
+    summary:
+      'Vorläufige Einigung vom 7. Mai 2026 (Digital Omnibus on AI) verschiebt die ' +
+      'Annex-III-Hochrisiko-Pflichten von August 2026 auf Dezember 2027. Noch nicht ' +
+      'final im Amtsblatt veröffentlicht.',
+    potentialImpact:
+      'Betrifft Fristangaben im Roadmap-Generator und Governance-Entscheidungsbaum ' +
+      'für Hochrisiko-Use-Cases. Bei finaler Verabschiedung: Fristen dort anpassen.',
+    sourceUrl: 'https://www.insideglobaltech.com/2026/05/28/eu-ai-act-update-timeline-relief-targeted-simplification-and-new-prohibitions/',
+    lastChecked: '2026-07-07',
+  },
+  {
+    id: 'bdsg_dsb_threshold',
+    title: 'BDSG: Mögliche Lockerung der DSB-Bestellpflicht',
+    status: 'angekuendigt',
+    summary:
+      'Koalitionsausschuss kündigte am 2. Juli 2026 ein Reformpaket an, das die ' +
+      'deutsche 20-Personen-Sonderschwelle für die DSB-Bestellpflicht auf ' +
+      'DSGVO-Niveau (Art. 37) zurückführen könnte. Bislang nur Ankündigung, kein ' +
+      'Gesetzentwurf.',
+    potentialImpact:
+      'Falls verabschiedet: DSB-Pflicht-Check in der DSGVO-Checkliste für kleinere ' +
+      'Kunden anpassen — Schwellenwert-Logik im Compliance Center betroffen.',
+    sourceUrl: 'https://www.datenschutz-nordost.de/reformpaket-der-bundesregierung/',
+    lastChecked: '2026-07-07',
+  },
+  {
+    id: 'breach_96h_single_entry',
+    title: 'Meldefrist für Datenschutzverletzungen: 96h + zentraler Meldepunkt',
+    status: 'in_gesetzgebung',
+    summary:
+      'Digital-Omnibus-Vorschlag verlängert die Meldefrist von 72 auf 96 Stunden ' +
+      'und plant einen zentralen „Single Entry Point" für Meldungen aus NIS-2, ' +
+      'DSGVO, DORA, eIDAS und CRA.',
+    potentialImpact:
+      'Betrifft die Eskalationspfade und Fristangaben im Governance-Modul ' +
+      '(Auslöser „Datenpanne" — aktuell 72h/DSGVO hinterlegt).',
+    sourceUrl: 'https://caralegal.eu/blog/datenschutz-2026-trends/',
+    lastChecked: '2026-07-07',
   },
 ]

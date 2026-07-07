@@ -5,6 +5,7 @@ import {
   RISK_MATRIX,
   getRiskLevel,
   POLICY_TEMPLATES,
+  REGULATORY_WATCHLIST,
 } from '@/config/compliance-data'
 
 describe('Compliance-Daten: Integrität', () => {
@@ -156,6 +157,55 @@ describe('Compliance-Daten: Integrität', () => {
 
     it('Model Card Template ist enthalten', () => {
       expect(POLICY_TEMPLATES.find(t => t.id === 'model_card')).toBeDefined()
+    })
+  })
+})
+
+describe('REGULATORY_WATCHLIST', () => {
+  it('mindestens 3 Einträge sind definiert', () => {
+    expect(REGULATORY_WATCHLIST.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('jeder Eintrag hat id, title, status, summary, potentialImpact, sourceUrl, lastChecked', () => {
+    REGULATORY_WATCHLIST.forEach(item => {
+      expect(item.id).toBeTruthy()
+      expect(item.title).toBeTruthy()
+      expect(item.status).toBeTruthy()
+      expect(item.summary).toBeTruthy()
+      expect(item.potentialImpact).toBeTruthy()
+      expect(item.sourceUrl).toBeTruthy()
+      expect(item.lastChecked).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    })
+  })
+
+  it('IDs sind eindeutig', () => {
+    const ids = REGULATORY_WATCHLIST.map(i => i.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('status ist immer ein gültiger WatchlistStatus-Wert', () => {
+    const valid = ['in_gesetzgebung', 'angekuendigt', 'final']
+    REGULATORY_WATCHLIST.forEach(item => {
+      expect(valid).toContain(item.status)
+    })
+  })
+
+  it('digital_omnibus_hrais_delay-Eintrag ist vorhanden', () => {
+    const entry = REGULATORY_WATCHLIST.find(i => i.id === 'digital_omnibus_hrais_delay')
+    expect(entry).toBeDefined()
+    expect(entry?.status).toBe('in_gesetzgebung')
+  })
+
+  it('neuer DSGVO-Check dsgvo_edpb_cef2026 ist in DSGVO_CHECKLIST', () => {
+    const check = DSGVO_CHECKLIST.find(i => i.id === 'dsgvo_edpb_cef2026')
+    expect(check).toBeDefined()
+    expect(check?.sourceUrl).toBe('https://www.edpb.europa.eu/news_de')
+    expect(check?.lastVerified).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('EU AI Act Hochrisiko-Pflichten haben sourceUrl', () => {
+    EU_AI_ACT_OBLIGATIONS.high.forEach(item => {
+      expect(item.sourceUrl).toContain('eur-lex.europa.eu')
     })
   })
 })
