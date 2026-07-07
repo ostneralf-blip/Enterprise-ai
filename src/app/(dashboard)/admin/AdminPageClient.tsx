@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym, ComplianceSourceDraft } from '@/types'
 import { cn } from '@/lib/utils'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
@@ -31,9 +31,10 @@ interface Props {
   componentCount?: number
   initialSources?: CatalogSource[]
   initialUploadLog?: CatalogUploadLog[]
+  initialDrafts?: ComplianceSourceDraft[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'synonyms'
+type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner'
 
 type FormState = {
   module: string
@@ -47,7 +48,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [] }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [] }: Props) {
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -118,6 +119,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [synForm, setSynForm] = useState({ term: '', synonym: '', synonym_type: 'vendor' as CanvasSynonym['synonym_type'] })
   const [synSaving, setSynSaving] = useState(false)
   const [synError, setSynError] = useState<string | null>(null)
+
+  // ── Scanner state ────────────────────────────────────────────────────────────
+  const [drafts, setDrafts] = useState<ComplianceSourceDraft[]>(initialDrafts ?? [])
+  const [scanning, setScanning] = useState(false)
+  const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number } | null>(null)
+  const [showArchive, setShowArchive] = useState(false)
 
   // ── Learn suggestions state ──────────────────────────────────────────────────
   type LearnSuggestion = { word: string; count: number; fields: string[]; suggested_type: CanvasSynonym['synonym_type'] }
@@ -410,6 +417,39 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     }
   }
 
+  async function runScan() {
+    setScanning(true)
+    setScanResult(null)
+    try {
+      const res = await fetch('/api/admin/compliance/scan', { method: 'POST' })
+      if (!res.ok) throw new Error('Scan fehlgeschlagen')
+      const result = await res.json() as { scanned: number; changed: number; drafts_created: number }
+      setScanResult(result)
+      if (result.drafts_created > 0) {
+        const draftsRes = await fetch('/api/admin/compliance/drafts')
+        if (draftsRes.ok) {
+          const { data } = await draftsRes.json() as { data: ComplianceSourceDraft[] }
+          setDrafts(data ?? [])
+        }
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  async function reviewDraft(id: string, status: 'beruecksichtigt' | 'ignoriert') {
+    const res = await fetch('/api/admin/compliance/drafts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, review_status: status }),
+    })
+    if (res.ok) {
+      setDrafts(prev => prev.map(d => d.id === id ? { ...d, review_status: status } : d))
+    }
+  }
+
   // ── Catalog restore handler ─────────────────────────────────────────────────
   async function handleRestore(logId: string, filename: string) {
     if (!confirm(`Katalog auf Stand von "${filename}" zurücksetzen? Bestehende Einträge werden überschrieben.`)) return
@@ -685,6 +725,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
           ['synonyms', 'Canvas-Synonyme', synonyms.length],
+          ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
         ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
@@ -1875,6 +1916,113 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ─── Scanner tab ──────────────────────────────────────────────────────── */}
+      {tab === 'scanner' && (
+        <div className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-slate-700">Regulatorische Quellenüberwachung</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Scannt 5 Primärquellen auf Änderungen und erstellt Entwürfe zur manuellen Freigabe.
+                Nie automatisch publiziert.
+              </p>
+            </div>
+            <button
+              onClick={runScan}
+              disabled={scanning}
+              className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+            >
+              {scanning ? 'Scanne…' : 'Quellen jetzt scannen'}
+            </button>
+          </div>
+
+          {scanResult && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-800">
+              {scanResult.scanned} Quellen geprüft · {scanResult.changed} Änderungen gefunden · {scanResult.drafts_created} neue Entwürfe
+            </div>
+          )}
+
+          {(() => {
+            const pending = drafts.filter(d => d.review_status === 'pending_review')
+            const archived = drafts.filter(d => d.review_status !== 'pending_review')
+            return (
+              <>
+                {pending.length === 0 ? (
+                  <p className="text-sm text-slate-400 py-6 text-center">Keine offenen Entwürfe.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pending.map(draft => (
+                      <div key={draft.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                        <div className="flex flex-wrap items-start gap-2 min-w-0">
+                          <span className={cn(
+                            'px-2 py-0.5 text-xs font-medium border rounded-full flex-shrink-0',
+                            draft.status_estimate === 'final'   && 'bg-red-50 border-red-200 text-red-700',
+                            draft.status_estimate === 'entwurf' && 'bg-amber-50 border-amber-200 text-amber-700',
+                            draft.status_estimate === 'unklar'  && 'bg-slate-100 border-slate-200 text-slate-600',
+                          )}>
+                            {draft.status_estimate}
+                          </span>
+                          <span className="text-sm font-medium text-slate-800 min-w-0">{draft.source_label}</span>
+                          <span className="text-xs text-slate-400 ml-auto flex-shrink-0">
+                            {new Date(draft.scanned_at).toLocaleDateString('de-DE')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-600">{draft.summary}</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => reviewDraft(draft.id, 'beruecksichtigt')}
+                            className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                          >
+                            Berücksichtigt
+                          </button>
+                          <button
+                            onClick={() => reviewDraft(draft.id, 'ignoriert')}
+                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+                          >
+                            Ignorieren
+                          </button>
+                          <a
+                            href={draft.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 text-xs text-primary hover:underline"
+                          >
+                            Quelle ↗
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {archived.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setShowArchive(v => !v)}
+                      className="text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      {showArchive ? '▲ Archiv verbergen' : `▼ Archiv anzeigen (${archived.length})`}
+                    </button>
+                    {showArchive && (
+                      <div className="mt-2 space-y-2 opacity-60">
+                        {archived.map(draft => (
+                          <div key={draft.id} className="bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-xs text-slate-500">
+                            <span className="font-medium">{draft.source_label}</span>
+                            {' · '}
+                            <span className="italic">{draft.review_status}</span>
+                            {' · '}
+                            {draft.summary.slice(0, 100)}…
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </div>
       )}
     </div>
