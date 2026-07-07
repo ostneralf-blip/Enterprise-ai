@@ -163,7 +163,7 @@ describe('Compliance-Daten: Integrität', () => {
 
 describe('REGULATORY_WATCHLIST', () => {
   it('mindestens 3 Einträge sind definiert', () => {
-    expect(REGULATORY_WATCHLIST.length).toBeGreaterThanOrEqual(3)
+    expect(REGULATORY_WATCHLIST).toHaveLength(3)
   })
 
   it('jeder Eintrag hat id, title, status, summary, potentialImpact, sourceUrl, lastChecked', () => {
@@ -196,9 +196,17 @@ describe('REGULATORY_WATCHLIST', () => {
     expect(entry?.status).toBe('in_gesetzgebung')
   })
 
+  it('alle drei erwarteten Einträge sind vorhanden', () => {
+    const ids = REGULATORY_WATCHLIST.map(i => i.id)
+    expect(ids).toContain('digital_omnibus_hrais_delay')
+    expect(ids).toContain('bdsg_dsb_threshold')
+    expect(ids).toContain('breach_96h_single_entry')
+  })
+
   it('neuer DSGVO-Check dsgvo_edpb_cef2026 ist in DSGVO_CHECKLIST', () => {
     const check = DSGVO_CHECKLIST.find(i => i.id === 'dsgvo_edpb_cef2026')
     expect(check).toBeDefined()
+    expect(check?.article).toBe('Art. 12–14 DSGVO')
     expect(check?.sourceUrl).toBe('https://www.edpb.europa.eu/news_de')
     expect(check?.lastVerified).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
@@ -206,6 +214,14 @@ describe('REGULATORY_WATCHLIST', () => {
   it('EU AI Act Hochrisiko-Pflichten haben sourceUrl', () => {
     EU_AI_ACT_OBLIGATIONS.high.forEach(item => {
       expect(item.sourceUrl).toContain('eur-lex.europa.eu')
+      expect(item.lastVerified).toBe('2026-07-07')
+    })
+  })
+
+  it('EU AI Act Limited-Pflichten haben sourceUrl und lastVerified', () => {
+    EU_AI_ACT_OBLIGATIONS.limited.forEach(item => {
+      expect(item.sourceUrl).toContain('eur-lex.europa.eu')
+      expect(item.lastVerified).toBe('2026-07-07')
     })
   })
 })
