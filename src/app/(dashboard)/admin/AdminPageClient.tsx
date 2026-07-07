@@ -118,6 +118,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [synForm, setSynForm] = useState({ term: '', synonym: '', synonym_type: 'vendor' as CanvasSynonym['synonym_type'] })
   const [synSaving, setSynSaving] = useState(false)
   const [synError, setSynError] = useState<string | null>(null)
+
+  // ── Learn suggestions state ──────────────────────────────────────────────────
+  type LearnSuggestion = { word: string; count: number; fields: string[]; suggested_type: CanvasSynonym['synonym_type'] }
+  const [suggestions, setSuggestions] = useState<LearnSuggestion[]>([])
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [suggestionInputs, setSuggestionInputs] = useState<Record<string, { term: string; synonym_type: CanvasSynonym['synonym_type'] }>>({})
   const [depSavingId, setDepSavingId] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
@@ -357,6 +364,50 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     if (!confirm('Synonym löschen?')) return
     const res = await fetch(`/api/admin/synonyms?id=${id}`, { method: 'DELETE' })
     if (res.ok) setSynonyms(prev => prev.filter(x => x.id !== id))
+  }
+
+  async function loadSuggestions() {
+    setSuggestionsLoading(true)
+    setShowSuggestions(true)
+    try {
+      const res = await fetch('/api/admin/synonyms/learn?threshold=2')
+      const { data } = await res.json() as { data: LearnSuggestion[] }
+      const results = data ?? []
+      setSuggestions(results)
+      // Pre-fill inputs from suggestions
+      const inputs: Record<string, { term: string; synonym_type: CanvasSynonym['synonym_type'] }> = {}
+      for (const s of results) {
+        inputs[s.word] = { term: '', synonym_type: s.suggested_type }
+      }
+      setSuggestionInputs(inputs)
+    } finally {
+      setSuggestionsLoading(false)
+    }
+  }
+
+  async function addFromSuggestion(word: string) {
+    const input = suggestionInputs[word]
+    if (!input?.term.trim()) return
+    setSynSaving(true)
+    setSynError(null)
+    try {
+      const res = await fetch('/api/admin/synonyms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term: input.term.trim(), synonym: word, synonym_type: input.synonym_type }),
+      })
+      if (!res.ok) {
+        const { error } = await res.json() as { error?: string }
+        throw new Error(error ?? 'Fehler')
+      }
+      const { data: newSyn } = await res.json() as { data: CanvasSynonym }
+      setSynonyms(prev => [...prev, newSyn])
+      setSuggestions(prev => prev.filter(s => s.word !== word))
+    } catch (e) {
+      setSynError(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setSynSaving(false)
+    }
   }
 
   // ── Catalog restore handler ─────────────────────────────────────────────────
@@ -1627,7 +1678,94 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <p className="text-sm text-slate-500">
               Admin-konfigurierbare Erkennungsbegriffe für die Canvas-Texterkennung
             </p>
+            <button
+              onClick={loadSuggestions}
+              disabled={suggestionsLoading}
+              className="px-4 py-2 text-sm font-medium border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+            >
+              {suggestionsLoading ? 'Analysiere…' : '🔍 Canvas analysieren'}
+            </button>
           </div>
+
+          {/* Learn suggestions */}
+          {showSuggestions && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-amber-800">
+                  Lern-Vorschläge aus Canvas-Daten
+                </p>
+                <button
+                  onClick={() => setShowSuggestions(false)}
+                  className="text-xs text-amber-600 hover:text-amber-800"
+                >
+                  Schließen
+                </button>
+              </div>
+              {suggestionsLoading ? (
+                <p className="text-xs text-amber-600">Scanne Canvas-Einträge…</p>
+              ) : suggestions.length === 0 ? (
+                <p className="text-xs text-amber-600">
+                  Keine neuen unbekannten Begriffe gefunden (mind. 2 Canvases Threshold).
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-amber-600">
+                    {suggestions.length} unbekannte Begriffe gefunden. Term ausfüllen und anlegen:
+                  </p>
+                  {synError && <p className="text-xs text-red-600">{synError}</p>}
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {suggestions.map(s => {
+                      const input = suggestionInputs[s.word] ?? { term: '', synonym_type: s.suggested_type }
+                      return (
+                        <div key={s.word} className="bg-white border border-amber-100 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-sm font-medium text-slate-800">{s.word}</span>
+                              <span className="text-xs text-slate-400">{s.count}× in</span>
+                              {s.fields.map(f => (
+                                <span key={f} className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded">{f}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <input
+                              type="text"
+                              placeholder="Term (z.B. Microsoft)"
+                              value={input.term}
+                              onChange={e => setSuggestionInputs(prev => ({
+                                ...prev,
+                                [s.word]: { ...prev[s.word]!, term: e.target.value },
+                              }))}
+                              className="border border-slate-200 rounded px-2 py-1 text-xs w-36 focus:outline-none focus:ring-1 focus:ring-primary-ring"
+                            />
+                            <select
+                              value={input.synonym_type}
+                              onChange={e => setSuggestionInputs(prev => ({
+                                ...prev,
+                                [s.word]: { ...prev[s.word]!, synonym_type: e.target.value as CanvasSynonym['synonym_type'] },
+                              }))}
+                              className="border border-slate-200 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-primary-ring"
+                            >
+                              <option value="vendor">vendor</option>
+                              <option value="category">category</option>
+                              <option value="usecase">usecase</option>
+                            </select>
+                            <button
+                              onClick={() => addFromSuggestion(s.word)}
+                              disabled={synSaving || !input.term.trim()}
+                              className="px-2 py-1 text-xs font-medium bg-slate-800 text-white rounded disabled:opacity-50 hover:bg-slate-700 transition-colors whitespace-nowrap"
+                            >
+                              Anlegen
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Add form */}
           <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">

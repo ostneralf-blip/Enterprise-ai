@@ -21,7 +21,7 @@ type UcType = 'vision' | 'generative' | 'predictive' | 'automation'
 // ─── Vendor-Aliases ────────────────────────────────────────────────────────────
 // Begriffe, die auf einen Vendor hindeuten, ohne den Vendor-Namen direkt zu nennen.
 // Auch ERP-Produktnamen (Navision, D365) werden auf ihren Hersteller gemappt.
-const VENDOR_ALIASES: Record<string, string[]> = {
+export const VENDOR_ALIASES: Record<string, string[]> = {
   'SAP': [
     's/4hana', 's4hana', 'fiori', 'btp', 'hana', 'datasphere', 'bw/4hana',
     'joule', 'ariba', 'successfactors', 'sap cloud', 'ai core', 'genai hub',
@@ -82,7 +82,7 @@ const VENDOR_ALIASES: Record<string, string[]> = {
 // ─── Plattform-Kategorie-Keywords ─────────────────────────────────────────────
 // Erkennt Systemkategorien (ERP, CRM, IoT …) auch ohne Vendor-Namen.
 // Dient als Kontext-Hinweis für den Wizard-Prefill.
-const PLATFORM_CATEGORY_KEYWORDS: Record<string, string[]> = {
+export const PLATFORM_CATEGORY_KEYWORDS: Record<string, string[]> = {
   'erp': [
     'erp', 'warenwirtschaft', 'wawi', 'enterprise resource planning',
     'buchhaltungssoftware', 'fibu', 'finanzbuchhaltung', 'controlling',
