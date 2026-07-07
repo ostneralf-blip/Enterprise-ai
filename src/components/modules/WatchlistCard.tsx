@@ -14,7 +14,7 @@ export function WatchlistCard({ item }: { item: WatchlistItem }) {
   const status = STATUS_CONFIG[item.status]
 
   return (
-    <div className="bg-white border border-amber-100 rounded-lg p-4 space-y-2">
+    <div className="bg-white border border-amber-100 rounded-lg p-4 sm:p-6 space-y-2">
       <div className="flex flex-wrap items-start gap-2 min-w-0">
         <span className={cn('px-2 py-0.5 text-xs font-medium border rounded-full flex-shrink-0', status.className)}>
           {status.label}
