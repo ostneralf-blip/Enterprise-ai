@@ -1,6 +1,6 @@
 # AI Navigator — CLAUDE.md
 ## Projekt-Konventionen für Claude Code
-_Zuletzt inhaltlich gegen Repo + GitHub abgeglichen: 05.07.2026. Diese Datei aktualisiert
+_Zuletzt inhaltlich gegen Repo + GitHub abgeglichen: 07.07.2026. Diese Datei aktualisiert
 sich nicht automatisch — nach größeren Sprints manuell nachziehen (siehe Hinweis in der
 Feature-Lücken-Analyse unten)._
 
@@ -334,50 +334,42 @@ Ob alle in #37 genannten Detailanforderungen (Executive Summary immer ausführba
 100%-Abschluss, PDF-Export zählt nicht zur Fortschritts-Berechnung) exakt so umgesetzt sind,
 wurde in dieser Runde nicht zeilengenau nachverifiziert.
 
-### Priorisierte Gesamt-Roadmap (Stand 05.07.2026 — aktualisiert gegen Repo + GitHub)
-Ordnungsprinzip unverändert: Go-Live-Blocker zuerst, dann Wert/USP, dann
-strategisch-wichtig-aber-nicht-dringend. Die Liste vom 21.06. ist zu großen Teilen
-abgearbeitet (siehe durchgestrichene Punkte) — hier die tatsächlich noch offenen Punkte
-plus neu gefundene.
+### Priorisierte Gesamt-Roadmap (Stand 07.07.2026 — gegen Repo + GitHub abgeglichen)
+**Status: 0 offene GitHub Issues. Sprint 14 + Sprint 15 vollständig geliefert.**
 
-**PRIO 1 — Blocker:**
-1. ~~Legal-Seiten-Routen~~ (Routen existieren) — Rechtstexte weiterhin Platzhalter.
-   **ZURÜCKGESTELLT (07.07.2026): externer Support nötig (eRecht24/Anwalt). Kein Code-Task.**
-2. ~~DSGVO-Datenlöschung~~ → erledigt.
-3. ~~Bug: gespeicherte Ergebnisse~~ → erledigt (Issue #4).
-4. ~~Bug: Mobile Popup/Scroll~~ → erledigt.
-5. ~~CI-Pipeline~~ → vorhanden.
-6. ~~`use_case_portfolios`-Bug~~ → behoben (Sprint 12, commit `58da037`).
+**ERLEDIGT — Sprint 14 (Design-Refresh + Produkt-Lücken, CLOSED 06.07.2026):**
+- ~~#68 Versions-UI auf Roadmap/Governance/Canvas~~ → DONE (`4bf0af3`)
+- ~~#75 /ergebnisse: Compliance + UseCase Tabs + Primär-Flag~~ → DONE (`cf4e0e0`, `049b6d0`)
+- ~~Roadmap → Architektur-Verknüpfung~~ → DONE (`85b1570`, roadmapContext)
+- ~~#83 Executive Summary PDF Redesign~~ → DONE (`c388e7f`)
+- ~~#84–#88 Design-Refresh Variante D~~ → DONE (Buch-Branding, Tokens, Dashboard V2, Animationen)
+- ~~#89 Farbthemes + Dark Mode~~ → DONE (`9df48fc`, `f1ffaf0`)
+- ~~#82 Canvas-Compliance 7 Kategorien~~ → DONE (`4884888`)
 
-**PRIO 2 — Sprint 14 (nächster Sprint):**
-7. ~~Geführter Onboarding-Wizard~~ → erledigt (Issues #22/#37 CLOSED).
-8. **Versions-UI auf Roadmap/Governance/Canvas** (Issue #68) — bisher nur Architektur. [Klein–Mittel]
-9. ~~PDF-Export alle 7 Module~~ → erledigt (Issues #36, #61 CLOSED).
-10. **`/ergebnisse` ohne Compliance + Use-Case-Scoring** — deckt 5 von 7 Modulen ab. [Klein–Mittel]
-11. **Roadmap → Architektur-Verknüpfung fehlt** — Prozessdiagramm-Kante nicht verdrahtet. [Mittel]
+**ERLEDIGT — Sprint 15 (Wissens-Layer, CLOSED 06.07.2026):**
+- ~~#77 DB: content_library + context_key/display_order/is_published~~ → DONE (`4db4076`)
+- ~~#78 UI: GuidanceCard + GuidancePanel als Side-Drawer~~ → DONE (`4db4076`, `be14e2b`)
+- ~~#79 Verdrahtung in allen 7 Modulen~~ → DONE (`47436ca`)
+- ~~#80 Content: Erst-Tranche 40 Blöcke~~ → DONE (`878eae3`)
+- ~~#81 Tier-Gating: min_tier auf content_library, Admin-togglebar~~ → DONE (`67cb732`)
+  **Hinweis:** Kein separates Preismodell nötig — Admins schalten `min_tier` pro Block im
+  Content-Library-Editor. Entscheidung: `free` als Default, Admin kann auf `pro` stellen.
 
-**PRIO 3 — Sprint 15 (Wissens-Layer, Freigabe erteilt 07.07.2026):**
-- #77 DB: content_library + context_key/display_order/is_published → **FREIGEGEBEN**
-- #78 UI: GuidanceCard + GuidancePanel (blockiert bis #77)
-- #79 Verdrahtung in 7 Modulen (blockiert bis #78)
-- #80 Content: Erst-Tranche ~40 Blöcke (redaktionell, parallel zu #79)
-- #81 Tier-Gating: Preismodell-Entscheidung (Pro vs. Enterprise) vor Umsetzung nötig
-- **GESTRICHEN: Compliance-Scanner Cron-Job** (07.07.2026) — manueller Trigger reicht
-
-**PRIO 4 — Betrieb & Vertrauen:**
-- Sentry Error-Tracking: Config vorhanden, Produktion nicht verifiziert. [Klein]
-- Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade). [Mittel]
-- `/trust`-Seite: Route existiert, Inhalt nicht geprüft. [Klein]
+**PRIO 1 — Noch offen (Betrieb & Vertrauen):**
+- Rechtstexte (Impressum/Datenschutz/AGB): Routen existieren, Inhalt ist Platzhalter.
+  **ZURÜCKGESTELLT:** externer Support nötig (eRecht24/Anwalt). Kein Code-Task.
+- Sentry Error-Tracking: `sentry.*.config.ts` vorhanden, Produktions-Aktivierung nicht verifiziert.
+- Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling).
+- `/trust`-Seite: Route existiert (`src/app/trust`), Inhalt nicht geprüft.
 
 **BEWUSST ZURÜCKGESTELLT:**
 - Team-/Mandantenfunktion — bis konkrete Enterprise-Kundenanfrage
-- Google OAuth, Dark Mode, Mehrsprachigkeit EN — kein Blocker
-- Compliance-Scanner Cron-Job — gestrichen (07.07.2026)
-- Rechtstexte — externer Support, kein Code-Task
+- Google OAuth — kein Blocker
+- Compliance-Scanner Cron-Job — gestrichen (07.07.2026), manueller Trigger reicht
 
-**Feature-Backlog (notiert 07.07.2026, für zukünftige Sprints):**
+**Feature-Backlog (für zukünftige Sprints):**
 - Compliance-Quellen: Admin kann neue URLs zur Überwachung eintragen (aktuell hardcodiert in `scanner.ts`)
 - Canvas-Synonym-Lernvorschläge: nach Canvas-Speichern neue Begriffe als Admin-Vorschlag
 - Compliance-Fristen-Timer: Countdown zu Stichtagen in WatchlistCard
 - Versions-Diff-Ansicht: Änderungen zwischen zwei gespeicherten Versionen anzeigen
-- Executive Summary PDF Redesign (#83): Deckblatt, Ampel, Top-3, Compliance-Seite
+- Externe Sync-Quellen für AI-Katalog (CNCF Landscape, Hugging Face, SAP API Hub) — noch kein konkreter Bedarf
