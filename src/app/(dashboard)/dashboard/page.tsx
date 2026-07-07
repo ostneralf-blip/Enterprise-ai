@@ -113,7 +113,8 @@ export default async function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6"
+           data-reveal style={{ '--i': '0' } as React.CSSProperties}>
         <div className="min-w-0">
           <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">
             Enterprise Architecture · AI Strategy
@@ -148,7 +149,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Guided Path Hero */}
-      <GuidedPathHero steps={guidedSteps} tier={tier} />
+      <div data-reveal style={{ '--i': '1' } as React.CSSProperties}>
+        <GuidedPathHero steps={guidedSteps} tier={tier} />
+      </div>
 
       {/* Quarterly Review Reminder */}
       {latestAssessment && assessmentDaysSince >= 90 && (
@@ -170,7 +173,8 @@ export default async function DashboardPage() {
         <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+           data-reveal style={{ '--i': '2' } as React.CSSProperties}>
         {MODULES.map(mod => {
           const locked = !hasAccess(tier, mod.requiredTier)
           const done = moduleDone[mod.id] ?? false

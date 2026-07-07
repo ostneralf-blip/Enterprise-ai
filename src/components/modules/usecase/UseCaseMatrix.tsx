@@ -52,15 +52,15 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
         </div>
 
         {/* Dots */}
-        {useCases.map(uc => {
+        {useCases.map((uc, dotIndex) => {
           const x = ((uc.scores.feasibility ?? 3) - 1) / 4
           const y = 1 - ((uc.scores.value ?? 3) - 1) / 4
           const colors = QUADRANT_COLORS[uc.quadrant]
           return (
             <div
               key={uc.id}
-              className="absolute"
-              style={{ left: `calc(${x * 100}% - 10px)`, top: `calc(${y * 100}% - 10px)` }}
+              className="absolute animate-dot-pop"
+              style={{ left: `calc(${x * 100}% - 10px)`, top: `calc(${y * 100}% - 10px)`, '--dot-i': dotIndex } as React.CSSProperties}
             >
               <div className="relative group">
                 <div className={`w-5 h-5 rounded-full ${colors.dot} border-2 border-white shadow-sm cursor-default`} />

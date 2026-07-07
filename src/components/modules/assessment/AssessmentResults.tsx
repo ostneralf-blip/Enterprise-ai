@@ -72,7 +72,7 @@ export function AssessmentResults({
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
           <h3 className="font-semibold text-slate-900 mb-5">Ergebnis nach Dimension</h3>
           <div className="space-y-4">
-            {ASSESSMENT_DIMENSIONS.map(dim => {
+            {ASSESSMENT_DIMENSIONS.map((dim, barIndex) => {
               const score = dimScores[dim.id]
               const ml = score !== undefined ? getMaturityLevel(score) : null
               const barColor = score !== undefined
@@ -92,8 +92,8 @@ export function AssessmentResults({
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden" role="progressbar"
                        aria-valuenow={score} aria-valuemin={0} aria-valuemax={5}
                        aria-label={`${dim.label}: ${score?.toFixed(1) ?? 'nicht bewertet'} von 5`}>
-                    <div className="h-full rounded-full transition-all duration-700"
-                         style={{ width: `${((score ?? 0) / 5) * 100}%`, background: barColor }} />
+                    <div className="h-full rounded-full animate-grow-width"
+                         style={{ width: `${((score ?? 0) / 5) * 100}%`, background: barColor, '--bar-i': barIndex } as React.CSSProperties} />
                   </div>
                   {score !== undefined && score < 2.5 && (
                     <div className="mt-1 text-xs text-amber-600 flex items-center gap-1">

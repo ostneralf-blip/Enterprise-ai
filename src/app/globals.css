@@ -72,6 +72,52 @@ body {
   color: var(--foreground);
 }
 
+/* ── Lade-Choreografie (Teil B — data-reveal, gestaffelter Seitenaufbau) ── */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+[data-reveal] {
+  animation: reveal-up 600ms cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 150ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { animation: none; }
+}
+
+/* ── Teil C: Fortschrittsbalken-Wachstum (scaleX transform-origin left) ── */
+@keyframes grow-width {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.animate-grow-width {
+  transform-origin: left;
+  animation: grow-width 800ms cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(var(--bar-i, 0) * 90ms + 300ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-grow-width { animation: none; }
+}
+
+/* ── Teil C: Matrix-Punkte gestaffeltes Pop-In ── */
+@keyframes dot-pop {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-dot-pop {
+  animation: dot-pop 300ms cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(var(--dot-i, 0) * 60ms + 200ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dot-pop { animation: none; }
+}
+
 /* ── SVG-Linienzieher-Animation (EmptyState-Illustrationen) ── */
 @keyframes dash-draw {
   to { stroke-dashoffset: 0; }
