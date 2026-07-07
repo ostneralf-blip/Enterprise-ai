@@ -9,9 +9,31 @@ const STATUS_CONFIG: Record<WatchlistStatus, { label: string; className: string 
   final:           { label: 'Final — Übernahme ausstehend', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
 }
 
+export function computeCountdown(deadline: string, today = new Date()): { label: string; className: string } {
+  const target = new Date(deadline)
+  const diffMs = target.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return { label: '⏱ Stichtag überschritten', className: 'bg-red-100 text-red-700 border-red-200' }
+  }
+  const months = Math.floor(diffDays / 30)
+  if (months === 0) {
+    return { label: `⏱ noch ${diffDays} Tag${diffDays === 1 ? '' : 'e'}`, className: 'bg-red-100 text-red-700 border-red-200' }
+  }
+  if (months < 3) {
+    return { label: `⏱ noch ${months} Monat${months === 1 ? '' : 'e'}`, className: 'bg-red-100 text-red-700 border-red-200' }
+  }
+  if (months < 12) {
+    return { label: `⏱ noch ${months} Monate`, className: 'bg-amber-100 text-amber-700 border-amber-200' }
+  }
+  return { label: `⏱ noch ${months} Monate`, className: 'bg-emerald-100 text-emerald-700 border-emerald-200' }
+}
+
 export function WatchlistCard({ item }: { item: WatchlistItem }) {
   const [open, setOpen] = useState(false)
   const status = STATUS_CONFIG[item.status]
+  const countdown = item.deadline ? computeCountdown(item.deadline) : null
 
   return (
     <div className="bg-white border border-amber-100 rounded-lg p-4 sm:p-6 space-y-2">
@@ -19,6 +41,11 @@ export function WatchlistCard({ item }: { item: WatchlistItem }) {
         <span className={cn('px-2 py-0.5 text-xs font-medium border rounded-full flex-shrink-0', status.className)}>
           {status.label}
         </span>
+        {countdown && (
+          <span className={cn('px-2 py-0.5 text-xs font-medium border rounded-full flex-shrink-0', countdown.className)}>
+            {countdown.label}
+          </span>
+        )}
         <p className="text-sm font-medium text-slate-800 min-w-0">{item.title}</p>
       </div>
       <p className="text-xs text-slate-600">{item.summary}</p>

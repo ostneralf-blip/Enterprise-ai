@@ -645,7 +645,8 @@ export interface WatchlistItem {
   summary: string
   potentialImpact: string
   sourceUrl: string
-  lastChecked: string // ISO-Datum YYYY-MM-DD
+  lastChecked: string   // ISO-Datum YYYY-MM-DD
+  deadline?: string     // ISO-Datum YYYY-MM-DD — gesetzlicher Stichtag, falls bekannt
 }
 
 export const REGULATORY_WATCHLIST: WatchlistItem[] = [
@@ -662,6 +663,7 @@ export const REGULATORY_WATCHLIST: WatchlistItem[] = [
       'für Hochrisiko-Use-Cases. Bei finaler Verabschiedung: Fristen dort anpassen.',
     sourceUrl: 'https://www.insideglobaltech.com/2026/05/28/eu-ai-act-update-timeline-relief-targeted-simplification-and-new-prohibitions/',
     lastChecked: '2026-07-07',
+    deadline: '2027-12-01',
   },
   {
     id: 'bdsg_dsb_threshold',

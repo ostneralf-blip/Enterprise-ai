@@ -3,12 +3,12 @@ import { getStripe } from '@/lib/stripe/client'
 import { createAdminClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
-type ProfileRow = { id: string }
+type ProfileRow = { id: string; email: string | null }
 
 async function profileByCustomer(supabase: Awaited<ReturnType<typeof createAdminClient>>, customerId: string): Promise<ProfileRow | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase.from('profiles') as any)
-    .select('id')
+    .select('id, email')
     .eq('stripe_customer_id', customerId)
     .single()
   return (data as ProfileRow | null) ?? null
@@ -17,6 +17,39 @@ async function profileByCustomer(supabase: Awaited<ReturnType<typeof createAdmin
 async function updateProfile(supabase: Awaited<ReturnType<typeof createAdminClient>>, id: string, patch: Record<string, unknown>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase.from('profiles') as any).update(patch).eq('id', id)
+}
+
+async function markProcessed(supabase: Awaited<ReturnType<typeof createAdminClient>>, eventId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from('processed_stripe_events') as any).insert({ event_id: eventId })
+}
+
+async function sendPaymentFailedEmail(userEmail: string) {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || apiKey === 're_...') return
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from:    'AI Navigator <noreply@enterprise-ai.biz>',
+        to:      [userEmail],
+        subject: 'Deine Zahlung konnte nicht verarbeitet werden',
+        text: [
+          'Hallo,',
+          '',
+          'leider ist die Zahlung für dein AI Navigator Pro-Abonnement fehlgeschlagen.',
+          '',
+          'Bitte aktualisiere deine Zahlungsmethode im Kundenportal, um deinen Pro-Zugang zu erhalten:',
+          'https://enterprise-ai.biz/einstellungen',
+          '',
+          'Dein AI Navigator Team',
+        ].join('\n'),
+      }),
+    })
+  } catch (err) {
+    console.error('[Webhook] Resend-Fehler bei payment_failed:', err)
+  }
 }
 
 export async function POST(req: Request) {
@@ -31,6 +64,16 @@ export async function POST(req: Request) {
   }
 
   const supabase = await createAdminClient()
+
+  // Idempotenz: bereits verarbeitete Events sofort bestätigen ohne erneute Verarbeitung
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: existing } = await (supabase.from('processed_stripe_events') as any)
+    .select('event_id')
+    .eq('event_id', event.id)
+    .maybeSingle()
+  if (existing) {
+    return NextResponse.json({ received: true })
+  }
 
   switch (event.type) {
 
@@ -69,9 +112,8 @@ export async function POST(req: Request) {
       const customerId = invoice.customer as string
       const profile = await profileByCustomer(supabase, customerId)
       if (!profile) break
-      await updateProfile(supabase, profile.id, {
-        subscription_status: 'past_due',
-      })
+      await updateProfile(supabase, profile.id, { subscription_status: 'past_due' })
+      if (profile.email) await sendPaymentFailedEmail(profile.email)
       break
     }
 
@@ -89,5 +131,6 @@ export async function POST(req: Request) {
     }
   }
 
+  await markProcessed(supabase, event.id)
   return NextResponse.json({ received: true })
 }
