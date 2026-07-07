@@ -107,34 +107,45 @@ export async function POST() {
       .limit(1)
       .maybeSingle()
 
-    await supabase.from('source_snapshots').insert({
+    const { error: snapshotInsertError } = await supabase.from('source_snapshots').insert({
       url: source.url,
       label: source.label,
       content_hash: newHash,
     })
+    if (snapshotInsertError) {
+      console.error('Snapshot insert failed:', snapshotInsertError.message)
+      continue
+    }
 
     if (!lastSnapshot || lastSnapshot.content_hash === newHash) continue
 
     changed++
-    const { data: oldSnap } = await supabase
+    const { data: oldSnap, error: oldSnapError } = await supabase
       .from('source_snapshots')
       .select('content_hash')
       .eq('id', lastSnapshot.id)
-      .single()
+      .maybeSingle()
+    if (oldSnapError) {
+      console.error('Snapshot fetch failed:', oldSnapError.message)
+      continue
+    }
 
     const { summary, status_estimate } = await summarizeWithClaude(
       `(Vorheriger Inhalt nicht mehr verfügbar — Hash: ${oldSnap?.content_hash ?? 'unbekannt'})`,
       newText,
     )
 
-    const { error } = await supabase.from('compliance_source_drafts').insert({
+    const { error: draftError } = await supabase.from('compliance_source_drafts').insert({
       source_url: source.url,
       source_label: source.label,
       summary,
       status_estimate,
     })
-
-    if (!error) draftsCreated++
+    if (draftError) {
+      console.error(`Draft insert failed for ${source.label}:`, draftError.message)
+    } else {
+      draftsCreated++
+    }
   }
 
   return NextResponse.json({
