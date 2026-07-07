@@ -1974,13 +1974,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <div className="flex gap-2">
                           <button
                             onClick={() => reviewDraft(draft.id, 'beruecksichtigt')}
-                            className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
                           >
                             Berücksichtigt
                           </button>
                           <button
                             onClick={() => reviewDraft(draft.id, 'ignoriert')}
-                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
                           >
                             Ignorieren
                           </button>
