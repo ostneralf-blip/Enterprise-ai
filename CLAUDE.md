@@ -340,64 +340,44 @@ strategisch-wichtig-aber-nicht-dringend. Die Liste vom 21.06. ist zu großen Tei
 abgearbeitet (siehe durchgestrichene Punkte) — hier die tatsächlich noch offenen Punkte
 plus neu gefundene.
 
-**PRIO 1 — Blocker (vor jedem echten Go-Live):**
-1. ~~Legal-Seiten-Routen~~ (Routen existieren) — **aber Rechtstexte sind weiterhin
-   Platzhalter** (`[Name / Firmenname]` im Impressum). Bleibt Blocker bis echte Texte
-   (eRecht24/Anwalt) eingesetzt sind. [Klein, reiner Content-Austausch]
-2. ~~DSGVO-Datenlöschung~~ → erledigt, `/api/account/delete` vorhanden.
-3. ~~Bug: gespeicherte Ergebnisse nicht anzeigbar~~ → erledigt (Issue #4).
-4. ~~Bug: Mobile Popup/Scroll-Verhalten~~ → erledigt (`h-[100dvh]` in `layout.tsx`).
-5. ~~CI-Pipeline~~ → `.github/workflows/ci.yml` vorhanden (Tests + Build bei jedem
-   Push/PR auf main). Branch-Protection-Einstellung selbst konnte aus dieser Session
-   heraus nicht verifiziert werden (GitHub-Repo-Setting, kein Datei-Artefakt) — einmal
-   in den GitHub-Settings gegenprüfen, ob "Require status checks" für main aktiv ist.
-6. **NEU — `use_case_portfolios`-Bug:** `governance/page.tsx` + `roadmap/page.tsx` fragen
-   eine nicht existierende Tabelle ab (richtig: `uc_portfolios`). Bricht vermutlich seit
-   heute (`ed3eb92`) das Governance-Use-Case-Dropdown und die Roadmap-Governance-Badges.
-   Klarer Stufe-1-Sofort-Fix, nicht auf GitHub getrackt. [Klein]
+**PRIO 1 — Blocker:**
+1. ~~Legal-Seiten-Routen~~ (Routen existieren) — Rechtstexte weiterhin Platzhalter.
+   **ZURÜCKGESTELLT (07.07.2026): externer Support nötig (eRecht24/Anwalt). Kein Code-Task.**
+2. ~~DSGVO-Datenlöschung~~ → erledigt.
+3. ~~Bug: gespeicherte Ergebnisse~~ → erledigt (Issue #4).
+4. ~~Bug: Mobile Popup/Scroll~~ → erledigt.
+5. ~~CI-Pipeline~~ → vorhanden.
+6. ~~`use_case_portfolios`-Bug~~ → behoben (Sprint 12, commit `58da037`).
 
-**PRIO 2 — Hoher Produktwert:**
-7. ~~Geführter Onboarding-Wizard~~ → funktional vorhanden (Dashboard-Sequenzierung),
-   Issues #22/#37 CLOSED — Detailanforderungen aus #37 nicht zeilengenau nachverifiziert.
-8. ~~Versionierung + Sharing~~ → API + UI vorhanden, **aber Versions-UI nur bei Architektur
-   verdrahtet** (Issue #68 offen). Roadmap/Governance/Canvas ergänzen. [Klein–Mittel]
+**PRIO 2 — Sprint 14 (nächster Sprint):**
+7. ~~Geführter Onboarding-Wizard~~ → erledigt (Issues #22/#37 CLOSED).
+8. **Versions-UI auf Roadmap/Governance/Canvas** (Issue #68) — bisher nur Architektur. [Klein–Mittel]
 9. ~~PDF-Export alle 7 Module~~ → erledigt (Issues #36, #61 CLOSED).
-10. **NEU — `/ergebnisse` ohne Compliance + Use-Case-Scoring:** Speicher-/Vergleichs-Hub
-    deckt 5 von 7 Modulen ab, Compliance-Checks und Use-Case-Scoring fehlen. [Klein–Mittel]
-11. **NEU — Roadmap → Architektur-Verknüpfung fehlt:** Laut Prozessdiagramm sollte der
-    Architektur-Generator die Roadmap-Ergebnisse berücksichtigen; aktuell liest er nur
-    Assessment, Governance und Canvas. [Mittel]
-12. Tests für die heutigen Features (#65 Governance-UseCase-FK, #67 Compliance-Banner,
-    #68 Summary-Priorities): keine dedizierten Unit-/Security-/A11y-Tests gefunden —
-    verstößt gegen das eigene Test-Gate weiter oben. [Klein–Mittel]
-13. GitHub-Issues #65/#67/#68/#71 sind trotz committetem Code weiterhin OPEN (kein
-    "Closes #N" in den Commit-Messages verwendet) — nach Verifikation schließen, sonst
-    verzerrt der Issue-Tracker den tatsächlichen Fortschritt. [Prozess, kein Aufwand]
+10. **`/ergebnisse` ohne Compliance + Use-Case-Scoring** — deckt 5 von 7 Modulen ab. [Klein–Mittel]
+11. **Roadmap → Architektur-Verknüpfung fehlt** — Prozessdiagramm-Kante nicht verdrahtet. [Mittel]
 
-**PRIO 3 — Betriebsgrundlagen & Vertrauen:**
-14. Error-Tracking + Uptime-Monitoring (Sentry-Config liegt vor — `sentry.*.config.ts` —
-    Status als "aktiv in Produktion verifiziert" nicht erneut geprüft). [Klein]
-15. Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling,
-    Jahreslizenz-Ablauf): unverändert nicht verifiziert. [Mittel]
-16. App-Versionierung: `CHANGELOG.md` + `src/config/changelog.ts` existieren bereits —
-    Feature-Wunsch damit größtenteils erledigt. [Klein]
-17. Vertrauenssignale: `/trust`-Route existiert bereits (`src/app/trust`) — Inhalt nicht
-    geprüft. [Klein]
-18. Inhaltliche Aktualität (EU-AI-Act-Fristen etc.) — weiterhin Prozessthema, kein Code.
+**PRIO 3 — Sprint 15 (Wissens-Layer, Freigabe erteilt 07.07.2026):**
+- #77 DB: content_library + context_key/display_order/is_published → **FREIGEGEBEN**
+- #78 UI: GuidanceCard + GuidancePanel (blockiert bis #77)
+- #79 Verdrahtung in 7 Modulen (blockiert bis #78)
+- #80 Content: Erst-Tranche ~40 Blöcke (redaktionell, parallel zu #79)
+- #81 Tier-Gating: Preismodell-Entscheidung (Pro vs. Enterprise) vor Umsetzung nötig
+- **GESTRICHEN: Compliance-Scanner Cron-Job** (07.07.2026) — manueller Trigger reicht
 
-**PRIO 4 — USP & Differenzierung:**
-19. AI-Komponenten-Katalog: deutlich weiter als am 21.06. — `component_catalog`,
-    `catalog_sources`, Abhängigkeitsmatrix, Admin-CRUD, Soft-Restore existieren (Issue #41,
-    Sprints 7–11 abgeschlossen). Externe Sync-Quellen (CNCF/Hugging Face/SAP API Hub)
-    laut Issue #41 als eigener Sprint 5 geplant — Status nicht verifiziert. [Rest: Mittel]
-20. UX-Feinschliff, Quarterly-Review-Reminder: Status nicht erneut geprüft in dieser Runde.
+**PRIO 4 — Betrieb & Vertrauen:**
+- Sentry Error-Tracking: Config vorhanden, Produktion nicht verifiziert. [Klein]
+- Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade). [Mittel]
+- `/trust`-Seite: Route existiert, Inhalt nicht geprüft. [Klein]
 
-**BEWUSST ZURÜCKGESTELLT (unverändert):**
-- Team-/Mandantenfunktion (Admin-Panel Stufe B) — bis konkrete Enterprise-Kundenanfrage
-- Runtime-/Monitoring-Features — bewusste Abgrenzung, AI Navigator bleibt Planungstool
+**BEWUSST ZURÜCKGESTELLT:**
+- Team-/Mandantenfunktion — bis konkrete Enterprise-Kundenanfrage
 - Google OAuth, Dark Mode, Mehrsprachigkeit EN — kein Blocker
+- Compliance-Scanner Cron-Job — gestrichen (07.07.2026)
+- Rechtstexte — externer Support, kein Code-Task
 
-**Empfohlene nächste Schritte:** Punkt 6 (`use_case_portfolios`-Bug) zuerst — betrifft
-Features von heute, die vermutlich gerade nicht funktionieren. Danach Punkt 1
-(Rechtstexte) als einzig verbliebener echter Go-Live-Blocker, dann Punkt 8/10/11 um die
-Diagramm-Datenkette und den Ergebnisse-Hub zu vervollständigen.
+**Feature-Backlog (notiert 07.07.2026, für zukünftige Sprints):**
+- Compliance-Quellen: Admin kann neue URLs zur Überwachung eintragen (aktuell hardcodiert in `scanner.ts`)
+- Canvas-Synonym-Lernvorschläge: nach Canvas-Speichern neue Begriffe als Admin-Vorschlag
+- Compliance-Fristen-Timer: Countdown zu Stichtagen in WatchlistCard
+- Versions-Diff-Ansicht: Änderungen zwischen zwei gespeicherten Versionen anzeigen
+- Executive Summary PDF Redesign (#83): Deckblatt, Ampel, Top-3, Compliance-Seite
