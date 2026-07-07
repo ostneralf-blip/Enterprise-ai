@@ -16,6 +16,10 @@ export const metadata: Metadata = { title: 'Dashboard' }
 
 const NOW = Date.now()
 
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
   scaler:      { label: 'AI Scaler',      color: 'text-sky-700 bg-sky-100 border-sky-200' },
@@ -31,7 +35,6 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   compliance:   Scale,
   architecture: Layers,
 }
-
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -55,7 +58,7 @@ export default async function DashboardPage() {
 
   // use_cases hat keine user_id-Spalte — Filterung läuft über RLS (via uc_portfolios.user_id)
   const useCaseQuery = (() => {
-    let q = supabase.from('use_cases').select('id, quadrant, scores').order('created_at', { ascending: false }).limit(15)
+    let q = supabase.from('use_cases').select('id, quadrant, scores, created_at').order('created_at', { ascending: false }).limit(15)
     if (resetAt) q = q.gt('created_at', resetAt)
     return q
   })()
@@ -81,14 +84,19 @@ export default async function DashboardPage() {
   ])
 
   const usecaseCount = useCaseData?.length ?? 0
-  const useCasePreview = (useCaseData ?? []) as Array<{ id: string; quadrant: string; scores: Record<string, number> }>
+  const useCasePreview = (useCaseData ?? []).map(uc => ({
+    id: uc.id as string,
+    quadrant: uc.quadrant as string,
+    scores: uc.scores as Record<string, number>,
+  }))
+  const lastUseCaseDate = (useCaseData?.[0] as { created_at?: string } | undefined)?.created_at ?? null
 
   const tier = (profileData?.tier ?? 'free') as Tier
   const firstName = profileData?.full_name?.split(' ')[0] ?? null
   const savedCount = (architectureCount ?? 0) + (governanceCount ?? 0) + (roadmapCount ?? 0) + (assessmentCount ?? 0)
   const moduleDone: Record<string, boolean> = {
     assessment:  (assessmentCount ?? 0) > 0,
-    usecase:     (usecaseCount ?? 0) > 0,
+    usecase:     usecaseCount > 0,
     canvas:      (canvasCount ?? 0) > 0,
     governance:  (governanceCount ?? 0) > 0,
     compliance:  (complianceCount ?? 0) > 0,
@@ -103,17 +111,30 @@ export default async function DashboardPage() {
 
   const guidedSteps: PathStep[] = [
     { step: 1, icon: '◎', title: 'Assessment',   desc: 'Archetype & Reifegrad',          href: '/assessment',      done: (assessmentCount ?? 0) > 0 },
-    { step: 2, icon: '⊞', title: 'Use-Case',     desc: 'Prioritäten setzen',              href: '/usecase',         done: (usecaseCount ?? 0) > 0 },
+    { step: 2, icon: '⊞', title: 'Use-Case',     desc: 'Prioritäten setzen',              href: '/usecase',         done: usecaseCount > 0 },
     { step: 3, icon: '◧', title: 'Canvas',       desc: 'Use-Case ausarbeiten',            href: '/canvas',          done: (canvasCount ?? 0) > 0 },
     { step: 4, icon: '⊙', title: 'Governance',   desc: 'Use-Case freigeben',              href: '/governance',      done: (governanceCount ?? 0) > 0 },
     { step: 5, icon: '⚖', title: 'Compliance',   desc: 'EU AI Act & DSGVO',               href: '/compliance',      done: (complianceCount ?? 0) > 0 },
     { step: 6, icon: '⬡', title: 'Architektur',  desc: 'AI-Architektur definieren',       href: '/architecture',    done: (architectureCount ?? 0) > 0 },
-    { step: 7, icon: '□', title: 'Summary',      desc: 'PDF-Export & Überblick',          href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && (usecaseCount ?? 0) > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
+    { step: 7, icon: '□', title: 'Summary',      desc: 'PDF-Export & Überblick',          href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && usecaseCount > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
   ]
 
   const completedSteps = guidedSteps.filter(s => s.done).length
-  // Erster nicht-erledigter, nicht-gesperrter Schritt = "Nächster empfohlener Schritt"
   const nextModuleId = MODULES.find(m => !moduleDone[m.id] && hasAccess(tier, m.requiredTier))?.id ?? null
+  const archetypeInfo = latestAssessment ? (ARCHETYPE_LABELS[latestAssessment.archetype as string] ?? null) : null
+
+  // Kacheln statisch sortiert: nächster Schritt → offen → erledigt → gesperrt
+  const sortedModules = [...MODULES].sort((a, b) => {
+    const priority = (mod: typeof MODULES[0]) => {
+      if (mod.id === nextModuleId) return 0
+      const locked = !hasAccess(tier, mod.requiredTier)
+      const done = moduleDone[mod.id] ?? false
+      if (!locked && !done) return 1
+      if (done) return 2
+      return 3
+    }
+    return priority(a) - priority(b)
+  })
 
   return (
     <div>
@@ -137,8 +158,8 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {latestAssessment && (
-            <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${ARCHETYPE_LABELS[latestAssessment.archetype as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
-              {ARCHETYPE_LABELS[latestAssessment.archetype as string]?.label ?? String(latestAssessment.archetype)}
+            <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${archetypeInfo?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+              {archetypeInfo?.label ?? String(latestAssessment.archetype)}
             </span>
           )}
           {latestAssessment && (
@@ -153,18 +174,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Guided Path Hero + Mini-Radar nebeneinander auf lg+ */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start"
-           data-reveal style={{ '--i': '1' } as React.CSSProperties}>
-        <div className="flex-1 min-w-0">
-          <GuidedPathHero steps={guidedSteps} tier={tier} />
-        </div>
-        {latestAssessment && (latestAssessment as { dim_scores?: Record<string, number> }).dim_scores && (
-          <div className="lg:w-[200px] shrink-0 bg-white border border-slate-200 rounded-xl p-4">
-            <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">AI-Profil</p>
-            <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
-          </div>
-        )}
+      {/* Guided Path Hero — volle Breite */}
+      <div className="mb-6" data-reveal style={{ '--i': '1' } as React.CSSProperties}>
+        <GuidedPathHero steps={guidedSteps} tier={tier} />
       </div>
 
       {/* Quarterly Review Reminder */}
@@ -182,23 +194,85 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Modul-Grid */}
+      {/* Scoring-Ampel Zeile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6"
+           data-reveal style={{ '--i': '2' } as React.CSSProperties}>
+        {/* Karte A: AI-Profil */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
+          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">AI-Profil</p>
+          {latestAssessment && (latestAssessment as { dim_scores?: Record<string, number> }).dim_scores ? (
+            <>
+              <p className="text-[10px] text-slate-400 mb-3">
+                Letztes Assessment · {formatDate(latestAssessment.created_at as string)}
+              </p>
+              <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
+              <div className="mt-3 text-center">
+                <span className="font-serif text-2xl font-semibold text-slate-900">
+                  {Number(latestAssessment.total_score).toFixed(2)}
+                </span>
+                <span className="text-slate-400 text-sm"> / 5.0</span>
+              </div>
+              {archetypeInfo && (
+                <div className="mt-2 flex justify-center">
+                  <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${archetypeInfo.color}`}>
+                    {archetypeInfo.label}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center flex-1 py-8 gap-3">
+              <p className="text-sm text-slate-400 text-center">Noch kein Assessment durchgeführt</p>
+              <Link href="/assessment" className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors">
+                Assessment starten →
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Karte B: Use-Case-Portfolio */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
+          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">Use-Case-Portfolio</p>
+          {usecaseCount > 0 ? (
+            <>
+              <p className="text-[10px] text-slate-400 mb-3">
+                {usecaseCount} Use {usecaseCount === 1 ? 'Case' : 'Cases'} bewertet
+                {lastUseCaseDate ? ` · zuletzt ${formatDate(lastUseCaseDate)}` : ''}
+              </p>
+              <div className="flex justify-center flex-1 items-center">
+                <MiniPortfolioMatrix useCases={useCasePreview} />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center flex-1 py-6 gap-3">
+              <MiniPortfolioMatrix useCases={[]} />
+              <p className="text-sm text-slate-400 text-center">Noch keine Use Cases bewertet</p>
+            </div>
+          )}
+          <div className="mt-3 text-center">
+            <Link href="/usecase" className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors">
+              Zum Scoring →
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Alle Tools */}
       <div className="mb-4">
         <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 items-start"
-           data-reveal style={{ '--i': '2' } as React.CSSProperties}>
-        {MODULES.map(mod => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 items-stretch"
+           data-reveal style={{ '--i': '3' } as React.CSSProperties}>
+        {sortedModules.map(mod => {
           const locked = !hasAccess(tier, mod.requiredTier)
           const done = moduleDone[mod.id] ?? false
           const isNext = mod.id === nextModuleId
           const Icon = MODULE_ICONS[mod.id] ?? FileText
           const subtitle = tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle
 
-          // Status-getriebene Chip-Farben (keine Modul-Regenbogenfarben)
-          const chipBg    = locked ? 'bg-slate-100'   : done ? 'bg-emerald-50'  : isNext ? 'bg-primary'      : 'bg-primary-soft'
-          const chipIcon  = locked ? 'text-slate-400' : done ? 'text-emerald-700' : isNext ? 'text-white'    : 'text-primary'
+          const chipBg   = locked ? 'bg-slate-100'   : done ? 'bg-emerald-50'    : isNext ? 'bg-primary'  : 'bg-primary-soft'
+          const chipIcon = locked ? 'text-slate-400' : done ? 'text-emerald-700' : isNext ? 'text-white'  : 'text-primary'
 
           const statusText  = locked ? '🔒 Pro'
             : done   ? '✓ Erledigt — Ergebnis ansehen'
@@ -216,7 +290,6 @@ export default async function DashboardPage() {
                 : 'border-slate-200 hover:border-primary-border'
               }`}
             >
-              {/* Horizontales Layout: Chip links, drei Zeilen rechts */}
               <div className="flex items-center gap-3">
                 <div className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${chipBg}`}>
                   <Icon size={16} className={chipIcon} aria-hidden="true" />
@@ -227,18 +300,6 @@ export default async function DashboardPage() {
                   <div className={`text-[9.5px] font-semibold mt-1 ${statusColor}`}>{statusText}</div>
                 </div>
               </div>
-
-              {/* Mini-Matrix für Use-Case-Karte */}
-              {mod.id === 'usecase' && (
-                <div className="flex flex-col items-center gap-1 mt-3 pt-3 border-t border-slate-100">
-                  <MiniPortfolioMatrix useCases={useCasePreview} />
-                  {usecaseCount > 0 && (
-                    <span className="text-[10px] text-slate-400">
-                      {usecaseCount} Use {usecaseCount === 1 ? 'Case' : 'Cases'} bewertet
-                    </span>
-                  )}
-                </div>
-              )}
             </Link>
           )
         })}

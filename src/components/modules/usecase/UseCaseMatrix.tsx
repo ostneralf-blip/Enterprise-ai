@@ -31,8 +31,6 @@ const LABEL_COLOR: Record<string, string> = {
   avoid:             '#94a3b8',
 }
 
-const QUADRANT_ORDER = ['strategic_bet', 'quick_win', 'avoid', 'low_hanging_fruit'] as const
-
 export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -74,121 +72,127 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* SVG-Matrix */}
-        <div className="relative aspect-square w-full max-w-[480px] mx-auto lg:mx-0 shrink-0">
-          <svg
-            viewBox={`0 0 ${S} ${S}`}
-            className="w-full h-full border border-slate-200 rounded-xl"
-            role="img"
-            aria-label={`Portfolio-Matrix mit ${useCases.length} Use Cases`}
-          >
-            {/* Hairlines — kein Füll-Rechteck */}
-            <line x1="200" y1="0" x2="200" y2={S} stroke="#E2E8F0" strokeWidth="1" />
-            <line x1="0" y1="200" x2={S} y2="200" stroke="#E2E8F0" strokeWidth="1" />
+        {/* Linke Spalte: SVG + Achsen-Label als HTML + horizontale Legende */}
+        <div className="w-full max-w-[480px] mx-auto lg:mx-0 shrink-0">
+          <div className="relative aspect-square">
+            <svg
+              viewBox={`0 0 ${S} ${S}`}
+              className="w-full h-full border border-slate-200 rounded-xl"
+              role="img"
+              aria-label={`Portfolio-Matrix mit ${useCases.length} Use Cases`}
+            >
+              {/* Hairlines */}
+              <line x1="200" y1="0" x2="200" y2={S} stroke="#E2E8F0" strokeWidth="1" />
+              <line x1="0" y1="200" x2={S} y2="200" stroke="#E2E8F0" strokeWidth="1" />
 
-            {/* Quadrant-Labels in Versalien */}
-            <text x="8" y="14" fontSize="9" fontWeight="600"
-                  letterSpacing="1.2" fill={LABEL_COLOR.strategic_bet}>
-              STRATEGIC BET
-            </text>
-            <text x="208" y="14" fontSize="9" fontWeight="600"
-                  letterSpacing="1.2" fill={LABEL_COLOR.quick_win}>
-              QUICK WIN
-            </text>
-            <text x="8" y={S - 5} fontSize="9" fontWeight="600"
-                  letterSpacing="1.2" fill={LABEL_COLOR.avoid}>
-              VERMEIDEN
-            </text>
-            <text x="208" y={S - 5} fontSize="9" fontWeight="600"
-                  letterSpacing="1.2" fill={LABEL_COLOR.low_hanging_fruit}>
-              LOW HANGING FRUIT
-            </text>
+              {/* Quadrant-Labels fest in Ecken — kein Überlapp-Risiko */}
+              <text x="8" y="18" fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.strategic_bet}>
+                STRATEGIC BET
+              </text>
+              <text x={S - 8} y="18" textAnchor="end" fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.quick_win}>
+                QUICK WIN
+              </text>
+              <text x="8" y={S - 8} fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.avoid}>
+                VERMEIDEN
+              </text>
+              <text x={S - 8} y={S - 8} textAnchor="end" fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.low_hanging_fruit}>
+                LOW HANGING FRUIT
+              </text>
 
-            {/* Punkte — r=7 default, r=9 aktiv, weißer Ring */}
-            {useCases.map((uc, i) => {
-              const cx = scoreToCoord(uc.scores.feasibility ?? 3, S)
-              const cy = S - scoreToCoord(uc.scores.value ?? 3, S)
-              const isActive = activeId === uc.id
+              {/* Punkte — r=7 default, r=9 aktiv, weißer Ring */}
+              {useCases.map((uc, i) => {
+                const cx = scoreToCoord(uc.scores.feasibility ?? 3, S)
+                const cy = S - scoreToCoord(uc.scores.value ?? 3, S)
+                const isActive = activeId === uc.id
+                return (
+                  <g
+                    key={uc.id}
+                    onMouseEnter={() => setActiveId(uc.id)}
+                    onMouseLeave={() => setActiveId(null)}
+                    onFocus={() => setActiveId(uc.id)}
+                    onBlur={() => setActiveId(null)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={uc.name}
+                  >
+                    <circle
+                      cx={cx.toFixed(1)} cy={cy.toFixed(1)}
+                      r={isActive ? 9 : 7}
+                      fill={DOT_COLOR[uc.quadrant] ?? '#94a3b8'}
+                      stroke="#FFFFFF" strokeWidth="2"
+                      className="animate-dot-pop transition-all duration-150 cursor-default"
+                      style={{ '--dot-i': i } as React.CSSProperties}
+                    />
+                  </g>
+                )
+              })}
+            </svg>
+
+            {/* Tooltip */}
+            {activeUc && (() => {
+              const cx = scoreToCoord(activeUc.scores.feasibility ?? 3, S) / S
+              const cy = 1 - scoreToCoord(activeUc.scores.value ?? 3, S) / S
               return (
-                <g
-                  key={uc.id}
-                  onMouseEnter={() => setActiveId(uc.id)}
-                  onMouseLeave={() => setActiveId(null)}
-                  onFocus={() => setActiveId(uc.id)}
-                  onBlur={() => setActiveId(null)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={uc.name}
+                <div
+                  className="absolute z-10 bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 shadow-lg pointer-events-none whitespace-nowrap max-w-[180px] truncate"
+                  style={{ left: `calc(${cx * 100}% - 90px)`, top: `calc(${cy * 100}% - 38px)` }}
                 >
-                  <circle
-                    cx={cx.toFixed(1)} cy={cy.toFixed(1)}
-                    r={isActive ? 9 : 7}
-                    fill={DOT_COLOR[uc.quadrant] ?? '#94a3b8'}
-                    stroke="#FFFFFF" strokeWidth="2"
-                    className="animate-dot-pop transition-all duration-150 cursor-default"
-                    style={{ '--dot-i': i } as React.CSSProperties}
-                  />
-                </g>
+                  {activeUc.name}
+                </div>
               )
-            })}
-          </svg>
+            })()}
+          </div>
 
-          {/* Tooltip */}
-          {activeUc && (() => {
-            const cx = scoreToCoord(activeUc.scores.feasibility ?? 3, S) / S
-            const cy = 1 - scoreToCoord(activeUc.scores.value ?? 3, S) / S
-            return (
-              <div
-                className="absolute z-10 bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 shadow-lg pointer-events-none whitespace-nowrap max-w-[180px] truncate"
-                style={{ left: `calc(${cx * 100}% - 90px)`, top: `calc(${cy * 100}% - 38px)` }}
-              >
-                {activeUc.name}
-              </div>
-            )
-          })()}
-
-          {/* Achsen-Label */}
+          {/* Achsen-Label außerhalb des SVG als HTML — kein Kollisions-Risiko */}
           <div className="mt-2 text-center">
             <span className="text-[10px] text-slate-400">← weniger umsetzbar · gut umsetzbar →</span>
           </div>
+
+          {/* Legende: horizontal, zentriert, unter der Matrix */}
+          <div className="mt-3 flex flex-wrap justify-center gap-4">
+            {(Object.keys(DOT_COLOR) as Array<keyof typeof DOT_COLOR>).map(key => (
+              <div key={key} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DOT_COLOR[key] }} />
+                <span className="text-xs text-slate-500">{QUADRANT_META[key as keyof typeof QUADRANT_META]?.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Quadranten-Handlungslogik — lg: rechte Spalte */}
-        <div className="w-full lg:flex-1 space-y-3">
-          {QUADRANT_ORDER.map(key => (
-            <div key={key} className="flex gap-3 py-2.5 border-b border-slate-100 last:border-0">
+        {/* Rechte Spalte: Use-Case-Liste — hover/click hebt Punkt in Matrix hervor */}
+        <div className="w-full lg:flex-1">
+          <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
+            Bewertete Use Cases
+          </h3>
+          <div className="space-y-0.5">
+            {useCases.map(uc => (
               <div
-                className="w-2.5 h-2.5 rounded-full mt-0.5 shrink-0"
-                style={{ background: DOT_COLOR[key] }}
-              />
-              <div className="min-w-0">
-                <div className="text-xs font-semibold text-slate-800 tracking-wide">
-                  {QUADRANT_META[key].label}
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5 leading-snug">
-                  {QUADRANT_META[key].desc}
+                key={uc.id}
+                className={`flex gap-3 py-2 px-2 rounded-lg cursor-default transition-colors ${activeId === uc.id ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                onMouseEnter={() => setActiveId(uc.id)}
+                onMouseLeave={() => setActiveId(null)}
+              >
+                <div
+                  className="w-2.5 h-2.5 rounded-full shrink-0 mt-1"
+                  style={{ background: DOT_COLOR[uc.quadrant] ?? '#94a3b8' }}
+                />
+                <div className="min-w-0">
+                  <div className={`text-sm font-medium truncate transition-colors ${activeId === uc.id ? 'text-slate-900' : 'text-slate-700'}`}>
+                    {uc.name}
+                  </div>
+                  {uc.description && (
+                    <div className="text-xs text-slate-500 line-clamp-2 mt-0.5 leading-snug">
+                      {uc.description}
+                    </div>
+                  )}
+                  <div className="text-xs font-medium mt-0.5" style={{ color: DOT_COLOR[uc.quadrant] ?? '#94a3b8' }}>
+                    {QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META]?.label}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Legende */}
-      <div className="mt-4 flex flex-wrap gap-3">
-        {useCases.map(uc => (
-          <div
-            key={uc.id}
-            className="flex items-center gap-1.5 min-w-0 cursor-default"
-            onMouseEnter={() => setActiveId(uc.id)}
-            onMouseLeave={() => setActiveId(null)}
-          >
-            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DOT_COLOR[uc.quadrant] }} />
-            <span className={`text-xs truncate max-w-[120px] transition-colors ${activeId === uc.id ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
-              {uc.name}
-            </span>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
