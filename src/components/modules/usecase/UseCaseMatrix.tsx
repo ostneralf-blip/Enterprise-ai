@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import { QUADRANT_META } from '@/config/usecase-data'
 import type { UseCase } from '@/types'
@@ -7,14 +8,18 @@ interface UseCaseMatrixProps {
   useCases: UseCase[]
 }
 
-const QUADRANT_COLORS = {
-  quick_win:        { bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-  strategic_bet:    { bg: 'bg-primary-soft',    border: 'border-primary-border',    dot: 'bg-primary'    },
-  low_hanging_fruit:{ bg: 'bg-amber-50',   border: 'border-amber-200',   dot: 'bg-amber-500'   },
-  avoid:            { bg: 'bg-slate-50',   border: 'border-slate-200',   dot: 'bg-slate-400'   },
+const S = 400
+
+const QUADRANT_STYLE = {
+  quick_win:         { fill: '#ECFDF5', label: '#059669', dot: '#10b981' },
+  strategic_bet:     { fill: '#EFF6FF', label: '#1D4ED8', dot: 'var(--color-primary)' },
+  low_hanging_fruit: { fill: '#FFFBEB', label: '#D97706', dot: '#f59e0b' },
+  avoid:             { fill: '#F8FAFC', label: '#94a3b8', dot: '#94a3b8' },
 }
 
 export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
+  const [activeId, setActiveId] = useState<string | null>(null)
+
   if (useCases.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center gap-4 text-center">
@@ -43,6 +48,8 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
     )
   }
 
+  const activeUc = useCases.find(u => u.id === activeId)
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
       <div className="mb-4">
@@ -50,59 +57,106 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
         <p className="text-xs text-slate-400 mt-0.5">X-Achse: Umsetzbarkeit · Y-Achse: Business Value</p>
       </div>
 
-      {/* Matrix Grid */}
-      <div className="relative w-full" style={{ paddingBottom: 'min(100%, 420px)' }}>
-        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-1">
-          {/* Top-left: Strategic Bet (High Value, Low Feasibility) */}
-          <div className="bg-primary-soft border border-primary-border rounded-xl p-2 flex flex-col justify-between">
-            <div className="text-xs font-medium text-primary">{QUADRANT_META.strategic_bet.icon} Strategic Bet</div>
-          </div>
-          {/* Top-right: Quick Win (High Value, High Feasibility) */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-2 flex flex-col justify-between">
-            <div className="text-xs font-medium text-emerald-600">{QUADRANT_META.quick_win.icon} Quick Win</div>
-          </div>
-          {/* Bottom-left: Avoid */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2">
-            <div className="text-xs font-medium text-slate-400">{QUADRANT_META.avoid.icon} Vermeiden</div>
-          </div>
-          {/* Bottom-right: Low Hanging Fruit */}
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-2">
-            <div className="text-xs font-medium text-amber-600">{QUADRANT_META.low_hanging_fruit.icon} Low Hanging Fruit</div>
-          </div>
-        </div>
+      {/* SVG Matrix */}
+      <div className="relative aspect-square max-w-[480px] mx-auto">
+        <svg
+          viewBox={`0 0 ${S} ${S}`}
+          className="w-full h-full"
+          role="img"
+          aria-label={`Portfolio-Matrix mit ${useCases.length} Use Cases`}
+        >
+          {/* Quadrant-Hintergründe */}
+          <rect x="0"   y="0"   width="200" height="200" fill={QUADRANT_STYLE.strategic_bet.fill} />
+          <rect x="200" y="0"   width="200" height="200" fill={QUADRANT_STYLE.quick_win.fill} />
+          <rect x="0"   y="200" width="200" height="200" fill={QUADRANT_STYLE.avoid.fill} />
+          <rect x="200" y="200" width="200" height="200" fill={QUADRANT_STYLE.low_hanging_fruit.fill} />
 
-        {/* Dots */}
-        {useCases.map((uc, dotIndex) => {
-          const x = ((uc.scores.feasibility ?? 3) - 1) / 4
-          const y = 1 - ((uc.scores.value ?? 3) - 1) / 4
-          const colors = QUADRANT_COLORS[uc.quadrant]
+          {/* Trennlinien */}
+          <line x1="200" y1="0" x2="200" y2={S} stroke="#e2e8f0" strokeWidth="1" />
+          <line x1="0" y1="200" x2={S} y2="200" stroke="#e2e8f0" strokeWidth="1" />
+
+          {/* Quadrant-Labels */}
+          <text x="8" y="16" fontSize="10" fill={QUADRANT_STYLE.strategic_bet.label} fontWeight="600">
+            {QUADRANT_META.strategic_bet.icon} Strategic Bet
+          </text>
+          <text x="208" y="16" fontSize="10" fill={QUADRANT_STYLE.quick_win.label} fontWeight="600">
+            {QUADRANT_META.quick_win.icon} Quick Win
+          </text>
+          <text x="8" y={S - 6} fontSize="10" fill={QUADRANT_STYLE.avoid.label} fontWeight="600">
+            {QUADRANT_META.avoid.icon} Vermeiden
+          </text>
+          <text x="208" y={S - 6} fontSize="10" fill={QUADRANT_STYLE.low_hanging_fruit.label} fontWeight="600">
+            {QUADRANT_META.low_hanging_fruit.icon} Low Hanging
+          </text>
+
+          {/* Punkte */}
+          {useCases.map((uc, i) => {
+            const cx = ((uc.scores.feasibility ?? 3) - 1) / 4 * S
+            const cy = (1 - ((uc.scores.value ?? 3) - 1) / 4) * S
+            const style = QUADRANT_STYLE[uc.quadrant]
+            const isActive = activeId === uc.id
+            return (
+              <g key={uc.id}
+                 onMouseEnter={() => setActiveId(uc.id)}
+                 onMouseLeave={() => setActiveId(null)}
+                 onFocus={() => setActiveId(uc.id)}
+                 onBlur={() => setActiveId(null)}
+                 role="button"
+                 tabIndex={0}
+                 aria-label={uc.name}
+              >
+                <circle
+                  cx={cx.toFixed(1)} cy={cy.toFixed(1)}
+                  r={isActive ? 11 : 9}
+                  fill={style.dot}
+                  stroke="white" strokeWidth="2"
+                  className="animate-dot-pop transition-all duration-150"
+                  style={{ '--dot-i': i } as React.CSSProperties}
+                />
+              </g>
+            )
+          })}
+        </svg>
+
+        {/* Tooltip */}
+        {activeUc && (() => {
+          const cx = ((activeUc.scores.feasibility ?? 3) - 1) / 4
+          const cy = 1 - ((activeUc.scores.value ?? 3) - 1) / 4
           return (
             <div
-              key={uc.id}
-              className="absolute animate-dot-pop"
-              style={{ left: `calc(${x * 100}% - 10px)`, top: `calc(${y * 100}% - 10px)`, '--dot-i': dotIndex } as React.CSSProperties}
+              className="absolute z-10 bg-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 shadow-lg pointer-events-none whitespace-nowrap max-w-[180px] truncate"
+              style={{
+                left: `calc(${cx * 100}% - 90px)`,
+                top: `calc(${cy * 100}% - 38px)`,
+              }}
             >
-              <div className="relative group">
-                <div className={`w-5 h-5 rounded-full ${colors.dot} border-2 border-white shadow-sm cursor-default`} />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10">
-                  <div className="bg-slate-800 text-white text-xs rounded-lg px-2 py-1 whitespace-nowrap max-w-[140px] truncate shadow-lg">
-                    {uc.name}
-                  </div>
-                </div>
-              </div>
+              {activeUc.name}
             </div>
           )
-        })}
+        })()}
       </div>
 
-      {/* Legend */}
+      {/* Achsen-Labels */}
+      <div className="mt-2 flex items-center justify-center gap-1">
+        <span className="text-[10px] text-slate-400">← weniger umsetzbar</span>
+        <span className="text-[10px] text-slate-300 mx-2">·</span>
+        <span className="text-[10px] text-slate-400">gut umsetzbar →</span>
+      </div>
+
+      {/* Legende */}
       <div className="mt-4 flex flex-wrap gap-3">
         {useCases.map(uc => {
-          const colors = QUADRANT_COLORS[uc.quadrant]
+          const style = QUADRANT_STYLE[uc.quadrant]
           return (
-            <div key={uc.id} className="flex items-center gap-1.5 min-w-0">
-              <div className={`w-3 h-3 rounded-full ${colors.dot} shrink-0`} />
-              <span className="text-xs text-slate-600 truncate max-w-[120px]">{uc.name}</span>
+            <div key={uc.id}
+                 className="flex items-center gap-1.5 min-w-0 cursor-default"
+                 onMouseEnter={() => setActiveId(uc.id)}
+                 onMouseLeave={() => setActiveId(null)}
+            >
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: style.dot }} />
+              <span className={`text-xs truncate max-w-[120px] transition-colors ${activeId === uc.id ? 'text-slate-900 font-medium' : 'text-slate-500'}`}>
+                {uc.name}
+              </span>
             </div>
           )
         })}

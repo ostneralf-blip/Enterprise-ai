@@ -10,6 +10,7 @@ import {
 import { GuidedPathHero, type PathStep } from '@/components/dashboard/GuidedPathHero'
 import { CountUp } from '@/components/dashboard/CountUp'
 import { MiniPortfolioMatrix } from '@/components/modules/usecase/MiniPortfolioMatrix'
+import { RadarChart } from '@/components/modules/assessment/RadarChart'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -78,7 +79,7 @@ export default async function DashboardPage() {
     { count: canvasCount },
     { count: complianceCount },
   ] = await Promise.all([
-    supabase.from('assessment_sessions').select('archetype, total_score, created_at').eq('user_id', uid).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('assessment_sessions').select('archetype, total_score, created_at, dim_scores').eq('user_id', uid).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     cnt('architectures',       { user_id: uid }),
     cnt('governance_sessions', { user_id: uid }),
     cnt('roadmaps',            { user_id: uid }),
@@ -159,9 +160,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Guided Path Hero */}
-      <div data-reveal style={{ '--i': '1' } as React.CSSProperties}>
-        <GuidedPathHero steps={guidedSteps} tier={tier} />
+      {/* Guided Path Hero + Mini-Radar nebeneinander auf lg+ */}
+      <div className="flex flex-col lg:flex-row gap-4 items-start"
+           data-reveal style={{ '--i': '1' } as React.CSSProperties}>
+        <div className="flex-1 min-w-0">
+          <GuidedPathHero steps={guidedSteps} tier={tier} />
+        </div>
+        {latestAssessment && (latestAssessment as { dim_scores?: Record<string, number> }).dim_scores && (
+          <div className="lg:w-[200px] shrink-0 bg-white border border-slate-200 rounded-xl p-4">
+            <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">AI-Profil</p>
+            <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
+          </div>
+        )}
       </div>
 
       {/* Quarterly Review Reminder */}
@@ -218,8 +228,13 @@ export default async function DashboardPage() {
               <h3 className={`text-sm font-semibold text-slate-900 mb-0.5 min-w-0 transition-colors ${!locked ? 'group-hover:text-primary' : ''}`}>{mod.title}</h3>
               <p className="text-xs text-slate-400 mb-3 line-clamp-1">{subtitle}</p>
               {mod.id === 'usecase' && (
-                <div className="flex justify-center mb-3" aria-hidden="true">
+                <div className="flex flex-col items-center gap-1 mb-3">
                   <MiniPortfolioMatrix useCases={useCasePreview} />
+                  {usecaseCount > 0 && (
+                    <span className="text-[10px] text-slate-400">
+                      {usecaseCount} Use {usecaseCount === 1 ? 'Case' : 'Cases'} bewertet
+                    </span>
+                  )}
                 </div>
               )}
               <div className={`text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600' : 'text-primary'}`}>

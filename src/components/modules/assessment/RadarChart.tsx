@@ -7,6 +7,7 @@ interface RadarChartProps {
 const SIZE = 220
 const CENTER = SIZE / 2
 const MAX_R = 76
+const VPAD = 32  // extra viewBox-Rand damit Achsen-Labels nicht abgeschnitten werden
 
 const SHORT: Record<string, string> = {
   data:       'Daten',
@@ -46,10 +47,10 @@ export function RadarChart({ dimScores }: RadarChartProps) {
 
   return (
     <svg
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      viewBox={`-${VPAD} -${VPAD} ${SIZE + VPAD * 2} ${SIZE + VPAD * 2}`}
       role="img"
       aria-label={`Radar-Chart AI-Readiness: ${ariaLabel}`}
-      className="w-full max-w-[260px] mx-auto block"
+      className="w-full max-w-[300px] mx-auto block"
     >
       {/* Ringe (1–5) */}
       {[1, 2, 3, 4, 5].map(ring => {
