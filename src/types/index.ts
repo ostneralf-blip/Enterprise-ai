@@ -271,3 +271,16 @@ export interface ApiResponse<T = void> {
   error?: string
   code?: string
 }
+
+// ─── COMPLIANCE SCANNER ───────────────────────────────────────────────────────
+export interface ComplianceSourceDraft {
+  id: string
+  source_url: string
+  source_label: string
+  summary: string
+  status_estimate: 'final' | 'entwurf' | 'unklar'
+  review_status: 'pending_review' | 'beruecksichtigt' | 'ignoriert'
+  scanned_at: string
+  reviewed_at: string | null
+  reviewed_by: string | null
+}
