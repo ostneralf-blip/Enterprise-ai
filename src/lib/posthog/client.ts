@@ -26,6 +26,7 @@ export type TrackingEvent =
   | 'register_completed'
   | 'login'
   | 'guidance_viewed'
+  | 'dashboard_tiles_reordered'
 
 export function track(event: TrackingEvent, props?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && posthog.__loaded) {

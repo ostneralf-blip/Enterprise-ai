@@ -4,13 +4,11 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { hasAccess } from '@/lib/utils/tier-check'
 import type { Tier } from '@/types'
-import {
-  ClipboardCheck, Target, LayoutGrid, Shield, Map, Scale, Layers, FileText, type LucideIcon
-} from 'lucide-react'
 import { GuidedPathHero, type PathStep } from '@/components/dashboard/GuidedPathHero'
 import { CountUp } from '@/components/dashboard/CountUp'
 import { MiniPortfolioMatrix } from '@/components/modules/usecase/MiniPortfolioMatrix'
 import { RadarChart } from '@/components/modules/assessment/RadarChart'
+import { SortableTileGrid, type TileData } from '@/components/dashboard/SortableTileGrid'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
@@ -26,15 +24,6 @@ const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
-const MODULE_ICONS: Record<string, LucideIcon> = {
-  assessment:   ClipboardCheck,
-  canvas:       LayoutGrid,
-  usecase:      Target,
-  governance:   Shield,
-  roadmap:      Map,
-  compliance:   Scale,
-  architecture: Layers,
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -262,47 +251,16 @@ export default async function DashboardPage() {
         <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 items-stretch"
-           data-reveal style={{ '--i': '3' } as React.CSSProperties}>
-        {sortedModules.map(mod => {
-          const locked = !hasAccess(tier, mod.requiredTier)
-          const done = moduleDone[mod.id] ?? false
-          const isNext = mod.id === nextModuleId
-          const Icon = MODULE_ICONS[mod.id] ?? FileText
-          const subtitle = tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle
-
-          const chipBg   = locked ? 'bg-slate-100'   : done ? 'bg-emerald-50'    : isNext ? 'bg-primary'  : 'bg-primary-soft'
-          const chipIcon = locked ? 'text-slate-400' : done ? 'text-emerald-700' : isNext ? 'text-white'  : 'text-primary'
-
-          const statusText  = locked ? '🔒 Pro'
-            : done   ? '✓ Erledigt — Ergebnis ansehen'
-            : isNext ? 'Nächster Schritt →'
-            : 'Starten →'
-          const statusColor = locked ? 'text-slate-400' : done ? 'text-emerald-700' : 'text-primary'
-
-          return (
-            <Link
-              key={mod.id}
-              href={locked ? '/upgrade' : `/${mod.id}`}
-              className={`group bg-white rounded-xl p-4 transition-[border-color,box-shadow] duration-150 block border hover:shadow-sm motion-reduce:transition-none ${
-                locked ? 'opacity-60 border-slate-200'
-                : done  ? 'border-emerald-200 hover:border-emerald-300'
-                : 'border-slate-200 hover:border-primary-border'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${chipBg}`}>
-                  <Icon size={16} className={chipIcon} aria-hidden="true" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[12.5px] font-semibold text-slate-900 truncate leading-snug">{mod.title}</div>
-                  <div className="text-[9.5px] text-slate-400 mt-0.5 truncate">{subtitle}</div>
-                  <div className={`text-[9.5px] font-semibold mt-1 ${statusColor}`}>{statusText}</div>
-                </div>
-              </div>
-            </Link>
-          )
-        })}
+      <div data-reveal style={{ '--i': '3' } as React.CSSProperties}>
+        <SortableTileGrid tiles={sortedModules.map((mod): TileData => ({
+          id:       mod.id,
+          title:    mod.title,
+          subtitle: tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle,
+          locked:   !hasAccess(tier, mod.requiredTier),
+          done:     moduleDone[mod.id] ?? false,
+          isNext:   mod.id === nextModuleId,
+          href:     !hasAccess(tier, mod.requiredTier) ? '/upgrade' : `/${mod.id}`,
+        }))} />
       </div>
 
       {/* Upgrade-Banner */}
