@@ -32,15 +32,6 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   architecture: Layers,
 }
 
-const MODULE_CHIP_COLORS: Record<string, { bg: string; icon: string }> = {
-  assessment:   { bg: 'bg-primary-soft',  icon: 'text-primary' },
-  canvas:       { bg: 'bg-purple-50',     icon: 'text-purple-600' },
-  usecase:      { bg: 'bg-violet-50',     icon: 'text-violet-600' },
-  governance:   { bg: 'bg-sky-50',        icon: 'text-sky-600' },
-  roadmap:      { bg: 'bg-amber-50',      icon: 'text-amber-600' },
-  compliance:   { bg: 'bg-emerald-50',    icon: 'text-emerald-600' },
-  architecture: { bg: 'bg-slate-100',     icon: 'text-slate-600' },
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -121,6 +112,8 @@ export default async function DashboardPage() {
   ]
 
   const completedSteps = guidedSteps.filter(s => s.done).length
+  // Erster nicht-erledigter, nicht-gesperrter Schritt = "Nächster empfohlener Schritt"
+  const nextModuleId = MODULES.find(m => !moduleDone[m.id] && hasAccess(tier, m.requiredTier))?.id ?? null
 
   return (
     <div>
@@ -194,41 +187,50 @@ export default async function DashboardPage() {
         <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-start"
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 items-start"
            data-reveal style={{ '--i': '2' } as React.CSSProperties}>
         {MODULES.map(mod => {
           const locked = !hasAccess(tier, mod.requiredTier)
           const done = moduleDone[mod.id] ?? false
+          const isNext = mod.id === nextModuleId
           const Icon = MODULE_ICONS[mod.id] ?? FileText
-          const chipColors = MODULE_CHIP_COLORS[mod.id] ?? { bg: 'bg-slate-100', icon: 'text-slate-600' }
           const subtitle = tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle
+
+          // Status-getriebene Chip-Farben (keine Modul-Regenbogenfarben)
+          const chipBg    = locked ? 'bg-slate-100'   : done ? 'bg-emerald-50'  : isNext ? 'bg-primary'      : 'bg-primary-soft'
+          const chipIcon  = locked ? 'text-slate-400' : done ? 'text-emerald-700' : isNext ? 'text-white'    : 'text-primary'
+
+          const statusText  = locked ? '🔒 Pro'
+            : done   ? '✓ Erledigt — Ergebnis ansehen'
+            : isNext ? 'Nächster Schritt →'
+            : 'Starten →'
+          const statusColor = locked ? 'text-slate-400' : done ? 'text-emerald-700' : 'text-primary'
+
           return (
             <Link
               key={mod.id}
               href={locked ? '/upgrade' : `/${mod.id}`}
               className={`group bg-white rounded-xl p-4 transition-[border-color,box-shadow] duration-150 block border hover:shadow-sm motion-reduce:transition-none ${
-                locked
-                  ? 'opacity-60 border-slate-200'
-                  : done
-                    ? 'border-emerald-200 hover:border-emerald-300'
-                    : 'border-slate-200 hover:border-primary-border'
+                locked ? 'opacity-60 border-slate-200'
+                : done  ? 'border-emerald-200 hover:border-emerald-300'
+                : 'border-slate-200 hover:border-primary-border'
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-[34px] h-[34px] rounded-xl ${chipColors.bg} flex items-center justify-center shrink-0`}>
-                  <Icon size={18} className={chipColors.icon} aria-hidden="true" />
+              {/* Horizontales Layout: Chip links, drei Zeilen rechts */}
+              <div className="flex items-center gap-3">
+                <div className={`w-[34px] h-[34px] rounded-[10px] flex items-center justify-center shrink-0 ${chipBg}`}>
+                  <Icon size={16} className={chipIcon} aria-hidden="true" />
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                  {done && !locked && (
-                    <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 font-medium whitespace-nowrap">✓ Erledigt</span>
-                  )}
-                  {locked && <span className="text-xs text-primary bg-primary-soft border border-primary-border rounded-md px-2 py-0.5 font-medium">Pro</span>}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12.5px] font-semibold text-slate-900 truncate leading-snug">{mod.title}</div>
+                  <div className="text-[9.5px] text-slate-400 mt-0.5 truncate">{subtitle}</div>
+                  <div className={`text-[9.5px] font-semibold mt-1 ${statusColor}`}>{statusText}</div>
                 </div>
               </div>
-              <h3 className={`text-sm font-semibold text-slate-900 mb-0.5 min-w-0 transition-colors ${!locked ? 'group-hover:text-primary' : ''}`}>{mod.title}</h3>
-              <p className="text-xs text-slate-400 mb-3 line-clamp-1">{subtitle}</p>
+
+              {/* Mini-Matrix für Use-Case-Karte */}
               {mod.id === 'usecase' && (
-                <div className="flex flex-col items-center gap-1 mb-3">
+                <div className="flex flex-col items-center gap-1 mt-3 pt-3 border-t border-slate-100">
                   <MiniPortfolioMatrix useCases={useCasePreview} />
                   {usecaseCount > 0 && (
                     <span className="text-[10px] text-slate-400">
@@ -237,9 +239,6 @@ export default async function DashboardPage() {
                   )}
                 </div>
               )}
-              <div className={`text-xs font-medium ${locked ? 'text-slate-400' : done ? 'text-emerald-600' : 'text-primary'}`}>
-                {locked ? '🔒 Pro erforderlich →' : done ? 'Ergebnis ansehen →' : 'Starten →'}
-              </div>
             </Link>
           )
         })}

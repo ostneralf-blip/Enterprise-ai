@@ -5,9 +5,9 @@ interface MiniUseCase {
 }
 
 const DOT_FILL: Record<string, string> = {
-  quick_win:         '#10b981',
+  quick_win:         '#059669',
   strategic_bet:     'var(--color-primary)',
-  low_hanging_fruit: '#f59e0b',
+  low_hanging_fruit: '#D97706',
   avoid:             '#94a3b8',
 }
 
@@ -74,6 +74,7 @@ export function MiniPortfolioMatrix({ useCases }: { useCases: MiniUseCase[] }) {
             cy={(PAD + ny * INNER).toFixed(1)}
             r="3.5"
             fill={DOT_FILL[uc.quadrant] ?? '#94a3b8'}
+            stroke="#FFFFFF" strokeWidth="1.5"
             className="animate-dot-pop"
             style={{ '--dot-i': i } as React.CSSProperties}
           />
