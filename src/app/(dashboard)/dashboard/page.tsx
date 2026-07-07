@@ -47,7 +47,7 @@ export default async function DashboardPage() {
 
   // use_cases hat keine user_id-Spalte — Filterung läuft über RLS (via uc_portfolios.user_id)
   const useCaseQuery = (() => {
-    let q = supabase.from('use_cases').select('id, quadrant, scores, created_at').order('created_at', { ascending: false }).limit(15)
+    let q = supabase.from('use_cases').select('id, name, quadrant, scores, created_at').order('created_at', { ascending: false }).limit(15)
     if (resetAt) q = q.gt('created_at', resetAt)
     return q
   })()
@@ -74,9 +74,10 @@ export default async function DashboardPage() {
 
   const usecaseCount = useCaseData?.length ?? 0
   const useCasePreview = (useCaseData ?? []).map(uc => ({
-    id: uc.id as string,
+    id:       uc.id as string,
+    name:     (uc.name ?? '') as string,
     quadrant: uc.quadrant as string,
-    scores: uc.scores as Record<string, number>,
+    scores:   uc.scores as Record<string, number>,
   }))
   const lastUseCaseDate = (useCaseData?.[0] as { created_at?: string } | undefined)?.created_at ?? null
 
@@ -228,12 +229,13 @@ export default async function DashboardPage() {
                 {usecaseCount} Use {usecaseCount === 1 ? 'Case' : 'Cases'} bewertet
                 {lastUseCaseDate ? ` · zuletzt ${formatDate(lastUseCaseDate)}` : ''}
               </p>
-              <div className="flex justify-center flex-1 items-center">
+              {/* Matrix füllt die Karte — Status-Chips kommen aus der Komponente */}
+              <div className="flex-1 flex items-center">
                 <MiniPortfolioMatrix useCases={useCasePreview} />
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center flex-1 py-6 gap-3">
+            <div className="flex flex-col items-center justify-center flex-1 py-4 gap-3">
               <MiniPortfolioMatrix useCases={[]} />
               <p className="text-sm text-slate-400 text-center">Noch keine Use Cases bewertet</p>
             </div>
