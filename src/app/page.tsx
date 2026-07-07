@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { PaperNoise } from '@/components/shared/PaperNoise'
+import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 
 export const metadata: Metadata = {
   title: 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
@@ -9,6 +11,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
+      <PaperNoise />
       {/* Nav */}
       <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
@@ -24,7 +27,9 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <div className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
+      <div className="relative overflow-hidden">
+        <BrandWordcloud />
+      <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
         <div className="inline-block bg-primary-soft border border-primary-border text-primary tracking-widest text-xs font-semibold uppercase px-3 py-1 rounded-full mb-6">
           Enterprise AI Toolset · Version 1.0
         </div>
@@ -45,6 +50,7 @@ export default function LandingPage() {
             Bereits registriert? Anmelden →
           </Link>
         </div>
+      </div>
       </div>
 
       {/* Key Stats */}

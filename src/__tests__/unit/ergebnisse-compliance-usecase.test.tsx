@@ -69,7 +69,7 @@ describe('Ergebnisse: Compliance-Tab', () => {
   describe('Leerer Zustand', () => {
     it('zeigt Hinweis und Link zu /compliance', () => {
       renderCompliance([])
-      expect(screen.getByText(/Noch keine Compliance-Prüfungen/i)).toBeInTheDocument()
+      expect(screen.getByText(/Noch keine Compliance-Prüfung/i)).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /Jetzt prüfen/i })).toHaveAttribute('href', '/compliance')
     })
   })

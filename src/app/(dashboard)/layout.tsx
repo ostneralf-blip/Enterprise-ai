@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { BfcacheGuard } from '@/components/shared/BfcacheGuard'
 import { MobileNavProvider } from '@/components/layout/MobileNavContext'
+import { PaperNoise } from '@/components/shared/PaperNoise'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -24,6 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <MobileNavProvider>
+      <PaperNoise />
       {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt */}
       <div className="flex h-[100dvh] overflow-hidden bg-ivory">
         <BfcacheGuard />

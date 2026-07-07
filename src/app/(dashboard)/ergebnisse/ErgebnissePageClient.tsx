@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { InfoHint } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 type Tab = 'assessment' | 'architecture' | 'governance' | 'roadmap' | 'canvas' | 'compliance' | 'usecase'
 
@@ -223,7 +224,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Assessment ─────────────────────────────────────────── */}
       {tab === 'assessment' && (
         <div className="space-y-2">
-          {assessments.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Assessment abgeschlossen. <Link href="/assessment" className="text-primary hover:underline">Jetzt starten →</Link></p>}
+          {assessments.length === 0 && <EmptyState variant="folder" title="Noch kein Assessment" description="Starten Sie mit dem AI-Readiness Assessment, um Ihren Reifegrad zu ermitteln." cta={{ href: '/assessment', label: 'Jetzt starten' }} />}
           {assessments.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -313,7 +314,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Architektur ────────────────────────────────────────── */}
       {tab === 'architecture' && (
         <div className="space-y-2">
-          {architectures.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Architektur gespeichert. <Link href="/architecture" className="text-primary hover:underline">Jetzt erstellen →</Link></p>}
+          {architectures.length === 0 && <EmptyState variant="folder" title="Noch keine Architektur" description="Erstellen Sie Ihre erste Enterprise AI Architektur im Architektur-Generator." cta={{ href: '/architecture', label: 'Jetzt erstellen' }} />}
           {architectures.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -444,7 +445,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Governance ─────────────────────────────────────────── */}
       {tab === 'governance' && (
         <div className="space-y-2">
-          {governance.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch kein Governance-Check gespeichert. <Link href="/governance" className="text-primary hover:underline">Jetzt prüfen →</Link></p>}
+          {governance.length === 0 && <EmptyState variant="folder" title="Noch kein Governance-Check" description="Prüfen Sie Ihre AI-Use-Cases gegen die 6 Governance-Gates." cta={{ href: '/governance', label: 'Jetzt prüfen' }} />}
           {governance.map(g => {
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             const isSelected = compareIds.includes(g.id)
@@ -542,7 +543,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Roadmap ────────────────────────────────────────────── */}
       {tab === 'roadmap' && (
         <div className="space-y-2">
-          {roadmaps.length === 0 && <p className="text-sm text-slate-400 py-12 text-center">Noch keine Roadmap gespeichert. <Link href="/roadmap" className="text-primary hover:underline">Jetzt erstellen →</Link></p>}
+          {roadmaps.length === 0 && <EmptyState variant="folder" title="Noch keine Roadmap" description="Planen Sie Ihre AI-Implementierung in drei Phasen." cta={{ href: '/roadmap', label: 'Jetzt erstellen' }} />}
           {roadmaps.map(r => {
             const isSelected = compareIds.includes(r.id)
             return (
@@ -653,11 +654,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             </InfoHint>
           </div>
 
-          {canvases.length === 0 && (
-            <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keinen Canvas gespeichert. <Link href="/canvas" className="text-primary hover:underline">Jetzt erstellen →</Link>
-            </p>
-          )}
+          {canvases.length === 0 && <EmptyState variant="grid" title="Noch kein Canvas" description="Strukturieren Sie Ihren AI Use Case auf dem 8-Felder-Canvas." cta={{ href: '/canvas', label: 'Jetzt erstellen' }} />}
 
           {canvases.map(c => {
             const isSelected = compareIds.includes(c.id)
@@ -741,11 +738,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Compliance ─────────────────────────────────────────── */}
       {tab === 'compliance' && (
         <div className="space-y-2">
-          {complianceChecks.length === 0 && (
-            <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keine Compliance-Prüfungen gespeichert. <Link href="/compliance" className="text-primary hover:underline">Jetzt prüfen →</Link>
-            </p>
-          )}
+          {complianceChecks.length === 0 && <EmptyState variant="folder" title="Noch keine Compliance-Prüfung" description="Prüfen Sie Ihre Compliance mit EU AI Act, DSGVO und NIS-2." cta={{ href: '/compliance', label: 'Jetzt prüfen' }} />}
           {complianceChecks.map(cc => {
             const statusColor =
               cc.status === 'compliant'     ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
@@ -793,11 +786,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Use Cases ──────────────────────────────────────────── */}
       {tab === 'usecase' && (
         <div className="space-y-2">
-          {useCases.length === 0 && (
-            <p className="text-sm text-slate-400 py-12 text-center">
-              Noch keine Use Cases bewertet. <Link href="/usecase" className="text-primary hover:underline">Jetzt bewerten →</Link>
-            </p>
-          )}
+          {useCases.length === 0 && <EmptyState variant="matrix" title="Noch keine Use Cases bewertet" description="Bewerten und priorisieren Sie Ihre AI Use Cases in der Scoring-Matrix." cta={{ href: '/usecase', label: 'Jetzt bewerten' }} />}
           {useCases.map(uc => {
             const quadrantColor =
               uc.quadrant === 'build'        ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
