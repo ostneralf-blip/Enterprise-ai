@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { GovernancePageClient } from './GovernancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 
@@ -81,12 +82,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Governance-Check</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          6 Gates · DSGVO & EU AI Act · Deployment-Freigabe
-        </p>
-      </div>
+      <PageHeader title="Governance-Check" description="6 Gates · DSGVO & EU AI Act · Deployment-Freigabe" />
       <Suspense fallback={null}>
         <GuidancePanel module="governance" contextKey="governance.raci" />
       </Suspense>

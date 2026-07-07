@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { CanvasPageClient } from './CanvasPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Metadata } from 'next'
 import type { Canvas, Tier } from '@/types'
 
@@ -32,12 +33,7 @@ export default async function CanvasPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">AI Use-Case Canvas</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          8 Felder · Vollständiges Template · Problem bis nächste Schritte
-        </p>
-      </div>
+      <PageHeader title="AI Use-Case Canvas" description="8 Felder · Vollständiges Template · Problem bis nächste Schritte" />
       <Suspense fallback={null}>
         <GuidancePanel module="canvas" contextKey="canvas.intro" />
       </Suspense>

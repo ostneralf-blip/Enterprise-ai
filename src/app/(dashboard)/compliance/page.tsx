@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { CompliancePageClient } from './CompliancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Tier } from '@/types'
 import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
@@ -33,12 +34,7 @@ export default async function CompliancePage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Compliance Center</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates
-        </p>
-      </div>
+      <PageHeader title="Compliance Center" description="EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates" />
       <Suspense fallback={null}>
         <GuidancePanel module="compliance" contextKey="compliance.policies" />
       </Suspense>

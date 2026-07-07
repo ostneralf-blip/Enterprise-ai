@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { AssessmentPageClient } from './AssessmentPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 
@@ -32,10 +33,10 @@ export default async function AssessmentPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold font-serif text-slate-900">AI-Readiness Assessment</h1>
-        <p className="text-slate-500 mt-1">{tier !== 'free' ? '6 Dimensionen · 42 Fragen · ~25 Minuten' : '6 Dimensionen · 16 Fragen · ~10 Minuten'}</p>
-      </div>
+      <PageHeader
+        title="AI-Readiness Assessment"
+        description={tier !== 'free' ? '6 Dimensionen · 42 Fragen · ~25 Minuten' : '6 Dimensionen · 16 Fragen · ~10 Minuten'}
+      />
       <Suspense fallback={null}>
         <GuidancePanel module="assessment" contextKey="assessment.dimensionen" />
       </Suspense>

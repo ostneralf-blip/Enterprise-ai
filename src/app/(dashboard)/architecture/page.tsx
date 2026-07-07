@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Tier, Archetype, CanvasSynonym } from '@/types'
 import type { Metadata } from 'next'
 
@@ -136,12 +137,7 @@ export default async function ArchitecturePage({
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Architektur-Generator</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen
-        </p>
-      </div>
+      <PageHeader title="Architektur-Generator" description="5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen" />
       <Suspense fallback={null}>
         <GuidancePanel module="architecture" contextKey="architecture.prinzipien" />
       </Suspense>

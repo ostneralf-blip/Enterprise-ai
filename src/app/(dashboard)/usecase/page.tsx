@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { UseCasePageClient } from './UseCasePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import { DEFAULT_WEIGHTS } from '@/config/usecase-data'
 import type { Metadata } from 'next'
 import type { Tier, UseCasePortfolio, UseCase, UseCaseWeights } from '@/types'
@@ -86,12 +87,7 @@ export default async function UseCasePage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Use-Case Scoring</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          5 Kriterien · Portfolio-Matrix · Priorisierung nach gewichtetem Score
-        </p>
-      </div>
+      <PageHeader title="Use-Case Scoring" description="5 Kriterien · Portfolio-Matrix · Priorisierung nach gewichtetem Score" />
       <Suspense fallback={null}>
         <GuidancePanel module="usecase" contextKey="scoring.gates" />
       </Suspense>

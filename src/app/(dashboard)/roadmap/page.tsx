@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { RoadmapPageClient } from './RoadmapPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
+import { PageHeader } from '@/components/shared/PageHeader'
 import type { Metadata } from 'next'
 import type { Archetype, Tier } from '@/types'
 
@@ -61,12 +62,7 @@ export default async function RoadmapPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Roadmap-Generator</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung
-        </p>
-      </div>
+      <PageHeader title="Roadmap-Generator" description="3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung" />
       <Suspense fallback={null}>
         <GuidancePanel module="roadmap" contextKey="roadmap.phase0" />
       </Suspense>
