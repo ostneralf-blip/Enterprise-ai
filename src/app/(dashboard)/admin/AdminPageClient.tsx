@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym, ComplianceSourceDraft } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym, ComplianceSourceDraft, ScanSourceResult, SourceScanStatus } from '@/types'
 import { cn } from '@/lib/utils'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
@@ -32,6 +32,7 @@ interface Props {
   initialSources?: CatalogSource[]
   initialUploadLog?: CatalogUploadLog[]
   initialDrafts?: ComplianceSourceDraft[]
+  initialSourceSnapshots?: SourceScanStatus[]
 }
 
 type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner'
@@ -48,7 +49,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [] }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [] }: Props) {
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -123,8 +124,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   // ── Scanner state ────────────────────────────────────────────────────────────
   const [drafts, setDrafts] = useState<ComplianceSourceDraft[]>(initialDrafts ?? [])
   const [scanning, setScanning] = useState(false)
-  const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number } | null>(null)
+  const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number; sources: ScanSourceResult[] } | null>(null)
   const [showArchive, setShowArchive] = useState(false)
+  const [sourceSnapshots, setSourceSnapshots] = useState<SourceScanStatus[]>(initialSourceSnapshots)
 
   // ── Learn suggestions state ──────────────────────────────────────────────────
   type LearnSuggestion = { word: string; count: number; fields: string[]; suggested_type: CanvasSynonym['synonym_type'] }
@@ -423,8 +425,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     try {
       const res = await fetch('/api/admin/compliance/scan', { method: 'POST' })
       if (!res.ok) throw new Error('Scan fehlgeschlagen')
-      const result = await res.json() as { scanned: number; changed: number; drafts_created: number }
+      const result = await res.json() as { scanned: number; changed: number; drafts_created: number; sources: ScanSourceResult[] }
       setScanResult(result)
+      // Scan-Zeitstempel für alle erfolgreich gescannten Quellen aktualisieren
+      const now = new Date().toISOString()
+      setSourceSnapshots(prev => prev.map(s => {
+        const scanned = result.sources.find(r => r.url === s.url)
+        return scanned && scanned.status !== 'error' ? { ...s, fetched_at: now } : s
+      }))
       if (result.drafts_created > 0) {
         const draftsRes = await fetch('/api/admin/compliance/drafts')
         if (draftsRes.ok) {
@@ -1922,26 +1930,70 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {/* ─── Scanner tab ──────────────────────────────────────────────────────── */}
       {tab === 'scanner' && (
         <div className="space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium text-slate-700">Regulatorische Quellenüberwachung</p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Scannt 5 Primärquellen auf Änderungen und erstellt Entwürfe zur manuellen Freigabe.
-                Nie automatisch publiziert.
-              </p>
+          {/* Quellen-Status-Panel */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-slate-100">
+              <div>
+                <p className="text-sm font-medium text-slate-700">Regulatorische Quellenüberwachung</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  5 Primärquellen · Änderungserkennung per SHA-256-Hash · Nie automatisch publiziert.
+                </p>
+              </div>
+              <button
+                onClick={runScan}
+                disabled={scanning}
+                className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+              >
+                {scanning ? 'Scanne…' : 'Quellen jetzt scannen'}
+              </button>
             </div>
-            <button
-              onClick={runScan}
-              disabled={scanning}
-              className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap"
-            >
-              {scanning ? 'Scanne…' : 'Quellen jetzt scannen'}
-            </button>
+            <div className="divide-y divide-slate-100">
+              {sourceSnapshots.map(src => (
+                <div key={src.url} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
+                  <span className="text-sm text-slate-700 min-w-0 truncate flex-1">{src.label}</span>
+                  <span className="text-xs text-slate-400 flex-shrink-0">
+                    {src.fetched_at
+                      ? new Date(src.fetched_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                      : 'Noch nie gescannt'}
+                  </span>
+                  <a
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline flex-shrink-0"
+                    aria-label={`${src.label} öffnen`}
+                  >
+                    ↗
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
 
+          {/* Scan-Ergebnis + Log */}
           {scanResult && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-800">
-              {scanResult.scanned} Quellen geprüft · {scanResult.changed} Änderungen gefunden · {scanResult.drafts_created} neue Entwürfe
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 text-sm text-emerald-800 font-medium">
+                {scanResult.scanned} Quellen geprüft · {scanResult.changed} Änderungen gefunden · {scanResult.drafts_created} neue Entwürfe
+              </div>
+              <div className="divide-y divide-emerald-100">
+                {scanResult.sources.map(src => (
+                  <div key={src.url} className="flex items-center gap-2 px-4 py-2 min-w-0">
+                    <span className={cn(
+                      'flex-shrink-0 text-sm',
+                      src.status === 'changed'   && 'text-amber-600',
+                      src.status === 'unchanged' && 'text-emerald-600',
+                      src.status === 'error'     && 'text-red-500',
+                    )}>
+                      {src.status === 'changed' ? '⚠' : src.status === 'unchanged' ? '✓' : '✗'}
+                    </span>
+                    <span className="text-xs text-slate-700 min-w-0 truncate flex-1">{src.label}</span>
+                    <span className="text-xs text-slate-400 flex-shrink-0">
+                      {src.status === 'changed' ? 'Geändert — Entwurf erstellt' : src.status === 'unchanged' ? 'Unverändert' : 'Fehler beim Abrufen'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

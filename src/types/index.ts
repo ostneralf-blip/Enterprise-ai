@@ -273,6 +273,18 @@ export interface ApiResponse<T = void> {
 }
 
 // ─── COMPLIANCE SCANNER ───────────────────────────────────────────────────────
+export interface ScanSourceResult {
+  label: string
+  url: string
+  status: 'changed' | 'unchanged' | 'error'
+}
+
+export interface SourceScanStatus {
+  url: string
+  label: string
+  fetched_at: string | null // null = noch nie gescannt
+}
+
 export interface ComplianceSourceDraft {
   id: string
   source_url: string

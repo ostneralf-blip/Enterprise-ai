@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { AdminPageClient } from './AdminPageClient'
-import type { ContentLibraryEntry, UserProfile, CatalogComponent, CatalogSource, CatalogUploadLog, ComplianceSourceDraft } from '@/types'
+import type { ContentLibraryEntry, UserProfile, CatalogComponent, CatalogSource, CatalogUploadLog, ComplianceSourceDraft, SourceScanStatus } from '@/types'
+import { COMPLIANCE_SOURCES } from '@/lib/compliance/scanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export default async function AdminPage() {
 
   // Service-role client bypasses RLS to load all user profiles
   const adminClient = await createAdminClient()
-  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }, { data: uploadLog }, { data: drafts }] = await Promise.all([
+  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }, { data: uploadLog }, { data: drafts }, { data: snapshots }] = await Promise.all([
     adminClient
       .from('content_library')
       .select('*')
@@ -54,7 +55,23 @@ export default async function AdminPage() {
       .select('*')
       .order('scanned_at', { ascending: false })
       .limit(50),
+    adminClient
+      .from('source_snapshots')
+      .select('url, label, fetched_at')
+      .order('fetched_at', { ascending: false })
+      .limit(25),
   ])
+
+  // Letzten Scan-Zeitpunkt je Quelle ermitteln (neuester Snapshot gewinnt)
+  const snapshotMap = new Map<string, string>()
+  for (const snap of (snapshots ?? [])) {
+    if (!snapshotMap.has(snap.url)) snapshotMap.set(snap.url, snap.fetched_at)
+  }
+  const initialSourceSnapshots: SourceScanStatus[] = COMPLIANCE_SOURCES.map(src => ({
+    url: src.url,
+    label: src.label,
+    fetched_at: snapshotMap.get(src.url) ?? null,
+  }))
 
   return (
     <AdminPageClient
@@ -65,6 +82,7 @@ export default async function AdminPage() {
       initialSources={(sources ?? []) as CatalogSource[]}
       initialUploadLog={(uploadLog ?? []) as CatalogUploadLog[]}
       initialDrafts={(drafts ?? []) as ComplianceSourceDraft[]}
+      initialSourceSnapshots={initialSourceSnapshots}
     />
   )
 }
