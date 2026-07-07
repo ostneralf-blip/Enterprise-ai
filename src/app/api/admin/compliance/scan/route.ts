@@ -99,13 +99,17 @@ export async function POST() {
 
     const newHash = createHash('sha256').update(newText).digest('hex')
 
-    const { data: lastSnapshot } = await supabase
+    const { data: lastSnapshot, error: lastSnapshotError } = await supabase
       .from('source_snapshots')
       .select('content_hash, id')
       .eq('url', source.url)
       .order('fetched_at', { ascending: false })
       .limit(1)
       .maybeSingle()
+    if (lastSnapshotError) {
+      console.error('Failed to fetch last snapshot:', lastSnapshotError.message)
+      continue
+    }
 
     const { error: snapshotInsertError } = await supabase.from('source_snapshots').insert({
       url: source.url,
@@ -120,18 +124,9 @@ export async function POST() {
     if (!lastSnapshot || lastSnapshot.content_hash === newHash) continue
 
     changed++
-    const { data: oldSnap, error: oldSnapError } = await supabase
-      .from('source_snapshots')
-      .select('content_hash')
-      .eq('id', lastSnapshot.id)
-      .maybeSingle()
-    if (oldSnapError) {
-      console.error('Snapshot fetch failed:', oldSnapError.message)
-      continue
-    }
 
     const { summary, status_estimate } = await summarizeWithClaude(
-      `(Vorheriger Inhalt nicht mehr verfügbar — Hash: ${oldSnap?.content_hash ?? 'unbekannt'})`,
+      `(Vorheriger Inhalt nicht mehr verfügbar — Hash: ${lastSnapshot.content_hash ?? 'unbekannt'})`,
       newText,
     )
 
