@@ -8,6 +8,7 @@ const PatchSchema = z.object({
   incompatible_with: z.array(z.string().min(1).max(200)).max(50).optional(),
   requires:          z.array(z.string().min(1).max(200)).max(50).optional(),
   suggests:          z.array(z.string().min(1).max(200)).max(50).optional(),
+  aliases:           z.array(z.string().min(1).max(100)).max(50).optional(),
 }).refine(
   data => Object.values(data).some(v => v !== undefined),
   { message: 'Mindestens ein Feld erforderlich' }
@@ -38,13 +39,14 @@ export async function PATCH(
   if (parsed.data.incompatible_with !== undefined) patch.incompatible_with = parsed.data.incompatible_with
   if (parsed.data.requires          !== undefined) patch.requires          = parsed.data.requires
   if (parsed.data.suggests          !== undefined) patch.suggests          = parsed.data.suggests
+  if (parsed.data.aliases           !== undefined) patch.aliases           = parsed.data.aliases
 
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('component_catalog')
     .update(patch)
     .eq('id', id)
-    .select('id, tags, incompatible_with, requires, suggests')
+    .select('id, tags, incompatible_with, requires, suggests, aliases')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

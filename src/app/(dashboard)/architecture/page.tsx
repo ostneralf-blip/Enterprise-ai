@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
-import type { Tier, Archetype } from '@/types'
+import type { Tier, Archetype, CanvasSynonym } from '@/types'
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
@@ -55,7 +55,7 @@ export default async function ArchitecturePage({
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }, { data: synonyms }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('user_preferences')
       .select('primary_assessment_id, primary_governance_id, primary_roadmap_id')
@@ -74,6 +74,9 @@ export default async function ArchitecturePage({
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase.from('canvas_synonyms')
+      .select('*')
+      .eq('is_active', true),
   ])
 
   const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null; primary_roadmap_id: string | null } | null
@@ -157,6 +160,7 @@ export default async function ArchitecturePage({
         tier={tier}
         canvasContext={canvasContext}
         roadmapContext={roadmapContext}
+        synonyms={(synonyms ?? []) as CanvasSynonym[]}
       />
     </div>
   )

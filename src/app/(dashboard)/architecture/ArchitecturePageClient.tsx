@@ -6,7 +6,7 @@ import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
-import type { Archetype, CatalogComponent, Canvas, UseCase } from '@/types'
+import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
@@ -66,6 +66,7 @@ interface Props {
   tier?: string
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
   roadmapContext?: RoadmapContext | null
+  synonyms?: CanvasSynonym[]
 }
 
 const COMPLIANCE_PRESET_LABELS: Record<string, string> = {
@@ -309,7 +310,7 @@ function CatalogRecommendationsCard({
   )
 }
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [] }: Props) {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
@@ -323,14 +324,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       ...(compliancePreset ? { compliance: compliancePreset } : {}),
     }
     if (canvasContext) {
-      const ctx = extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [])
+      const ctx = extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [], synonyms)
       return { ...base, ...ctx.wizard_prefill }
     }
     return base as WizardAnswers
   })
   const [canvasCtx, setCanvasCtx] = useState<CanvasContext | null>(() => {
     if (!canvasContext) return null
-    return extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [])
+    return extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [], synonyms)
   })
   const [showCanvasBanner, setShowCanvasBanner] = useState(!!canvasContext)
   const [result, setResult] = useState<ArchitectureResult | null>(null)
@@ -388,7 +389,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             setCatalogRecs(catalogResult)
           }
           if (canvasContext) {
-            setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded))
+            setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded, synonyms))
           }
         })
         .catch(() => { catalogFetched.current = false })

@@ -21,7 +21,7 @@ function makeComp(overrides: Partial<CatalogComponent>): CatalogComponent {
     tags: [],
     incompatible_with: [],
     requires: [],
-    suggests: [],
+    suggests: [], aliases: [],
     source: 'manual',
     is_active: true,
     eu_ai_act_risk: null,

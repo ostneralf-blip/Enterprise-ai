@@ -1,4 +1,4 @@
-import type { Canvas, UseCase, CatalogComponent } from '@/types'
+import type { Canvas, UseCase, CatalogComponent, CanvasSynonym } from '@/types'
 import type { WizardAnswers } from '@/config/architecture-data'
 
 export interface CanvasContext {
@@ -197,11 +197,18 @@ const MODEL_PLATFORM_HINTS: Array<{ pattern: RegExp; value: WizardAnswers['model
 ]
 
 export function buildVocabFromCatalog(
-  catalog: CatalogComponent[]
+  catalog: CatalogComponent[],
+  synonyms: CanvasSynonym[] = []
 ): Record<string, Set<string>> {
   const vocab: Record<string, Set<string>> = {}
   for (const [uct, base] of Object.entries(BASE_VOCAB)) {
     vocab[uct] = new Set(base)
+  }
+  // Usecase-Synonyms aus DB
+  for (const syn of synonyms) {
+    if (!syn.is_active || syn.synonym_type !== 'usecase') continue
+    if (!vocab[syn.term]) vocab[syn.term] = new Set()
+    vocab[syn.term].add(syn.synonym.toLowerCase())
   }
   for (const comp of catalog) {
     for (const uct of comp.use_case_types) {
@@ -209,6 +216,8 @@ export function buildVocabFromCatalog(
       comp.tags.forEach(t => vocab[uct].add(t.toLowerCase()))
       vocab[uct].add(comp.name.toLowerCase())
       if (comp.vendor) vocab[uct].add(comp.vendor.toLowerCase())
+      // Komponenten-eigene Aliases → Use-Case-Vocab
+      ;(comp.aliases ?? []).forEach(a => vocab[uct].add(a.toLowerCase()))
     }
   }
   return vocab
@@ -217,19 +226,25 @@ export function buildVocabFromCatalog(
 export function scoreComponentAgainstText(
   component: CatalogComponent,
   canvasText: string,
-  clusterBonus = 0
+  clusterBonus = 0,
+  vendorAliases: Record<string, string[]> = VENDOR_ALIASES
 ): number {
   const text = canvasText.toLowerCase()
   let score = 0
 
   if (text.includes(component.name.toLowerCase()))                            score += 30
 
+  // Komponenten-eigene Aliases (aus Katalog-Feld)
+  for (const alias of (component.aliases ?? [])) {
+    if (text.includes(alias.toLowerCase())) { score += 20; break }
+  }
+
   if (component.vendor) {
     const vendorLower = component.vendor.toLowerCase()
     if (text.includes(vendorLower)) {
       score += 15
     } else {
-      const aliases = VENDOR_ALIASES[component.vendor] ?? []
+      const aliases = vendorAliases[component.vendor] ?? []
       if (aliases.some(alias => text.includes(alias))) score += 12
     }
   }
@@ -243,17 +258,63 @@ export function scoreComponentAgainstText(
 }
 
 // ─── Hilfsfunktion: Anzahl Alias-Treffer für einen Vendor im Text zählen ───────
-function countVendorHits(vendor: string, text: string): number {
+function countVendorHits(vendor: string, text: string, vendorAliases: Record<string, string[]> = VENDOR_ALIASES): number {
   const vendorLower = vendor.toLowerCase()
-  const aliases = VENDOR_ALIASES[vendor] ?? []
+  const aliases = vendorAliases[vendor] ?? []
   return (text.includes(vendorLower) ? 1 : 0) +
     aliases.filter(a => text.includes(a)).length
+}
+
+// ─── Merged Vendor-Aliases aufbauen ───────────────────────────────────────────
+// Kombiniert: hardcodierte Basis + Katalog-Aliases + DB-Synonyms
+function buildMergedVendorAliases(
+  catalog: CatalogComponent[],
+  synonyms: CanvasSynonym[]
+): Record<string, string[]> {
+  const merged: Record<string, string[]> = {}
+  // 1. Hardcodierte Basis
+  for (const [vendor, aliases] of Object.entries(VENDOR_ALIASES)) {
+    merged[vendor] = [...aliases]
+  }
+  // 2. Katalog-eigene Aliases (pro Komponente)
+  for (const comp of catalog) {
+    if (!comp.vendor || !comp.aliases?.length) continue
+    if (!merged[comp.vendor]) merged[comp.vendor] = []
+    for (const alias of comp.aliases) {
+      const a = alias.toLowerCase()
+      if (!merged[comp.vendor].includes(a)) merged[comp.vendor].push(a)
+    }
+  }
+  // 3. Admin-konfigurierte Synonyms (synonym_type='vendor')
+  for (const syn of synonyms) {
+    if (!syn.is_active || syn.synonym_type !== 'vendor') continue
+    if (!merged[syn.term]) merged[syn.term] = []
+    const s = syn.synonym.toLowerCase()
+    if (!merged[syn.term].includes(s)) merged[syn.term].push(s)
+  }
+  return merged
+}
+
+// ─── Merged Platform-Category-Keywords aufbauen ───────────────────────────────
+function buildMergedCategoryKeywords(synonyms: CanvasSynonym[]): Record<string, string[]> {
+  const merged: Record<string, string[]> = {}
+  for (const [cat, kws] of Object.entries(PLATFORM_CATEGORY_KEYWORDS)) {
+    merged[cat] = [...kws]
+  }
+  for (const syn of synonyms) {
+    if (!syn.is_active || syn.synonym_type !== 'category') continue
+    if (!merged[syn.term]) merged[syn.term] = []
+    const s = syn.synonym.toLowerCase()
+    if (!merged[syn.term].includes(s)) merged[syn.term].push(s)
+  }
+  return merged
 }
 
 export function extractCanvasContext(
   canvas: Canvas,
   useCase: UseCase,
-  catalog: CatalogComponent[]
+  catalog: CatalogComponent[],
+  synonyms: CanvasSynonym[] = []
 ): CanvasContext {
   // ALLE 8 Felder auswerten — vorher fehlten stakeholders, kpis, next_steps
   const canvasText = [
@@ -270,7 +331,9 @@ export function extractCanvasContext(
     useCase.domain ?? '',
   ].filter(Boolean).join(' ')
   const textLower = canvasText.toLowerCase()
-  const vocab = buildVocabFromCatalog(catalog)
+  const allVendorAliases = buildMergedVendorAliases(catalog, synonyms)
+  const allCategoryKeywords = buildMergedCategoryKeywords(synonyms)
+  const vocab = buildVocabFromCatalog(catalog, synonyms)
 
   // ── Use-Case-Typ ─────────────────────────────────────────────────────────────
   let topUseCase: WizardAnswers['usecase'] | undefined
@@ -284,7 +347,7 @@ export function extractCanvasContext(
 
   // ── SAP Landscape ────────────────────────────────────────────────────────────
   let sap_landscape: WizardAnswers['sap_landscape']
-  const sapHits = countVendorHits('SAP', textLower)
+  const sapHits = countVendorHits('SAP', textLower, allVendorAliases)
   if (/s\/4hana|s4hana/.test(textLower))
     sap_landscape = 'full'
   else if (sapHits >= 2 || /\bsap\b/.test(textLower))
@@ -359,27 +422,23 @@ export function extractCanvasContext(
     wizard_prefill.infra = 'hybrid'
 
   // ── Cluster-Bonus ─────────────────────────────────────────────────────────────
-  // Schwellenwert: 2+ Treffer (vorher 3) → erkennt auch kürzere Canvas-Texte
   const clusterBonusPerVendor: Record<string, number> = {}
-  for (const vendor of Object.keys(VENDOR_ALIASES)) {
-    const hits = countVendorHits(vendor, textLower)
+  for (const vendor of Object.keys(allVendorAliases)) {
+    const hits = countVendorHits(vendor, textLower, allVendorAliases)
     if (hits >= 2) clusterBonusPerVendor[vendor] = 12
   }
 
   // ── Komponenten-Scoring ───────────────────────────────────────────────────────
-  // Plattform-Kategorie-Kontext (ERP, IoT, …) kann Bonus für passende Komponenten geben
   const platformContext = new Set<string>()
-  for (const [cat, keywords] of Object.entries(PLATFORM_CATEGORY_KEYWORDS)) {
+  for (const [cat, keywords] of Object.entries(allCategoryKeywords)) {
     if (keywords.some(kw => textLower.includes(kw))) platformContext.add(cat)
   }
 
   const pre_scored_components = catalog
     .map(c => {
-      let score = scoreComponentAgainstText(c, canvasText, clusterBonusPerVendor[c.vendor ?? ''] ?? 0)
-      // ERP-Kontext boost: ERP-Integrations-Komponenten bevorzugen
+      let score = scoreComponentAgainstText(c, canvasText, clusterBonusPerVendor[c.vendor ?? ''] ?? 0, allVendorAliases)
       if (platformContext.has('erp') && c.tags.some(t => ['erp', 'integration', 'connector'].includes(t.toLowerCase())))
         score += 8
-      // IoT-Kontext boost
       if (platformContext.has('iot') && c.tags.some(t => ['iot', 'edge', 'sensor'].includes(t.toLowerCase())))
         score += 8
       return { c, score }

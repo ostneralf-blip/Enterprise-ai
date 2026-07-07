@@ -6,7 +6,7 @@ const mockComp = (overrides: Partial<CatalogComponent>): CatalogComponent => ({
   hosting: ['eu'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
   sap_compatible: false, sap_components: [], use_case_types: [], infra_types: ['cloud'],
   cloud_provider: 'independent', icon_name: null, website_url: null,
-  description: null, tags: [], incompatible_with: [], requires: [], suggests: [], source: 'test', is_active: true,
+  description: null, tags: [], incompatible_with: [], requires: [], suggests: [], aliases: [], source: 'test', is_active: true,
   created_at: '', updated_at: '',
   ...overrides,
 })

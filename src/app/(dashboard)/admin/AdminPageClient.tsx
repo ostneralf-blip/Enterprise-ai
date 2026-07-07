@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog } from '@/types'
+import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym } from '@/types'
 import { cn } from '@/lib/utils'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
@@ -33,7 +33,7 @@ interface Props {
   initialUploadLog?: CatalogUploadLog[]
 }
 
-type Tab = 'content' | 'users' | 'catalog'
+type Tab = 'content' | 'users' | 'catalog' | 'synonyms'
 
 type FormState = {
   module: string
@@ -107,9 +107,17 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
   // ── Dependency editor state ─────────────────────────────────────────────────
   const [depEditingId, setDepEditingId] = useState<string | null>(null)
-  const [depForm, setDepForm] = useState<{ incompatible_with: string; requires: string; suggests: string }>({
-    incompatible_with: '', requires: '', suggests: '',
+  const [depForm, setDepForm] = useState<{ incompatible_with: string; requires: string; suggests: string; aliases: string }>({
+    incompatible_with: '', requires: '', suggests: '', aliases: '',
   })
+
+  // ── Synonyms state ──────────────────────────────────────────────────────────
+  const [synonyms, setSynonyms] = useState<CanvasSynonym[]>([])
+  const [synLoaded, setSynLoaded] = useState(false)
+  const [synLoading, setSynLoading] = useState(false)
+  const [synForm, setSynForm] = useState({ term: '', synonym: '', synonym_type: 'vendor' as CanvasSynonym['synonym_type'] })
+  const [synSaving, setSynSaving] = useState(false)
+  const [synError, setSynError] = useState<string | null>(null)
   const [depSavingId, setDepSavingId] = useState<string | null>(null)
 
   // ── Content Library handlers ────────────────────────────────────────────────
@@ -252,6 +260,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     incompatible_with?: string[]
     requires?: string[]
     suggests?: string[]
+    aliases?: string[]
   }) {
     setDepSavingId(id)
     try {
@@ -261,12 +270,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         body: JSON.stringify(patch),
       })
       if (!res.ok) throw new Error((await res.json() as { error?: string }).error ?? 'Fehler')
-      const { data } = await res.json() as { data: { incompatible_with: string[]; requires: string[]; suggests: string[] } }
+      const { data } = await res.json() as { data: { incompatible_with: string[]; requires: string[]; suggests: string[]; aliases: string[] } }
       setComponents(prev => prev.map(c => c.id === id ? {
         ...c,
         incompatible_with: data.incompatible_with,
         requires: data.requires,
         suggests: data.suggests,
+        aliases: data.aliases,
       } : c))
       setDepEditingId(null)
     } catch (e) {
@@ -282,6 +292,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       incompatible_with: c.incompatible_with.join(', '),
       requires: c.requires.join(', '),
       suggests: c.suggests.join(', '),
+      aliases: c.aliases.join(', '),
     })
   }
 
@@ -290,7 +301,62 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       incompatible_with: depForm.incompatible_with.split(',').map(s => s.trim()).filter(Boolean),
       requires:          depForm.requires.split(',').map(s => s.trim()).filter(Boolean),
       suggests:          depForm.suggests.split(',').map(s => s.trim()).filter(Boolean),
+      aliases:           depForm.aliases.split(',').map(s => s.trim()).filter(Boolean),
     })
+  }
+
+  async function loadSynonyms() {
+    if (synLoaded) return
+    setSynLoading(true)
+    try {
+      const res = await fetch('/api/admin/synonyms')
+      const { data } = await res.json() as { data: CanvasSynonym[] }
+      setSynonyms(data ?? [])
+      setSynLoaded(true)
+    } finally {
+      setSynLoading(false)
+    }
+  }
+
+  async function addSynonym() {
+    if (!synForm.term.trim() || !synForm.synonym.trim()) return
+    setSynSaving(true)
+    setSynError(null)
+    try {
+      const res = await fetch('/api/admin/synonyms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(synForm),
+      })
+      if (!res.ok) {
+        const { error } = await res.json() as { error?: string }
+        throw new Error(error ?? 'Fehler')
+      }
+      const { data } = await res.json() as { data: CanvasSynonym }
+      setSynonyms(prev => [...prev, data])
+      setSynForm({ term: '', synonym: '', synonym_type: 'vendor' })
+    } catch (e) {
+      setSynError(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setSynSaving(false)
+    }
+  }
+
+  async function toggleSynonymActive(s: CanvasSynonym) {
+    const res = await fetch('/api/admin/synonyms', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: s.id, is_active: !s.is_active }),
+    })
+    if (res.ok) {
+      setSynonyms(prev => prev.map(x => x.id === s.id ? { ...x, is_active: !x.is_active } : x))
+    }
+  }
+
+  async function deleteSynonym(id: string) {
+    if (!confirm('Synonym löschen?')) return
+    const res = await fetch(`/api/admin/synonyms?id=${id}`, { method: 'DELETE' })
+    if (res.ok) setSynonyms(prev => prev.filter(x => x.id !== id))
   }
 
   // ── Catalog restore handler ─────────────────────────────────────────────────
@@ -567,12 +633,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['content', 'Content Library', entries.length],
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
+          ['synonyms', 'Canvas-Synonyme', synonyms.length],
         ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
-            onClick={() => setTab(id)}
+            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms() }}
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
@@ -1270,6 +1337,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-red-200 focus:ring-red-400' },
                                 { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-primary-border focus:ring-primary-ring' },
                                 { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-emerald-200 focus:ring-emerald-400' },
+                                { key: 'aliases' as const, label: '🏷 Aliases', color: 'border-amber-200 focus:ring-amber-400' },
                               ] as const).map(({ key, label, color }) => (
                                 <div key={key}>
                                   <label className="block text-[10px] font-medium text-slate-500 mb-0.5">{label}</label>
@@ -1547,6 +1615,126 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   </div>
                 )
               })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Synonyms tab ─────────────────────────────────────────────────────── */}
+      {tab === 'synonyms' && (
+        <div className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p className="text-sm text-slate-500">
+              Admin-konfigurierbare Erkennungsbegriffe für die Canvas-Texterkennung
+            </p>
+          </div>
+
+          {/* Add form */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-slate-700">Neues Synonym</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Term (z.B. "Microsoft")</label>
+                <input
+                  type="text"
+                  value={synForm.term}
+                  onChange={e => setSynForm(f => ({ ...f, term: e.target.value }))}
+                  placeholder="Microsoft"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Synonym (z.B. "navision")</label>
+                <input
+                  type="text"
+                  value={synForm.synonym}
+                  onChange={e => setSynForm(f => ({ ...f, synonym: e.target.value }))}
+                  placeholder="navision"
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Typ</label>
+                <select
+                  value={synForm.synonym_type}
+                  onChange={e => setSynForm(f => ({ ...f, synonym_type: e.target.value as CanvasSynonym['synonym_type'] }))}
+                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                >
+                  <option value="vendor">vendor (Hersteller-Alias)</option>
+                  <option value="category">category (ERP/CRM/etc.)</option>
+                  <option value="usecase">usecase (Use-Case-Begriff)</option>
+                </select>
+              </div>
+            </div>
+            {synError && <p className="text-xs text-red-600">{synError}</p>}
+            <button
+              onClick={addSynonym}
+              disabled={synSaving || !synForm.term.trim() || !synForm.synonym.trim()}
+              className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
+            >
+              {synSaving ? 'Speichern…' : '+ Hinzufügen'}
+            </button>
+          </div>
+
+          {/* List */}
+          {synLoading ? (
+            <p className="text-sm text-slate-400 py-4 text-center">Lade…</p>
+          ) : synonyms.length === 0 ? (
+            <p className="text-sm text-slate-400 py-8 text-center">Noch keine Synonyme angelegt.</p>
+          ) : (
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full text-sm" aria-label="Canvas-Synonyme">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Term</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Synonym</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Typ</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Aktiv</th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {synonyms.map(s => (
+                    <tr key={s.id} className={cn('hover:bg-slate-50 transition-colors', !s.is_active && 'opacity-50')}>
+                      <td className="px-4 py-3 font-medium text-slate-800">{s.term}</td>
+                      <td className="px-4 py-3 text-slate-600">{s.synonym}</td>
+                      <td className="px-4 py-3">
+                        <span className={cn(
+                          'px-2 py-0.5 rounded-full text-xs font-medium',
+                          s.synonym_type === 'vendor'   && 'bg-blue-50 text-blue-700',
+                          s.synonym_type === 'category' && 'bg-emerald-50 text-emerald-700',
+                          s.synonym_type === 'usecase'  && 'bg-purple-50 text-purple-700',
+                        )}>
+                          {s.synonym_type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => toggleSynonymActive(s)}
+                          aria-pressed={s.is_active}
+                          className={cn(
+                            'px-2 py-0.5 text-xs rounded border transition-colors',
+                            s.is_active
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                              : 'bg-slate-50 border-slate-200 text-slate-500'
+                          )}
+                        >
+                          {s.is_active ? 'aktiv' : 'inaktiv'}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => deleteSynonym(s.id)}
+                          aria-label={`${s.term}/${s.synonym} löschen`}
+                          className="text-red-400 hover:text-red-600 text-xs transition-colors"
+                        >
+                          Löschen
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

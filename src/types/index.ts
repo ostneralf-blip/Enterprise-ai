@@ -60,10 +60,20 @@ export interface CatalogComponent {
   incompatible_with: string[]
   requires: string[]
   suggests: string[]
+  aliases: string[]
   source: string
   is_active: boolean
   created_at: string
   updated_at: string
+}
+
+export interface CanvasSynonym {
+  id: string
+  term: string
+  synonym: string
+  synonym_type: 'vendor' | 'category' | 'usecase'
+  is_active: boolean
+  created_at: string
 }
 
 export interface CatalogRole {

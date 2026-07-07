@@ -21,7 +21,7 @@ const mkComp = (overrides: Partial<CatalogComponent>): CatalogComponent => ({
   tags: [],
   incompatible_with: [],
   requires: [],
-  suggests: [],
+  suggests: [], aliases: [],
   source: 'seed',
   is_active: true,
   created_at: '2026-01-01T00:00:00Z',

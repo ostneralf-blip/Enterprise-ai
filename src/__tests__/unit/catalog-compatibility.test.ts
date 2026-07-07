@@ -21,6 +21,7 @@ function makeComp(name: string, overrides: Partial<CatalogComponent> = {}): Cata
     incompatible_with: [],
     requires: [],
     suggests: [],
+    aliases: [],
     source: 'manual',
     is_active: true,
     eu_ai_act_risk: null,
