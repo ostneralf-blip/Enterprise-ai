@@ -77,14 +77,14 @@ export function MiniPortfolioMatrix({ useCases }: { useCases: MiniUseCase[] }) {
                   style: { animationDelay: '600ms' } }
               : {})} />
 
-          {/* Quadrant-Labels in Ecken — skalieren mit SVG */}
-          <text x="2.5" y="8.5" fontSize="6.5" fontWeight="600" letterSpacing="1"
+          {/* Quadrant-Labels in Ecken — fontSize 3.5 entspricht proportional dem 9/400 der Feasibility Matrix */}
+          <text x="2.5" y="6" fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.strategic_bet} fillOpacity="0.75">BET</text>
-          <text x={S - 2.5} y="8.5" textAnchor="end" fontSize="6.5" fontWeight="600" letterSpacing="1"
+          <text x={S - 2.5} y="6" textAnchor="end" fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.quick_win} fillOpacity="0.75">QUICK WIN</text>
-          <text x="2.5" y={S - 2.5} fontSize="6.5" fontWeight="600" letterSpacing="1"
+          <text x="2.5" y={S - 2} fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.avoid} fillOpacity="0.75">VERMEIDEN</text>
-          <text x={S - 2.5} y={S - 2.5} textAnchor="end" fontSize="6.5" fontWeight="600" letterSpacing="1"
+          <text x={S - 2.5} y={S - 2} textAnchor="end" fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.low_hanging_fruit} fillOpacity="0.75">LOW HANGING</text>
 
           {/* Punkte */}

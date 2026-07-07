@@ -45,12 +45,14 @@ export default async function DashboardPage() {
     return q
   }
 
-  // use_cases hat keine user_id-Spalte — Filterung läuft über RLS (via uc_portfolios.user_id)
-  const useCaseQuery = (() => {
-    let q = supabase.from('use_cases').select('id, name, quadrant, scores, created_at').order('created_at', { ascending: false }).limit(15)
-    if (resetAt) q = q.gt('created_at', resetAt)
-    return q
-  })()
+  // use_cases hat keine user_id-Spalte — Filterung läuft über RLS (via uc_portfolios.user_id).
+  // resetAt wird hier NICHT angewendet: das Portfolio zeigt alle Use Cases des Nutzers,
+  // unabhängig davon wann der geführte Pfad zuletzt zurückgesetzt wurde.
+  const useCaseQuery = supabase
+    .from('use_cases')
+    .select('id, name, quadrant, scores, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   const [
     { data: latestAssessment },
