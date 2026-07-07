@@ -743,7 +743,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
-                ? 'border-blue-600 text-primary-hover'
+                ? 'border-primary text-primary-hover'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             )}
           >
@@ -1888,7 +1888,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <td className="px-4 py-3">
                         <span className={cn(
                           'px-2 py-0.5 rounded-full text-xs font-medium',
-                          s.synonym_type === 'vendor'   && 'bg-blue-50 text-blue-700',
+                          s.synonym_type === 'vendor'   && 'bg-primary-soft text-primary',
                           s.synonym_type === 'category' && 'bg-emerald-50 text-emerald-700',
                           s.synonym_type === 'usecase'  && 'bg-purple-50 text-purple-700',
                         )}>

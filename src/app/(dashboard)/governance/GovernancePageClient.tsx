@@ -286,7 +286,7 @@ export function GovernancePageClient({
                     />
                     <label
                       htmlFor={`uc-${uc.id}`}
-                      className={cn('text-sm min-w-0 truncate cursor-pointer', checked ? 'text-blue-900 font-medium' : 'text-slate-800')}
+                      className={cn('text-sm min-w-0 truncate cursor-pointer', checked ? 'text-primary font-medium' : 'text-slate-800')}
                       onClick={e => e.preventDefault()}
                     >
                       {uc.name}
@@ -384,7 +384,7 @@ export function GovernancePageClient({
                     className="mt-0.5 accent-blue-600 flex-shrink-0"
                   />
                   <div className="min-w-0">
-                    <p className={cn('text-sm font-medium', isSelected ? 'text-blue-900' : 'text-slate-900')}>
+                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>
                       {option.label}
                     </p>
                     <p className="text-xs text-slate-500 mt-0.5">{option.description}</p>

@@ -124,7 +124,7 @@ export function GovernanceHistory({ sessions }: { sessions: GovernanceSession[] 
           const isSelected = compareIds.includes(s.id)
           const meta = RESULT_META[s.result]
           return (
-            <div key={s.id} className={cn('bg-white border rounded-xl transition-colors', isSelected ? 'border-blue-300' : 'border-slate-200')}>
+            <div key={s.id} className={cn('bg-white border rounded-xl transition-colors', isSelected ? 'border-primary-border' : 'border-slate-200')}>
               <div className="flex items-center gap-3 p-3">
                 <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(s.id)}
                   disabled={!isSelected && compareIds.length >= 2}

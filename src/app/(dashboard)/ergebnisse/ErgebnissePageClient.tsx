@@ -80,7 +80,7 @@ function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCan
         )
         : (
           <span className="flex items-center gap-1">
-            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-blue-300 rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
+            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-primary-border rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
             <InfoHint title="Was bedeutet Primär?" side="bottom">
               <p>Das als Primär markierte Ergebnis wird als Standard-Kontext in anderen Modulen verwendet.</p>
               <p className="mt-1.5">Nur ein Ergebnis pro Modul-Typ kann gleichzeitig Primär sein.</p>
@@ -181,7 +181,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       <div className="flex items-center gap-1 mb-3 border-b border-slate-200 overflow-x-auto">
         {TABS.map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null); exitCompare() }}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-blue-600 text-primary-hover' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-primary text-primary-hover' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             {t.label}
             {t.count > 0 && <span className="ml-1.5 text-xs bg-slate-100 text-slate-500 rounded-full px-1.5">{t.count}</span>}
           </button>

@@ -188,7 +188,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
             className={cn(
               'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
               tab === t.id
-                ? 'border-blue-600 text-primary'
+                ? 'border-primary text-primary'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             )}
           >

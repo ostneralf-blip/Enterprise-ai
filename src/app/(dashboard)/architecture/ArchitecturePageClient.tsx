@@ -87,7 +87,7 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset,
   if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
   return (
     <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-primary space-y-1.5">
-      <p className="font-semibold text-blue-900">Kontext aus anderen Modulen</p>
+      <p className="font-semibold text-primary">Kontext aus anderen Modulen</p>
       {assessmentContext?.archetype && (
         <p>
           <span className="font-medium">Reifegradprofil:</span>{' '}
@@ -277,7 +277,7 @@ function CatalogRecommendationsCard({
                     <button
                       key={name}
                       onClick={() => onSelectComp(comp)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-blue-300 hover:bg-primary-soft transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-primary-border hover:bg-primary-soft transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                     >
                       <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
                       {comp.dsgvo_status && (
@@ -710,7 +710,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Canvas CTA */}
         <div className="bg-primary-soft border border-primary-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-blue-900">Nächster Schritt: AI Business Canvas</p>
+            <p className="text-sm font-semibold text-primary">Nächster Schritt: AI Business Canvas</p>
             <p className="text-xs text-primary-hover mt-0.5">Übersetzen Sie Ihre Architektur in einen konkreten Business Case — mit Problem, Lösung, KPIs und Stakeholdern.</p>
           </div>
           <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
@@ -780,7 +780,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     className="mt-0.5 accent-blue-600 flex-shrink-0"
                   />
                   <div className="min-w-0">
-                    <p className={cn('text-sm font-medium', isSelected ? 'text-blue-900' : 'text-slate-900')}>{option.label}</p>
+                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>{option.label}</p>
                     <p className="text-xs text-slate-500 mt-0.5">{option.description}</p>
                   </div>
                 </label>

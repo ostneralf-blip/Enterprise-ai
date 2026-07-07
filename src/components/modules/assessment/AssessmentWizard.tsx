@@ -144,7 +144,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
               className={`w-full text-left px-5 py-4 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 ${
                 selectedScore === score
                   ? 'border-primary-ring bg-primary-soft'
-                  : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                  : 'border-slate-200 hover:border-primary-border hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-4">
