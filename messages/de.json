@@ -276,6 +276,8 @@
     "resetPathDesc": "Fortschritt zurücksetzen und neu beginnen",
     "saved": "Gespeichert!",
     "error": "Fehler beim Speichern.",
+    "passwordRequirementsLabel": "Passwort-Anforderungen",
+    "deleteConfirmWord": "LÖSCHEN",
     "fullNamePlaceholder": "Dein vollständiger Name",
     "companyPlaceholder": "Firmenname",
     "streetPlaceholder": "Musterstraße 1",

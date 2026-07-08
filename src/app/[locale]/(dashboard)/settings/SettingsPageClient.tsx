@@ -357,7 +357,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               placeholder={t('newPasswordPlaceholder')}
               className={inputClass} disabled={pwSaving} />
             {newPassword.length > 0 && (
-              <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
+              <ul className="mt-2 space-y-1" aria-label={t('passwordRequirementsLabel')}>
                 {([
                   { ok: pwRules.length, label: 'Mindestens 8 Zeichen' },
                   { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
@@ -523,7 +523,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               type="text"
               value={deleteConfirm}
               onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder="LÖSCHEN"
+              placeholder={t('deleteConfirmWord')}
               className={cn(inputClass, 'border-red-200 focus:ring-red-500 focus:border-red-400')}
               disabled={deleting}
             />

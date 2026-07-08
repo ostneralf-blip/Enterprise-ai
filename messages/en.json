@@ -276,6 +276,8 @@
     "resetPathDesc": "Reset progress and start over",
     "saved": "Saved!",
     "error": "Error saving.",
+    "passwordRequirementsLabel": "Password requirements",
+    "deleteConfirmWord": "DELETE",
     "fullNamePlaceholder": "Your full name",
     "companyPlaceholder": "Company name",
     "streetPlaceholder": "123 Main Street",
