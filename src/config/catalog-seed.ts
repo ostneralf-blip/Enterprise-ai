@@ -196,7 +196,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     tags: ['serving','ml','oss','api'] },
 
   // ── MLOPS LAYER ───────────────────────────────────────────────────────────
-  { name: 'MLflow', vendor: 'Databricks/Apache', category: 'mlops', architecture_layer: 'mlops',
+  { name: 'MLflow', vendor: 'Linux Foundation', category: 'mlops', architecture_layer: 'mlops',
     hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['predictive','generative'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
     icon_name: 'simple-icons:mlflow', website_url: 'https://mlflow.org', description: 'Open-Source ML Lifecycle Management: Experiment Tracking, Model Registry, Deployment.',

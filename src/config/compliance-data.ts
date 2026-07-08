@@ -71,7 +71,7 @@ export const EU_AI_ACT_RISK_CLASSES: EuAiActRiskClassDef[] = [
     examples: [
       { de: 'HR: Einstellungen, Beförderungen, Leistungsbewertung, Entlassung (Anhang III Nr. 4)',     en: 'HR: Hiring, promotions, performance assessment, dismissal (Annex III No. 4)' },
       { de: 'Kredit- und Bonitätsprüfung, Versicherungseinstufung (Anhang III Nr. 5)',                  en: 'Credit and creditworthiness assessment, insurance classification (Annex III No. 5)' },
-      { de: 'Medizinische Diagnose als Medizinprodukt (Anhang III Nr. 6)',                              en: 'Medical diagnosis as a medical device (Annex III No. 6)' },
+      { de: 'Medizinische Diagnose als Medizinprodukt (Art. 6 Abs. 1 i.V.m. MDR Anhang I)',            en: 'Medical diagnosis as a medical device (Art. 6(1) in conjunction with MDR Annex I)' },
       { de: 'Kritische Infrastruktur (Energie, Wasser, Verkehr) (Anhang III Nr. 2)',                   en: 'Critical infrastructure (energy, water, transport) (Annex III No. 2)' },
       { de: 'Bildung: Prüfungsautomatisierung, Zugangsentscheidungen (Anhang III Nr. 3)',               en: 'Education: exam automation, access decisions (Annex III No. 3)' },
       { de: 'Strafverfolgung, Grenzkontrolle, Justiz (Anhang III Nr. 6–8)',                            en: 'Law enforcement, border control, justice (Annex III No. 6–8)' },
@@ -149,8 +149,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       lastVerified: '2026-07-07',
     },
     {
-      id: 'euaiact_art50_3',
-      article: 'Art. 50 Abs. 3',
+      id: 'euaiact_art50_4',
+      article: 'Art. 50 Abs. 4',
       label:       { de: 'Deepfakes und synthetische Medien kennzeichnen (sichtbar)',                en: 'Label deepfakes and synthetic media (visibly)' },
       description: {
         de: 'Erzeugte Bilder, Videos oder Audios, die reale Personen, Orte oder Ereignisse täuschend nachahmen, müssen für Empfänger erkennbar als KI-generiert markiert sein.',
@@ -286,8 +286,8 @@ export const EU_AI_ACT_OBLIGATIONS: Record<EuAiActRiskClass, ChecklistItem[]> = 
       lastVerified: '2026-07-07',
     },
     {
-      id: 'euaiact_art46',
-      article: 'Art. 46',
+      id: 'euaiact_art48',
+      article: 'Art. 48',
       label:       { de: 'CE-Kennzeichnung anbringen',                                              en: 'Affix CE marking' },
       description: {
         de: 'Nach bestandener Konformitätsbewertung muss das KI-System mit der CE-Kennzeichnung versehen werden.',
