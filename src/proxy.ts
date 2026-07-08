@@ -1,21 +1,40 @@
+import createIntlMiddleware from 'next-intl/middleware'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { routing } from './i18n/routing'
+
+// Feature-Flag: EN ist öffentlich erst wenn P1+P2 abgeschlossen sind.
+// Admin-Nutzer können EN via Cookie erzwingen.
+const EN_ENABLED = process.env.NEXT_PUBLIC_EN_ENABLED === 'true'
+
+const intlMiddleware = createIntlMiddleware(routing)
 
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share', '/forgot-password', '/reset-password']
 const AUTH_ROUTES = ['/login', '/register']
 
 export async function proxy(request: NextRequest) {
-  const path = request.nextUrl.pathname
+  const { pathname } = request.nextUrl
 
-  // API-Routen NIEMALS durch den Dashboard-Auth-Guard schicken.
-  // Jede API-Route prüft ihre eigene Auth-Anforderung selbst (siehe route.ts-Dateien).
-  // Kritisch für Webhooks (Stripe etc.), die keine Nutzer-Session haben.
-  if (path.startsWith('/api/')) {
-    return NextResponse.next({ request })
+  // API-Routen und statische Assets überspringen
+  if (
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/)
+  ) {
+    return NextResponse.next()
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  // EN-Pfade blockieren wenn Feature-Flag inaktiv (außer Admin-Override-Cookie)
+  if (!EN_ENABLED && pathname.startsWith('/en')) {
+    const isAdminEnOverride = request.cookies.get('en_admin_preview')?.value === 'true'
+    if (!isAdminEnOverride) {
+      const dePath = pathname.replace(/^\/en/, '') || '/'
+      return NextResponse.redirect(new URL(dePath, request.url))
+    }
+  }
 
+  // Supabase-Session auffrischen + Auth-Guard
+  let supabaseResponse = NextResponse.next({ request })
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,22 +54,32 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redirect logged-in users away from auth pages
-  if (user && AUTH_ROUTES.some(r => path.startsWith(r))) {
+  // Locale-Präfix für Route-Matching entfernen (z.B. /en/login → /login)
+  const localelessPath = pathname.replace(/^\/en/, '') || '/'
+
+  // Eingeloggte Nutzer von Auth-Seiten weglenken
+  if (user && AUTH_ROUTES.some(r => localelessPath.startsWith(r))) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // Protect dashboard routes
-  const isDashboardRoute = !PUBLIC_ROUTES.some(r => path === r || path.startsWith('/share'))
-  if (!user && isDashboardRoute) {
+  // Private Routen schützen: nicht eingeloggte Nutzer zu Login umleiten
+  const isPublic = PUBLIC_ROUTES.some(r => localelessPath === r || localelessPath.startsWith('/share'))
+  if (!user && !isPublic) {
     const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirect', path)
+    redirectUrl.searchParams.set('redirect', localelessPath)
     return NextResponse.redirect(redirectUrl)
   }
 
-  return supabaseResponse
+  // i18n-Locale-Routing — Supabase-Cookies in die Antwort mergen
+  const intlResponse = intlMiddleware(request)
+  supabaseResponse.cookies.getAll().forEach(cookie => {
+    intlResponse.cookies.set(cookie)
+  })
+  return intlResponse
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
