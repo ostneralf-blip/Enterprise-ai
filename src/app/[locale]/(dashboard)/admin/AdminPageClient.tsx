@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym, ComplianceSourceDraft, ScanSourceResult, SourceScanStatus } from '@/types'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,7 @@ type FormState = {
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
 
 export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [] }: Props) {
+  const t = useTranslations('admin')
   const [tab, setTab] = useState<Tab>('content')
 
   // ── Content Library state ───────────────────────────────────────────────────
@@ -767,7 +769,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {/* Filter */}
-          <div className="flex gap-2 flex-wrap" role="group" aria-label="Modul-Filter">
+          <div className="flex gap-2 flex-wrap" role="group" aria-label={t('modulFilterAriaLabel')}>
             {['all', ...MODULES].map(m => (
               <button
                 key={m}
@@ -810,7 +812,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <label htmlFor="admin-category" className="block text-xs font-medium text-slate-700 mb-1">Kategorie</label>
                   <input id="admin-category" type="text" value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                    placeholder="z. B. gesetz, beispiel, quelle"
+                    placeholder={t('contentTagsPlaceholder')}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
               </div>
@@ -831,14 +833,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <label htmlFor="admin-source" className="block text-xs font-medium text-slate-700 mb-1">Quelle (optional)</label>
                   <input id="admin-source" type="text" value={form.source}
                     onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
-                    placeholder="z. B. EU AI Act Art. 6"
+                    placeholder={t('contentSourcePlaceholder')}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
                 <div>
                   <label htmlFor="admin-tags" className="block text-xs font-medium text-slate-700 mb-1">Tags (kommagetrennt)</label>
                   <input id="admin-tags" type="text" value={form.tags}
                     onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
-                    placeholder="tag1, tag2"
+                    placeholder={t('contentTagsListPlaceholder')}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
                 <div>
@@ -870,7 +872,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             </div>
           ) : (
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-sm" aria-label="Content Library Einträge">
+              <table className="w-full text-sm" aria-label={t('contentLibraryAriaLabel')}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Modul</th>
@@ -956,7 +958,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       type="text"
                       value={newSourceForm.name}
                       onChange={e => setNewSourceForm(f => ({ ...f, name: e.target.value }))}
-                      placeholder="z. B. Meine OpenAI Integration"
+                      placeholder={t('sourceNamePlaceholder')}
                       className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                     />
                   </div>
@@ -984,7 +986,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     type="url"
                     value={newSourceForm.url}
                     onChange={e => setNewSourceForm(f => ({ ...f, url: e.target.value }))}
-                    placeholder="https://…"
+                    placeholder={t('urlPlaceholder')}
                     className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                   />
                 </div>
@@ -1103,7 +1105,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               type="url"
                               value={editingSourceUrl}
                               onChange={e => setEditingSourceUrl(e.target.value)}
-                              placeholder="https://…"
+                              placeholder={t('urlPlaceholder')}
                               className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                             />
                           </div>
@@ -1320,13 +1322,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               type="search"
               value={catalogSearch}
               onChange={e => setCatalogSearch(e.target.value)}
-              placeholder="Name oder Vendor suchen…"
+              placeholder={t('catalogSearchPlaceholder')}
               className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring w-full sm:w-64"
             />
             <select
               value={catalogLayer}
               onChange={e => setCatalogLayer(e.target.value)}
-              aria-label="Nach Layer filtern"
+              aria-label={t('filterLayerAriaLabel')}
               className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Layer</option>
@@ -1335,7 +1337,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <select
               value={catalogCloud}
               onChange={e => setCatalogCloud(e.target.value)}
-              aria-label="Nach Cloud-Provider filtern"
+              aria-label={t('filterCloudAriaLabel')}
               className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Provider</option>
@@ -1353,7 +1355,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ) : (
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm" aria-label="Komponenten-Katalog">
+                <table className="w-full text-sm" aria-label={t('catalogTableAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
                       <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Name</th>
@@ -1409,7 +1411,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             ))}
                             <button
                               onClick={() => setTagEditingId(tagEditingId === c.id ? null : c.id)}
-                              aria-label="Tag hinzufügen"
+                              aria-label={t('addTagAriaLabel')}
                               aria-expanded={tagEditingId === c.id}
                               className="px-1.5 py-0.5 text-xs text-primary hover:text-primary hover:bg-primary-soft rounded border border-primary-border leading-none"
                             >+</button>
@@ -1445,7 +1447,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                     type="text"
                                     value={depForm[key]}
                                     onChange={e => setDepForm(f => ({ ...f, [key]: e.target.value }))}
-                                    placeholder="Name1, Name2"
+                                    placeholder={t('incompatiblePlaceholder')}
                                     className={cn('w-full border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1', color)}
                                   />
                                 </div>
@@ -1514,7 +1516,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-xs" aria-label="Upload-Verlauf">
+                <table className="w-full text-xs" aria-label={t('uploadLogAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr>
                       <th className="text-left px-4 py-2 font-medium text-slate-500">Datei / Quelle</th>
@@ -1577,7 +1579,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <input
               id="user-search"
               type="search"
-              placeholder="E-Mail oder Name suchen…"
+              placeholder={t('userSearchPlaceholder')}
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
@@ -1779,7 +1781,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             <input
                               type="text"
-                              placeholder="Term (z.B. Microsoft)"
+                              placeholder={t('synonymTermPlaceholder')}
                               value={input.term}
                               onChange={e => setSuggestionInputs(prev => ({
                                 ...prev,
@@ -1826,7 +1828,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   type="text"
                   value={synForm.term}
                   onChange={e => setSynForm(f => ({ ...f, term: e.target.value }))}
-                  placeholder="Microsoft"
+                  placeholder={t('synonymSourcePlaceholder')}
                   className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                 />
               </div>
@@ -1836,7 +1838,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   type="text"
                   value={synForm.synonym}
                   onChange={e => setSynForm(f => ({ ...f, synonym: e.target.value }))}
-                  placeholder="navision"
+                  placeholder={t('synonymCanonicalPlaceholder')}
                   className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                 />
               </div>
@@ -1870,7 +1872,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <p className="text-sm text-slate-400 py-8 text-center">Noch keine Synonyme angelegt.</p>
           ) : (
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-sm" aria-label="Canvas-Synonyme">
+              <table className="w-full text-sm" aria-label={t('synonymTableAriaLabel')}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Term</th>

@@ -381,6 +381,27 @@
     "maturityScore": "Reifegrad-Score",
     "outOf50": "von 5.0"
   },
+  "admin": {
+    "modulFilterAriaLabel": "Modul-Filter",
+    "contentTagsPlaceholder": "z. B. gesetz, beispiel, quelle",
+    "contentSourcePlaceholder": "z. B. EU AI Act Art. 6",
+    "contentTagsListPlaceholder": "tag1, tag2",
+    "contentLibraryAriaLabel": "Content Library Einträge",
+    "sourceNamePlaceholder": "z. B. Meine OpenAI Integration",
+    "urlPlaceholder": "https://…",
+    "catalogSearchPlaceholder": "Name oder Vendor suchen…",
+    "filterLayerAriaLabel": "Nach Layer filtern",
+    "filterCloudAriaLabel": "Nach Cloud-Provider filtern",
+    "catalogTableAriaLabel": "Komponenten-Katalog",
+    "addTagAriaLabel": "Tag hinzufügen",
+    "incompatiblePlaceholder": "Name1, Name2",
+    "uploadLogAriaLabel": "Upload-Verlauf",
+    "userSearchPlaceholder": "E-Mail oder Name suchen…",
+    "synonymTermPlaceholder": "Term (z.B. Microsoft)",
+    "synonymSourcePlaceholder": "Microsoft",
+    "synonymCanonicalPlaceholder": "navision",
+    "synonymTableAriaLabel": "Canvas-Synonyme"
+  },
   "ergebnisse": {
     "emptyAssessmentTitle": "Noch kein Assessment",
     "emptyAssessmentDesc": "Starten Sie mit dem AI-Readiness Assessment, um Ihren Reifegrad zu ermitteln.",
