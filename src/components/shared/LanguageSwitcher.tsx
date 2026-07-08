@@ -4,10 +4,15 @@ import { useRouter, usePathname } from '@/i18n/navigation'
 import { routing, type Locale } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 
+const EN_ENABLED = process.env.NEXT_PUBLIC_EN_ENABLED === 'true'
+
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as Locale
   const router = useRouter()
   const pathname = usePathname()
+
+  // EN ist noch nicht öffentlich — Switcher erst anzeigen wenn aktiv
+  if (!EN_ENABLED) return null
 
   const switchTo = async (next: Locale) => {
     if (next === locale) return
