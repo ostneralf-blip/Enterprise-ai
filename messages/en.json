@@ -433,5 +433,11 @@
     "notFound": "Page not found",
     "unauthorized": "Unauthorized",
     "serverError": "Server error"
+  },
+  "guidance": {
+    "title": "Knowledge Base",
+    "buttonLabel": "Knowledge Base",
+    "entriesFor": "{count} entries for this module",
+    "fallbackBadge": "DE"
   }
 }

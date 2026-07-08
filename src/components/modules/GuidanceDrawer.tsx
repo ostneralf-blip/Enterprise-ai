@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { track } from '@/lib/posthog/client'
 import type { GuidanceEntry, GuidanceCategory } from './GuidanceCard'
@@ -27,6 +28,8 @@ function isLocked(entry: GuidanceEntry, userTier: string) {
 }
 
 export function GuidanceDrawer({ entries, module, userTier, isFallback = false }: Props) {
+  const tg = useTranslations('guidance')
+  const tc = useTranslations('common')
   const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -42,14 +45,14 @@ export function GuidanceDrawer({ entries, module, userTier, isFallback = false }
         className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors whitespace-nowrap"
       >
         <span aria-hidden="true">💡</span>
-        <span>Wissensbasis</span>
+        <span>{tg('buttonLabel')}</span>
         <span className="ml-0.5 bg-slate-100 text-slate-600 rounded-full px-1.5 py-0.5 text-[10px] font-bold">
           {entries.length}
         </span>
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Wissensbasis">
+        <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={tg('title')}>
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/30 transition-opacity"
@@ -60,19 +63,19 @@ export function GuidanceDrawer({ entries, module, userTier, isFallback = false }
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-slate-900">Wissensbasis</p>
+                  <p className="text-sm font-semibold text-slate-900">{tg('title')}</p>
                   {isFallback && (
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200 uppercase tracking-wide">
-                      DE
+                      {tg('fallbackBadge')}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">{entries.length} Einträge für dieses Modul</p>
+                <p className="text-xs text-slate-500 mt-0.5">{tg('entriesFor', { count: entries.length })}</p>
               </div>
               <button
                 onClick={() => setOpen(false)}
                 className="text-slate-400 hover:text-slate-600 text-xl leading-none p-1 rounded hover:bg-slate-100 transition-colors"
-                aria-label="Schließen"
+                aria-label={tc('close')}
               >
                 ×
               </button>
@@ -95,7 +98,7 @@ export function GuidanceDrawer({ entries, module, userTier, isFallback = false }
                           <p className="text-sm text-slate-500 font-medium leading-snug">{entry.title}</p>
                         </div>
                         <span className="shrink-0 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 whitespace-nowrap">
-                          Pro
+                          {tc('pro')}
                         </span>
                       </div>
                     </div>

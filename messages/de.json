@@ -432,5 +432,11 @@
     "notFound": "Seite nicht gefunden",
     "unauthorized": "Nicht autorisiert",
     "serverError": "Serverfehler"
+  },
+  "guidance": {
+    "title": "Wissensbasis",
+    "buttonLabel": "Wissensbasis",
+    "entriesFor": "{count} Einträge für dieses Modul",
+    "fallbackBadge": "DE"
   }
 }
