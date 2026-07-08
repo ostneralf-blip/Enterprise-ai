@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { renderPdf } from '@/lib/pdf/generate'
 import {
@@ -35,6 +36,7 @@ export async function GET(req: Request) {
       })
     }
 
+    const locale = await getLocale()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -75,7 +77,7 @@ export async function GET(req: Request) {
         dimScores: sessionData.dim_scores,
         archetype: sessionData.archetype as 'starter' | 'scaler' | 'transformer',
         companyName: company,
-      })
+      }, locale)
       filename = 'ai-readiness-assessment.pdf'
 
     } else if (module === 'governance') {
@@ -93,7 +95,7 @@ export async function GET(req: Request) {
         result: sessionData.result as 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve' | null,
         protocol: sessionData.protocol as Array<{ question?: string; answer?: string }> | null,
         companyName: company,
-      })
+      }, locale)
       filename = 'governance-check.pdf'
 
     } else if (module === 'roadmap') {
@@ -111,7 +113,7 @@ export async function GET(req: Request) {
         archetype: roadmapData.archetype,
         phases: roadmapData.phases as Array<{ title: string; duration?: string; focus?: string; actions?: Array<{ label: string }>; kpis?: string[]; budget?: string }>,
         companyName: company,
-      })
+      }, locale)
       filename = 'ai-roadmap.pdf'
 
     } else if (module === 'canvas') {
@@ -129,7 +131,7 @@ export async function GET(req: Request) {
         archetype: canvasData.archetype,
         data: canvasData.data,
         companyName: company,
-      })
+      }, locale)
       filename = 'ai-canvas.pdf'
 
     } else if (module === 'compliance') {
@@ -142,7 +144,7 @@ export async function GET(req: Request) {
       if (!checks || checks.length === 0) {
         return NextResponse.json({ error: 'Keine Compliance-Prüfungen gefunden' }, { status: 404 })
       }
-      doc = renderCompliancePdf({ checks, companyName: company })
+      doc = renderCompliancePdf({ checks, companyName: company }, locale)
       filename = 'compliance-report.pdf'
 
     } else if (module === 'architecture') {
@@ -159,7 +161,7 @@ export async function GET(req: Request) {
         title: archData.title,
         result: archData.result,
         companyName: company,
-      })
+      }, locale)
       filename = 'ai-architektur.pdf'
 
     } else if (module === 'executive_summary') {
@@ -249,7 +251,7 @@ export async function GET(req: Request) {
           title: esArchitecture.title,
           result: esArchitecture.result,
         } : undefined,
-      })
+      }, locale)
       filename = 'executive-summary.pdf'
 
     } else {
@@ -277,7 +279,7 @@ export async function GET(req: Request) {
         portfolioName: portfolio.name,
         useCases: useCases ?? [],
         companyName: company,
-      })
+      }, locale)
       filename = 'use-case-portfolio.pdf'
     }
 

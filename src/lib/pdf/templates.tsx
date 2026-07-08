@@ -40,30 +40,154 @@ const s = StyleSheet.create({
   td:        { padding: 6, fontSize: 10, borderBottomWidth: 1, borderBottomColor: C.border },
 })
 
+// ─── i18n HELPERS FOR PDF ────────────────────────────────────────────────────
+type PdfLocale = 'de' | 'en'
+function pdfLoc(locale: string): PdfLocale { return locale === 'en' ? 'en' : 'de' }
+function pdfDate(locale: string): string {
+  return new Date().toLocaleDateString(locale === 'en' ? 'en-GB' : 'de-DE', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+  })
+}
+const PDF_T: Record<PdfLocale, Record<string, string>> = {
+  de: {
+    created_on: 'Erstellt am', no_advice: 'Kein Ersatz für individuelle Beratung.',
+    legal_note: '¹ Rechtliche und regulatorische Hinweise in diesem Bericht dienen der Orientierung und ersetzen keine individuelle Rechts- oder Compliance-Beratung.',
+    recommendations: 'Handlungsempfehlungen',
+    assessment_sub: 'Ergebnisbericht · 6 Dimensionen · Enterprise AI Navigator', of_5: 'von 5,0', results_by_dim: 'Ergebnis nach Dimension',
+    review_protocol: 'Prüfprotokoll', criterion: 'Prüfkriterium', assessment_col: 'Bewertung',
+    phase_overview: 'Phasen-Übersicht', no_phases: 'Noch keine Roadmap-Phasen gespeichert.', budget_guideline: 'Budget-Richtwert:', first_phase_focus: 'Erste Phase — Fokusthemen',
+    problem_solution: 'Problem & Lösung', problem_opp: 'PROBLEM / OPPORTUNITÄT', ai_solution: 'KI-LÖSUNG',
+    data_stakeholders: 'Daten & Stakeholder', data_sources_cap: 'DATENQUELLEN', stakeholders_cap: 'STAKEHOLDER',
+    success_risks: 'Erfolgsindikatoren & Risiken', kpi_success: 'KPIS / ERFOLGSINDIKATOREN', risks_cap: 'RISIKEN',
+    implementation: 'Umsetzung', tech_arch: 'TECHNISCHE ARCHITEKTUR', next_steps_cap: 'NÄCHSTE SCHRITTE',
+    canvas_sub: 'AI Use-Case Canvas · Enterprise AI Navigator',
+    risk_class_label: 'EU AI Act Risikoklasse', eu_obligations: 'EU AI Act Pflichten', gdpr_points: 'DSGVO-Punkte',
+    risk_level: 'Risikoniveau', eu_checklist: 'EU AI Act — Pflichten-Checkliste', gdpr_checklist: 'DSGVO-Checkliste',
+    next_step: 'Nächster Schritt', impact_label: 'Auswirkung', probability_label: 'Wahrscheinlichkeit',
+    arch_layers: 'Architektur-Ebenen', recommended_next: 'Empfohlene Nächste Schritte', arch_recs: 'Architektur-Empfehlungen', arch_sub: 'AI-Architektur · Enterprise AI Navigator',
+    enterprise_tagline: 'ENTERPRISE AI. STRUKTURIERT NAVIGIERT.', modules_completed: 'Module abgeschlossen',
+    top3_recs: 'Top-3 Handlungsempfehlungen', module_overview: 'Modulübersicht',
+    score_kpi: 'Readiness Score\n/5,0', uc_evaluated: 'Use Cases\nbewertet', modules_kpi: 'Module\nabgeschlossen',
+    six_dimensions: '6 Dimensionen', strongest_field: 'Stärkstes Feld:', biggest_lever: 'Größter Hebel:',
+    dim_strength: 'Stärke — ausbauen und als Vorteil nutzen', dim_solid: 'Solide Basis — gezielt ausbauen', dim_action: 'Handlungsbedarf — mit Priorität adressieren',
+    priority_fields: 'Prioritäre Handlungsfelder', canvas_8_fields: 'AI Use-Case Canvas · 8 Felder',
+    arch_layers_es: 'Architektur-Schichten', pattern_label: 'Muster', next_steps_es: 'Nächste Schritte',
+    compliance_overview: 'Compliance-Überblick', compliance_sub: 'Regulatorischer Rahmen für Enterprise AI · Stand 2026',
+    important_note: 'Wichtiger Hinweis', compliance_disc: 'Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen. Führen Sie das Compliance Center für die vollständige Checkliste durch. Eine bindende Compliance-Bewertung erfordert individuelle Rechtsberatung.',
+    for_board: 'Für den Vorstand / C-Level', for_tech_lead: 'Für den AI-Architekten / Technical Lead',
+    quarterly_text: 'Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen. AI-Readiness ist kein einmaliges Projekt — die Markt- und Technologielage ändert sich. Nutzen Sie den AI Navigator als kontinuierliches Steuerungsinstrument.',
+    ready_scale: 'Bereit zur Skalierung', build_phase: 'Aufbauphase', critical_action: 'Kritischer Handlungsbedarf',
+    strategic_recs: 'Strategische Empfehlungen', strategic_recs_sub: 'Individuell abgeleitet aus Ihrer AI-Navigator-Analyse',
+    qm_sofort: 'Sofort pilotieren', qm_budgetieren: 'Budgetieren', qm_evaluieren: 'Evaluieren', qm_zurueck: 'Zurückstellen',
+    top_uc_label: 'Top-Use-Case:', top_ucs_score: 'Top Use Cases nach Score',
+    more_ucs: 'weitere Use Cases im vollständigen Portfolio',
+    uc_bewertet_ready: 'sofort umsetzbar', gov_no_protocol: 'Kein Protokoll verfügbar.',
+    phasen_label: 'Phasen',
+    uc_overview: 'Use Cases im Überblick', no_uc: 'Keine Use Cases im Portfolio', col_domain: 'Domäne', col_category: 'Kategorie',
+  },
+  en: {
+    created_on: 'Created on', no_advice: 'Not a substitute for individual advice.',
+    legal_note: '¹ Regulatory and legal references in this report are for guidance only and do not substitute individual legal or compliance advice.',
+    recommendations: 'Recommendations',
+    assessment_sub: 'Results Report · 6 Dimensions · Enterprise AI Navigator', of_5: 'of 5.0', results_by_dim: 'Results by Dimension',
+    review_protocol: 'Review Protocol', criterion: 'Criterion', assessment_col: 'Assessment',
+    phase_overview: 'Phase Overview', no_phases: 'No roadmap phases saved yet.', budget_guideline: 'Budget Guideline:', first_phase_focus: 'First Phase — Focus Topics',
+    problem_solution: 'Problem & Solution', problem_opp: 'PROBLEM / OPPORTUNITY', ai_solution: 'AI SOLUTION',
+    data_stakeholders: 'Data & Stakeholders', data_sources_cap: 'DATA SOURCES', stakeholders_cap: 'STAKEHOLDERS',
+    success_risks: 'Success Indicators & Risks', kpi_success: 'KPIS / SUCCESS INDICATORS', risks_cap: 'RISKS',
+    implementation: 'Implementation', tech_arch: 'TECHNICAL ARCHITECTURE', next_steps_cap: 'NEXT STEPS',
+    canvas_sub: 'AI Use-Case Canvas · Enterprise AI Navigator',
+    risk_class_label: 'EU AI Act Risk Class', eu_obligations: 'EU AI Act Obligations', gdpr_points: 'GDPR Points',
+    risk_level: 'Risk Level', eu_checklist: 'EU AI Act — Obligations Checklist', gdpr_checklist: 'GDPR Checklist',
+    next_step: 'Next Step', impact_label: 'Impact', probability_label: 'Probability',
+    arch_layers: 'Architecture Layers', recommended_next: 'Recommended Next Steps', arch_recs: 'Architecture Recommendations', arch_sub: 'AI Architecture · Enterprise AI Navigator',
+    enterprise_tagline: 'ENTERPRISE AI. STRUCTURED NAVIGATION.', modules_completed: 'Modules completed',
+    top3_recs: 'Top 3 Recommendations', module_overview: 'Module Overview',
+    score_kpi: 'Readiness Score\n/5.0', uc_evaluated: 'Use Cases\nevaluated', modules_kpi: 'Modules\ncompleted',
+    six_dimensions: '6 Dimensions', strongest_field: 'Strongest area:', biggest_lever: 'Biggest lever:',
+    dim_strength: 'Strength — expand and leverage', dim_solid: 'Solid foundation — develop further', dim_action: 'Action required — address with priority',
+    priority_fields: 'Priority Action Areas', canvas_8_fields: 'AI Use-Case Canvas · 8 Fields',
+    arch_layers_es: 'Architecture Layers', pattern_label: 'Pattern', next_steps_es: 'Next Steps',
+    compliance_overview: 'Compliance Overview', compliance_sub: 'Regulatory Framework for Enterprise AI · As of 2026',
+    important_note: 'Important Note', compliance_disc: 'This overview is based on data captured in the AI Navigator and serves as an initial orientation framework. Run the Compliance Center for the full checklist. A binding compliance assessment requires individual legal advice.',
+    for_board: 'For the Board / C-Level', for_tech_lead: 'For the AI Architect / Technical Lead',
+    quarterly_text: 'Repeat Assessment, Use-Case Scoring, and Governance Check quarterly. AI readiness is not a one-time project — the market and technology landscape changes. Use the AI Navigator as a continuous management instrument.',
+    ready_scale: 'Ready to Scale', build_phase: 'Build Phase', critical_action: 'Critical Action Required',
+    strategic_recs: 'Strategic Recommendations', strategic_recs_sub: 'Individually derived from your AI Navigator analysis',
+    qm_sofort: 'Pilot now', qm_budgetieren: 'Budget for', qm_evaluieren: 'Evaluate', qm_zurueck: 'Defer',
+    top_uc_label: 'Top Use Case:', top_ucs_score: 'Top Use Cases by Score',
+    more_ucs: 'more use cases in the full portfolio',
+    uc_bewertet_ready: 'ready to pilot', gov_no_protocol: 'No protocol available.',
+    phasen_label: 'Phases',
+    uc_overview: 'Use Cases Overview', no_uc: 'No use cases in portfolio', col_domain: 'Domain', col_category: 'Category',
+  },
+}
+function pt(key: string, locale: string): string {
+  return PDF_T[pdfLoc(locale)][key] ?? PDF_T.de[key] ?? key
+}
+
+// EN versions of German status/label maps
+const GOV_RESULT_EN: Record<string, { label: string; color: string; bg: string }> = {
+  approve:    { label: 'Approval recommended', color: C.green,   bg: C.greenBg },
+  stop_dsgvo: { label: 'Stop: GDPR Issue',     color: C.red,     bg: C.redBg },
+  stop_risk:  { label: 'Stop: High Risk',      color: C.red,     bg: C.redBg },
+  improve:    { label: 'Needs Improvement',    color: C.amber,   bg: C.amberBg },
+}
+const STATUS_CFG_EN: Record<string, { label: string; color: string; bg: string }> = {
+  compliant:     { label: 'Compliant',           color: C.green,   bg: C.greenBg },
+  non_compliant: { label: 'Non-compliant',        color: C.red,     bg: C.redBg },
+  partial:       { label: 'Partially compliant',  color: C.amber,   bg: C.amberBg },
+  pending:       { label: 'Pending',              color: C.neutral, bg: C.neutralBg },
+}
+const QUADRANT_CFG_EN: Record<string, { label: string; color: string; bg: string }> = {
+  quick_win:         { label: 'Quick Win',   color: C.green,   bg: C.greenBg },
+  strategic_bet:     { label: 'Strategic',   color: '#1e3a8a', bg: '#dbeafe' },
+  low_hanging_fruit: { label: 'Low Effort',  color: C.amber,   bg: C.amberBg },
+  avoid:             { label: 'Avoid',       color: C.neutral, bg: C.neutralBg },
+}
+const DIM_LABELS_EN: Record<string, string> = {
+  data: 'Data', skills: 'Skills', governance: 'Governance',
+  tech: 'Technology', strategy: 'Strategy', culture: 'Culture',
+}
+const QUADRANT_ES_EN: Record<string, string> = {
+  quick_win: 'Quick Win', strategic_bet: 'Strategic', low_hanging_fruit: 'Low Effort', avoid: 'Avoid',
+}
+const GOV_CFG_ES_EN: Record<string, { label: string; color: string; bg: string }> = {
+  approve:    { label: 'Approved',          color: C.green, bg: C.greenBg },
+  stop_dsgvo: { label: 'Stop: GDPR',        color: C.red,   bg: C.redBg },
+  stop_risk:  { label: 'Stop: Risk',        color: C.red,   bg: C.redBg },
+  improve:    { label: 'Needs Improvement', color: C.amber, bg: C.amberBg },
+}
+const CANVAS_LABELS_EN: Record<string, string> = {
+  problem: 'Problem / Opportunity', solution: 'AI Solution',
+  data_sources: 'Data Sources', stakeholders: 'Stakeholders',
+  kpis: 'KPIs', risks: 'Risks', architecture: 'Technical Architecture', next_steps: 'Next Steps',
+}
+
 // ─── SHARED COMPONENTS ──────────────────────────────────────────────────────
-function PdfHeader({ company }: { company?: string }) {
+function PdfHeader({ company, locale = 'de' }: { company?: string; locale?: string }) {
   return (
     <View style={s.hdr}>
       <Text style={s.logo}>AI Navigator</Text>
       <View style={{ alignItems: 'flex-end' }}>
         {company && <Text style={s.meta}>{company}</Text>}
-        <Text style={s.meta}>Erstellt am {formatDate(new Date())}</Text>
+        <Text style={s.meta}>{pt('created_on', locale)} {pdfDate(locale)}</Text>
       </View>
     </View>
   )
 }
 
 
-function PdfFooterEs({ company }: { company?: string }) {
+function PdfFooterEs({ company, locale = 'de' }: { company?: string; locale?: string }) {
   return (
     <View fixed style={[s.footer, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
       <Text style={[s.footerTxt, { textAlign: 'left', flex: 1 }]}>
-        AI Navigator · enterprise-ai.biz{company ? ` · ${company}` : ''} · Kein Ersatz für individuelle Beratung.
+        AI Navigator · enterprise-ai.biz{company ? ` · ${company}` : ''} · {pt('no_advice', locale)}
       </Text>
       <Text
         style={[s.footerTxt, { flexShrink: 0, paddingLeft: 12 }]}
         render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-          `Seite ${pageNumber} / ${totalPages}`
+          locale === 'en' ? `Page ${pageNumber} / ${totalPages}` : `Seite ${pageNumber} / ${totalPages}`
         }
       />
     </View>
@@ -77,10 +201,10 @@ const ARCHETYPE_LABELS: Record<string, string> = {
 // ─── SHARED PDF BUILDING BLOCKS ──────────────────────────────────────────────
 interface Rec3 { title: string; why: string; action: string }
 
-function PdfCoverPage({ title, subtitle, companyName }: {
-  title: string; subtitle?: string; companyName?: string
+function PdfCoverPage({ title, subtitle, companyName, locale = 'de' }: {
+  title: string; subtitle?: string; companyName?: string; locale?: string
 }) {
-  const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const today = pdfDate(locale)
   return (
     <Page size="A4" style={{ padding: 40, fontFamily: 'Helvetica', backgroundColor: '#0f172a', justifyContent: 'space-between' }}>
       <Text style={{ fontSize: 8, color: '#64748b' }}>AI Navigator · Enterprise AI</Text>
@@ -122,10 +246,10 @@ function RecCard3({ rec, index, color }: { rec: Rec3; index: number; color: stri
   )
 }
 
-function PdfLegalNote() {
+function PdfLegalNote({ locale = 'de' }: { locale?: string }) {
   return (
     <Text style={{ fontSize: 7, color: C.gray, marginTop: 20, lineHeight: 1.4 }}>
-      {'¹'} Rechtliche und regulatorische Hinweise in diesem Bericht dienen der Orientierung und ersetzen keine individuelle Rechts- oder Compliance-Beratung.
+      {pt('legal_note', locale)}
     </Text>
   )
 }
@@ -186,7 +310,8 @@ function DimBar({ label, score }: { label: string; score: number }) {
   )
 }
 
-export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
+export function renderAssessmentPdf(data: AssessmentPdfData, locale = 'de'): ReactElement {
+  const l = pdfLoc(locale)
   const maturity = getMaturityLevel(data.totalScore)
   const scoreColor = data.totalScore >= 4 ? C.ok : data.totalScore >= 3 ? C.warn : C.danger
   const topDims = Object.entries(data.dimScores).sort(([, a], [, b]) => a - b).slice(0, 3)
@@ -198,37 +323,38 @@ export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
         title="AI-Readiness Assessment"
         subtitle={data.companyName}
         companyName={data.companyName}
+        locale={locale}
       />
 
       {/* Seite 2: Ergebnisse */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>AI-Readiness Assessment</Text>
-        <Text style={s.sub}>Ergebnisbericht · 6 Dimensionen · Enterprise AI Navigator</Text>
+        <Text style={s.sub}>{pt('assessment_sub', locale)}</Text>
 
         <View wrap={false} style={{ backgroundColor: C.dark, borderRadius: 10, padding: 20, flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={{ marginRight: 24 }}>
             <Text style={{ fontSize: 36, fontWeight: 'bold', color: scoreColor }}>{data.totalScore.toFixed(1)}</Text>
-            <Text style={{ fontSize: 9, color: C.gray2 }}>von 5,0</Text>
+            <Text style={{ fontSize: 9, color: C.gray2 }}>{pt('of_5', locale)}</Text>
           </View>
           <View>
-            <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'white' }}>{maturity.label.de}</Text>
+            <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'white' }}>{maturity.label[l]}</Text>
             <Text style={{ fontSize: 10, color: C.gray2, marginTop: 4 }}>{ARCHETYPE_LABELS[data.archetype] ?? data.archetype}</Text>
           </View>
         </View>
 
-        <Text style={s.h2}>Ergebnis nach Dimension</Text>
+        <Text style={s.h2}>{pt('results_by_dim', locale)}</Text>
         {ASSESSMENT_DIMENSIONS.map(dim => (
-          <DimBar key={dim.id} label={dim.label.de} score={data.dimScores[dim.id] ?? 0} />
+          <DimBar key={dim.id} label={dim.label[l]} score={data.dimScores[dim.id] ?? 0} />
         ))}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Handlungsempfehlungen */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>AI-Readiness Assessment · Enterprise AI Navigator</Text>
 
         {topDims.map(([dimId], i) => (
@@ -240,8 +366,8 @@ export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
           />
         ))}
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -333,8 +459,9 @@ const GOV_RECS: Record<string, Rec3[]> = {
   ],
 }
 
-export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
-  const res = data.result ? (GOV_RESULT[data.result] ?? GOV_RESULT.improve) : GOV_RESULT.improve
+export function renderGovernancePdf(data: GovernancePdfData, locale = 'de'): ReactElement {
+  const govCfg = locale === 'en' ? GOV_RESULT_EN : GOV_RESULT
+  const res = data.result ? (govCfg[data.result] ?? govCfg.improve) : govCfg.improve
   const recs = data.result ? (GOV_RECS[data.result] ?? GOV_RECS.improve) : GOV_RECS.improve
   const rows = (data.protocol ?? []).filter(i => (i.question ?? i.label) || (i.answer ?? i.value))
 
@@ -345,11 +472,12 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
         title="AI-Governance Check"
         subtitle={data.useCaseName ?? undefined}
         companyName={data.companyName}
+        locale={locale}
       />
 
       {/* Seite 2: Ergebnisse + Protokoll */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>AI-Governance Check</Text>
         <Text style={s.sub}>{data.useCaseName ?? 'Use Case'} · Enterprise AI Navigator</Text>
 
@@ -359,10 +487,10 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
 
         {rows.length > 0 && (
           <>
-            <Text style={s.h2}>Prüfprotokoll</Text>
+            <Text style={s.h2}>{pt('review_protocol', locale)}</Text>
             <View style={s.row}>
-              <Text style={[s.th, { flex: 3 }]}>Prüfkriterium</Text>
-              <Text style={[s.th, { flex: 2 }]}>Bewertung</Text>
+              <Text style={[s.th, { flex: 3 }]}>{pt('criterion', locale)}</Text>
+              <Text style={[s.th, { flex: 2 }]}>{pt('assessment_col', locale)}</Text>
             </View>
             {rows.map((item, i) => (
               <View key={i} wrap={false} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
@@ -373,21 +501,21 @@ export function renderGovernancePdf(data: GovernancePdfData): ReactElement {
           </>
         )}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Handlungsempfehlungen */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>AI-Governance Check · Enterprise AI Navigator</Text>
 
         {recs.map((rec, i) => (
           <RecCard3 key={i} rec={rec} index={i} color={res.color} />
         ))}
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -474,7 +602,7 @@ const ROADMAP_RECS: Record<string, Rec3[]> = {
   ],
 }
 
-export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
+export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElement {
   const archetypeRecs = ROADMAP_RECS[data.archetype ?? ''] ?? ROADMAP_RECS.starter
   return (
     <Document title="AI-Roadmap">
@@ -483,19 +611,20 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
         title={data.title}
         subtitle={data.archetype ? ARCHETYPE_LABELS[data.archetype] : undefined}
         companyName={data.companyName}
+        locale={locale}
       />
 
       {/* Seite 2: Phasen */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.title}</Text>
         <Text style={s.sub}>
           AI-Roadmap{data.archetype ? ` · ${ARCHETYPE_LABELS[data.archetype] ?? data.archetype}` : ''} · Enterprise AI Navigator
         </Text>
 
-        <Text style={s.h2}>Phasen-Übersicht</Text>
+        <Text style={s.h2}>{pt('phase_overview', locale)}</Text>
         {data.phases.length === 0 && (
-          <Text style={{ fontSize: 10, color: C.gray }}>Noch keine Roadmap-Phasen gespeichert.</Text>
+          <Text style={{ fontSize: 10, color: C.gray }}>{pt('no_phases', locale)}</Text>
         )}
         {data.phases.map((phase, idx) => (
           <View key={idx} wrap={false} style={{ borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[idx] ?? C.brand, paddingLeft: 12, marginBottom: 16 }}>
@@ -520,18 +649,18 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
               </View>
             )}
             {phase.budget && (
-              <Text style={{ fontSize: 9, color: C.gray2, marginTop: 5 }}>Budget-Richtwert: {phase.budget}</Text>
+              <Text style={{ fontSize: 9, color: C.gray2, marginTop: 5 }}>{pt('budget_guideline', locale)} {phase.budget}</Text>
             )}
           </View>
         ))}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Handlungsempfehlungen */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>
           {data.archetype ? `${ARCHETYPE_LABELS[data.archetype] ?? data.archetype} · ` : ''}AI-Roadmap · Enterprise AI Navigator
         </Text>
@@ -542,7 +671,7 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
 
         {data.phases.length > 0 && (
           <>
-            <Text style={s.h2}>Erste Phase — Fokusthemen</Text>
+            <Text style={s.h2}>{pt('first_phase_focus', locale)}</Text>
             <View wrap={false} style={[s.card, { borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[0] }]}>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>{data.phases[0].title}</Text>
               {data.phases[0].focus && <Text style={{ fontSize: 10, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{data.phases[0].focus}</Text>}
@@ -556,8 +685,8 @@ export function renderRoadmapPdf(data: RoadmapPdfData): ReactElement {
           </>
         )}
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -610,7 +739,7 @@ function canvasRecs(d: CanvasData): Rec3[] {
   ]
 }
 
-export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
+export function renderCanvasPdf(data: CanvasPdfData, locale = 'de'): ReactElement {
   return (
     <Document title="AI Use-Case Canvas">
       {/* Seite 1: Deckblatt */}
@@ -618,79 +747,80 @@ export function renderCanvasPdf(data: CanvasPdfData): ReactElement {
         title={data.title}
         subtitle={data.archetype ? ARCHETYPE_LABELS[data.archetype] : undefined}
         companyName={data.companyName}
+        locale={locale}
       />
 
       {/* Seite 2: Canvas-Felder */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.title}</Text>
         <Text style={s.sub}>
           AI Use-Case Canvas{data.archetype ? ` · ${ARCHETYPE_LABELS[data.archetype] ?? data.archetype}` : ''} · Enterprise AI Navigator
         </Text>
 
-        <Text style={s.h2}>Problem &amp; Lösung</Text>
+        <Text style={s.h2}>{pt('problem_solution', locale)}</Text>
         <View style={[s.row, { marginBottom: 8 }]}>
           <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>PROBLEM / OPPORTUNITÄT</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('problem_opp', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.problem ?? '–'}</Text>
           </View>
           <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>KI-LÖSUNG</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('ai_solution', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.solution ?? '–'}</Text>
           </View>
         </View>
 
-        <Text style={s.h2}>Daten &amp; Stakeholder</Text>
+        <Text style={s.h2}>{pt('data_stakeholders', locale)}</Text>
         <View style={[s.row, { marginBottom: 8 }]}>
           <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>DATENQUELLEN</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('data_sources_cap', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.data_sources ?? '–'}</Text>
           </View>
           <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>STAKEHOLDER</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('stakeholders_cap', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.stakeholders ?? '–'}</Text>
           </View>
         </View>
 
-        <Text style={s.h2}>Erfolgsindikatoren &amp; Risiken</Text>
+        <Text style={s.h2}>{pt('success_risks', locale)}</Text>
         <View style={[s.row, { marginBottom: 8 }]}>
           <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>KPIS / ERFOLGSINDIKATOREN</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('kpi_success', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.kpis ?? '–'}</Text>
           </View>
           <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>RISIKEN</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('risks_cap', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.risks ?? '–'}</Text>
           </View>
         </View>
 
-        <Text style={s.h2}>Umsetzung</Text>
+        <Text style={s.h2}>{pt('implementation', locale)}</Text>
         <View style={[s.row, { marginBottom: 8 }]}>
           <View style={{ flex: 1, marginRight: 8, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>TECHNISCHE ARCHITEKTUR</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('tech_arch', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.architecture ?? '–'}</Text>
           </View>
           <View style={{ flex: 1, backgroundColor: C.light, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 10 }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>NÄCHSTE SCHRITTE</Text>
+            <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.gray, marginBottom: 4 }}>{pt('next_steps_cap', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark2 }}>{data.data?.next_steps ?? '–'}</Text>
           </View>
         </View>
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Handlungsempfehlungen */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
-        <Text style={s.sub}>AI Use-Case Canvas · Enterprise AI Navigator</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
+        <Text style={s.sub}>{pt('canvas_sub', locale)}</Text>
 
         {canvasRecs(data.data ?? {}).map((rec, i) => (
           <RecCard3 key={i} rec={rec} index={i} color={C.brand} />
         ))}
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -711,13 +841,15 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
   pending:       { label: 'Ausstehend',      color: C.neutral, bg: C.neutralBg },
 }
 
-export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
+export function renderCompliancePdf(data: CompliancePdfData, locale = 'de'): ReactElement {
+  const l = pdfLoc(locale)
+  const statusCfg = locale === 'en' ? STATUS_CFG_EN : STATUS_CFG
   // Build label lookup from config
   const labelMap = new Map<string, string>()
   for (const items of Object.values(EU_AI_ACT_OBLIGATIONS)) {
-    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label.de}`)
+    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label[l]}`)
   }
-  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label.de}`)
+  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label[l]}`)
 
   const byReg = new Map<string, ComplianceCheck[]>()
   for (const c of data.checks) {
@@ -727,7 +859,7 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
 
   const riskClassCheck = data.checks.find(c => c.regulation === 'eu_ai_act' && c.check_type === 'risk_class')
   const riskClassName = riskClassCheck?.notes
-    ? EU_AI_ACT_RISK_CLASSES.find(r => r.id === riskClassCheck.notes)?.title.de ?? riskClassCheck.notes
+    ? EU_AI_ACT_RISK_CLASSES.find(r => r.id === riskClassCheck.notes)?.title[l] ?? riskClassCheck.notes
     : null
 
   const matrixCheck = data.checks.find(c => c.regulation === 'risk_matrix' && c.check_type === 'position')
@@ -736,7 +868,7 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
     try {
       const pos = JSON.parse(matrixCheck.notes) as { impact: number; probability: number }
       const lvl = getRiskLevel(pos.impact, pos.probability)
-      matrixSummary = `${lvl.label.de} (Auswirkung ${RISK_MATRIX.impactLabels[pos.impact - 1].de}, Wahrscheinlichkeit ${RISK_MATRIX.probabilityLabels[pos.probability - 1].de})`
+      matrixSummary = `${lvl.label[l]} (${pt('impact_label', locale)} ${RISK_MATRIX.impactLabels[pos.impact - 1][l]}, ${pt('probability_label', locale)} ${RISK_MATRIX.probabilityLabels[pos.probability - 1][l]})`
     } catch { /* ignore */ }
   }
 
@@ -797,7 +929,7 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
       <View style={{ marginBottom: 16 }}>
         <Text style={s.h2}>{title}</Text>
         {items.map((c, i) => {
-          const st = STATUS_CFG[c.status] ?? STATUS_CFG.pending
+          const st = statusCfg[c.status] ?? statusCfg.pending
           const label = labelMap.get(c.check_type) ?? c.check_type
           return (
             <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white', alignItems: 'flex-start' }]}>
@@ -827,44 +959,44 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
 
       {/* Seite 2: Checklisten (bisherige Seite 1 — gap-Fix in Summary-Cards) */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>Compliance Status Report</Text>
         <Text style={s.sub}>EU AI Act · DSGVO · Risikomatrix · Enterprise AI Navigator</Text>
 
         <View style={[s.row, { marginBottom: 18 }]}>
           {riskClassName && (
             <View style={[s.card, { flex: 2, padding: 10, marginBottom: 0, marginRight: 8 }]}>
-              <Text style={{ fontSize: 8, color: C.gray, marginBottom: 3 }}>EU AI Act Risikoklasse</Text>
+              <Text style={{ fontSize: 8, color: C.gray, marginBottom: 3 }}>{pt('risk_class_label', locale)}</Text>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark }}>{riskClassName}</Text>
             </View>
           )}
           <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0, marginRight: 8 }]}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: C.brand }}>{euDone}/{euChecks.length}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>EU AI Act Pflichten</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>{pt('eu_obligations', locale)}</Text>
           </View>
           <View style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0 }]}>
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: C.ok }}>{dsgvoDone}/{dsgvoChecks.length}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>DSGVO-Punkte</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>{pt('gdpr_points', locale)}</Text>
           </View>
         </View>
 
         {matrixSummary && (
           <View style={[s.card, { marginBottom: 14 }]}>
-            <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>Risikoniveau</Text>
+            <Text style={{ fontSize: 9, color: C.gray, marginBottom: 2 }}>{pt('risk_level', locale)}</Text>
             <Text style={{ fontSize: 10, color: C.dark }}>{matrixSummary}</Text>
           </View>
         )}
 
-        {renderSection('EU AI Act — Pflichten-Checkliste', euChecks)}
-        {renderSection('DSGVO-Checkliste', dsgvoChecks)}
+        {renderSection(pt('eu_checklist', locale), euChecks)}
+        {renderSection(pt('gdpr_checklist', locale), dsgvoChecks)}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Handlungsempfehlungen (bisherige Seite 2 — mit RecCard3) */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>Compliance Status Report · Enterprise AI Navigator</Text>
 
         {complianceRecs.map((item, i) => {
@@ -873,14 +1005,14 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
         })}
 
         <View wrap={false} style={{ marginTop: 16, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
-          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>Nächster Schritt</Text>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 6 }}>{pt('next_step', locale)}</Text>
           <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
             Governance-Check im AI Navigator für jeden High-Score-Use-Case durchführen — Pflicht nach EU AI Act für Hochrisiko-Anwendungen (Art. 6, Annex III).
           </Text>
         </View>
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -909,7 +1041,7 @@ const ARCHITECTURE_RECS: Rec3[] = [
   },
 ]
 
-export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
+export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'): ReactElement {
   return (
     <Document title="AI-Architektur">
       {/* Seite 1: Deckblatt */}
@@ -917,13 +1049,14 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
         title={data.title}
         subtitle={data.result?.pattern ?? undefined}
         companyName={data.companyName}
+        locale={locale}
       />
 
       {/* Seite 2: Architektur-Ebenen + Next Steps */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.title}</Text>
-        <Text style={s.sub}>AI-Architektur · {data.result?.pattern ?? ''} · Enterprise AI Navigator</Text>
+        <Text style={s.sub}>{locale === 'en' ? 'AI Architecture' : 'AI-Architektur'} · {data.result?.pattern ?? ''} · Enterprise AI Navigator</Text>
 
         {data.result?.description && (
           <View style={[s.card, { marginBottom: 16 }]}>
@@ -931,7 +1064,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
           </View>
         )}
 
-        <Text style={s.h2}>Architektur-Ebenen</Text>
+        <Text style={s.h2}>{pt('arch_layers', locale)}</Text>
         {(data.result?.layers ?? []).map((layer, i) => (
           <View key={i} wrap={false} style={{ marginBottom: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 }}>
             <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark2 }}>{layer.name}</Text>
@@ -949,7 +1082,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
 
         {(data.result?.nextSteps ?? []).length > 0 && (
           <>
-            <Text style={s.h2}>Empfohlene Nächste Schritte</Text>
+            <Text style={s.h2}>{pt('recommended_next', locale)}</Text>
             {data.result!.nextSteps!.map((step, i) => (
               <View key={i} style={[s.row, { marginBottom: 4, alignItems: 'flex-start' }]}>
                 <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.brand, marginRight: 7, marginTop: 3 }} />
@@ -959,21 +1092,21 @@ export function renderArchitecturePdf(data: ArchitecturePdfData): ReactElement {
           </>
         )}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* Seite 3: Architektur-Best-Practices */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Architektur-Empfehlungen</Text>
-        <Text style={s.sub}>AI-Architektur · Enterprise AI Navigator</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('arch_recs', locale)}</Text>
+        <Text style={s.sub}>{pt('arch_sub', locale)}</Text>
 
         {ARCHITECTURE_RECS.map((rec, i) => (
           <RecCard3 key={i} rec={rec} index={i} color={C.brand} />
         ))}
 
-        <PdfLegalNote />
-        <PdfFooterEs company={data.companyName} />
+        <PdfLegalNote locale={locale} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
@@ -1108,7 +1241,13 @@ function archRecs(data: ExecutiveSummaryPdfData): string[] {
   return recs.slice(0, 6)
 }
 
-export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactElement {
+export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData, locale = 'de'): ReactElement {
+  const l = pdfLoc(locale)
+  const dimLabels = locale === 'en' ? DIM_LABELS_EN : DIM_LABELS_ES
+  const govCfgEs  = locale === 'en' ? GOV_CFG_ES_EN : GOV_CFG_ES
+  const quadrantEs = locale === 'en' ? QUADRANT_ES_EN : QUADRANT_ES
+  const canvasLabels = locale === 'en' ? CANVAS_LABELS_EN : CANVAS_LABELS_ES
+
   const score      = data.assessment?.totalScore ?? 0
   const govResult  = data.governance?.result ?? ''
   const completionPct = data.completedModules / Math.max(data.totalModules, 1)
@@ -1118,13 +1257,21 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
     (score > 0 && score < 2.5) || govResult.startsWith('stop') ? 'rot' :
     score >= 4 && completionPct >= 0.7 ? 'gruen' : 'gelb'
 
+  const scoreStr = score > 0 ? score.toFixed(1) : '–'
+  const modStr = `${data.completedModules}/${data.totalModules}`
   const AMPEL: Record<string, { label: string; color: string; bg: string; text: string; desc: string }> = {
-    gruen: { label: 'Bereit zur Skalierung',      color: C.ok,     bg: C.greenBg, text: C.green,
-      desc: `Mit einem Score von ${score > 0 ? score.toFixed(1) : '–'}/5,0 und ${data.completedModules}/${data.totalModules} abgeschlossenen Modulen ist Ihr Unternehmen solide aufgestellt. Jetzt kommt es auf konsequente Skalierung an.` },
-    gelb:  { label: 'Aufbauphase',                color: C.warn,   bg: C.amberBg, text: C.amber,
-      desc: `Score ${score > 0 ? score.toFixed(1) : '–'}/5,0 — die Grundlagen sind vorhanden. Gezielte Investitionen in die identifizierten Lücken sind der Schlüssel zu erfolgreichen KI-Projekten.` },
-    rot:   { label: 'Kritischer Handlungsbedarf', color: C.danger, bg: C.redBg,   text: C.red,
-      desc: `Score ${score > 0 ? score.toFixed(1) : '–'}/5,0 — bevor KI-Projekte starten, müssen die kritischen Grundlagenfelder adressiert werden. Strukturiertes Aufbauprogramm spart langfristig erhebliche Kosten.` },
+    gruen: { label: pt('ready_scale', locale), color: C.ok,     bg: C.greenBg, text: C.green,
+      desc: locale === 'en'
+        ? `With a score of ${scoreStr}/5.0 and ${modStr} completed modules, your organisation is well positioned. Now it's time to scale consistently.`
+        : `Mit einem Score von ${scoreStr}/5,0 und ${modStr} abgeschlossenen Modulen ist Ihr Unternehmen solide aufgestellt. Jetzt kommt es auf konsequente Skalierung an.` },
+    gelb:  { label: pt('build_phase', locale),  color: C.warn,   bg: C.amberBg, text: C.amber,
+      desc: locale === 'en'
+        ? `Score ${scoreStr}/5.0 — the foundations are in place. Targeted investments in identified gaps are the key to successful AI projects.`
+        : `Score ${scoreStr}/5,0 — die Grundlagen sind vorhanden. Gezielte Investitionen in die identifizierten Lücken sind der Schlüssel zu erfolgreichen KI-Projekten.` },
+    rot:   { label: pt('critical_action', locale), color: C.danger, bg: C.redBg,   text: C.red,
+      desc: locale === 'en'
+        ? `Score ${scoreStr}/5.0 — before starting AI projects, the critical foundational areas must be addressed. A structured build-up programme saves considerable costs in the long run.`
+        : `Score ${scoreStr}/5,0 — bevor KI-Projekte starten, müssen die kritischen Grundlagenfelder adressiert werden. Strukturiertes Aufbauprogramm spart langfristig erhebliche Kosten.` },
   }
   const ampel = AMPEL[ampelKey]
   const top3  = boardRecs(data).slice(0, 3)
@@ -1141,7 +1288,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <View style={{ backgroundColor: C.brand, height: 5 }} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 60 }}>
           <Text style={{ fontSize: 36, fontWeight: 'bold', color: C.brand, marginBottom: 6 }}>AI Navigator</Text>
-          <Text style={{ fontSize: 10, color: C.gray2, letterSpacing: 2, marginBottom: 50 }}>ENTERPRISE AI. STRUKTURIERT NAVIGIERT.</Text>
+          <Text style={{ fontSize: 10, color: C.gray2, letterSpacing: 2, marginBottom: 50 }}>{pt('enterprise_tagline', locale)}</Text>
           <View style={{ width: 200, height: 1, backgroundColor: C.brand, marginBottom: 50 }} />
           <Text style={{ fontSize: 9, color: C.gray, letterSpacing: 3, marginBottom: 14 }}>EXECUTIVE SUMMARY</Text>
           {data.companyName ? (
@@ -1149,17 +1296,17 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               {data.companyName}
             </Text>
           ) : null}
-          <Text style={{ fontSize: 9, color: C.gray, marginTop: 20 }}>Erstellt am {formatDate(new Date())}</Text>
+          <Text style={{ fontSize: 9, color: C.gray, marginTop: 20 }}>{pt('created_on', locale)} {pdfDate(locale)}</Text>
         </View>
         <View style={{ paddingHorizontal: 60, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.dark2, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={{ fontSize: 9, color: C.gray }}>enterprise-ai.biz</Text>
-          <Text style={{ fontSize: 9, color: C.gray }}>{data.completedModules}/{data.totalModules} Module abgeschlossen</Text>
+          <Text style={{ fontSize: 9, color: C.gray }}>{data.completedModules}/{data.totalModules} {pt('modules_completed', locale)}</Text>
         </View>
       </Page>
 
       {/* ── SEITE 2: EXECUTIVE SUMMARY ─────────────────────────────────────── */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>Executive Summary</Text>
 
         {/* Gesamtstatus — volle Breite, kein split */}
@@ -1180,22 +1327,22 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         <View wrap={false} style={{ flexDirection: 'row', marginBottom: 14 }}>
           <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: 6 }]}>
             <Text style={{ fontSize: 22, fontWeight: 'bold', color: scoreColor }}>{score > 0 ? score.toFixed(1) : '–'}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Readiness Score{'\n'}/5,0</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>{pt('score_kpi', locale)}</Text>
           </View>
           <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: 6 }]}>
             <Text style={{ fontSize: 22, fontWeight: 'bold', color: C.brand }}>{data.useCaseCount}</Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Use Cases{'\n'}bewertet</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>{pt('uc_evaluated', locale)}</Text>
           </View>
           <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0, marginRight: data.governance ? 6 : 0 }]}>
             <Text style={{ fontSize: 22, fontWeight: 'bold', color: completionPct >= 0.8 ? C.ok : C.warn }}>
               {data.completedModules}/{data.totalModules}
             </Text>
-            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>Module{'\n'}abgeschlossen</Text>
+            <Text style={{ fontSize: 8, color: C.gray, marginTop: 2, textAlign: 'center' }}>{pt('modules_kpi', locale)}</Text>
           </View>
           {data.governance ? (
             <View style={[s.card, { flex: 1, alignItems: 'center', paddingVertical: 10, marginBottom: 0 }]}>
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: GOV_CFG_ES[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
-                {GOV_CFG_ES[data.governance.result]?.label ?? '–'}
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: govCfgEs[data.governance.result]?.color ?? C.gray, textAlign: 'center' }}>
+                {govCfgEs[data.governance.result]?.label ?? '–'}
               </Text>
               <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>Governance</Text>
             </View>
@@ -1203,7 +1350,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         </View>
 
         {/* Top-3 Empfehlungen */}
-        <Text style={s.h2}>Top-3 Handlungsempfehlungen</Text>
+        <Text style={s.h2}>{pt('top3_recs', locale)}</Text>
         {top3.map((rec, i) => (
           <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
             <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
@@ -1214,7 +1361,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         ))}
 
         {/* Modulübersicht — explizite Rows à 3, kein flexWrap+% */}
-        <Text style={s.h2}>Modulübersicht</Text>
+        <Text style={s.h2}>{pt('module_overview', locale)}</Text>
         {moduleRows.map((row, ri) => (
           <View key={ri} style={{ flexDirection: 'row', marginBottom: 5 }}>
             {row.map((m, ci) => (
@@ -1232,7 +1379,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
           </View>
         ))}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* ── SEITE 3: ASSESSMENT ────────────────────────────────────────────── */}
@@ -1251,13 +1398,13 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         }
         return (
           <Page size="A4" style={s.page}>
-            <PdfHeader company={data.companyName} />
+            <PdfHeader company={data.companyName} locale={locale} />
 
             {/* Score-Banner mit Stärken/Schwächen-Fazit */}
             <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: scoreColor, padding: 14, marginBottom: 14, flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ alignItems: 'center', marginRight: 14, minWidth: 56 }}>
                 <Text style={{ fontSize: 34, fontWeight: 'bold', color: scoreColor, lineHeight: 1 }}>{data.assessment!.totalScore.toFixed(1)}</Text>
-                <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>/ 5,0</Text>
+                <Text style={{ fontSize: 8, color: C.gray, marginTop: 2 }}>{locale === 'en' ? '/ 5.0' : '/ 5,0'}</Text>
               </View>
               <View style={{ width: 1, height: 48, backgroundColor: C.border, marginRight: 14 }} />
               <View style={{ flex: 1 }}>
@@ -1266,28 +1413,28 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
                 </Text>
                 {strongest && weakest ? (
                   <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4 }}>
-                    Stärkstes Feld: {DIM_LABELS_ES[strongest[0]] ?? strongest[0]} ({Number(strongest[1]).toFixed(1)}/5,0).
-                    {' '}Größter Hebel: {DIM_LABELS_ES[weakest[0]] ?? weakest[0]} ({Number(weakest[1]).toFixed(1)}/5,0).
+                    {pt('strongest_field', locale)} {dimLabels[strongest[0]] ?? strongest[0]} ({Number(strongest[1]).toFixed(1)}{locale === 'en' ? '/5.0' : '/5,0'}).
+                    {' '}{pt('biggest_lever', locale)} {dimLabels[weakest[0]] ?? weakest[0]} ({Number(weakest[1]).toFixed(1)}{locale === 'en' ? '/5.0' : '/5,0'}).
                   </Text>
                 ) : null}
               </View>
             </View>
 
-            <Text style={s.h2}>6 Dimensionen</Text>
+            <Text style={s.h2}>{pt('six_dimensions', locale)}</Text>
             {sorted.map(([dim, dimScore]) => {
               const n   = Number(dimScore)
               const col = n >= 4 ? C.ok : n >= 3 ? C.warn : C.danger
               return (
                 <View key={dim} wrap={false} style={{ marginBottom: 9 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{DIM_LABELS_ES[dim] ?? dim}</Text>
-                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} / 5,0</Text>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{dimLabels[dim] ?? dim}</Text>
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: col }}>{n.toFixed(1)} {locale === 'en' ? '/ 5.0' : '/ 5,0'}</Text>
                   </View>
                   <View style={{ backgroundColor: C.border, borderRadius: 3, height: 8, marginBottom: 2 }}>
                     <View style={{ backgroundColor: col, borderRadius: 3, height: 8, width: `${Math.round((n / 5) * 100)}%` }} />
                   </View>
                   <Text style={{ fontSize: 8, color: C.gray }}>
-                    {n >= 4 ? 'Stärke — ausbauen und als Vorteil nutzen' : n >= 3 ? 'Solide Basis — gezielt ausbauen' : 'Handlungsbedarf — mit Priorität adressieren'}
+                    {n >= 4 ? pt('dim_strength', locale) : n >= 3 ? pt('dim_solid', locale) : pt('dim_action', locale)}
                   </Text>
                 </View>
               )
@@ -1297,13 +1444,13 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               const gaps = sorted.slice(-2).filter(([, v]) => Number(v) < 4).reverse()
               return gaps.length > 0 ? (
                 <>
-                  <Text style={s.h2}>Prioritäre Handlungsfelder</Text>
+                  <Text style={s.h2}>{pt('priority_fields', locale)}</Text>
                   {gaps.map(([dim, gs], i) => (
                     <View key={dim} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.danger, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
                       <Text style={{ fontSize: 9, color: C.danger, fontWeight: 'bold', marginRight: 8 }}>{i + 1}.</Text>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>
-                          {DIM_LABELS_ES[dim] ?? dim} — Score {Number(gs).toFixed(1)}/5,0
+                          {dimLabels[dim] ?? dim} — Score {Number(gs).toFixed(1)}{locale === 'en' ? '/5.0' : '/5,0'}
                         </Text>
                         <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>{gapActions[dim] ?? ''}</Text>
                       </View>
@@ -1313,7 +1460,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               ) : null
             })()}
 
-            <PdfFooterEs company={data.companyName} />
+            <PdfFooterEs company={data.companyName} locale={locale} />
           </Page>
         )
       })() : null}
@@ -1325,26 +1472,30 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         const topUC   = data.topUseCases[0]
         const qwCount = counts.quick_win
         const quadrantMeta = [
-          { key: 'quick_win',         label: 'Quick Win',    color: C.ok,     bg: C.greenBg,  note: 'Sofort pilotieren' },
-          { key: 'strategic_bet',     label: 'Strategisch',  color: C.brand,  bg: '#dbeafe',  note: 'Budgetieren' },
-          { key: 'low_hanging_fruit', label: 'Niedr. Aufw.', color: C.warn,   bg: C.amberBg,  note: 'Evaluieren' },
-          { key: 'avoid',             label: 'Vermeiden',    color: C.danger, bg: C.redBg,    note: 'Zurückstellen' },
+          { key: 'quick_win',         label: quadrantEs['quick_win'],         color: C.ok,     bg: C.greenBg,  note: pt('qm_sofort', locale) },
+          { key: 'strategic_bet',     label: quadrantEs['strategic_bet'],     color: C.brand,  bg: '#dbeafe',  note: pt('qm_budgetieren', locale) },
+          { key: 'low_hanging_fruit', label: quadrantEs['low_hanging_fruit'], color: C.warn,   bg: C.amberBg,  note: pt('qm_evaluieren', locale) },
+          { key: 'avoid',             label: quadrantEs['avoid'],             color: C.danger, bg: C.redBg,    note: pt('qm_zurueck', locale) },
         ]
         return (
           <Page size="A4" style={s.page}>
-            <PdfHeader company={data.companyName} />
+            <PdfHeader company={data.companyName} locale={locale} />
 
             {/* Insight-Banner */}
             <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12 }}>
               <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>
-                {data.useCaseCount} Use Cases bewertet{qwCount > 0 ? ` · ${qwCount} sofort umsetzbar` : ''}
+                {data.useCaseCount} {locale === 'en' ? 'use cases evaluated' : 'Use Cases bewertet'}{qwCount > 0 ? ` · ${qwCount} ${pt('uc_bewertet_ready', locale)}` : ''}
               </Text>
               {topUC ? (
                 <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>
-                  {'Top-Use-Case: '}
+                  {pt('top_uc_label', locale)}{' '}
                   <Text style={{ fontWeight: 'bold', color: C.dark }}>{topUC.name}</Text>
                   {topUC.weightedScore != null ? ` (Score ${topUC.weightedScore.toFixed(2)})` : ''}
-                  {topUC.quadrant === 'quick_win' ? ' — Quick Win: hoher Wert bei geringem Aufwand. Sofort pilotieren.' : topUC.quadrant === 'strategic_bet' ? ' — Strategisch: langfristiger Wert, Budgetplanung empfohlen.' : ''}
+                  {topUC.quadrant === 'quick_win'
+                    ? (locale === 'en' ? ' — Quick Win: high value, low effort. Pilot now.' : ' — Quick Win: hoher Wert bei geringem Aufwand. Sofort pilotieren.')
+                    : topUC.quadrant === 'strategic_bet'
+                    ? (locale === 'en' ? ' — Strategic: long-term value, budget planning recommended.' : ' — Strategisch: langfristiger Wert, Budgetplanung empfohlen.')
+                    : ''}
                 </Text>
               ) : null}
             </View>
@@ -1360,15 +1511,15 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               ))}
             </View>
 
-            <Text style={s.h2}>Top Use Cases nach Score</Text>
+            <Text style={s.h2}>{pt('top_ucs_score', locale)}</Text>
             <View style={{ flexDirection: 'row', backgroundColor: C.dark2, borderRadius: 4 }}>
               <Text style={[s.th, { flex: 3 }]}>Use Case</Text>
-              <Text style={[s.th, { flex: 1.2 }]}>Domäne</Text>
+              <Text style={[s.th, { flex: 1.2 }]}>{pt('col_domain', locale)}</Text>
               <Text style={[s.th, { flex: 0.8, textAlign: 'center' }]}>Score</Text>
-              <Text style={[s.th, { flex: 1.5 }]}>Kategorie</Text>
+              <Text style={[s.th, { flex: 1.5 }]}>{pt('col_category', locale)}</Text>
             </View>
             {data.topUseCases.map((uc, i) => {
-              const qLabel = QUADRANT_ES[uc.quadrant ?? ''] ?? '–'
+              const qLabel = quadrantEs[uc.quadrant ?? ''] ?? '–'
               const qColor = uc.quadrant === 'quick_win' ? C.ok : uc.quadrant === 'avoid' ? C.danger : uc.quadrant === 'strategic_bet' ? C.brand : C.warn
               return (
                 <View key={i} wrap={false} style={{ flexDirection: 'row', backgroundColor: i % 2 === 1 ? C.light : 'white' }}>
@@ -1383,26 +1534,32 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             })}
             {data.useCaseCount > data.topUseCases.length ? (
               <Text style={{ fontSize: 8, color: C.gray, marginTop: 6, textAlign: 'center' }}>
-                + {data.useCaseCount - data.topUseCases.length} weitere Use Cases im vollständigen Portfolio
+                + {data.useCaseCount - data.topUseCases.length} {pt('more_ucs', locale)}
               </Text>
             ) : null}
 
-            <PdfFooterEs company={data.companyName} />
+            <PdfFooterEs company={data.companyName} locale={locale} />
           </Page>
         )
       })() : null}
 
       {/* ── SEITE 5: GOVERNANCE ────────────────────────────────────────────── */}
       {data.governance ? (() => {
-        const cfg = GOV_CFG_ES[data.governance!.result]
+        const cfg = govCfgEs[data.governance!.result]
         const resultDesc = data.governance!.result === 'approve'
-          ? 'Der Use Case hat die ethische, rechtliche und EU AI Act-Prüfung bestanden. Umsetzung kann beginnen.'
+          ? (locale === 'en'
+            ? 'The use case has passed ethical, legal, and EU AI Act review. Implementation can begin.'
+            : 'Der Use Case hat die ethische, rechtliche und EU AI Act-Prüfung bestanden. Umsetzung kann beginnen.')
           : data.governance!.result === 'conditional'
-          ? 'Umsetzung möglich unter Auflagen — die identifizierten Bedingungen müssen vor Go-Live erfüllt sein.'
-          : 'Umsetzung gestoppt — kritische Compliance-Blocker müssen behoben werden, bevor das Projekt fortgeführt wird.'
+          ? (locale === 'en'
+            ? 'Implementation possible with conditions — the identified requirements must be met before go-live.'
+            : 'Umsetzung möglich unter Auflagen — die identifizierten Bedingungen müssen vor Go-Live erfüllt sein.')
+          : (locale === 'en'
+            ? 'Implementation stopped — critical compliance blockers must be resolved before the project can continue.'
+            : 'Umsetzung gestoppt — kritische Compliance-Blocker müssen behoben werden, bevor das Projekt fortgeführt wird.')
         return (
           <Page size="A4" style={s.page}>
-            <PdfHeader company={data.companyName} />
+            <PdfHeader company={data.companyName} locale={locale} />
 
             <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: cfg?.color ?? C.border, backgroundColor: cfg?.bg ?? C.light, padding: 14, marginBottom: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
@@ -1420,7 +1577,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
               <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.5 }}>{resultDesc}</Text>
             </View>
 
-            <Text style={s.h2}>Prüfprotokoll</Text>
+            <Text style={s.h2}>{pt('review_protocol', locale)}</Text>
             {data.governance!.protocol && data.governance!.protocol.length > 0 ? (
               data.governance!.protocol.slice(0, 14).map((step, i) => {
                 const q = step.question ?? step.label ?? ''
@@ -1434,10 +1591,10 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
                 )
               })
             ) : (
-              <Text style={{ fontSize: 9, color: C.gray }}>Kein Protokoll verfügbar.</Text>
+              <Text style={{ fontSize: 9, color: C.gray }}>{pt('gov_no_protocol', locale)}</Text>
             )}
 
-            <PdfFooterEs company={data.companyName} />
+            <PdfFooterEs company={data.companyName} locale={locale} />
           </Page>
         )
       })() : null}
@@ -1445,12 +1602,12 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
       {/* ── SEITE 6: ROADMAP ───────────────────────────────────────────────── */}
       {data.roadmap ? (
         <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
+          <PdfHeader company={data.companyName} locale={locale} />
 
           <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ backgroundColor: C.brand, borderRadius: 5, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', marginRight: 14, minWidth: 56 }}>
               <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'white' }}>{data.roadmap.phases.length}</Text>
-              <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.8)' }}>Phasen</Text>
+              <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.8)' }}>{pt('phasen_label', locale)}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>{data.roadmap.title}</Text>
@@ -1481,18 +1638,18 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             </View>
           ))}
 
-          <PdfFooterEs company={data.companyName} />
+          <PdfFooterEs company={data.companyName} locale={locale} />
         </Page>
       ) : null}
 
       {/* ── SEITE 7: CANVAS ────────────────────────────────────────────────── */}
       {data.canvas ? (
         <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
+          <PdfHeader company={data.companyName} locale={locale} />
 
           <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12 }}>
             <Text style={{ fontSize: 13, fontWeight: 'bold', color: C.dark, marginBottom: 2 }}>{data.canvas.title}</Text>
-            <Text style={{ fontSize: 9, color: C.gray }}>AI Use-Case Canvas · 8 Felder</Text>
+            <Text style={{ fontSize: 9, color: C.gray }}>{pt('canvas_8_fields', locale)}</Text>
           </View>
 
           {/* 2-Spalten-Grid als explizite Rows — kein flexWrap+% */}
@@ -1505,7 +1662,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
                 {row.map((key, ci) => (
                   <View key={key} style={[s.card, { flex: 1, marginRight: ci === 0 ? 8 : 0, marginBottom: 0 }]}>
                     <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.brand, marginBottom: 3 }}>
-                      {CANVAS_LABELS_ES[key] ?? key}
+                      {canvasLabels[key] ?? key}
                     </Text>
                     <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.4 }}>
                       {(data.canvas!.data[key] ?? '').length > 180
@@ -1518,19 +1675,19 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             ))
           })()}
 
-          <PdfFooterEs company={data.companyName} />
+          <PdfFooterEs company={data.companyName} locale={locale} />
         </Page>
       ) : null}
 
       {/* ── SEITE 8: ARCHITEKTUR ───────────────────────────────────────────── */}
       {data.architecture ? (
         <Page size="A4" style={s.page}>
-          <PdfHeader company={data.companyName} />
+          <PdfHeader company={data.companyName} locale={locale} />
 
           <View wrap={false} style={{ borderRadius: 6, borderWidth: 1, borderColor: C.brand, backgroundColor: C.light, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ backgroundColor: C.dark, borderRadius: 5, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', marginRight: 14, minWidth: 70 }}>
               <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.brand }}>{data.architecture.result.pattern}</Text>
-              <Text style={{ fontSize: 7, color: C.gray2, marginTop: 2 }}>Muster</Text>
+              <Text style={{ fontSize: 7, color: C.gray2, marginTop: 2 }}>{pt('pattern_label', locale)}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>{data.architecture.title}</Text>
@@ -1540,7 +1697,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             </View>
           </View>
 
-          <Text style={s.h2}>Architektur-Schichten</Text>
+          <Text style={s.h2}>{pt('arch_layers_es', locale)}</Text>
           {data.architecture.result.layers.map((layer, i) => (
             <View key={i} wrap={false} style={[s.card, { marginBottom: 7 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -1561,7 +1718,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
 
           {data.architecture.result.nextSteps && data.architecture.result.nextSteps.length > 0 ? (
             <>
-              <Text style={s.h2}>Nächste Schritte</Text>
+              <Text style={s.h2}>{pt('next_steps_es', locale)}</Text>
               {data.architecture.result.nextSteps.slice(0, 4).map((step, i) => (
                 <View key={i} wrap={false} style={{ flexDirection: 'row', marginBottom: 5 }}>
                   <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.brand, marginRight: 5 }}>{i + 1}.</Text>
@@ -1571,41 +1728,56 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
             </>
           ) : null}
 
-          <PdfFooterEs company={data.companyName} />
+          <PdfFooterEs company={data.companyName} locale={locale} />
         </Page>
       ) : null}
 
       {/* ── SEITE 9: COMPLIANCE ────────────────────────────────────────────── */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Compliance-Überblick</Text>
-        <Text style={s.sub}>Regulatorischer Rahmen für Enterprise AI · Stand 2026</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('compliance_overview', locale)}</Text>
+        <Text style={s.sub}>{pt('compliance_sub', locale)}</Text>
 
         {[
           {
             name: 'EU AI Act', articles: 'Art. 6–10, 13–17, 69',
-            scope: 'Risikoklassifizierung von KI-Systemen, Hochrisiko-Pflichten (Dokumentation, Audit-Log, menschliche Aufsicht), Transparenz gegenüber Nutzern.',
-            status: govResult.startsWith('stop') ? 'Stopp — Sofortmaßnahme'
-              : govResult === 'approve' ? 'Geprüft — Freigegeben'
-              : govResult === 'conditional' ? 'Geprüft — Auflagen'
-              : 'Ausstehend',
+            scope: locale === 'en'
+              ? 'Risk classification of AI systems, high-risk obligations (documentation, audit log, human oversight), transparency towards users.'
+              : 'Risikoklassifizierung von KI-Systemen, Hochrisiko-Pflichten (Dokumentation, Audit-Log, menschliche Aufsicht), Transparenz gegenüber Nutzern.',
+            status: govResult.startsWith('stop')
+              ? (locale === 'en' ? 'Stop — Immediate Action' : 'Stopp — Sofortmaßnahme')
+              : govResult === 'approve'
+              ? (locale === 'en' ? 'Reviewed — Approved' : 'Geprüft — Freigegeben')
+              : govResult === 'conditional'
+              ? (locale === 'en' ? 'Reviewed — Conditions' : 'Geprüft — Auflagen')
+              : (locale === 'en' ? 'Pending' : 'Ausstehend'),
             color: govResult.startsWith('stop') ? C.danger : govResult === 'approve' ? C.ok : govResult === 'conditional' ? C.warn : C.gray,
           },
           {
             name: 'DSGVO / GDPR', articles: 'Art. 5, 22, 25, 35',
-            scope: 'Datenminimierung, Zweckbindung, automatisierte Entscheidungen (Art. 22), Datenschutz-Folgenabschätzung (DSFA) bei Hochrisiko-AI (Art. 35).',
-            status: govResult === 'stop_dsgvo' ? 'Prüfung erforderlich' : govResult === 'approve' ? 'Geprüft' : 'Ausstehend',
+            scope: locale === 'en'
+              ? 'Data minimisation, purpose limitation, automated decisions (Art. 22), Data Protection Impact Assessment (DPIA) for high-risk AI (Art. 35).'
+              : 'Datenminimierung, Zweckbindung, automatisierte Entscheidungen (Art. 22), Datenschutz-Folgenabschätzung (DSFA) bei Hochrisiko-AI (Art. 35).',
+            status: govResult === 'stop_dsgvo'
+              ? (locale === 'en' ? 'Review required' : 'Prüfung erforderlich')
+              : govResult === 'approve'
+              ? (locale === 'en' ? 'Reviewed' : 'Geprüft')
+              : (locale === 'en' ? 'Pending' : 'Ausstehend'),
             color: govResult === 'stop_dsgvo' ? C.warn : govResult === 'approve' ? C.ok : C.gray,
           },
           {
             name: 'ISO 27001', articles: 'Annex A.8, A.12',
-            scope: 'Informationssicherheits-Management, Zugriffssteuerung für AI-Modelle und Trainingsdaten, Incident-Response für AI-Systeme.',
-            status: 'Eigenverantwortlich prüfen', color: C.gray,
+            scope: locale === 'en'
+              ? 'Information security management, access control for AI models and training data, incident response for AI systems.'
+              : 'Informationssicherheits-Management, Zugriffssteuerung für AI-Modelle und Trainingsdaten, Incident-Response für AI-Systeme.',
+            status: locale === 'en' ? 'Self-assess' : 'Eigenverantwortlich prüfen', color: C.gray,
           },
           {
             name: 'NIS2-Richtlinie', articles: 'Art. 21, 23',
-            scope: 'Kritische Infrastrukturen: Sicherheitsmaßnahmen für KI-basierte Systeme, Meldepflichten bei AI-Sicherheitsvorfällen (24-Stunden-Frist).',
-            status: 'Eigenverantwortlich prüfen', color: C.gray,
+            scope: locale === 'en'
+              ? 'Critical infrastructure: security measures for AI-based systems, reporting obligations for AI security incidents (24-hour deadline).'
+              : 'Kritische Infrastrukturen: Sicherheitsmaßnahmen für KI-basierte Systeme, Meldepflichten bei AI-Sicherheitsvorfällen (24-Stunden-Frist).',
+            status: locale === 'en' ? 'Self-assess' : 'Eigenverantwortlich prüfen', color: C.gray,
           },
         ].map((reg, i) => (
           <View key={i} wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderRadius: 6, marginBottom: 8 }}>
@@ -1623,24 +1795,24 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
         ))}
 
         <View wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.warn, borderRadius: 6, backgroundColor: C.amberBg, padding: 10, marginTop: 4 }}>
-          <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.amber, marginBottom: 3 }}>Wichtiger Hinweis</Text>
+          <Text style={{ fontSize: 9, fontWeight: 'bold', color: C.amber, marginBottom: 3 }}>{pt('important_note', locale)}</Text>
           <Text style={{ fontSize: 9, color: C.dark, lineHeight: 1.5 }}>
-            Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen.
-            Führen Sie das Compliance Center für die vollständige Checkliste durch.
-            Eine bindende Compliance-Bewertung erfordert individuelle Rechtsberatung.
+            {locale === 'en'
+              ? 'This overview is based on data captured in the AI Navigator and serves as an initial orientation. Run the Compliance Centre for the full checklist. A binding compliance assessment requires individual legal advice.'
+              : 'Dieser Überblick basiert auf den im AI Navigator erfassten Daten und dient als erster Orientierungsrahmen. Führen Sie das Compliance Center für die vollständige Checkliste durch. Eine bindende Compliance-Bewertung erfordert individuelle Rechtsberatung.'}
           </Text>
         </View>
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* ── SEITE 10: STRATEGISCHE EMPFEHLUNGEN ─────────────────────────────── */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Strategische Empfehlungen</Text>
-        <Text style={s.sub}>Individuell abgeleitet aus Ihrer AI-Navigator-Analyse</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('strategic_recs', locale)}</Text>
+        <Text style={s.sub}>{pt('strategic_recs_sub', locale)}</Text>
 
-        <Text style={s.h2}>Für den Vorstand / C-Level</Text>
+        <Text style={s.h2}>{pt('for_board', locale)}</Text>
         {boardRecs(data).map((rec, i) => (
           <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
             <View style={{ backgroundColor: C.brand, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
@@ -1650,7 +1822,7 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
           </View>
         ))}
 
-        <Text style={s.h2}>Für den AI-Architekten / Technical Lead</Text>
+        <Text style={s.h2}>{pt('for_tech_lead', locale)}</Text>
         {archRecs(data).map((rec, i) => (
           <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'flex-start', borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.ok, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
             <View style={{ backgroundColor: C.ok, borderRadius: 9, width: 18, height: 18, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 8, marginTop: 1 }}>
@@ -1662,14 +1834,10 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData): ReactE
 
         <View wrap={false} style={{ marginTop: 12, backgroundColor: C.dark, borderRadius: 8, padding: 14 }}>
           <Text style={{ fontSize: 10, fontWeight: 'bold', color: 'white', marginBottom: 5 }}>Quarterly AI Health Review</Text>
-          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>
-            Assessment, Use-Case-Scoring und Governance-Check quartalsweise wiederholen.
-            AI-Readiness ist kein einmaliges Projekt — die Markt- und Technologielage ändert sich.
-            Nutzen Sie den AI Navigator als kontinuierliches Steuerungsinstrument.
-          </Text>
+          <Text style={{ fontSize: 9, color: C.gray2, lineHeight: 1.5 }}>{pt('quarterly_text', locale)}</Text>
         </View>
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
     </Document>
@@ -1687,19 +1855,20 @@ const QUADRANT_CFG: Record<string, { label: string; color: string; bg: string }>
   avoid:             { label: 'Vermeiden',      color: C.neutral, bg: C.neutralBg },
 }
 
-export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
+export function renderUsecasePdf(data: UsecasePdfData, locale = 'de'): ReactElement {
   const sorted = [...data.useCases].sort((a, b) => (b.weighted_score ?? 0) - (a.weighted_score ?? 0))
-  const counts = Object.fromEntries(Object.keys(QUADRANT_CFG).map(q => [q, data.useCases.filter(u => u.quadrant === q).length]))
+  const quadrantCfg = locale === 'en' ? QUADRANT_CFG_EN : QUADRANT_CFG
+  const counts = Object.fromEntries(Object.keys(quadrantCfg).map(q => [q, data.useCases.filter(u => u.quadrant === q).length]))
 
   return (
     <Document title="Use-Case Portfolio">
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
+        <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.portfolioName}</Text>
         <Text style={s.sub}>Use-Case Portfolio · {data.useCases.length} Use Cases · Enterprise AI Navigator</Text>
 
         <View style={[s.row, { marginBottom: 18 }]}>
-          {Object.entries(QUADRANT_CFG).map(([key, cfg], i, arr) => (
+          {Object.entries(quadrantCfg).map(([key, cfg], i, arr) => (
             <View key={key} style={[s.card, { flex: 1, alignItems: 'center', padding: 10, marginBottom: 0, ...(i < arr.length - 1 ? { marginRight: 8 } : {}) }]}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: cfg.color }}>{counts[key] ?? 0}</Text>
               <Text style={{ fontSize: 9, color: C.gray, marginTop: 2 }}>{cfg.label}</Text>
@@ -1707,20 +1876,20 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
           ))}
         </View>
 
-        <Text style={s.h2}>Use Cases im Überblick</Text>
+        <Text style={s.h2}>{pt('uc_overview', locale)}</Text>
         <View style={s.row}>
           <Text style={[s.th, { flex: 3 }]}>Name</Text>
-          <Text style={[s.th, { flex: 1 }]}>Domäne</Text>
+          <Text style={[s.th, { flex: 1 }]}>{pt('col_domain', locale)}</Text>
           <Text style={[s.th, { flex: 1, textAlign: 'center' }]}>Score</Text>
-          <Text style={[s.th, { flex: 1 }]}>Kategorie</Text>
+          <Text style={[s.th, { flex: 1 }]}>{pt('col_category', locale)}</Text>
         </View>
         {sorted.length === 0 && (
           <View style={s.row}>
-            <Text style={[s.td, { flex: 1, color: C.gray, textAlign: 'center' }]}>Keine Use Cases im Portfolio</Text>
+            <Text style={[s.td, { flex: 1, color: C.gray, textAlign: 'center' }]}>{pt('no_uc', locale)}</Text>
           </View>
         )}
         {sorted.map((uc, i) => {
-          const q = uc.quadrant ? (QUADRANT_CFG[uc.quadrant] ?? null) : null
+          const q = uc.quadrant ? (quadrantCfg[uc.quadrant] ?? null) : null
           return (
             <View key={i} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
               <View style={[s.td, { flex: 3 }]}>
@@ -1745,13 +1914,13 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
             </View>
           )
         })}
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
 
       {/* ── Seite 2: Handlungsempfehlungen ────────────────────────────────── */}
       <Page size="A4" style={s.page}>
-        <PdfHeader company={data.companyName} />
-        <Text style={s.h1}>Handlungsempfehlungen</Text>
+        <PdfHeader company={data.companyName} locale={locale} />
+        <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>Use-Case Portfolio · Enterprise AI Navigator</Text>
 
         {(() => {
@@ -1797,7 +1966,7 @@ export function renderUsecasePdf(data: UsecasePdfData): ReactElement {
           ))
         })()}
 
-        <PdfFooterEs company={data.companyName} />
+        <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
     </Document>
   )
