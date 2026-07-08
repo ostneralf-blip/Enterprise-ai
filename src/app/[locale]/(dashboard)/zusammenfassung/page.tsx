@@ -5,36 +5,47 @@ import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { generateSummaryBlock } from '@/lib/utils/summary-priorities'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { formatDate } from '@/lib/utils/format'
+import type { Locale } from '@/i18n/routing'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Executive Summary' }
 
-const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
-  starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  scaler:      { label: 'AI Scaler',      color: 'text-primary-hover bg-primary-soft border-primary-border' },
-  transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+const ARCHETYPE_COLORS: Record<string, string> = {
+  starter:     'text-amber-700 bg-amber-50 border-amber-200',
+  scaler:      'text-primary-hover bg-primary-soft border-primary-border',
+  transformer: 'text-emerald-700 bg-emerald-50 border-emerald-200',
 }
 
-const RISK_CLASS_LABELS: Record<string, { label: string; color: string }> = {
-  prohibited: { label: 'Verboten (EU AI Act)',         color: 'text-red-700 bg-red-50 border-red-200' },
-  high:       { label: 'Hochrisiko (EU AI Act)',        color: 'text-red-700 bg-red-50 border-red-200' },
-  limited:    { label: 'Begrenztes Risiko (EU AI Act)', color: 'text-amber-700 bg-amber-50 border-amber-200' },
-  minimal:    { label: 'Minimales Risiko (EU AI Act)',  color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+const ARCHETYPE_LABELS: Record<string, string> = {
+  starter:     'AI Starter',
+  scaler:      'AI Scaler',
+  transformer: 'AI Transformer',
 }
 
-const GOV_RESULT_LABELS: Record<string, { label: string; color: string }> = {
-  approve:    { label: 'Freigegeben',               color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  stop_dsgvo: { label: 'Gestoppt (DSGVO)',           color: 'text-red-700 bg-red-50 border-red-200' },
-  stop_risk:  { label: 'Gestoppt (Risiko)',          color: 'text-red-700 bg-red-50 border-red-200' },
-  improve:    { label: 'Verbesserung erforderlich',  color: 'text-amber-700 bg-amber-50 border-amber-200' },
+const RISK_CLASS_COLORS: Record<string, string> = {
+  prohibited: 'text-red-700 bg-red-50 border-red-200',
+  high:       'text-red-700 bg-red-50 border-red-200',
+  limited:    'text-amber-700 bg-amber-50 border-amber-200',
+  minimal:    'text-emerald-700 bg-emerald-50 border-emerald-200',
 }
 
-function fmt(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const GOV_RESULT_COLORS: Record<string, string> = {
+  approve:    'text-emerald-700 bg-emerald-50 border-emerald-200',
+  stop_dsgvo: 'text-red-700 bg-red-50 border-red-200',
+  stop_risk:  'text-red-700 bg-red-50 border-red-200',
+  improve:    'text-amber-700 bg-amber-50 border-amber-200',
 }
 
 export default async function ZusammenfassungPage() {
-  const supabase = await createClient()
+  const [supabase, t, tm, rawLocale] = await Promise.all([
+    createClient(),
+    getTranslations('summary'),
+    getTranslations('modules'),
+    getLocale(),
+  ])
+  const locale = rawLocale as Locale
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -87,6 +98,20 @@ export default async function ZusammenfassungPage() {
   const tier = (profileData?.tier ?? 'free') as Tier
   const company = profileData?.company
 
+  const RISK_CLASS_LABELS: Record<string, string> = {
+    prohibited: t('riskProhibited'),
+    high:       t('riskHigh'),
+    limited:    t('riskLimited'),
+    minimal:    t('riskMinimal'),
+  }
+
+  const GOV_RESULT_LABELS: Record<string, string> = {
+    approve:    t('govApprove'),
+    stop_dsgvo: t('govStopDsgvo'),
+    stop_risk:  t('govStopRisk'),
+    improve:    t('govImprove'),
+  }
+
   type ModuleEntry = {
     step: number
     icon: string
@@ -101,15 +126,15 @@ export default async function ZusammenfassungPage() {
 
   const modules: ModuleEntry[] = [
     {
-      step: 1, icon: '◎', title: 'AI-Readiness Assessment', href: '/assessment',
+      step: 1, icon: '◎', title: tm('assessment.title'), href: '/assessment',
       requiredTier: 'free',
-      description: 'Archetyp und AI-Reifegrad in 6 Dimensionen bestimmen',
+      description: tm('assessment.summaryDesc'),
       done: !!latestAssessment,
       date: latestAssessment?.created_at,
       detail: latestAssessment ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_LABELS[latestAssessment.archetype as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
-            {ARCHETYPE_LABELS[latestAssessment.archetype as string]?.label ?? latestAssessment.archetype}
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_COLORS[latestAssessment.archetype as string] ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+            {ARCHETYPE_LABELS[latestAssessment.archetype as string] ?? latestAssessment.archetype}
           </span>
           <span className="text-xs text-slate-600">
             Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0
@@ -118,99 +143,100 @@ export default async function ZusammenfassungPage() {
       ) : null,
     },
     {
-      step: 2, icon: '◐', title: 'Use-Case Scoring', href: '/usecase',
+      step: 2, icon: '◐', title: tm('usecase.title'), href: '/usecase',
       requiredTier: 'free',
-      description: 'AI-Use-Cases bewerten und nach Priorität einordnen',
+      description: tm('usecase.summaryDesc'),
       done: (usecaseCount ?? 0) > 0,
       date: topUsecase?.created_at,
       detail: topUsecase ? (
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-slate-600">
-            Top Use Case: <span className="font-semibold text-slate-900">{topUsecase.name}</span>
+            {t('topUseCase')} <span className="font-semibold text-slate-900">{topUsecase.name}</span>
           </span>
-          <span className="text-xs text-slate-400">({usecaseCount} gesamt)</span>
+          <span className="text-xs text-slate-400">{t('totalCount', { count: usecaseCount ?? 0 })}</span>
         </div>
       ) : null,
     },
     {
-      step: 3, icon: '⬣', title: 'Governance-Check', href: '/governance',
+      step: 3, icon: '⬣', title: tm('governance.title'), href: '/governance',
       requiredTier: 'free',
-      description: 'Use-Case ethisch, rechtlich und nach EU AI Act prüfen',
+      description: tm('governance.summaryDesc'),
       done: !!latestGovernance,
       date: latestGovernance?.created_at,
       detail: latestGovernance ? (
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           {latestGovernance.use_case_name && (
             <span className="text-xs text-slate-600 truncate min-w-0">
-              Use Case: <span className="font-semibold text-slate-900">{latestGovernance.use_case_name}</span>
+              {t('useCase')} <span className="font-semibold text-slate-900">{latestGovernance.use_case_name}</span>
             </span>
           )}
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${GOV_RESULT_LABELS[latestGovernance.result as string]?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
-            {GOV_RESULT_LABELS[latestGovernance.result as string]?.label ?? latestGovernance.result}
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${GOV_RESULT_COLORS[latestGovernance.result as string] ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+            {GOV_RESULT_LABELS[latestGovernance.result as string] ?? latestGovernance.result}
           </span>
         </div>
       ) : null,
     },
     {
-      step: 4, icon: '▷', title: 'Roadmap-Generator', href: '/roadmap',
+      step: 4, icon: '▷', title: tm('roadmap.title'), href: '/roadmap',
       requiredTier: 'free',
-      description: 'Archetyp-spezifischer Umsetzungsplan in 3 Phasen',
+      description: tm('roadmap.summaryDesc'),
       done: !!latestRoadmap,
       date: latestRoadmap?.updated_at,
       detail: latestRoadmap ? (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-slate-600">
-            Roadmap: <span className="font-semibold text-slate-900">{latestRoadmap.title ?? 'Ohne Titel'}</span>
+            {t('roadmapLabel')} <span className="font-semibold text-slate-900">{latestRoadmap.title ?? t('untitled')}</span>
           </span>
           {latestRoadmap.archetype && (
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${ARCHETYPE_LABELS[latestRoadmap.archetype as string]?.color ?? ''}`}>
-              {ARCHETYPE_LABELS[latestRoadmap.archetype as string]?.label ?? latestRoadmap.archetype}
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${ARCHETYPE_COLORS[latestRoadmap.archetype as string] ?? ''}`}>
+              {ARCHETYPE_LABELS[latestRoadmap.archetype as string] ?? latestRoadmap.archetype}
             </span>
           )}
         </div>
       ) : null,
     },
     {
-      step: 5, icon: '□', title: 'AI Use-Case Canvas', href: '/canvas',
+      step: 5, icon: '□', title: tm('canvas.title'), href: '/canvas',
       requiredTier: 'free',
-      description: '8-Felder-Canvas: Problem, Lösung, Daten, KPIs und nächste Schritte',
+      description: tm('canvas.summaryDesc'),
       done: !!latestCanvas,
       date: latestCanvas?.updated_at,
       detail: latestCanvas ? (
         <span className="text-xs text-slate-600">
-          Canvas: <span className="font-semibold text-slate-900">{latestCanvas.title}</span>
+          {t('canvasLabel')} <span className="font-semibold text-slate-900">{latestCanvas.title}</span>
         </span>
       ) : null,
     },
     {
-      step: 6, icon: '⬡', title: 'Compliance Center', href: '/compliance',
+      step: 6, icon: '⬡', title: tm('compliance.title'), href: '/compliance',
       requiredTier: 'pro',
-      description: 'EU AI Act Risikoklassen-Check und DSGVO-Pflichten-Checkliste',
+      description: tm('compliance.summaryDesc'),
       done: !!latestCompliance,
       date: (latestCompliance as { notes?: string | null; created_at?: string } | null)?.created_at,
       detail: latestCompliance ? (
         (() => {
           const rc = (latestCompliance as { notes?: string | null }).notes
-          const cfg = rc ? RISK_CLASS_LABELS[rc] : null
-          return cfg ? (
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${cfg.color}`}>
-              {cfg.label}
+          const label = rc ? RISK_CLASS_LABELS[rc] : null
+          const color = rc ? RISK_CLASS_COLORS[rc] : null
+          return label && color ? (
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${color}`}>
+              {label}
             </span>
           ) : null
         })()
       ) : hasAccess(tier, 'pro') ? (
-        <span className="text-xs text-slate-400 italic">Noch nicht durchgeführt</span>
+        <span className="text-xs text-slate-400 italic">{t('notDoneYet')}</span>
       ) : null,
     },
     {
-      step: 7, icon: '◈', title: 'Architektur-Generator', href: '/architecture',
+      step: 7, icon: '◈', title: tm('architecture.title'), href: '/architecture',
       requiredTier: 'pro',
-      description: 'Herstellerneutrale Enterprise AI Reference Architecture generieren',
+      description: tm('architecture.summaryDesc'),
       done: !!latestArchitecture,
       date: latestArchitecture?.updated_at,
       detail: latestArchitecture ? (
         <span className="text-xs text-slate-600">
-          Architektur: <span className="font-semibold text-slate-900">{latestArchitecture.title ?? 'Ohne Titel'}</span>
+          {t('architectureLabel')} <span className="font-semibold text-slate-900">{latestArchitecture.title ?? t('untitled')}</span>
         </span>
       ) : null,
     },
@@ -231,19 +257,19 @@ export default async function ZusammenfassungPage() {
   })
 
   const URGENCY_STYLE = {
-    critical:    { dot: 'bg-red-500',    card: 'border-red-100 bg-red-50',    title: 'text-red-800',    label: 'Kritisch' },
-    recommended: { dot: 'bg-amber-400',  card: 'border-amber-100 bg-amber-50', title: 'text-amber-800',  label: 'Empfohlen' },
-    next:        { dot: 'bg-primary-ring',   card: 'border-primary-soft bg-primary-soft',  title: 'text-primary',   label: 'Nächster Schritt' },
+    critical:    { dot: 'bg-red-500',        card: 'border-red-100 bg-red-50',          title: 'text-red-800',   label: t('urgencyCritical') },
+    recommended: { dot: 'bg-amber-400',      card: 'border-amber-100 bg-amber-50',      title: 'text-amber-800', label: t('urgencyRecommended') },
+    next:        { dot: 'bg-primary-ring',   card: 'border-primary-soft bg-primary-soft', title: 'text-primary', label: t('urgencyNext') },
   }
 
   return (
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Executive Summary</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">{t('title')}</h1>
           <p className="text-slate-500 text-sm mt-1">
             {company ? `${company} · ` : ''}
-            {completedCount} von {modules.length} Modulen abgeschlossen
+            {t('completedOf', { completed: completedCount, total: modules.length })}
           </p>
         </div>
         <a
@@ -251,7 +277,7 @@ export default async function ZusammenfassungPage() {
           {...(hasAccess(tier, 'pro') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          PDF exportieren{!hasAccess(tier, 'pro') && <span className="text-xs opacity-60">· Pro</span>}
+          {t('exportPdf')}{!hasAccess(tier, 'pro') && <span className="text-xs opacity-60">{t('proSuffix')}</span>}
         </a>
       </div>
 
@@ -312,15 +338,15 @@ export default async function ZusammenfassungPage() {
                 <div className="flex-shrink-0 flex flex-col items-end gap-1.5 ml-2">
                   {mod.done ? (
                     <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
-                      Abgeschlossen
+                      {t('statusDone')}
                     </span>
                   ) : (
                     <span className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
-                      {locked ? 'Pro-Feature' : 'Ausstehend'}
+                      {locked ? t('statusProFeature') : t('statusPending')}
                     </span>
                   )}
                   {mod.date && (
-                    <span className="text-xs text-slate-300">{fmt(mod.date)}</span>
+                    <span className="text-xs text-slate-300">{formatDate(mod.date, locale)}</span>
                   )}
                 </div>
               </div>
@@ -332,14 +358,14 @@ export default async function ZusammenfassungPage() {
       {tier === 'free' && (
         <div className="mt-6 bg-gradient-to-r from-primary to-primary-hover rounded-xl p-5 flex items-center justify-between gap-4">
           <div>
-            <div className="text-white font-semibold text-sm mb-1">Auf Professional upgraden</div>
-            <div className="text-white/70 text-xs">Compliance, Architektur und PDF-Export freischalten.</div>
+            <div className="text-white font-semibold text-sm mb-1">{t('upgradeTitle')}</div>
+            <div className="text-white/70 text-xs">{t('upgradeDesc')}</div>
           </div>
           <Link
             href="/upgrade"
             className="bg-white text-primary-hover font-semibold text-sm px-4 py-2 rounded-lg hover:bg-primary-soft transition-colors shrink-0 whitespace-nowrap"
           >
-            Upgrade →
+            {t('upgradeButton')}
           </Link>
         </div>
       )}

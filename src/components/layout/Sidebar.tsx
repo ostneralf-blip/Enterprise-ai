@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { MODULES } from '@/config/modules'
 import { CHANGELOG } from '@/config/changelog'
@@ -15,6 +16,8 @@ export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname()
   const tier = profile?.tier ?? 'free'
   const { isOpen, close } = useMobileNav()
+  const t = useTranslations('sidebar')
+  const tn = useTranslations('nav')
 
   const content = (
     <>
@@ -27,7 +30,7 @@ export function Sidebar({ profile }: SidebarProps) {
             <div className="text-xs text-slate-400">enterprise-ai.biz</div>
           </div>
         </Link>
-        <button onClick={close} aria-label="Menü schließen"
+        <button onClick={close} aria-label={t('menuClose')}
           className="lg:hidden text-slate-400 hover:text-slate-600 p-1 -mr-1">
           ✕
         </button>
@@ -35,10 +38,10 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <NavItem href="/dashboard" icon="◎" label="Geführter Pfad" active={pathname === '/dashboard'} onNavigate={close} />
+        <NavItem href="/dashboard" icon="◎" label={tn('guidedPath')} active={pathname === '/dashboard'} onNavigate={close} />
 
         <div className="pt-4 pb-1 px-3">
-          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">Tools</span>
+          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">{tn('tools')}</span>
         </div>
 
         {MODULES.map(mod => {
@@ -65,24 +68,24 @@ export function Sidebar({ profile }: SidebarProps) {
         />
 
         <div className="pt-4 pb-1 px-3">
-          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">Konto</span>
+          <span className="text-[10px] font-semibold text-primary tracking-widest uppercase">{tn('account')}</span>
         </div>
-        <NavItem href="/settings" icon="⚙" label="Einstellungen" active={pathname === '/settings'} onNavigate={close} />
-        <NavItem href="/feedback" icon="✉" label="Feedback & Support" active={pathname === '/feedback'} onNavigate={close} />
+        <NavItem href="/settings" icon="⚙" label={tn('settings')} active={pathname === '/settings'} onNavigate={close} />
+        <NavItem href="/feedback" icon="✉" label={tn('feedback')} active={pathname === '/feedback'} onNavigate={close} />
         {profile?.is_admin && (
-          <NavItem href="/admin" icon="🛡" label="Admin" active={pathname.startsWith('/admin')} onNavigate={close} />
+          <NavItem href="/admin" icon="🛡" label={tn('admin')} active={pathname.startsWith('/admin')} onNavigate={close} />
         )}
       </nav>
 
-      {/* Tier Badge — helles Editorial-Design */}
+      {/* Tier Badge */}
       {tier === 'free' && (
         <div className="p-4 border-t border-slate-200">
           <div className="bg-primary-soft border border-primary-border rounded-lg p-3">
-            <div className="text-xs font-semibold text-primary mb-1">Explorer Plan</div>
-            <div className="text-xs text-slate-500 mb-2">PDF-Export, Speichern und mehr mit Pro</div>
+            <div className="text-xs font-semibold text-primary mb-1">{t('explorerPlan')}</div>
+            <div className="text-xs text-slate-500 mb-2">{t('explorerDesc')}</div>
             <Link href="/upgrade" onClick={close}
               className="block text-center text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-md py-1.5 transition-colors">
-              Upgrade auf Pro →
+              {t('upgradeCta')}
             </Link>
           </div>
         </div>
@@ -91,23 +94,23 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Legal-Footer */}
       <div className="px-4 py-3 border-t border-slate-200 space-y-2">
         <div className="flex gap-3">
-          <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Impressum</Link>
-          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Datenschutz</Link>
-          <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">AGB</Link>
+          <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('impressum')}</Link>
+          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('datenschutz')}</Link>
+          <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('agb')}</Link>
         </div>
         <div className="flex items-center justify-between">
-          <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">🇩🇪 EU-Hosting · DSGVO</Link>
+          <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('euHosting')}</Link>
           <span className="text-xs text-slate-400">v{CHANGELOG[0].version}</span>
         </div>
         <div className="pt-1 border-t border-slate-200">
-          <span className="text-xs text-slate-400">📖 Basiert auf: </span>
+          <span className="text-xs text-slate-400">{t('basedOn')} </span>
           <a
             href="https://enterprise-ai.biz"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
-            Enterprise AI Leitfaden · Daniel Ostner
+            {t('bookLink')}
           </a>
         </div>
       </div>
@@ -142,6 +145,7 @@ export function Sidebar({ profile }: SidebarProps) {
 function NavItem({ href, icon, label, active, locked, onNavigate }: {
   href: string; icon: string; label: string; active: boolean; locked?: boolean; onNavigate?: () => void
 }) {
+  const t = useTranslations('common')
   return (
     <Link href={locked ? '/upgrade' : href} onClick={onNavigate}
       aria-current={active ? 'page' : undefined}
@@ -155,7 +159,7 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
       )}>
       <span className="text-base w-5 text-center shrink-0">{icon}</span>
       <span className="flex-1 truncate">{label}</span>
-      {locked && <span className="text-xs text-slate-400 shrink-0">Pro</span>}
+      {locked && <span className="text-xs text-slate-400 shrink-0">{t('pro')}</span>}
     </Link>
   )
 }

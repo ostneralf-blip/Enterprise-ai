@@ -1,21 +1,25 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { CHANGELOG } from '@/config/changelog'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
-
-const CATEGORIES = [
-  { value: 'bug',     label: 'Fehler melden' },
-  { value: 'feature', label: 'Feature-Wunsch' },
-  { value: 'frage',   label: 'Frage / Support' },
-  { value: 'sonstiges', label: 'Sonstiges' },
-]
 
 type Attachment = { filename: string; content: string; previewUrl: string }
 
 export default function FeedbackPage() {
   const router = useRouter()
+  const t = useTranslations('feedback')
+  const tc = useTranslations('common')
+
+  const CATEGORIES = [
+    { value: 'bug',       label: t('typeBug') },
+    { value: 'feature',   label: t('typeFeature') },
+    { value: 'frage',     label: t('typeQuestion') },
+    { value: 'sonstiges', label: t('typeOther') },
+  ]
+
   const [category, setCategory] = useState('frage')
   const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null)
@@ -32,7 +36,7 @@ export default function FeedbackPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > MAX_FILE_BYTES) {
-      setFileError('Datei zu groß — maximal 5 MB erlaubt.')
+      setFileError(t('fileTooLarge'))
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
@@ -54,7 +58,7 @@ export default function FeedbackPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!message.trim()) { setError('Bitte eine Nachricht eingeben.'); return }
+    if (!message.trim()) { setError(t('errorEmpty')); return }
     setSending(true)
     setError(null)
     try {
@@ -65,40 +69,46 @@ export default function FeedbackPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler beim Senden')
+      if (!res.ok) throw new Error((await res.json()).error ?? t('errorSend'))
       setSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
+      setError(err instanceof Error ? err.message : t('errorUnknown'))
     } finally {
       setSending(false)
     }
   }
 
+  const placeholder = category === 'bug'
+    ? t('placeholderBug')
+    : category === 'feature'
+    ? t('placeholderFeature')
+    : t('placeholderDefault')
+
   return (
     <div className="max-w-xl space-y-10">
       <div>
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Feedback & Support</h1>
-        <p className="text-sm text-slate-500 mt-1">Fehler melden, Feature-Wünsche einreichen oder eine Frage stellen.</p>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">{t('title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('subtitlePage')}</p>
       </div>
 
       {sent ? (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-3">
           <div className="text-3xl">✓</div>
-          <p className="text-sm font-semibold text-emerald-800">Vielen Dank für Ihr Feedback!</p>
-          <p className="text-xs text-emerald-700">Wir haben Ihre Nachricht erhalten und melden uns bei Bedarf.</p>
+          <p className="text-sm font-semibold text-emerald-800">{t('successMessage')}</p>
+          <p className="text-xs text-emerald-700">{t('successDesc')}</p>
           <button
             onClick={() => { setSent(false); setMessage(''); setCategory('frage'); setAttachment(null) }}
             className="text-xs text-emerald-700 hover:text-emerald-900 underline"
           >
-            Weiteres Feedback senden
+            {t('sendAnother')}
           </button>
           <div>
             <button
               onClick={() => router.back()}
               className="mt-2 px-4 py-2 text-sm font-medium bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors"
             >
-              Zurück
+              {tc('back')}
             </button>
           </div>
         </div>
@@ -112,9 +122,9 @@ export default function FeedbackPage() {
 
           <div>
             <label htmlFor="fb-category" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Kategorie
+              {t('categoryLabel')}
             </label>
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Feedback-Kategorie">
+            <div className="flex flex-wrap gap-2" role="group" aria-label={t('categoryAria')}>
               {CATEGORIES.map(c => (
                 <button
                   key={c.value}
@@ -135,27 +145,23 @@ export default function FeedbackPage() {
 
           <div>
             <label htmlFor="fb-message" className="block text-sm font-medium text-slate-700 mb-1.5">
-              Nachricht
+              {t('messageLabel')}
             </label>
             <textarea
               id="fb-message"
               value={message}
               onChange={e => setMessage(e.target.value)}
               rows={6}
-              placeholder={
-                category === 'bug'
-                  ? 'Beschreiben Sie den Fehler — was haben Sie getan, was ist passiert, was hätte passieren sollen?'
-                  : category === 'feature'
-                  ? 'Welches Feature wünschen Sie sich? Warum wäre es hilfreich?'
-                  : 'Wie können wir helfen?'
-              }
+              placeholder={placeholder}
               className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y"
             />
           </div>
 
           {/* Screenshot-Anhang */}
           <div>
-            <p className="text-sm font-medium text-slate-700 mb-1.5">Screenshot anhängen <span className="text-slate-400 font-normal">(optional, max. 5 MB)</span></p>
+            <p className="text-sm font-medium text-slate-700 mb-1.5">
+              {t('screenshotLabel')} <span className="text-slate-400 font-normal">{t('screenshotOptional')}</span>
+            </p>
             <input
               ref={fileInputRef}
               type="file"
@@ -167,13 +173,13 @@ export default function FeedbackPage() {
             {attachment ? (
               <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={attachment.previewUrl} alt="Vorschau" className="h-12 w-12 object-cover rounded border border-slate-200 shrink-0" />
+                <img src={attachment.previewUrl} alt={t('screenshotPreviewAlt')} className="h-12 w-12 object-cover rounded border border-slate-200 shrink-0" />
                 <span className="text-sm text-slate-600 min-w-0 truncate">{attachment.filename}</span>
                 <button
                   type="button"
                   onClick={removeAttachment}
                   className="ml-auto shrink-0 text-xs text-slate-400 hover:text-red-500 transition-colors"
-                  aria-label="Anhang entfernen"
+                  aria-label={t('screenshotRemoveAria')}
                 >
                   ✕
                 </button>
@@ -183,7 +189,7 @@ export default function FeedbackPage() {
                 htmlFor="fb-attachment"
                 className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
               >
-                <span aria-hidden="true">📎</span> Bild auswählen
+                <span aria-hidden="true">📎</span> {t('screenshotSelectLabel')}
               </label>
             )}
             {fileError && (
@@ -197,14 +203,14 @@ export default function FeedbackPage() {
               disabled={sending || !message.trim()}
               className="whitespace-nowrap px-5 py-2.5 bg-primary hover:bg-primary disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
             >
-              {sending ? 'Wird gesendet…' : 'Absenden'}
+              {sending ? t('sending') : t('submitButton')}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
               className="whitespace-nowrap px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
             >
-              Abbrechen
+              {tc('cancel')}
             </button>
           </div>
         </form>
@@ -214,8 +220,8 @@ export default function FeedbackPage() {
       {/* ── Versions-Changelog ── */}
       <div>
         <div className="mb-4">
-          <h2 className="text-base sm:text-lg font-semibold text-slate-900">Versions-Übersicht</h2>
-          <p className="text-sm text-slate-500 mt-1">Alle Features mit Hintergrund aus dem Enterprise AI Leitfaden.</p>
+          <h2 className="text-base sm:text-lg font-semibold text-slate-900">{t('changelogTitle')}</h2>
+          <p className="text-sm text-slate-500 mt-1">{t('changelogSubtitle')}</p>
         </div>
         <div className="space-y-2">
           {CHANGELOG.map(entry => {
@@ -258,7 +264,7 @@ export default function FeedbackPage() {
                             <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
                               <p className="text-sm text-slate-600">{feature.description}</p>
                               <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                                <p className="text-xs font-semibold text-amber-800 mb-1">📖 Aus dem Enterprise AI Leitfaden</p>
+                                <p className="text-xs font-semibold text-amber-800 mb-1">{t('changelogBookSource')}</p>
                                 <p className="text-xs text-amber-900 leading-relaxed">{feature.bookContext}</p>
                               </div>
                             </div>

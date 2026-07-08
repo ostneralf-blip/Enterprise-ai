@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import type { ArchitectureResult } from '@/config/architecture-data'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { formatDate } from '@/lib/utils/format'
+import type { Locale } from '@/i18n/routing'
 
 const LAYER_ICONS = ['⬡', '◈', '◉', '◎', '⊞']
 
@@ -44,7 +47,12 @@ async function getShareData(token: string) {
 }
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
-  const { token } = await params
+  const [{ token }, t, rawLocale] = await Promise.all([
+    params,
+    getTranslations('share'),
+    getLocale(),
+  ])
+  const locale = rawLocale as Locale
   const share = await getShareData(token)
   if (!share) notFound()
 
@@ -57,20 +65,28 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
             <div className="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-white text-xs font-bold">N</div>
             <span className="text-sm font-semibold text-slate-900">AI Navigator</span>
           </div>
-          <span className="text-xs text-slate-400">Read-only · Geteilt via Link</span>
+          <span className="text-xs text-slate-400">{t('readOnlyShared')}</span>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-5">
         {share.module === 'architecture' && (
-          <ArchitectureShareView entity={share.entity as { title: string | null; result: ArchitectureResult; updated_at: string }} />
+          <ArchitectureShareView
+            entity={share.entity as { title: string | null; result: ArchitectureResult; updated_at: string }}
+            t={t}
+            locale={locale}
+          />
         )}
         {share.module === 'assessment' && (
-          <AssessmentShareView entity={share.entity as { archetype: string; total_score: number; created_at: string }} />
+          <AssessmentShareView
+            entity={share.entity as { archetype: string; total_score: number; created_at: string }}
+            t={t}
+            locale={locale}
+          />
         )}
 
         <p className="text-xs text-slate-400 text-center pt-4">
-          Erstellt mit{' '}
+          {t('createdWith')}{' '}
           <a href="https://enterprise-ai.biz" className="underline hover:text-slate-600">AI Navigator</a>
           {' '}· enterprise-ai.biz
         </p>
@@ -79,7 +95,17 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   )
 }
 
-function ArchitectureShareView({ entity }: { entity: { title: string | null; result: ArchitectureResult; updated_at: string } }) {
+type ShareT = Awaited<ReturnType<typeof getTranslations<'share'>>>
+
+function ArchitectureShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { title: string | null; result: ArchitectureResult; updated_at: string }
+  t: ShareT
+  locale: Locale
+}) {
   const result = entity.result
   return (
     <>
@@ -87,21 +113,21 @@ function ArchitectureShareView({ entity }: { entity: { title: string | null; res
         <div>
           <h1 className="text-xl font-semibold text-slate-900">{entity.title ?? result.pattern}</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Architektur-Generator · {new Date(entity.updated_at).toLocaleDateString('de-DE')}
+            {t('architectureModule')} · {formatDate(entity.updated_at, locale)}
           </p>
         </div>
       </div>
 
       <div className={cn('rounded-2xl border p-5', result.color.bg, result.color.border)}>
         <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', result.color.badge)}>
-          Empfohlenes Muster
+          {t('recommendedPattern')}
         </span>
         <h2 className={cn('text-base font-semibold mt-2 mb-1', result.color.title)}>{result.pattern}</h2>
         <p className="text-sm text-slate-600">{result.summary}</p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">Architektur-Schichten</h3>
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">{t('architectureLayers')}</h3>
         <div className="space-y-3">
           {result.layers.map((layer, i) => (
             <div key={i} className="border border-slate-100 rounded-xl p-3.5">
@@ -122,7 +148,7 @@ function ArchitectureShareView({ entity }: { entity: { title: string | null; res
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">Schlüssel-Entscheidungen</h3>
+          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('keyDecisions')}</h3>
           <ul className="space-y-2">
             {result.keyDecisions.map((d, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
@@ -133,7 +159,7 @@ function ArchitectureShareView({ entity }: { entity: { title: string | null; res
           </ul>
         </div>
         <div className="bg-white border border-slate-200 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">Nächste Schritte</h3>
+          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('nextSteps')}</h3>
           <ul className="space-y-2">
             {result.nextSteps.map((s, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
@@ -154,21 +180,29 @@ const ARCHETYPE_LABELS: Record<string, string> = {
   transformer: 'AI Transformer',
 }
 
-function AssessmentShareView({ entity }: { entity: { archetype: string; total_score: number; created_at: string } }) {
+function AssessmentShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { archetype: string; total_score: number; created_at: string }
+  t: ShareT
+  locale: Locale
+}) {
   return (
     <>
       <div>
         <h1 className="text-xl font-semibold text-slate-900">AI-Readiness Assessment</h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          {new Date(entity.created_at).toLocaleDateString('de-DE')}
+          {formatDate(entity.created_at, locale)}
         </p>
       </div>
       <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center">
-        <p className="text-xs text-slate-500 mb-1">Archetype</p>
+        <p className="text-xs text-slate-500 mb-1">{t('archetype')}</p>
         <p className="text-2xl font-bold text-slate-900">{ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype}</p>
-        <p className="text-sm text-slate-500 mt-3">Reifegrad-Score</p>
+        <p className="text-sm text-slate-500 mt-3">{t('maturityScore')}</p>
         <p className="text-4xl font-bold text-primary mt-1">{entity.total_score.toFixed(2)}</p>
-        <p className="text-xs text-slate-400 mt-1">von 5.0</p>
+        <p className="text-xs text-slate-400 mt-1">{t('outOf50')}</p>
       </div>
     </>
   )

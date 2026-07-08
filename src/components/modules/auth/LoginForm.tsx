@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/posthog/client'
@@ -10,14 +11,12 @@ interface LoginFormProps {
   searchParams: Promise<{ redirect?: string; message?: string }>
 }
 
-const MESSAGE_LABELS: Record<string, string> = {
-  account_suspended: 'Ihr Konto wurde gesperrt. Bitte wenden Sie sich an den Support.',
-}
-
 export function LoginForm({ searchParams }: LoginFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const captchaRef = useRef<HCaptcha>(null)
+  const t = useTranslations('auth')
+  const tc = useTranslations('common')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
@@ -28,9 +27,13 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   useEffect(() => {
     searchParams.then(params => {
       if (params.redirect) setRedirectTo(params.redirect)
-      if (params.message) setError(MESSAGE_LABELS[params.message] ?? params.message)
+      if (params.message) setError(
+        params.message === 'account_suspended'
+          ? t('errors.accountSuspended')
+          : params.message
+      )
     })
-  }, [searchParams])
+  }, [searchParams, t])
 
   // Hash-basierten Magic-Link-Token verarbeiten (implicit flow)
   useEffect(() => {
@@ -73,7 +76,6 @@ export function LoginForm({ searchParams }: LoginFormProps) {
         return
       }
 
-      // Profile laden und is_banned prüfen
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_banned')
@@ -82,7 +84,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
       if (profile?.is_banned) {
         await supabase.auth.signOut()
-        setError(MESSAGE_LABELS.account_suspended)
+        setError(t('errors.accountSuspended'))
         setLoading(false)
         return
       }
@@ -94,7 +96,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
       console.error('Login error:', err)
       captchaRef.current?.resetCaptcha()
       setCaptchaToken(null)
-      setError('Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.')
+      setError(t('errors.unexpected'))
       setLoading(false)
     }
   }
@@ -108,7 +110,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
-      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-6">Anmelden</h1>
+      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-6">{t('loginTitle')}</h1>
 
       {error && (
         <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">
@@ -118,23 +120,23 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-slate-500 text-xs mb-1.5 font-medium">E-MAIL</label>
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">{t('emailLabel')}</label>
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)} required
-            placeholder="name@unternehmen.de"
+            placeholder={t('emailPlaceholder')}
             className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors"
           />
         </div>
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-slate-500 text-xs font-medium">PASSWORT</label>
+            <label className="block text-slate-500 text-xs font-medium">{t('passwordLabel')}</label>
             <Link href="/forgot-password" className="text-xs text-primary hover:text-primary-hover transition-colors">
-              Passwort vergessen?
+              {t('forgotPassword')}
             </Link>
           </div>
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)} required
-            placeholder="••••••••"
+            placeholder={t('passwordPlaceholder')}
             className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors"
           />
         </div>
@@ -151,24 +153,26 @@ export function LoginForm({ searchParams }: LoginFormProps) {
 
         <button type="submit" disabled={loading || !captchaToken}
           className="w-full bg-primary hover:bg-primary-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
-          {loading ? 'Wird angemeldet…' : 'Anmelden'}
+          {loading ? t('loginLoading') : t('loginButton')}
         </button>
       </form>
 
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
-        <div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-slate-400">oder</span></div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs text-slate-400">{tc('or')}</span>
+        </div>
       </div>
 
       <button onClick={handleGoogleLogin}
         className="w-full border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
-        <span>G</span> Mit Google anmelden
+        <span>G</span> {t('googleLogin')}
       </button>
 
       <p className="text-center text-slate-500 text-xs mt-6">
-        Noch kein Konto?{' '}
+        {t('noAccount')}{' '}
         <Link href="/register" className="text-primary hover:text-primary-hover transition-colors">
-          Kostenlos registrieren
+          {t('registerLink')}
         </Link>
       </p>
     </div>

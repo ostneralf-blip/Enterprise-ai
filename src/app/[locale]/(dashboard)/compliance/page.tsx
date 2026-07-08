@@ -5,6 +5,7 @@ import { hasAccess } from '@/lib/utils/tier-check'
 import { CompliancePageClient } from './CompliancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Tier } from '@/types'
 import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Compliance Center' }
 
 export default async function CompliancePage() {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -34,7 +35,7 @@ export default async function CompliancePage() {
 
   return (
     <div>
-      <PageHeader title="Compliance Center" description="EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates" />
+      <PageHeader title={t('compliance.title')} description={t('compliance.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="compliance" contextKey="compliance.policies" />
       </Suspense>

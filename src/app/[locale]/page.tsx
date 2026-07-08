@@ -2,13 +2,30 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PaperNoise } from '@/components/shared/PaperNoise'
 import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
   description: 'Interaktive Frameworks für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur. Für CTOs, CDOs und Enterprise Architekten.',
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const t = await getTranslations('landing')
+  const tc = await getTranslations('common')
+
+  const stats = [
+    { n: t('stat1n'), l: t('stat1l') },
+    { n: t('stat2n'), l: t('stat2l') },
+    { n: t('stat3n'), l: t('stat3l') },
+  ]
+  const trustItems = [
+    { icon: '🇪🇺', label: t('trust1') },
+    { icon: '🔒', label: t('trust2') },
+    { icon: '🛡', label: t('trust3') },
+    { icon: '💳', label: t('trust4') },
+    { icon: '👁', label: t('trust5') },
+  ]
+
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
       <PaperNoise />
@@ -19,9 +36,9 @@ export default function LandingPage() {
           <span className="font-semibold">AI Navigator</span>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-slate-500 hover:text-slate-900 text-sm transition-colors">Anmelden</Link>
+          <Link href="/login" className="text-slate-500 hover:text-slate-900 text-sm transition-colors">{tc('login')}</Link>
           <Link href="/register" className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            Kostenlos starten
+            {tc('register')}
           </Link>
         </div>
       </nav>
@@ -31,23 +48,22 @@ export default function LandingPage() {
         <BrandWordcloud />
       <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
         <div className="inline-block bg-primary-soft border border-primary-border text-primary tracking-widest text-xs font-semibold uppercase px-3 py-1 rounded-full mb-6">
-          Enterprise AI Toolset · Version 1.0
+          {t('eyebrow')}
         </div>
         <h1 className="text-5xl font-semibold font-serif leading-tight mb-6">
-          Enterprise AI.<br />
-          <span className="text-primary">Strukturiert navigiert.</span>
+          {t('hero1')}<br />
+          <span className="text-primary">{t('hero2')}</span>
         </h1>
         <p className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          7 interaktive Tools für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur —
-          direkt aus dem Enterprise AI Best-Practice-Leitfaden.
+          {t('heroDesc')}
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link href="/register"
             className="bg-primary hover:bg-primary-hover text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm">
-            Kostenlos registrieren
+            {t('cta1')}
           </Link>
           <Link href="/login" className="text-slate-600 hover:text-slate-900 text-sm transition-colors">
-            Bereits registriert? Anmelden →
+            {t('cta2')}
           </Link>
         </div>
       </div>
@@ -56,11 +72,7 @@ export default function LandingPage() {
       {/* Key Stats */}
       <div className="max-w-3xl mx-auto px-6 pb-16">
         <div className="grid grid-cols-3 gap-6 text-center">
-          {[
-            { n: '88%', l: 'Unternehmen nutzen AI' },
-            { n: '5,5%', l: 'erzielen messbaren ROI' },
-            { n: '7', l: 'strukturierte Tools' },
-          ].map(s => (
+          {stats.map(s => (
             <div key={s.n} className="bg-white border border-slate-200 rounded-xl py-6">
               <div className="text-3xl font-bold font-serif text-primary mb-1">{s.n}</div>
               <div className="text-slate-500 text-sm">{s.l}</div>
@@ -72,15 +84,9 @@ export default function LandingPage() {
       {/* Trust Bar */}
       <div className="border-t border-slate-200 bg-white py-5">
         <div className="max-w-4xl mx-auto px-6">
-          <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wide font-medium">Sicherheit & Compliance</p>
+          <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wide font-medium">{t('trustTitle')}</p>
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-            {[
-              { icon: '🇩🇪', label: 'Hosting: Frankfurt EU' },
-              { icon: '🔒', label: 'DSGVO-konform' },
-              { icon: '🛡', label: 'Row-Level-Security' },
-              { icon: '💳', label: 'Stripe PCI-DSS' },
-              { icon: '👁', label: 'Cookieless Analytics' },
-            ].map(b => (
+            {trustItems.map(b => (
               <div key={b.label} className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span>{b.icon}</span>
                 <span>{b.label}</span>
@@ -89,7 +95,7 @@ export default function LandingPage() {
           </div>
           <p className="text-center mt-3">
             <Link href="/trust" className="text-xs text-slate-500 hover:text-slate-700 underline transition-colors">
-              Details zur Sicherheit & Datenschutz →
+              {t('trustLink')}
             </Link>
           </p>
         </div>
@@ -97,7 +103,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 py-6 text-center text-slate-500 text-xs">
-        © 2026 AI Navigator · enterprise-ai.biz ·{' '}
+        {t('footer')} ·{' '}
         <Link href="/datenschutz" className="hover:text-slate-700">Datenschutz</Link> ·{' '}
         <Link href="/impressum" className="hover:text-slate-700">Impressum</Link> ·{' '}
         <Link href="/trust" className="hover:text-slate-700">Sicherheit</Link>

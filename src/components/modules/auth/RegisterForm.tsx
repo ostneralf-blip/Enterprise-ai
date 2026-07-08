@@ -1,7 +1,8 @@
 'use client'
 import { useState, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
 import { track } from '@/lib/posthog/client'
@@ -10,6 +11,7 @@ export function RegisterForm() {
   const router = useRouter()
   const supabase = createClient()
   const captchaRef = useRef<HCaptcha>(null)
+  const t = useTranslations('auth')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -20,15 +22,15 @@ export function RegisterForm() {
   const [error, setError] = useState('')
 
   const pwRules = {
-    length: password.length >= 8,
+    length:    password.length >= 8,
     uppercase: /[A-Z]/.test(password),
-    number: /[0-9\W]/.test(password),
+    number:    /[0-9\W]/.test(password),
   }
   const pwValid = Object.values(pwRules).every(Boolean)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!pwValid) { setError('Bitte alle Passwort-Anforderungen erfüllen.'); return }
+    if (!pwValid) { setError(t('errors.passwordRequirements')); return }
     if (!captchaToken) return
     setLoading(true)
     setError('')
@@ -56,21 +58,18 @@ export function RegisterForm() {
 
       track('register_completed', { has_company: !!company })
 
-      // Wenn Supabase direkt eine Session zurückgibt (E-Mail-Bestätigung deaktiviert)
-      // → sofort zu Dashboard weiterleiten
       if (result.data.session) {
         router.push('/dashboard')
         router.refresh()
         return
       }
 
-      // Sonst: Bestätigungsmail-Hinweis anzeigen
       setDone(true)
     } catch (err) {
       console.error('Register error:', err)
       captchaRef.current?.resetCaptcha()
       setCaptchaToken(null)
-      setError('Registrierung fehlgeschlagen — bitte erneut versuchen.')
+      setError(t('errors.registerFailed'))
       setLoading(false)
     }
   }
@@ -79,19 +78,24 @@ export function RegisterForm() {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 text-center">
         <div className="text-4xl mb-4">✉️</div>
-        <h2 className="text-slate-900 text-lg font-semibold mb-2">E-Mail bestätigen</h2>
+        <h2 className="text-slate-900 text-lg font-semibold mb-2">{t('confirmEmailTitle')}</h2>
         <p className="text-slate-500 text-sm leading-relaxed">
-          Wir haben eine Bestätigungsmail an <strong className="text-slate-900">{email}</strong> gesendet.
-          Bitte klicken Sie auf den Link, um Ihr Konto zu aktivieren.
+          {t('confirmEmailDesc', { email })}
         </p>
       </div>
     )
   }
 
+  const pwRuleList = [
+    { ok: pwRules.length,    label: t('pwRuleLength') },
+    { ok: pwRules.uppercase, label: t('pwRuleUppercase') },
+    { ok: pwRules.number,    label: t('pwRuleNumber') },
+  ]
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
-      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-2">Kostenlosen Account erstellen</h1>
-      <p className="text-slate-500 text-sm mb-6">Keine Kreditkarte erforderlich.</p>
+      <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-2">{t('registerTitle')}</h1>
+      <p className="text-slate-500 text-sm mb-6">{t('registerSubtitle')}</p>
 
       {error && (
         <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">{error}</div>
@@ -100,32 +104,32 @@ export function RegisterForm() {
       <form onSubmit={handleRegister} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-slate-500 text-xs mb-1.5 font-medium">NAME</label>
-            <input value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="Max Mustermann"
+            <label className="block text-slate-500 text-xs mb-1.5 font-medium">{t('nameLabel')}</label>
+            <input value={fullName} onChange={e => setFullName(e.target.value)} required
+              placeholder={t('fullNamePlaceholder')}
               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
           <div>
-            <label className="block text-slate-500 text-xs mb-1.5 font-medium">UNTERNEHMEN</label>
-            <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Optional"
+            <label className="block text-slate-500 text-xs mb-1.5 font-medium">{t('companyLabel')}</label>
+            <input value={company} onChange={e => setCompany(e.target.value)}
+              placeholder={t('companyPlaceholder')}
               className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
         </div>
         <div>
-          <label className="block text-slate-500 text-xs mb-1.5 font-medium">E-MAIL</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="name@unternehmen.de"
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">{t('emailLabel')}</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+            placeholder={t('emailPlaceholder')}
             className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
         </div>
         <div>
-          <label className="block text-slate-500 text-xs mb-1.5 font-medium">PASSWORT</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Mindestens 8 Zeichen"
+          <label className="block text-slate-500 text-xs mb-1.5 font-medium">{t('passwordLabel')}</label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+            placeholder={t('passwordHint')}
             className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-ring transition-colors" />
           {password.length > 0 && (
-            <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
-              {([
-                { ok: pwRules.length,    label: 'Mindestens 8 Zeichen' },
-                { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
-                { ok: pwRules.number,    label: 'Mindestens 1 Zahl oder Sonderzeichen' },
-              ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
+            <ul className="mt-2 space-y-1" aria-label={t('pwRequirements')}>
+              {pwRuleList.map(({ ok, label }) => (
                 <li key={label} className={`text-xs flex items-center gap-1.5 transition-colors ${ok ? 'text-emerald-600' : 'text-slate-400'}`}>
                   <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
                 </li>
@@ -146,18 +150,19 @@ export function RegisterForm() {
 
         <button type="submit" disabled={loading || !captchaToken}
           className="w-full bg-primary hover:bg-primary-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors text-sm">
-          {loading ? 'Wird registriert…' : 'Kostenlosen Account erstellen'}
+          {loading ? t('registerLoading') : t('registerButton2')}
         </button>
       </form>
 
       <p className="text-center text-slate-500 text-xs mt-4">
-        Bereits registriert?{' '}
-        <Link href="/login" className="text-primary hover:text-primary-hover">Anmelden</Link>
+        {t('hasAccount')}{' '}
+        <Link href="/login" className="text-primary hover:text-primary-hover">{t('loginLink')}</Link>
       </p>
       <p className="text-center text-slate-400 text-xs mt-2">
-        Mit der Registrierung akzeptieren Sie unsere{' '}
-        <Link href="/agb" className="underline">AGB</Link> und{' '}
-        <Link href="/datenschutz" className="underline">Datenschutzerklärung</Link>.
+        {t('privacyConsent')}{' '}
+        <Link href="/agb" className="underline">{t('agbLink')}</Link>{' '}
+        und{' '}
+        <Link href="/datenschutz" className="underline">{t('privacyLink')}</Link>.
       </p>
     </div>
   )

@@ -5,6 +5,7 @@ import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Tier, Archetype, CanvasSynonym } from '@/types'
 import type { Metadata } from 'next'
 
@@ -16,7 +17,7 @@ export default async function ArchitecturePage({
 }: {
   searchParams: Promise<{ from?: string; id?: string }>
 }) {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -137,7 +138,7 @@ export default async function ArchitecturePage({
 
   return (
     <div>
-      <PageHeader title="Architektur-Generator" description="5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen" />
+      <PageHeader title={t('architecture.title')} description={t('architecture.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="architecture" contextKey="architecture.prinzipien" />
       </Suspense>

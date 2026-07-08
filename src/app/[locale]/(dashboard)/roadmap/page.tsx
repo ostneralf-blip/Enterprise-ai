@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { RoadmapPageClient } from './RoadmapPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import type { Archetype, Tier } from '@/types'
 
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Roadmap-Generator' }
 
 export default async function RoadmapPage() {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -62,7 +63,7 @@ export default async function RoadmapPage() {
 
   return (
     <div>
-      <PageHeader title="Roadmap-Generator" description="3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung" />
+      <PageHeader title={t('roadmap.title')} description={t('roadmap.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="roadmap" contextKey="roadmap.phase0" />
       </Suspense>

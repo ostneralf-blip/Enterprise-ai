@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { UseCasePageClient } from './UseCasePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import { DEFAULT_WEIGHTS } from '@/config/usecase-data'
 import type { Metadata } from 'next'
 import type { Tier, UseCasePortfolio, UseCase, UseCaseWeights } from '@/types'
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Use-Case Scoring' }
 
 export default async function UseCasePage() {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -87,7 +88,7 @@ export default async function UseCasePage() {
 
   return (
     <div>
-      <PageHeader title="Use-Case Scoring" description="5 Kriterien · Portfolio-Matrix · Priorisierung nach gewichtetem Score" />
+      <PageHeader title={t('usecase.title')} description={t('usecase.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="usecase" contextKey="scoring.gates" />
       </Suspense>

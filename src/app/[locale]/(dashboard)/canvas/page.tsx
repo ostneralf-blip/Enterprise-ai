@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { CanvasPageClient } from './CanvasPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import type { Canvas, Tier } from '@/types'
 
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'AI Use-Case Canvas' }
 
 export default async function CanvasPage() {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -33,7 +34,7 @@ export default async function CanvasPage() {
 
   return (
     <div>
-      <PageHeader title="AI Use-Case Canvas" description="8 Felder · Vollständiges Template · Problem bis nächste Schritte" />
+      <PageHeader title={t('canvas.title')} description={t('canvas.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="canvas" contextKey="canvas.intro" />
       </Suspense>

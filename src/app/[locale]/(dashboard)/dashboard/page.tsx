@@ -9,14 +9,13 @@ import { CountUp } from '@/components/dashboard/CountUp'
 import { MiniPortfolioMatrix } from '@/components/modules/usecase/MiniPortfolioMatrix'
 import { RadarChart } from '@/components/modules/assessment/RadarChart'
 import { SortableTileGrid, type TileData } from '@/components/dashboard/SortableTileGrid'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { formatDate } from '@/lib/utils/format'
+import type { Locale } from '@/i18n/routing'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
 const NOW = Date.now()
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
 
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
   starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
@@ -26,7 +25,12 @@ const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
 
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  const [supabase, t, rawLocale] = await Promise.all([
+    createClient(),
+    getTranslations('dashboard'),
+    getLocale(),
+  ])
+  const locale = rawLocale as Locale
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profileData } = await supabase
@@ -102,13 +106,13 @@ export default async function DashboardPage() {
   const assessmentWeeksSince = Math.floor(assessmentDaysSince / 7)
 
   const guidedSteps: PathStep[] = [
-    { step: 1, icon: '◎', title: 'Assessment',   desc: 'Archetype & Reifegrad',          href: '/assessment',      done: (assessmentCount ?? 0) > 0 },
-    { step: 2, icon: '⊞', title: 'Use-Case',     desc: 'Prioritäten setzen',              href: '/usecase',         done: usecaseCount > 0 },
-    { step: 3, icon: '◧', title: 'Canvas',       desc: 'Use-Case ausarbeiten',            href: '/canvas',          done: (canvasCount ?? 0) > 0 },
-    { step: 4, icon: '⊙', title: 'Governance',   desc: 'Use-Case freigeben',              href: '/governance',      done: (governanceCount ?? 0) > 0 },
-    { step: 5, icon: '⚖', title: 'Compliance',   desc: 'EU AI Act & DSGVO',               href: '/compliance',      done: (complianceCount ?? 0) > 0 },
-    { step: 6, icon: '⬡', title: 'Architektur',  desc: 'AI-Architektur definieren',       href: '/architecture',    done: (architectureCount ?? 0) > 0 },
-    { step: 7, icon: '□', title: 'Summary',      desc: 'PDF-Export & Überblick',          href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && usecaseCount > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
+    { step: 1, icon: '◎', title: 'Assessment',               desc: t('step1Desc'), href: '/assessment',      done: (assessmentCount ?? 0) > 0 },
+    { step: 2, icon: '⊞', title: 'Use-Case',                 desc: t('step2Desc'), href: '/usecase',         done: usecaseCount > 0 },
+    { step: 3, icon: '◧', title: 'Canvas',                   desc: t('step3Desc'), href: '/canvas',          done: (canvasCount ?? 0) > 0 },
+    { step: 4, icon: '⊙', title: 'Governance',               desc: t('step4Desc'), href: '/governance',      done: (governanceCount ?? 0) > 0 },
+    { step: 5, icon: '⚖', title: 'Compliance',               desc: t('step5Desc'), href: '/compliance',      done: (complianceCount ?? 0) > 0 },
+    { step: 6, icon: '⬡', title: t('step6Title'),            desc: t('step6Desc'), href: '/architecture',    done: (architectureCount ?? 0) > 0 },
+    { step: 7, icon: '□', title: 'Summary',                  desc: t('step7Desc'), href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && usecaseCount > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
   ]
 
   const completedSteps = guidedSteps.filter(s => s.done).length
@@ -128,6 +132,16 @@ export default async function DashboardPage() {
     return priority(a) - priority(b)
   })
 
+  const subtitleText = completedSteps === 0
+    ? t('subtitleStart')
+    : completedSteps === guidedSteps.length
+      ? t('subtitleComplete')
+      : t('subtitleProgress', { completed: completedSteps, total: guidedSteps.length })
+
+  const portfolioCountLabel = usecaseCount === 1
+    ? t('portfolioLabelOne')
+    : t('portfolioLabel')
+
   return (
     <div>
       {/* Header */}
@@ -135,18 +149,12 @@ export default async function DashboardPage() {
            data-reveal style={{ '--i': '0' } as React.CSSProperties}>
         <div className="min-w-0">
           <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">
-            Enterprise Architecture · AI Strategy
+            {t('eyebrow')}
           </p>
           <h1 className="text-xl sm:text-2xl font-serif text-slate-900">
-            Guten Tag{firstName ? `, ${firstName}` : ''} 👋
+            {firstName ? t('greetingWithName', { name: firstName }) : t('greeting')} 👋
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {completedSteps === 0
-              ? 'Starten Sie Ihren geführten AI-Pfad'
-              : completedSteps === guidedSteps.length
-                ? 'Ihr AI-Navigator-Pfad ist vollständig abgeschlossen'
-                : `${completedSteps} von ${guidedSteps.length} Schritten abgeschlossen`}
-          </p>
+          <p className="text-sm text-slate-500 mt-0.5">{subtitleText}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {latestAssessment && (
@@ -156,12 +164,12 @@ export default async function DashboardPage() {
           )}
           {latestAssessment && (
             <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border text-slate-700 bg-slate-50 border-slate-200">
-              Score: {latestAssessment.total_score} / 5.0
+              {t('scoreLabel', { score: latestAssessment.total_score })}
             </span>
           )}
           <Link href="/ergebnisse" className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:border-primary-border hover:bg-primary-soft transition-colors text-slate-600 hover:text-primary whitespace-nowrap">
             <CountUp value={savedCount} />
-            <span>&nbsp;gespeicherte Ergebnisse</span>
+            <span>&nbsp;{t('savedResultsLabel')}</span>
           </Link>
         </div>
       </div>
@@ -175,13 +183,13 @@ export default async function DashboardPage() {
       {latestAssessment && assessmentDaysSince >= 90 && (
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-900">Zeit für Ihren Quarterly AI Health Review</p>
+            <p className="text-sm font-semibold text-amber-900">{t('reviewTitle')}</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Ihr letztes Assessment ist {assessmentWeeksSince} Wochen alt. Regelmäßige Reviews sichern Ihren AI-Fortschritt.
+              {t('reviewDesc', { weeks: assessmentWeeksSince })}
             </p>
           </div>
           <Link href="/assessment" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors flex-shrink-0">
-            Assessment neu starten →
+            {t('reviewButton')}
           </Link>
         </div>
       )}
@@ -191,11 +199,11 @@ export default async function DashboardPage() {
            data-reveal style={{ '--i': '2' } as React.CSSProperties}>
         {/* Karte A: AI-Profil */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
-          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">AI-Profil</p>
+          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">{t('aiProfile')}</p>
           {latestAssessment && (latestAssessment as { dim_scores?: Record<string, number> }).dim_scores ? (
             <>
               <p className="text-[10px] text-slate-400 mb-3">
-                Letztes Assessment · {formatDate(latestAssessment.created_at as string)}
+                {t('lastAssessment', { date: formatDate(latestAssessment.created_at as string, locale) })}
               </p>
               <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
               <div className="mt-3 text-center">
@@ -214,9 +222,9 @@ export default async function DashboardPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 py-8 gap-3">
-              <p className="text-sm text-slate-400 text-center">Noch kein Assessment durchgeführt</p>
+              <p className="text-sm text-slate-400 text-center">{t('noAssessment')}</p>
               <Link href="/assessment" className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors">
-                Assessment starten →
+                {t('startAssessment')}
               </Link>
             </div>
           )}
@@ -224,14 +232,13 @@ export default async function DashboardPage() {
 
         {/* Karte B: Use-Case-Portfolio */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
-          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">Use-Case-Portfolio</p>
+          <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">{t('portfolio')}</p>
           {usecaseCount > 0 ? (
             <>
               <p className="text-[10px] text-slate-400 mb-3">
-                {usecaseCount} Use {usecaseCount === 1 ? 'Case' : 'Cases'} bewertet
-                {lastUseCaseDate ? ` · zuletzt ${formatDate(lastUseCaseDate)}` : ''}
+                {usecaseCount} {portfolioCountLabel}
+                {lastUseCaseDate ? ` · ${t('portfolioLast', { date: formatDate(lastUseCaseDate, locale) })}` : ''}
               </p>
-              {/* Matrix füllt die Karte — Status-Chips kommen aus der Komponente */}
               <div className="flex-1 flex items-center">
                 <MiniPortfolioMatrix useCases={useCasePreview} />
               </div>
@@ -239,12 +246,12 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 py-4 gap-3">
               <MiniPortfolioMatrix useCases={[]} />
-              <p className="text-sm text-slate-400 text-center">Noch keine Use Cases bewertet</p>
+              <p className="text-sm text-slate-400 text-center">{t('noPortfolio')}</p>
             </div>
           )}
           <div className="mt-3 text-center">
             <Link href="/usecase" className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors">
-              Zum Scoring →
+              {t('toScoring')}
             </Link>
           </div>
         </div>
@@ -252,7 +259,7 @@ export default async function DashboardPage() {
 
       {/* Alle Tools */}
       <div className="mb-4">
-        <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Alle Tools</h2>
+        <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('allTools')}</h2>
       </div>
 
       <div data-reveal style={{ '--i': '3' } as React.CSSProperties}>
@@ -271,12 +278,12 @@ export default async function DashboardPage() {
       {tier === 'free' && (
         <div className="mt-8 bg-primary-soft border border-primary-border rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div>
-            <div className="text-primary font-semibold mb-1">Auf Professional upgraden</div>
-            <div className="text-slate-600 text-sm">PDF-Export, Ergebnisse speichern, Versionierung und alle 7 Tools.</div>
+            <div className="text-primary font-semibold mb-1">{t('upgradeBannerTitle')}</div>
+            <div className="text-slate-600 text-sm">{t('upgradeBannerDesc')}</div>
           </div>
           <Link href="/upgrade"
             className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors shrink-0 whitespace-nowrap">
-            Ab €49/Monat →
+            {t('upgradeButton')}
           </Link>
         </div>
       )}

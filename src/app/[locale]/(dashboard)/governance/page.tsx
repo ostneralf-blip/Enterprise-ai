@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { GovernancePageClient } from './GovernancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Governance-Check' }
 
 export default async function GovernancePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -82,7 +83,7 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
 
   return (
     <div>
-      <PageHeader title="Governance-Check" description="6 Gates · DSGVO & EU AI Act · Deployment-Freigabe" />
+      <PageHeader title={t('governance.title')} description={t('governance.desc')} />
       <Suspense fallback={null}>
         <GuidancePanel module="governance" contextKey="governance.raci" />
       </Suspense>

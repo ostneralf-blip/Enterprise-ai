@@ -3,13 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { AssessmentPageClient } from './AssessmentPageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 
 export const metadata: Metadata = { title: 'AI-Readiness Assessment' }
 
 export default async function AssessmentPage() {
-  const supabase = await createClient()
+  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
   const { data: { user } } = await supabase.auth.getUser()
 
   const [profileResult, { data: latestSession }] = await Promise.all([
@@ -34,8 +35,8 @@ export default async function AssessmentPage() {
   return (
     <div>
       <PageHeader
-        title="AI-Readiness Assessment"
-        description={tier !== 'free' ? '6 Dimensionen · 42 Fragen · ~25 Minuten' : '6 Dimensionen · 16 Fragen · ~10 Minuten'}
+        title={t('assessment.title')}
+        description={tier !== 'free' ? t('assessment.descPro') : t('assessment.descFree')}
       />
       <Suspense fallback={null}>
         <GuidancePanel module="assessment" contextKey="assessment.dimensionen" />
