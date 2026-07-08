@@ -109,8 +109,8 @@ describe('Use-Case Scoring Engine', () => {
 
     it('alle Kriterien haben Low- und High-Label', () => {
       CRITERIA.forEach(c => {
-        expect(c.lowLabel.length).toBeGreaterThan(0)
-        expect(c.highLabel.length).toBeGreaterThan(0)
+        expect(c.lowLabel.de.length).toBeGreaterThan(0)
+        expect(c.highLabel.de.length).toBeGreaterThan(0)
       })
     })
 

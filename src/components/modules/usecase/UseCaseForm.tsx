@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { CRITERIA, DOMAINS, calcWeightedScore, deriveQuadrant, QUADRANT_META } from '@/config/usecase-data'
+import { pick } from '@/lib/utils/locale-data'
 import type { UseCase, UseCaseWeights } from '@/types'
 
 interface UseCaseFormProps {
@@ -28,6 +30,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const locale = useLocale()
   const preview = calcWeightedScore(scores, weights)
   const quadrant = deriveQuadrant(scores)
   const qMeta = QUADRANT_META[quadrant]
@@ -104,15 +107,15 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
             {CRITERIA.map(c => (
               <div key={c.id} className="space-y-1.5">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-xs font-medium text-slate-700">{c.label}</span>
-                  <span className="text-xs text-slate-400">— {c.description}</span>
+                  <span className="text-xs font-medium text-slate-700">{pick(c.label, locale)}</span>
+                  <span className="text-xs text-slate-400">— {pick(c.description, locale)}</span>
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex gap-1.5 flex-1" role="group" aria-label={c.label}>
+                  <div className="flex gap-1.5 flex-1" role="group" aria-label={pick(c.label, locale)}>
                     {[1, 2, 3, 4, 5].map(v => (
                       <button key={v} type="button" onClick={() => setScores(s => ({ ...s, [c.id]: v }))}
                         aria-pressed={scores[c.id] === v}
-                        aria-label={`${c.label}: ${v}`}
+                        aria-label={`${pick(c.label, locale)}: ${v}`}
                         className={`flex-1 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring ${
                           scores[c.id] === v ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                         }`}>
@@ -122,8 +125,8 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
                   </div>
                 </div>
                 <div className="flex justify-between text-[10px] text-slate-400 leading-tight px-0.5">
-                  <span className="max-w-[45%]">{c.lowLabel}</span>
-                  <span className="max-w-[45%] text-right">{c.highLabel}</span>
+                  <span className="max-w-[45%]">{pick(c.lowLabel, locale)}</span>
+                  <span className="max-w-[45%] text-right">{pick(c.highLabel, locale)}</span>
                 </div>
               </div>
             ))}
@@ -138,7 +141,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
         }`}>
           <span>{qMeta.icon}</span>
           <span className="font-medium">{preview.toFixed(2)} / 5</span>
-          <span className="text-slate-500">— {qMeta.label}: {qMeta.desc}</span>
+          <span className="text-slate-500">— {pick(qMeta.label, locale)}: {pick(qMeta.desc, locale)}</span>
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}

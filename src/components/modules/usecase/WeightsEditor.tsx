@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { CRITERIA } from '@/config/usecase-data'
+import { pick } from '@/lib/utils/locale-data'
 import type { UseCaseWeights } from '@/types'
 
 interface WeightsEditorProps {
@@ -13,6 +15,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
   const [pct, setPct] = useState<Record<string, number>>(
     Object.fromEntries(CRITERIA.map(c => [c.id, Math.round(weights[c.id] * 100)]))
   )
+  const locale = useLocale()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,7 +46,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
       <div className="space-y-3 mb-4">
         {CRITERIA.map(c => (
           <div key={c.id} className="flex items-center gap-3 min-w-0">
-            <span className="text-sm text-slate-600 w-36 shrink-0">{c.label}</span>
+            <span className="text-sm text-slate-600 w-36 shrink-0">{pick(c.label, locale)}</span>
             <div className="flex-1 min-w-0">
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
@@ -57,7 +60,7 @@ export function WeightsEditor({ weights, onSave, onClose }: WeightsEditorProps) 
                 type="number" min={0} max={100} value={pct[c.id] ?? 0}
                 onChange={e => handleChange(c.id, parseInt(e.target.value) || 0)}
                 className="w-14 text-sm text-right border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-ring"
-                aria-label={`${c.label} Gewichtung`}
+                aria-label={`${pick(c.label, locale)} Gewichtung`}
               />
               <span className="text-xs text-slate-400 w-4">%</span>
             </div>

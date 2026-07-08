@@ -1,4 +1,5 @@
 import type { UseCaseWeights } from '@/types'
+import type { LocaleString } from '@/lib/utils/locale-data'
 
 export const DEFAULT_WEIGHTS: UseCaseWeights = {
   value: 0.30,
@@ -8,45 +9,51 @@ export const DEFAULT_WEIGHTS: UseCaseWeights = {
   speed: 0.10,
 }
 
-export const CRITERIA = [
-  {
-    id: 'value' as const,
-    label: 'Business Value',
-    description: 'Erwarteter Geschäftswert & strategische Bedeutung',
-    lowLabel: 'Kaum messbarer Nutzen',
-    highLabel: 'Kritischer Wettbewerbsvorteil',
-  },
-  {
-    id: 'feasibility' as const,
-    label: 'Umsetzbarkeit',
-    description: 'Technische & organisatorische Machbarkeit',
-    lowLabel: 'Sehr komplex, viele Abhängigkeiten',
-    highLabel: 'Klar definiert, Team bereit',
-  },
-  {
-    id: 'data_readiness' as const,
-    label: 'Datenqualität',
-    description: 'Verfügbarkeit, Qualität & Zugänglichkeit der Daten',
-    lowLabel: 'Daten fehlen oder sind nicht nutzbar',
-    highLabel: 'Strukturierte, qualitätsgesicherte Daten vorhanden',
-  },
-  {
-    id: 'risk' as const,
-    label: 'Risikoabsicherung',
-    description: 'Beherrschbarkeit von Risiken (5 = niedriges Risiko)',
-    lowLabel: 'Hohe rechtliche / reputationelle Risiken',
-    highLabel: 'Risiken gut kontrollierbar',
-  },
-  {
-    id: 'speed' as const,
-    label: 'Time-to-Value',
-    description: 'Wie schnell ist ein erster Mehrwert erzielbar?',
-    lowLabel: '> 12 Monate bis erste Ergebnisse',
-    highLabel: '< 3 Monate bis messbarer Nutzen',
-  },
-] as const
+export type CriterionId = 'value' | 'feasibility' | 'data_readiness' | 'risk' | 'speed'
 
-export type CriterionId = (typeof CRITERIA)[number]['id']
+export const CRITERIA: Array<{
+  id: CriterionId
+  label: LocaleString
+  description: LocaleString
+  lowLabel: LocaleString
+  highLabel: LocaleString
+}> = [
+  {
+    id: 'value',
+    label: { de: 'Business Value', en: 'Business Value' },
+    description: { de: 'Erwarteter Geschäftswert & strategische Bedeutung', en: 'Expected business value & strategic importance' },
+    lowLabel: { de: 'Kaum messbarer Nutzen', en: 'Barely measurable benefit' },
+    highLabel: { de: 'Kritischer Wettbewerbsvorteil', en: 'Critical competitive advantage' },
+  },
+  {
+    id: 'feasibility',
+    label: { de: 'Umsetzbarkeit', en: 'Feasibility' },
+    description: { de: 'Technische & organisatorische Machbarkeit', en: 'Technical & organizational feasibility' },
+    lowLabel: { de: 'Sehr komplex, viele Abhängigkeiten', en: 'Very complex, many dependencies' },
+    highLabel: { de: 'Klar definiert, Team bereit', en: 'Clearly defined, team ready' },
+  },
+  {
+    id: 'data_readiness',
+    label: { de: 'Datenqualität', en: 'Data Quality' },
+    description: { de: 'Verfügbarkeit, Qualität & Zugänglichkeit der Daten', en: 'Availability, quality & accessibility of data' },
+    lowLabel: { de: 'Daten fehlen oder sind nicht nutzbar', en: 'Data missing or unusable' },
+    highLabel: { de: 'Strukturierte, qualitätsgesicherte Daten vorhanden', en: 'Structured, quality-assured data available' },
+  },
+  {
+    id: 'risk',
+    label: { de: 'Risikoabsicherung', en: 'Risk Control' },
+    description: { de: 'Beherrschbarkeit von Risiken (5 = niedriges Risiko)', en: 'Manageability of risks (5 = low risk)' },
+    lowLabel: { de: 'Hohe rechtliche / reputationelle Risiken', en: 'High legal / reputational risks' },
+    highLabel: { de: 'Risiken gut kontrollierbar', en: 'Risks well manageable' },
+  },
+  {
+    id: 'speed',
+    label: { de: 'Time-to-Value', en: 'Time-to-Value' },
+    description: { de: 'Wie schnell ist ein erster Mehrwert erzielbar?', en: 'How quickly can first value be achieved?' },
+    lowLabel: { de: '> 12 Monate bis erste Ergebnisse', en: '> 12 months to first results' },
+    highLabel: { de: '< 3 Monate bis messbarer Nutzen', en: '< 3 months to measurable benefit' },
+  },
+]
 
 export const DOMAINS = [
   'Vertrieb & Marketing',
@@ -60,32 +67,39 @@ export const DOMAINS = [
   'Sonstiges',
 ]
 
-export const QUADRANT_META = {
+type QuadrantKey = 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid'
+
+export const QUADRANT_META: Record<QuadrantKey, {
+  label: LocaleString
+  desc: LocaleString
+  color: 'emerald' | 'blue' | 'amber' | 'slate'
+  icon: string
+}> = {
   quick_win: {
-    label: 'Quick Win',
-    desc: 'Hoher Wert, gut umsetzbar — jetzt starten',
+    label: { de: 'Quick Win', en: 'Quick Win' },
+    desc: { de: 'Hoher Wert, gut umsetzbar — jetzt starten', en: 'High value, feasible — start now' },
     color: 'emerald',
     icon: '⚡',
   },
   strategic_bet: {
-    label: 'Strategic Bet',
-    desc: 'Hoher Wert, aber komplex — mittelfristig angehen',
+    label: { de: 'Strategic Bet', en: 'Strategic Bet' },
+    desc: { de: 'Hoher Wert, aber komplex — mittelfristig angehen', en: 'High value, but complex — tackle mid-term' },
     color: 'blue',
     icon: '🎯',
   },
   low_hanging_fruit: {
-    label: 'Low Hanging Fruit',
-    desc: 'Leicht umsetzbar, aber geringer Wert — optional',
+    label: { de: 'Low Hanging Fruit', en: 'Low Hanging Fruit' },
+    desc: { de: 'Leicht umsetzbar, aber geringer Wert — optional', en: 'Easy to implement, but low value — optional' },
     color: 'amber',
     icon: '🍎',
   },
   avoid: {
-    label: 'Vermeiden',
-    desc: 'Niedriger Wert, schwer umsetzbar — deprioritisieren',
+    label: { de: 'Vermeiden', en: 'Avoid' },
+    desc: { de: 'Niedriger Wert, schwer umsetzbar — deprioritisieren', en: 'Low value, hard to implement — deprioritize' },
     color: 'slate',
     icon: '⚠️',
   },
-} as const
+}
 
 export const FREE_LIMIT = 3
 
@@ -99,7 +113,7 @@ export function calcWeightedScore(
 
 export function deriveQuadrant(
   scores: Record<string, number>
-): 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid' {
+): QuadrantKey {
   const v = scores.value ?? 3
   const f = scores.feasibility ?? 3
   if (v >= 3 && f >= 3) return 'quick_win'

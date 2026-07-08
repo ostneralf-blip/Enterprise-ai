@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import Link from 'next/link'
 import { QUADRANT_META } from '@/config/usecase-data'
+import { pick } from '@/lib/utils/locale-data'
 import type { UseCase } from '@/types'
 
 interface UseCaseMatrixProps {
@@ -33,6 +35,7 @@ const LABEL_COLOR: Record<string, string> = {
 
 export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const locale = useLocale()
 
   if (useCases.length === 0) {
     return (
@@ -153,7 +156,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
             {(Object.keys(DOT_COLOR) as Array<keyof typeof DOT_COLOR>).map(key => (
               <div key={key} className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DOT_COLOR[key] }} />
-                <span className="text-xs text-slate-500">{QUADRANT_META[key as keyof typeof QUADRANT_META]?.label}</span>
+                <span className="text-xs text-slate-500">{pick(QUADRANT_META[key as keyof typeof QUADRANT_META]?.label ?? { de: '', en: '' }, locale)}</span>
               </div>
             ))}
           </div>
@@ -186,7 +189,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
                     </div>
                   )}
                   <div className="text-xs font-medium mt-0.5" style={{ color: DOT_COLOR[uc.quadrant] ?? '#94a3b8' }}>
-                    {QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META]?.label}
+                    {pick(QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META]?.label ?? { de: '', en: '' }, locale)}
                   </div>
                 </div>
               </div>

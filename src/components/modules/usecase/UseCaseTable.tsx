@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { QUADRANT_META } from '@/config/usecase-data'
+import { pick } from '@/lib/utils/locale-data'
 import type { UseCase } from '@/types'
 
 interface UseCaseTableProps {
@@ -10,7 +12,7 @@ interface UseCaseTableProps {
   canvases?: { id: string; title: string }[]
 }
 
-const quadrantBadge = (q: UseCase['quadrant']) => {
+const quadrantBadge = (q: UseCase['quadrant'], locale: string) => {
   const m = QUADRANT_META[q]
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
@@ -19,13 +21,14 @@ const quadrantBadge = (q: UseCase['quadrant']) => {
       m.color === 'amber'   ? 'bg-amber-50 text-amber-700 border border-amber-200' :
       'bg-slate-100 text-slate-600 border border-slate-200'
     }`}>
-      {m.icon} {m.label}
+      {m.icon} {pick(m.label, locale)}
     </span>
   )
 }
 
 export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseCaseTableProps) {
   const [search, setSearch] = useState('')
+  const locale = useLocale()
 
   if (useCases.length === 0) {
     return (
@@ -113,7 +116,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
                 <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
                   {uc.weighted_score?.toFixed(2)}
                 </td>
-                <td className="px-4 py-3">{quadrantBadge(uc.quadrant)}</td>
+                <td className="px-4 py-3">{quadrantBadge(uc.quadrant, locale)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 justify-end">
                     <a
