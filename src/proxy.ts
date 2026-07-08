@@ -29,7 +29,10 @@ export async function proxy(request: NextRequest) {
     const isAdminEnOverride = request.cookies.get('en_admin_preview')?.value === 'true'
     if (!isAdminEnOverride) {
       const dePath = pathname.replace(/^\/en/, '') || '/'
-      return NextResponse.redirect(new URL(dePath, request.url))
+      const redirectResponse = NextResponse.redirect(new URL(dePath, request.url))
+      // NEXT_LOCALE=de setzen, damit next-intl nicht zurück zu /en/... redirectet (Loop-Schutz)
+      redirectResponse.cookies.set('NEXT_LOCALE', 'de', { path: '/', sameSite: 'lax' })
+      return redirectResponse
     }
   }
 
