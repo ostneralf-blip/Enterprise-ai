@@ -9,16 +9,18 @@ const EN_ENABLED = process.env.NEXT_PUBLIC_EN_ENABLED === 'true'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share', '/forgot-password', '/reset-password']
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share', '/forgot-password', '/reset-password', '/trust', '/sitemap.xml', '/robots.txt']
 const AUTH_ROUTES = ['/login', '/register']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // API-Routen und statische Assets überspringen
+  // API-Routen, statische Assets und spezielle Next.js-Dateien überspringen
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/robots.txt' ||
     pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/)
   ) {
     return NextResponse.next()
@@ -66,7 +68,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Private Routen schützen: nicht eingeloggte Nutzer zu Login umleiten
-  const isPublic = PUBLIC_ROUTES.some(r => localelessPath === r || localelessPath.startsWith('/share'))
+  const isPublic = PUBLIC_ROUTES.some(r => localelessPath === r || localelessPath.startsWith('/share') || localelessPath.startsWith('/trust'))
   if (!user && !isPublic) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', localelessPath)
