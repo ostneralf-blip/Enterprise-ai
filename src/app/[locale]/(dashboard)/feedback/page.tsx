@@ -1,8 +1,9 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useRouter } from '@/i18n/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { CHANGELOG } from '@/config/changelog'
+import { pick } from '@/lib/utils/locale-data'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
 
@@ -12,6 +13,7 @@ export default function FeedbackPage() {
   const router = useRouter()
   const t = useTranslations('feedback')
   const tc = useTranslations('common')
+  const locale = useLocale()
 
   const CATEGORIES = [
     { value: 'bug',       label: t('typeBug') },
@@ -237,8 +239,8 @@ export default function FeedbackPage() {
                     <span className="text-xs font-mono font-semibold text-primary-hover bg-primary-soft border border-primary-border rounded px-1.5 py-0.5 shrink-0">
                       v{entry.version}
                     </span>
-                    <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{entry.label}</span>
-                    <span className="text-xs text-slate-400 hidden sm:block shrink-0">{entry.date}</span>
+                    <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{pick(entry.label, locale)}</span>
+                    <span className="text-xs text-slate-400 hidden sm:block shrink-0">{pick(entry.date, locale)}</span>
                   </div>
                   <span className="text-slate-400 shrink-0 ml-2" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
                 </button>
@@ -246,26 +248,26 @@ export default function FeedbackPage() {
                 {isOpen && (
                   <div className="border-t border-slate-100 px-4 py-3 space-y-2">
                     {entry.features.map(feature => {
-                      const featureKey = `${entry.version}:${feature.title}`
+                      const featureKey = `${entry.version}:${feature.title.de}`
                       const featureOpen = expandedFeature === featureKey
                       return (
-                        <div key={feature.title} className="rounded-lg border border-slate-100 overflow-hidden">
+                        <div key={feature.title.de} className="rounded-lg border border-slate-100 overflow-hidden">
                           <button
                             onClick={() => setExpandedFeature(featureOpen ? null : featureKey)}
                             aria-expanded={featureOpen}
                             className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
                           >
-                            <span className="text-sm font-medium text-slate-700">{feature.title}</span>
+                            <span className="text-sm font-medium text-slate-700">{pick(feature.title, locale)}</span>
                             <span className="text-xs text-slate-400 shrink-0 ml-2" aria-hidden="true">
                               {featureOpen ? '−' : '+'}
                             </span>
                           </button>
                           {featureOpen && (
                             <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
-                              <p className="text-sm text-slate-600">{feature.description}</p>
+                              <p className="text-sm text-slate-600">{pick(feature.description, locale)}</p>
                               <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
                                 <p className="text-xs font-semibold text-amber-800 mb-1">{t('changelogBookSource')}</p>
-                                <p className="text-xs text-amber-900 leading-relaxed">{feature.bookContext}</p>
+                                <p className="text-xs text-amber-900 leading-relaxed">{pick(feature.bookContext, locale)}</p>
                               </div>
                             </div>
                           )}
