@@ -1,3 +1,5 @@
+import type { LocaleString } from '@/lib/utils/locale-data'
+
 // ─── TIER ────────────────────────────────────────────────────────────────────
 export type Tier = 'free' | 'pro' | 'enterprise'
 
@@ -133,14 +135,14 @@ export type ModuleId = 'assessment' | 'usecase' | 'governance' | 'roadmap' | 'ca
 
 export interface ModuleConfig {
   id: ModuleId
-  title: string
-  subtitle: string
-  subtitlePro?: string
+  title: LocaleString
+  subtitle: LocaleString
+  subtitlePro?: LocaleString
   icon: string
   href: string
   duration: string
   requiredTier: Tier
-  description: string
+  description: LocaleString
 }
 
 // ─── ASSESSMENT ──────────────────────────────────────────────────────────────

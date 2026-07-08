@@ -1,9 +1,10 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { MODULES } from '@/config/modules'
+import { pick } from '@/lib/utils/locale-data'
 import { CHANGELOG } from '@/config/changelog'
 import type { UserProfile } from '@/types'
 import { useMobileNav } from './MobileNavContext'
@@ -18,6 +19,7 @@ export function Sidebar({ profile }: SidebarProps) {
   const { isOpen, close } = useMobileNav()
   const t = useTranslations('sidebar')
   const tn = useTranslations('nav')
+  const locale = useLocale()
 
   const content = (
     <>
@@ -51,7 +53,7 @@ export function Sidebar({ profile }: SidebarProps) {
               key={mod.id}
               href={`/${mod.id}`}
               icon={mod.icon}
-              label={mod.title}
+              label={pick(mod.title, locale)}
               active={pathname.startsWith(`/${mod.id}`)}
               locked={isLocked}
               onNavigate={close}

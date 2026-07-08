@@ -10,6 +10,7 @@ import { MiniPortfolioMatrix } from '@/components/modules/usecase/MiniPortfolioM
 import { RadarChart } from '@/components/modules/assessment/RadarChart'
 import { SortableTileGrid, type TileData } from '@/components/dashboard/SortableTileGrid'
 import { getTranslations, getLocale } from 'next-intl/server'
+import { pick } from '@/lib/utils/locale-data'
 import { formatDate } from '@/lib/utils/format'
 import type { Locale } from '@/i18n/routing'
 
@@ -265,8 +266,8 @@ export default async function DashboardPage() {
       <div data-reveal style={{ '--i': '3' } as React.CSSProperties}>
         <SortableTileGrid tiles={sortedModules.map((mod): TileData => ({
           id:       mod.id,
-          title:    mod.title,
-          subtitle: tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle,
+          title:    pick(mod.title, locale),
+          subtitle: pick(tier !== 'free' && mod.subtitlePro ? mod.subtitlePro : mod.subtitle, locale),
           locked:   !hasAccess(tier, mod.requiredTier),
           done:     moduleDone[mod.id] ?? false,
           isNext:   mod.id === nextModuleId,
