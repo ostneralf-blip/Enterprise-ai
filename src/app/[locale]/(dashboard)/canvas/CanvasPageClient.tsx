@@ -1,5 +1,6 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -64,6 +65,7 @@ interface Props {
 
 export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const t = useTranslations('modules')
+  const locale = useLocale()
   const [canvases, setCanvases] = useState<Canvas[]>(initialCanvases)
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
@@ -189,9 +191,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 htmlFor={`canvas-input-${field.id}`}
                 className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1"
               >
-                {field.label}
+                {pick(field.label, locale)}
               </label>
-              <p className="text-xs text-slate-400 mb-2">{field.description}</p>
+              <p className="text-xs text-slate-400 mb-2">{pick(field.description, locale)}</p>
               <textarea
                 id={`canvas-input-${field.id}`}
                 value={active.data[field.id]}
@@ -199,7 +201,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                   if (!prev) return prev
                   return { ...prev, data: { ...prev.data, [field.id]: e.target.value } }
                 })}
-                placeholder={field.placeholder}
+                placeholder={pick(field.placeholder, locale)}
                 rows={4}
                 className="w-full text-sm text-slate-800 placeholder-slate-300 resize-none focus:outline-none"
               />
