@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -112,6 +113,7 @@ interface Props {
 }
 
 export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, complianceChecks: initCC, useCases: initUC, initialPreferences, tier }: Props) {
+  const t = useTranslations('ergebnisse')
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? EMPTY_PREFS)
   const [expanded,      setExpanded]      = useState<string | null>(null)
@@ -224,7 +226,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Assessment ─────────────────────────────────────────── */}
       {tab === 'assessment' && (
         <div className="space-y-2">
-          {assessments.length === 0 && <EmptyState variant="folder" title="Noch kein Assessment" description="Starten Sie mit dem AI-Readiness Assessment, um Ihren Reifegrad zu ermitteln." cta={{ href: '/assessment', label: 'Jetzt starten' }} />}
+          {assessments.length === 0 && <EmptyState variant="folder" title={t('emptyAssessmentTitle')} description={t('emptyAssessmentDesc')} cta={{ href: '/assessment', label: t('emptyAssessmentCta') }} />}
           {assessments.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -314,7 +316,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Architektur ────────────────────────────────────────── */}
       {tab === 'architecture' && (
         <div className="space-y-2">
-          {architectures.length === 0 && <EmptyState variant="folder" title="Noch keine Architektur" description="Erstellen Sie Ihre erste Enterprise AI Architektur im Architektur-Generator." cta={{ href: '/architecture', label: 'Jetzt erstellen' }} />}
+          {architectures.length === 0 && <EmptyState variant="folder" title={t('emptyArchitectureTitle')} description={t('emptyArchitectureDesc')} cta={{ href: '/architecture', label: t('emptyArchitectureCta') }} />}
           {architectures.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
@@ -445,7 +447,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Governance ─────────────────────────────────────────── */}
       {tab === 'governance' && (
         <div className="space-y-2">
-          {governance.length === 0 && <EmptyState variant="folder" title="Noch kein Governance-Check" description="Prüfen Sie Ihre AI-Use-Cases gegen die 6 Governance-Gates." cta={{ href: '/governance', label: 'Jetzt prüfen' }} />}
+          {governance.length === 0 && <EmptyState variant="folder" title={t('emptyGovernanceTitle')} description={t('emptyGovernanceDesc')} cta={{ href: '/governance', label: t('emptyGovernanceCta') }} />}
           {governance.map(g => {
             const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
             const isSelected = compareIds.includes(g.id)
@@ -543,7 +545,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Roadmap ────────────────────────────────────────────── */}
       {tab === 'roadmap' && (
         <div className="space-y-2">
-          {roadmaps.length === 0 && <EmptyState variant="folder" title="Noch keine Roadmap" description="Planen Sie Ihre AI-Implementierung in drei Phasen." cta={{ href: '/roadmap', label: 'Jetzt erstellen' }} />}
+          {roadmaps.length === 0 && <EmptyState variant="folder" title={t('emptyRoadmapTitle')} description={t('emptyRoadmapDesc')} cta={{ href: '/roadmap', label: t('emptyRoadmapCta') }} />}
           {roadmaps.map(r => {
             const isSelected = compareIds.includes(r.id)
             return (
@@ -654,7 +656,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             </InfoHint>
           </div>
 
-          {canvases.length === 0 && <EmptyState variant="grid" title="Noch kein Canvas" description="Strukturieren Sie Ihren AI Use Case auf dem 8-Felder-Canvas." cta={{ href: '/canvas', label: 'Jetzt erstellen' }} />}
+          {canvases.length === 0 && <EmptyState variant="grid" title={t('emptyCanvasTitle')} description={t('emptyCanvasDesc')} cta={{ href: '/canvas', label: t('emptyCanvasCta') }} />}
 
           {canvases.map(c => {
             const isSelected = compareIds.includes(c.id)
@@ -738,7 +740,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Compliance ─────────────────────────────────────────── */}
       {tab === 'compliance' && (
         <div className="space-y-2">
-          {complianceChecks.length === 0 && <EmptyState variant="folder" title="Noch keine Compliance-Prüfung" description="Prüfen Sie Ihre Compliance mit EU AI Act, DSGVO und NIS-2." cta={{ href: '/compliance', label: 'Jetzt prüfen' }} />}
+          {complianceChecks.length === 0 && <EmptyState variant="folder" title={t('emptyComplianceTitle')} description={t('emptyComplianceDesc')} cta={{ href: '/compliance', label: t('emptyComplianceCta') }} />}
           {complianceChecks.map(cc => {
             const statusColor =
               cc.status === 'compliant'     ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
@@ -786,7 +788,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {/* ── Use Cases ──────────────────────────────────────────── */}
       {tab === 'usecase' && (
         <div className="space-y-2">
-          {useCases.length === 0 && <EmptyState variant="matrix" title="Noch keine Use Cases bewertet" description="Bewerten und priorisieren Sie Ihre AI Use Cases in der Scoring-Matrix." cta={{ href: '/usecase', label: 'Jetzt bewerten' }} />}
+          {useCases.length === 0 && <EmptyState variant="matrix" title={t('emptyUseCaseTitle')} description={t('emptyUseCaseDesc')} cta={{ href: '/usecase', label: t('emptyUseCaseCta') }} />}
           {useCases.map(uc => {
             const quadrantColor =
               uc.quadrant === 'build'        ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :

@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -46,6 +47,7 @@ const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-s
 const labelClass = 'block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5'
 
 export function SettingsPageClient({ profile, email }: Props) {
+  const t = useTranslations('settings')
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [company, setCompany] = useState(profile.company ?? '')
   const [role, setRole] = useState(profile.role ?? '')
@@ -199,7 +201,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               maxLength={100}
               required
               aria-required="true"
-              placeholder="Dein vollständiger Name"
+              placeholder={t('fullNamePlaceholder')}
               className={inputClass}
               disabled={saving}
             />
@@ -212,7 +214,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               value={company}
               onChange={e => setCompany(e.target.value)}
               maxLength={100}
-              placeholder="Firmenname"
+              placeholder={t('companyPlaceholder')}
               className={inputClass}
               disabled={saving}
             />
@@ -268,7 +270,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               value={street}
               onChange={e => setStreet(e.target.value)}
               maxLength={200}
-              placeholder="Musterstraße 1"
+              placeholder={t('streetPlaceholder')}
               className={inputClass}
               disabled={saving}
             />
@@ -296,7 +298,7 @@ export function SettingsPageClient({ profile, email }: Props) {
                 value={city}
                 onChange={e => setCity(e.target.value)}
                 maxLength={100}
-                placeholder="München"
+                placeholder={t('cityPlaceholder')}
                 className={inputClass}
                 disabled={saving}
               />
@@ -352,7 +354,7 @@ export function SettingsPageClient({ profile, email }: Props) {
             <label htmlFor="new-password" className={labelClass}>Neues Passwort</label>
             <input id="new-password" type="password" value={newPassword}
               onChange={e => { setNewPassword(e.target.value); setPwSaved(false) }}
-              placeholder="Neues Passwort eingeben"
+              placeholder={t('newPasswordPlaceholder')}
               className={inputClass} disabled={pwSaving} />
             {newPassword.length > 0 && (
               <ul className="mt-2 space-y-1" aria-label="Passwort-Anforderungen">
@@ -372,7 +374,7 @@ export function SettingsPageClient({ profile, email }: Props) {
             <label htmlFor="confirm-password" className={labelClass}>Passwort bestätigen</label>
             <input id="confirm-password" type="password" value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="Passwort wiederholen"
+              placeholder={t('confirmPasswordPlaceholder')}
               className={cn(inputClass, confirmPassword.length > 0 && newPassword !== confirmPassword ? 'border-red-300 focus:ring-red-400' : '')}
               disabled={pwSaving} />
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (

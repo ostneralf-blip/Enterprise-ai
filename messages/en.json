@@ -262,7 +262,13 @@
     "resetPath": "Reset path",
     "resetPathDesc": "Reset progress and start over",
     "saved": "Saved!",
-    "error": "Error saving."
+    "error": "Error saving.",
+    "fullNamePlaceholder": "Your full name",
+    "companyPlaceholder": "Company name",
+    "streetPlaceholder": "123 Main Street",
+    "cityPlaceholder": "London",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordPlaceholder": "Repeat password"
   },
   "upgrade": {
     "title": "Upgrade to Professional",
@@ -359,6 +365,29 @@
     "archetype": "Archetype",
     "maturityScore": "Maturity score",
     "outOf50": "out of 5.0"
+  },
+  "ergebnisse": {
+    "emptyAssessmentTitle": "No assessment yet",
+    "emptyAssessmentDesc": "Start with the AI Readiness Assessment to determine your maturity level.",
+    "emptyAssessmentCta": "Start now",
+    "emptyArchitectureTitle": "No architecture yet",
+    "emptyArchitectureDesc": "Create your first Enterprise AI architecture in the Architecture Generator.",
+    "emptyArchitectureCta": "Create now",
+    "emptyGovernanceTitle": "No governance check yet",
+    "emptyGovernanceDesc": "Review your AI use cases against the 6 governance gates.",
+    "emptyGovernanceCta": "Check now",
+    "emptyRoadmapTitle": "No roadmap yet",
+    "emptyRoadmapDesc": "Plan your AI implementation in three phases.",
+    "emptyRoadmapCta": "Create now",
+    "emptyCanvasTitle": "No canvas yet",
+    "emptyCanvasDesc": "Structure your AI use case on the 8-field canvas.",
+    "emptyCanvasCta": "Create now",
+    "emptyComplianceTitle": "No compliance check yet",
+    "emptyComplianceDesc": "Check your compliance with EU AI Act, GDPR and NIS-2.",
+    "emptyComplianceCta": "Check now",
+    "emptyUseCaseTitle": "No use cases scored yet",
+    "emptyUseCaseDesc": "Evaluate and prioritize your AI use cases in the scoring matrix.",
+    "emptyUseCaseCta": "Score now"
   },
   "errors": {
     "notFound": "Page not found",

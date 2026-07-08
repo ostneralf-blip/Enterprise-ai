@@ -262,7 +262,13 @@
     "resetPath": "Pfad zurücksetzen",
     "resetPathDesc": "Fortschritt zurücksetzen und neu beginnen",
     "saved": "Gespeichert!",
-    "error": "Fehler beim Speichern."
+    "error": "Fehler beim Speichern.",
+    "fullNamePlaceholder": "Dein vollständiger Name",
+    "companyPlaceholder": "Firmenname",
+    "streetPlaceholder": "Musterstraße 1",
+    "cityPlaceholder": "München",
+    "newPasswordPlaceholder": "Neues Passwort eingeben",
+    "confirmPasswordPlaceholder": "Passwort wiederholen"
   },
   "upgrade": {
     "title": "Auf Professional upgraden",
@@ -359,6 +365,29 @@
     "archetype": "Archetype",
     "maturityScore": "Reifegrad-Score",
     "outOf50": "von 5.0"
+  },
+  "ergebnisse": {
+    "emptyAssessmentTitle": "Noch kein Assessment",
+    "emptyAssessmentDesc": "Starten Sie mit dem AI-Readiness Assessment, um Ihren Reifegrad zu ermitteln.",
+    "emptyAssessmentCta": "Jetzt starten",
+    "emptyArchitectureTitle": "Noch keine Architektur",
+    "emptyArchitectureDesc": "Erstellen Sie Ihre erste Enterprise AI Architektur im Architektur-Generator.",
+    "emptyArchitectureCta": "Jetzt erstellen",
+    "emptyGovernanceTitle": "Noch kein Governance-Check",
+    "emptyGovernanceDesc": "Prüfen Sie Ihre AI-Use-Cases gegen die 6 Governance-Gates.",
+    "emptyGovernanceCta": "Jetzt prüfen",
+    "emptyRoadmapTitle": "Noch keine Roadmap",
+    "emptyRoadmapDesc": "Planen Sie Ihre AI-Implementierung in drei Phasen.",
+    "emptyRoadmapCta": "Jetzt erstellen",
+    "emptyCanvasTitle": "Noch kein Canvas",
+    "emptyCanvasDesc": "Strukturieren Sie Ihren AI Use Case auf dem 8-Felder-Canvas.",
+    "emptyCanvasCta": "Jetzt erstellen",
+    "emptyComplianceTitle": "Noch keine Compliance-Prüfung",
+    "emptyComplianceDesc": "Prüfen Sie Ihre Compliance mit EU AI Act, DSGVO und NIS-2.",
+    "emptyComplianceCta": "Jetzt prüfen",
+    "emptyUseCaseTitle": "Noch keine Use Cases bewertet",
+    "emptyUseCaseDesc": "Bewerten und priorisieren Sie Ihre AI Use Cases in der Scoring-Matrix.",
+    "emptyUseCaseCta": "Jetzt bewerten"
   },
   "errors": {
     "notFound": "Seite nicht gefunden",
