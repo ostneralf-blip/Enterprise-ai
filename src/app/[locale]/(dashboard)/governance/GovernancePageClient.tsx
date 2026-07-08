@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
@@ -65,6 +66,7 @@ export function GovernancePageClient({
   initialUseCaseId?: string
   complianceRisk?: string | null
 }) {
+  const t = useTranslations('modules')
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [useCaseIds, setUseCaseIds] = useState<string[]>(initialUseCaseId ? [initialUseCaseId] : [])
@@ -302,7 +304,7 @@ export function GovernancePageClient({
                       id="governance-usecase-extra"
                       value={extraName}
                       onChange={e => setExtraName(e.target.value)}
-                      placeholder="Name des Use Cases eingeben…"
+                      placeholder={t('governance.useCaseNamePlaceholder')}
                       maxLength={200}
                       autoFocus
                       className="flex-1 min-w-0 text-sm text-slate-900 placeholder-slate-400 bg-transparent focus:outline-none"
@@ -333,7 +335,7 @@ export function GovernancePageClient({
             type="text"
             value={extraName}
             onChange={e => setExtraName(e.target.value)}
-            placeholder="Name des zu prüfenden AI-Use-Cases"
+            placeholder={t('governance.useCaseSearchPlaceholder')}
             maxLength={200}
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring"
           />

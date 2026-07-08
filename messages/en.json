@@ -210,27 +210,40 @@
     "canvas": {
       "title": "AI Use-Case Canvas", "subtitle": "Develop use cases",
       "desc": "8 fields · complete template · problem to next steps",
-      "summaryDesc": "8-field canvas: problem, solution, data, KPIs and next steps"
+      "summaryDesc": "8-field canvas: problem, solution, data, KPIs and next steps",
+      "titlePlaceholder": "Enter canvas title…",
+      "titleAriaLabel": "Canvas title",
+      "archetypeAriaLabel": "Company archetype"
     },
     "governance": {
       "title": "Governance Check", "subtitle": "Responsible AI deployment",
       "desc": "6 gates · GDPR & EU AI Act · deployment approval",
-      "summaryDesc": "Review use case ethically, legally, and under EU AI Act"
+      "summaryDesc": "Review use case ethically, legally, and under EU AI Act",
+      "useCaseNamePlaceholder": "Enter use case name…",
+      "useCaseSearchPlaceholder": "Name of the AI use case to check"
     },
     "compliance": {
       "title": "Compliance Center", "subtitle": "EU AI Act & GDPR",
       "desc": "EU AI Act · GDPR checklist · risk matrix · policy templates",
-      "summaryDesc": "EU AI Act risk class check and GDPR obligations checklist"
+      "summaryDesc": "EU AI Act risk class check and GDPR obligations checklist",
+      "tablistAriaLabel": "Compliance areas",
+      "euAiActProgressAriaLabel": "EU AI Act progress",
+      "dsgvoProgressAriaLabel": "GDPR progress",
+      "checkOpenAriaLabel": "Open — click for Fulfilled",
+      "checkDoneAriaLabel": "Fulfilled — click for Not fulfilled",
+      "checkFailAriaLabel": "Not fulfilled — click for Open"
     },
     "architecture": {
       "title": "Architecture Generator", "subtitle": "Define AI architecture",
       "desc": "5-step wizard · vendor-neutral reference architecture · key decisions",
-      "summaryDesc": "Generate vendor-neutral Enterprise AI reference architecture"
+      "summaryDesc": "Generate vendor-neutral Enterprise AI reference architecture",
+      "bannerCloseAriaLabel": "Close banner"
     },
     "roadmap": {
       "title": "Roadmap Generator", "subtitle": "Create implementation plan",
       "desc": "3 phases · archetype-specific · KPIs & budget orientation",
-      "summaryDesc": "Archetype-specific implementation plan in 3 phases"
+      "summaryDesc": "Archetype-specific implementation plan in 3 phases",
+      "archetypeAriaLabel": "Select archetype"
     },
     "zusammenfassung": { "title": "Executive Summary", "subtitle": "PDF export & overview" },
     "statusLocked": "Pro",

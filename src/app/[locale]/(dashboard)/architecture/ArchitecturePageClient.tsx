@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
@@ -140,6 +141,7 @@ function CanvasContextBanner({
   context: CanvasContext
   onDismiss: () => void
 }) {
+  const t = useTranslations('modules')
   const [collapsed, setCollapsed] = useState(false)
   const filledCount = Object.keys(context.wizard_prefill).length
   return (
@@ -159,7 +161,7 @@ function CanvasContextBanner({
           </button>
           <button
             onClick={onDismiss}
-            aria-label="Banner schließen"
+            aria-label={t('architecture.bannerCloseAriaLabel')}
             className="text-xs text-emerald-600 hover:text-emerald-900 p-1"
           >✕</button>
         </div>
@@ -822,6 +824,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClose: () => void }) {
+  const tc = useTranslations('common')
   return (
     <div
       role="dialog"
@@ -835,7 +838,7 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
           <h2 id="comp-modal-title" className="text-sm font-semibold text-slate-900 min-w-0">{comp.name}</h2>
           <button
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={tc('close')}
             className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5"
           >✕</button>
         </div>

@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import {
@@ -40,6 +41,7 @@ function makeKey(regulation: string, checkType: string) {
 }
 
 export function CompliancePageClient({ initialChecks }: Props) {
+  const t = useTranslations('modules')
   const [tab, setTab] = useState<Tab>('euaiact')
   const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
     const m = new Map<string, CheckRow>()
@@ -176,7 +178,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
       </div>
 
       {/* Tab bar */}
-      <div role="tablist" aria-label="Compliance-Bereiche" className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
+      <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -298,7 +300,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                   aria-valuenow={euAiActDone}
                   aria-valuemin={0}
                   aria-valuemax={obligations.length}
-                  aria-label="EU AI Act Fortschritt"
+                  aria-label={t('compliance.euAiActProgressAriaLabel')}
                 />
               </div>
               <ul className="space-y-2">
@@ -372,7 +374,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                 aria-valuenow={dsgvoDone}
                 aria-valuemin={0}
                 aria-valuemax={DSGVO_CHECKLIST.length}
-                aria-label="DSGVO-Fortschritt"
+                aria-label={t('compliance.dsgvoProgressAriaLabel')}
               />
             </div>
           </div>
@@ -713,6 +715,7 @@ function StatusIcon({
   onClick: () => void
   disabled: boolean
 }) {
+  const t = useTranslations('modules')
   const base = 'flex-shrink-0 w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50'
   if (!status || status === 'pending') {
     return (
@@ -720,7 +723,7 @@ function StatusIcon({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        aria-label="Offen — anklicken für Erfüllt"
+        aria-label={t('compliance.checkOpenAriaLabel')}
         className={cn(base, 'border-slate-300 bg-white hover:border-primary-ring focus:ring-primary-ring')}
       />
     )
@@ -731,7 +734,7 @@ function StatusIcon({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        aria-label="Erfüllt — anklicken für Nicht erfüllt"
+        aria-label={t('compliance.checkDoneAriaLabel')}
         className={cn(base, 'border-emerald-500 bg-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 focus:ring-emerald-500')}
       >
         <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✓</span>
@@ -743,7 +746,7 @@ function StatusIcon({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label="Nicht erfüllt — anklicken für Offen"
+      aria-label={t('compliance.checkFailAriaLabel')}
       className={cn(base, 'border-red-500 bg-red-500 hover:bg-red-600 hover:border-red-600 focus:ring-red-500')}
     >
       <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✗</span>

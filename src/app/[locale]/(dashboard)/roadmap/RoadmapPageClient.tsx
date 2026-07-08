@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
@@ -75,6 +76,7 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
 }
 
 export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas }: Props) {
+  const t = useTranslations('modules')
   const [archetype, setArchetype] = useState<Archetype>(
     (savedRoadmap?.archetype as Archetype | undefined) ?? initialArchetype ?? 'starter'
   )
@@ -177,7 +179,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             Archetyp basierend auf deinem letzten Assessment — du kannst ihn unten ändern.
           </p>
         )}
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Archetyp auswählen">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t('roadmap.archetypeAriaLabel')}>
           {ARCHETYPES.map(a => {
             const meta = ARCHETYPE_LABELS[a]
             const active = archetype === a

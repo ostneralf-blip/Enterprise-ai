@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -62,6 +63,7 @@ interface Props {
 }
 
 export function CanvasPageClient({ initialCanvases, tier }: Props) {
+  const t = useTranslations('modules')
   const [canvases, setCanvases] = useState<Canvas[]>(initialCanvases)
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
@@ -135,9 +137,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <input
             value={active.title}
             onChange={e => setActive(prev => prev ? { ...prev, title: e.target.value } : prev)}
-            placeholder="Canvas-Titel eingeben…"
+            placeholder={t('canvas.titlePlaceholder')}
             className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-primary-ring focus:bg-white focus:outline-none transition-colors"
-            aria-label="Canvas-Titel"
+            aria-label={t('canvas.titleAriaLabel')}
           />
           <button
             onClick={handleSave}
@@ -157,7 +159,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <ShareButton module="canvas" entityId={active.id} tier={tier} />
         </div>
 
-        <div className="flex gap-2 mb-5" role="group" aria-label="Unternehmensarchetyp">
+        <div className="flex gap-2 mb-5" role="group" aria-label={t('canvas.archetypeAriaLabel')}>
           {ARCHETYPE_BTNS.map(({ id, label }) => (
             <button
               key={id}

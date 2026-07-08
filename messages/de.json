@@ -210,27 +210,40 @@
     "canvas": {
       "title": "AI Use-Case Canvas", "subtitle": "Use-Cases ausarbeiten",
       "desc": "8 Felder · Vollständiges Template · Problem bis nächste Schritte",
-      "summaryDesc": "8-Felder-Canvas: Problem, Lösung, Daten, KPIs und nächste Schritte"
+      "summaryDesc": "8-Felder-Canvas: Problem, Lösung, Daten, KPIs und nächste Schritte",
+      "titlePlaceholder": "Canvas-Titel eingeben…",
+      "titleAriaLabel": "Canvas-Titel",
+      "archetypeAriaLabel": "Unternehmensarchetyp"
     },
     "governance": {
       "title": "Governance-Check", "subtitle": "KI verantwortungsvoll einsetzen",
       "desc": "6 Gates · DSGVO & EU AI Act · Deployment-Freigabe",
-      "summaryDesc": "Use-Case ethisch, rechtlich und nach EU AI Act prüfen"
+      "summaryDesc": "Use-Case ethisch, rechtlich und nach EU AI Act prüfen",
+      "useCaseNamePlaceholder": "Name des Use Cases eingeben…",
+      "useCaseSearchPlaceholder": "Name des zu prüfenden AI-Use-Cases"
     },
     "compliance": {
       "title": "Compliance Center", "subtitle": "EU AI Act & DSGVO",
       "desc": "EU AI Act · DSGVO-Checkliste · Risikomatrix · Policy-Templates",
-      "summaryDesc": "EU AI Act Risikoklassen-Check und DSGVO-Pflichten-Checkliste"
+      "summaryDesc": "EU AI Act Risikoklassen-Check und DSGVO-Pflichten-Checkliste",
+      "tablistAriaLabel": "Compliance-Bereiche",
+      "euAiActProgressAriaLabel": "EU AI Act Fortschritt",
+      "dsgvoProgressAriaLabel": "DSGVO-Fortschritt",
+      "checkOpenAriaLabel": "Offen — anklicken für Erfüllt",
+      "checkDoneAriaLabel": "Erfüllt — anklicken für Nicht erfüllt",
+      "checkFailAriaLabel": "Nicht erfüllt — anklicken für Offen"
     },
     "architecture": {
       "title": "Architektur-Generator", "subtitle": "AI-Architektur definieren",
       "desc": "5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen",
-      "summaryDesc": "Herstellerneutrale Enterprise AI Reference Architecture generieren"
+      "summaryDesc": "Herstellerneutrale Enterprise AI Reference Architecture generieren",
+      "bannerCloseAriaLabel": "Banner schließen"
     },
     "roadmap": {
       "title": "Roadmap-Generator", "subtitle": "Umsetzungsplan erstellen",
       "desc": "3 Phasen · Archetyp-spezifisch · KPIs & Budgetorientierung",
-      "summaryDesc": "Archetyp-spezifischer Umsetzungsplan in 3 Phasen"
+      "summaryDesc": "Archetyp-spezifischer Umsetzungsplan in 3 Phasen",
+      "archetypeAriaLabel": "Archetyp auswählen"
     },
     "zusammenfassung": { "title": "Executive Summary", "subtitle": "PDF-Export & Überblick" },
     "statusLocked": "Pro",
