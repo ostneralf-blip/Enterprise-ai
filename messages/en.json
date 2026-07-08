@@ -193,7 +193,11 @@
     "trust4": "Stripe PCI-DSS",
     "trust5": "Cookieless Analytics",
     "trustLink": "Details on security & privacy →",
-    "footer": "© 2026 AI Navigator · enterprise-ai.biz"
+    "footer": "© 2026 AI Navigator · enterprise-ai.biz",
+    "footerPrivacy": "Privacy Policy",
+    "footerImprint": "Legal Notice",
+    "footerSecurity": "Security",
+    "footerLegalNote": "Legal pages (Imprint, Privacy Policy) are provided in German only, as required by German law."
   },
   "modules": {
     "assessment": {

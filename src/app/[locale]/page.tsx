@@ -4,12 +4,45 @@ import { PaperNoise } from '@/components/shared/PaperNoise'
 import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 import { getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
-  description: 'Interaktive Frameworks für AI-Readiness, Governance, Use-Case-Priorisierung und Architektur. Für CTOs, CDOs und Enterprise Architekten.',
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'landing' })
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en` : BASE
+  return {
+    title: isEn
+      ? 'AI Navigator — Enterprise AI. Navigated with structure.'
+      : 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
+    description: t('heroDesc'),
+    openGraph: {
+      type: 'website',
+      locale: isEn ? 'en_GB' : 'de_DE',
+      siteName: 'AI Navigator',
+      url: canonical,
+    },
+    alternates: {
+      canonical,
+      languages: {
+        'de': BASE,
+        'en': `${BASE}/en`,
+        'x-default': BASE,
+      },
+    },
+  }
 }
 
-export default async function LandingPage() {
+export default async function LandingPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
   const t = await getTranslations('landing')
   const tc = await getTranslations('common')
 
@@ -104,9 +137,12 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-slate-200 py-6 text-center text-slate-500 text-xs">
         {t('footer')} ·{' '}
-        <Link href="/datenschutz" className="hover:text-slate-700">Datenschutz</Link> ·{' '}
-        <Link href="/impressum" className="hover:text-slate-700">Impressum</Link> ·{' '}
-        <Link href="/trust" className="hover:text-slate-700">Sicherheit</Link>
+        <Link href="/datenschutz" className="hover:text-slate-700">{t('footerPrivacy')}</Link> ·{' '}
+        <Link href="/impressum" className="hover:text-slate-700">{t('footerImprint')}</Link> ·{' '}
+        <Link href="/trust" className="hover:text-slate-700">{t('footerSecurity')}</Link>
+        {locale === 'en' && (
+          <p className="mt-1 text-[10px] text-slate-400">{t('footerLegalNote')}</p>
+        )}
       </footer>
     </div>
   )

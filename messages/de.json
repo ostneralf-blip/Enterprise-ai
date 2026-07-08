@@ -193,7 +193,10 @@
     "trust4": "Stripe PCI-DSS",
     "trust5": "Cookieless Analytics",
     "trustLink": "Details zur Sicherheit & Datenschutz →",
-    "footer": "© 2026 AI Navigator · enterprise-ai.biz"
+    "footer": "© 2026 AI Navigator · enterprise-ai.biz",
+    "footerPrivacy": "Datenschutz",
+    "footerImprint": "Impressum",
+    "footerSecurity": "Sicherheit"
   },
   "modules": {
     "assessment": {
