@@ -7,6 +7,8 @@ const CATEGORIES = ['definition', 'best_practice', 'anti_pattern', 'policy_templ
 
 const TIERS = ['free', 'pro', 'enterprise'] as const
 
+const LOCALES = ['de', 'en'] as const
+
 const CreateSchema = z.object({
   module:        z.string().min(1).max(50),
   category:      z.enum(CATEGORIES),
@@ -18,6 +20,7 @@ const CreateSchema = z.object({
   display_order: z.number().int().min(0).optional(),
   is_published:  z.boolean().optional(),
   min_tier:      z.enum(TIERS).optional(),
+  locale:        z.enum(LOCALES).optional(),
 })
 
 const PatchSchema = z.object({
@@ -30,6 +33,7 @@ const PatchSchema = z.object({
   display_order: z.number().int().min(0).optional(),
   is_published:  z.boolean().optional(),
   min_tier:      z.enum(TIERS).optional(),
+  locale:        z.enum(LOCALES).optional(),
 })
 
 export async function GET() {
@@ -45,6 +49,7 @@ export async function GET() {
     .select('*')
     .order('module', { ascending: true })
     .order('context_key', { ascending: true, nullsFirst: false })
+    .order('locale', { ascending: true })
     .order('display_order', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

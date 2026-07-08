@@ -17,6 +17,7 @@ interface Props {
   entries: GuidanceEntry[]
   module: string
   userTier: string
+  isFallback?: boolean
 }
 
 function isLocked(entry: GuidanceEntry, userTier: string) {
@@ -25,7 +26,7 @@ function isLocked(entry: GuidanceEntry, userTier: string) {
   return false
 }
 
-export function GuidanceDrawer({ entries, module, userTier }: Props) {
+export function GuidanceDrawer({ entries, module, userTier, isFallback = false }: Props) {
   const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -58,7 +59,14 @@ export function GuidanceDrawer({ entries, module, userTier }: Props) {
           <div className="relative w-80 sm:w-96 h-full bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Wissensbasis</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-slate-900">Wissensbasis</p>
+                  {isFallback && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200 uppercase tracking-wide">
+                      DE
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-slate-500 mt-0.5">{entries.length} Einträge für dieses Modul</p>
               </div>
               <button
