@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { pick } from '@/lib/utils/locale-data'
 import { GOVERNANCE_GATES } from '@/config/governance-data'
 
 export type GovernanceSession = {
@@ -22,17 +24,18 @@ const WEIGHT_DOT: Record<string, string> = {
   red: 'bg-red-500', yellow: 'bg-amber-400', green: 'bg-emerald-500',
 }
 
-function resolveGate(gateId: string, optionId: string) {
+function resolveGate(gateId: string, optionId: string, locale: string) {
   const gate = GOVERNANCE_GATES.find(g => g.id === gateId)
   const option = gate?.options.find(o => o.id === optionId)
   return {
-    shortQuestion: gate ? gate.question.split('?')[0] : gateId,
-    optionLabel: option?.label ?? optionId,
+    shortQuestion: gate ? pick(gate.question, locale).split('?')[0] : gateId,
+    optionLabel: option ? pick(option.label, locale) : optionId,
     weight: option?.weight ?? 'yellow' as const,
   }
 }
 
 function ScenarioCompare({ a, b, onBack }: { a: GovernanceSession; b: GovernanceSession; onBack: () => void }) {
+  const locale = useLocale()
   return (
     <div>
       <button onClick={onBack} className="text-xs text-primary mb-4 hover:underline">← Zurück zum Verlauf</button>
@@ -57,8 +60,8 @@ function ScenarioCompare({ a, b, onBack }: { a: GovernanceSession; b: Governance
           <div className="p-2.5 text-xs font-medium text-slate-500 truncate border-l border-slate-100">{b.use_case_name ?? 'Session 2'}</div>
         </div>
         {GOVERNANCE_GATES.map(gate => {
-          const aR = resolveGate(gate.id, a.answers[gate.id] ?? '')
-          const bR = resolveGate(gate.id, b.answers[gate.id] ?? '')
+          const aR = resolveGate(gate.id, a.answers[gate.id] ?? '', locale)
+          const bR = resolveGate(gate.id, b.answers[gate.id] ?? '', locale)
           const differs = a.answers[gate.id] !== b.answers[gate.id]
           return (
             <div key={gate.id} className={cn('grid grid-cols-[1.2fr_1fr_1fr] border-t border-slate-100', differs && 'bg-amber-50')}>
@@ -80,6 +83,7 @@ function ScenarioCompare({ a, b, onBack }: { a: GovernanceSession; b: Governance
 }
 
 export function GovernanceHistory({ sessions }: { sessions: GovernanceSession[] }) {
+  const locale = useLocale()
   const [expanded, setExpanded] = useState<string | null>(null)
   const [compareIds, setCompareIds] = useState<string[]>([])
   const [comparing, setComparing] = useState(false)
@@ -149,7 +153,7 @@ export function GovernanceHistory({ sessions }: { sessions: GovernanceSession[] 
                     {GOVERNANCE_GATES.map(gate => {
                       const optionId = s.answers[gate.id]
                       if (!optionId) return null
-                      const { shortQuestion, optionLabel, weight } = resolveGate(gate.id, optionId)
+                      const { shortQuestion, optionLabel, weight } = resolveGate(gate.id, optionId, locale)
                       return (
                         <li key={gate.id} className="flex items-start gap-2">
                           <span className={cn('mt-1.5 flex-shrink-0 w-2 h-2 rounded-full', WEIGHT_DOT[weight])} aria-hidden="true" />

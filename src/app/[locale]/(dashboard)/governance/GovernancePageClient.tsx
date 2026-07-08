@@ -1,5 +1,6 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
@@ -67,6 +68,7 @@ export function GovernancePageClient({
   complianceRisk?: string | null
 }) {
   const t = useTranslations('modules')
+  const locale = useLocale()
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [useCaseIds, setUseCaseIds] = useState<string[]>(initialUseCaseId ? [initialUseCaseId] : [])
@@ -157,8 +159,8 @@ export function GovernancePageClient({
           <div className="flex items-start gap-3">
             <span className="text-2xl" aria-hidden="true">{verdict.icon}</span>
             <div className="min-w-0">
-              <h2 className={cn('text-base sm:text-lg font-semibold', styles.title)}>{verdict.title}</h2>
-              <p className="text-sm text-slate-600 mt-1">{verdict.summary}</p>
+              <h2 className={cn('text-base sm:text-lg font-semibold', styles.title)}>{pick(verdict.title, locale)}</h2>
+              <p className="text-sm text-slate-600 mt-1">{pick(verdict.summary, locale)}</p>
             </div>
           </div>
         </div>
@@ -183,8 +185,8 @@ export function GovernancePageClient({
                     aria-hidden="true"
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{g.question.split('?')[0]}</p>
-                    <p className="text-sm text-slate-700 mt-0.5">{option.recommendation}</p>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{pick(g.question, locale).split('?')[0]}</p>
+                    <p className="text-sm text-slate-700 mt-0.5">{option.recommendation ? pick(option.recommendation, locale) : null}</p>
                   </div>
                 </li>
               ))}
@@ -204,7 +206,7 @@ export function GovernancePageClient({
                 />
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">Gate {g.step}</p>
-                  <p className="text-sm text-slate-800 min-w-0">{option.label}</p>
+                  <p className="text-sm text-slate-800 min-w-0">{pick(option.label, locale)}</p>
                 </div>
               </li>
             ))}
@@ -359,11 +361,11 @@ export function GovernancePageClient({
       {/* Gate card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Gate {gate.step}</p>
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{gate.question}</h2>
-        <p className="text-sm text-slate-500 mb-5">{gate.context}</p>
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(gate.question, locale)}</h2>
+        <p className="text-sm text-slate-500 mb-5">{pick(gate.context, locale)}</p>
 
         <fieldset>
-          <legend className="sr-only">{gate.question}</legend>
+          <legend className="sr-only">{pick(gate.question, locale)}</legend>
           <div className="space-y-2.5" role="radiogroup">
             {gate.options.map(option => {
               const isSelected = selectedOptionId === option.id
@@ -387,9 +389,9 @@ export function GovernancePageClient({
                   />
                   <div className="min-w-0">
                     <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>
-                      {option.label}
+                      {pick(option.label, locale)}
                     </p>
-                    <p className="text-xs text-slate-500 mt-0.5">{option.description}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{pick(option.description, locale)}</p>
                   </div>
                 </label>
               )

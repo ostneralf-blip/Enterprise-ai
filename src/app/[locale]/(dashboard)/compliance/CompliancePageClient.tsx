@@ -1,5 +1,6 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import {
@@ -42,6 +43,7 @@ function makeKey(regulation: string, checkType: string) {
 
 export function CompliancePageClient({ initialChecks }: Props) {
   const t = useTranslations('modules')
+  const locale = useLocale()
   const [tab, setTab] = useState<Tab>('euaiact')
   const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
     const m = new Map<string, CheckRow>()
@@ -146,12 +148,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
   // ─── Offene Punkte (nicht erfüllte Einträge aller Regelwerke) ────────────
   const allOpenItems = [
     ...obligations.filter(o => getCheck('eu_ai_act', o.id)?.status === 'non_compliant')
-      .map(o => ({ reg: 'EU AI Act', label: o.label })),
+      .map(o => ({ reg: 'EU AI Act', label: pick(o.label, locale) })),
     ...DSGVO_CHECKLIST.filter(i => getCheck('dsgvo', i.id)?.status === 'non_compliant')
-      .map(i => ({ reg: 'DSGVO', label: i.label })),
+      .map(i => ({ reg: 'DSGVO', label: pick(i.label, locale) })),
     ...activeRegs.flatMap(reg =>
       reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'non_compliant')
-        .map(i => ({ reg: reg.shortLabel, label: i.label }))
+        .map(i => ({ reg: pick(reg.shortLabel, locale), label: pick(i.label, locale) }))
     ),
   ]
 
@@ -230,18 +232,18 @@ export function CompliancePageClient({ initialChecks }: Props) {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className={cn('text-xs font-semibold', isSelected ? cls.color.title : 'text-slate-700')}>
-                        {cls.title}
+                        {pick(cls.title, locale)}
                       </span>
                       <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', isSelected ? cls.color.badge : 'bg-slate-100 text-slate-500')}>
-                        {cls.badge}
+                        {pick(cls.badge, locale)}
                       </span>
                     </div>
                     <p className="text-xs text-slate-400 mb-1">{cls.articleRef}</p>
-                    <p className="text-xs text-slate-600 leading-relaxed">{cls.summary}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed">{pick(cls.summary, locale)}</p>
                     <ul className="mt-2 space-y-0.5">
                       {cls.examples.slice(0, 3).map((ex, i) => (
                         <li key={i} className="text-xs text-slate-500 flex gap-1.5">
-                          <span className="flex-shrink-0">·</span><span>{ex}</span>
+                          <span className="flex-shrink-0">·</span><span>{pick(ex, locale)}</span>
                         </li>
                       ))}
                     </ul>
@@ -276,7 +278,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-slate-700">
-                    Schritt 2: Pflichten-Checkliste ({EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title})
+                    Schritt 2: Pflichten-Checkliste ({(() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : null })()})
                   </h2>
                   <InfoHint title="Wie funktioniert die Checkliste?">
                     <p>Klicken Sie auf den Status-Kreis eines Eintrags, um zwischen drei Zuständen zu wechseln:</p>
@@ -324,12 +326,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
                             status === 'compliant' ? 'text-primary line-through' :
                             status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
                           )}>
-                            {item.label}
+                            {pick(item.label, locale)}
                           </p>
-                          <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                           {item.relevance && (
                             <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1.5">
-                              Warum relevant: {item.relevance}
+                              Warum relevant: {pick(item.relevance, locale)}
                             </p>
                           )}
                         </div>
@@ -399,12 +401,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
                         status === 'compliant' ? 'text-emerald-800 line-through' :
                         status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
                       )}>
-                        {item.label}
+                        {pick(item.label, locale)}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.description}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                       {item.relevance && (
                         <p className="text-xs text-primary-hover bg-primary-soft rounded px-2 py-1 mt-1.5">
-                          AI-Relevanz: {item.relevance}
+                          AI-Relevanz: {pick(item.relevance, locale)}
                         </p>
                       )}
                     </div>
@@ -436,7 +438,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
             <SummaryCard
               label="EU AI Act Risikoklasse"
               value={riskClass
-                ? EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.title ?? '—'
+                ? (() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : '—' })()
                 : 'Nicht eingestuft'}
               sub={riskClass ? EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.articleRef : undefined}
               done={!!riskClass}
@@ -465,12 +467,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <div className={cn('rounded-2xl border p-4', level.color.bg, level.color.border)}>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', level.color.badge)}>
-                    Risikoniveau: {level.label}
+                    Risikoniveau: {pick(level.label, locale)}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-slate-800">{level.action}</p>
+                <p className="text-sm font-medium text-slate-800">{pick(level.action, locale)}</p>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Auswirkung: {RISK_MATRIX.impactLabels[pos.impact - 1]} · Wahrscheinlichkeit: {RISK_MATRIX.probabilityLabels[pos.probability - 1]}
+                  Auswirkung: {pick(RISK_MATRIX.impactLabels[pos.impact - 1], locale)} · Wahrscheinlichkeit: {pick(RISK_MATRIX.probabilityLabels[pos.probability - 1], locale)}
                 </p>
               </div>
             )
@@ -524,12 +526,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
             <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
-                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{tpl.title}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">{tpl.subtitle}</p>
+                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{pick(tpl.title, locale)}</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">{pick(tpl.subtitle, locale)}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(tpl.id, tpl.content)}
-                  aria-label={`${tpl.title} in Zwischenablage kopieren`}
+                  aria-label={`${pick(tpl.title, locale)} in Zwischenablage kopieren`}
                   className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                 >
                   {copied === tpl.id ? '✓ Kopiert' : 'Kopieren'}
@@ -580,16 +582,16 @@ export function CompliancePageClient({ initialChecks }: Props) {
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600')}>
-                        {reg.shortLabel}
+                        {pick(reg.shortLabel, locale)}
                       </span>
                       <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-slate-400')}>
                         {isActive ? '✓ Aktiv' : 'Aktivieren'}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-800 mb-1 leading-snug">{reg.label}</p>
-                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{reg.description}</p>
+                    <p className="text-xs font-semibold text-slate-800 mb-1 leading-snug">{pick(reg.label, locale)}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{pick(reg.description, locale)}</p>
                     <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
-                      <strong>Gilt für:</strong> {reg.applicability}
+                      <strong>Gilt für:</strong> {pick(reg.applicability, locale)}
                     </p>
                   </button>
                 )
@@ -610,10 +612,10 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <div key={reg.id} className="border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-800 truncate">{reg.label}</h3>
-                    <InfoHint title={reg.label} side="bottom">
-                      <p>{reg.description}</p>
-                      <p className="mt-1.5"><strong>Gilt für:</strong> {reg.applicability}</p>
+                    <h3 className="text-sm font-semibold text-slate-800 truncate">{pick(reg.label, locale)}</h3>
+                    <InfoHint title={pick(reg.label, locale)} side="bottom">
+                      <p>{pick(reg.description, locale)}</p>
+                      <p className="mt-1.5"><strong>Gilt für:</strong> {pick(reg.applicability, locale)}</p>
                     </InfoHint>
                   </div>
                   <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
@@ -631,7 +633,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     aria-valuenow={regDone}
                     aria-valuemin={0}
                     aria-valuemax={reg.items.length}
-                    aria-label={`${reg.shortLabel} Fortschritt`}
+                    aria-label={`${pick(reg.shortLabel, locale)} Fortschritt`}
                   />
                 </div>
                 <ul className="space-y-2">
@@ -655,7 +657,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                               status === 'compliant' ? 'text-primary line-through' :
                               status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
                             )}>
-                              {item.label}
+                              {pick(item.label, locale)}
                             </p>
                           </div>
                         </div>
@@ -786,6 +788,7 @@ function RiskMatrixSelector({
   value: { impact: number; probability: number }
   onChange: (v: { impact: number; probability: number }) => void
 }) {
+  const locale = useLocale()
   const level = getRiskLevel(value.impact, value.probability)
 
   return (
@@ -807,7 +810,7 @@ function RiskMatrixSelector({
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
-              {i + 1} — {label}
+              {i + 1} — {pick(label, locale)}
             </button>
           ))}
         </div>
@@ -830,7 +833,7 @@ function RiskMatrixSelector({
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               )}
             >
-              {i + 1} — {label}
+              {i + 1} — {pick(label, locale)}
             </button>
           ))}
         </div>
@@ -839,14 +842,14 @@ function RiskMatrixSelector({
       <div className={cn('rounded-2xl border p-4 sm:p-5', level.color.bg, level.color.border)}>
         <div className="flex items-center gap-2 mb-2">
           <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', level.color.badge)}>
-            {level.label}
+            {pick(level.label, locale)}
           </span>
         </div>
-        <p className="text-sm font-semibold text-slate-800 mb-1">{level.action}</p>
+        <p className="text-sm font-semibold text-slate-800 mb-1">{pick(level.action, locale)}</p>
         <ul className="space-y-0.5">
           {level.examples.map((ex, i) => (
             <li key={i} className="text-xs text-slate-500 flex gap-1.5">
-              <span className="flex-shrink-0">·</span><span>{ex}</span>
+              <span className="flex-shrink-0">·</span><span>{pick(ex, locale)}</span>
             </li>
           ))}
         </ul>

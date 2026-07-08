@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ASSESSMENT_DIMENSIONS, ALL_QUESTIONS, FREE_QUESTIONS, calcDimScore, calcTotalScore, deriveArchetype } from '@/config/assessment-data'
 import { AssessmentResults } from './AssessmentResults'
 import { track } from '@/lib/posthog/client'
+import { useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import type { Tier } from '@/types'
 
 interface AssessmentWizardProps {
@@ -27,6 +29,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  const locale = useLocale()
   const questions = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
   const totalQ = questions.length
   const currentQ = questions[currentIdx]
@@ -110,7 +113,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex justify-between text-xs text-slate-500 mb-2">
-          <span>{currentDim?.label}</span>
+          <span>{currentDim ? pick(currentDim.label, locale) : ''}</span>
           <span>{currentIdx + 1} / {totalQ}</span>
         </div>
         <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -129,10 +132,10 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
       {/* Question card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8 mb-4">
         <div className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
-          {currentDim?.label}
+          {currentDim ? pick(currentDim.label, locale) : ''}
         </div>
         <h2 className="text-base sm:text-lg font-medium text-slate-900 mb-6 sm:mb-8 leading-relaxed">
-          {currentQ.text}
+          {pick(currentQ.text, locale)}
         </h2>
 
         <div className="space-y-3" role="group" aria-label="Bewertung auswählen">
@@ -154,11 +157,11 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
                   {score}
                 </span>
                 <span className="text-sm text-slate-700 min-w-0">
-                  {score === 1 ? currentQ.lowLabel
-                    : score === 2 ? (currentQ.l2Label ?? 'Ansätze vorhanden, nicht systematisch')
-                    : score === 3 ? (currentQ.l3Label ?? 'Teilweise etabliert, ausbaufähig')
-                    : score === 4 ? (currentQ.l4Label ?? 'Weitgehend etabliert, vereinzelte Lücken')
-                    : currentQ.highLabel}
+                  {score === 1 ? pick(currentQ.lowLabel, locale)
+                    : score === 2 ? (currentQ.l2Label ? pick(currentQ.l2Label, locale) : 'Ansätze vorhanden, nicht systematisch')
+                    : score === 3 ? (currentQ.l3Label ? pick(currentQ.l3Label, locale) : 'Teilweise etabliert, ausbaufähig')
+                    : score === 4 ? (currentQ.l4Label ? pick(currentQ.l4Label, locale) : 'Weitgehend etabliert, vereinzelte Lücken')
+                    : pick(currentQ.highLabel, locale)}
                 </span>
               </div>
             </button>

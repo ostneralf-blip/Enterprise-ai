@@ -212,14 +212,14 @@ export function renderAssessmentPdf(data: AssessmentPdfData): ReactElement {
             <Text style={{ fontSize: 9, color: C.gray2 }}>von 5,0</Text>
           </View>
           <View>
-            <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'white' }}>{maturity.label}</Text>
+            <Text style={{ fontSize: 15, fontWeight: 'bold', color: 'white' }}>{maturity.label.de}</Text>
             <Text style={{ fontSize: 10, color: C.gray2, marginTop: 4 }}>{ARCHETYPE_LABELS[data.archetype] ?? data.archetype}</Text>
           </View>
         </View>
 
         <Text style={s.h2}>Ergebnis nach Dimension</Text>
         {ASSESSMENT_DIMENSIONS.map(dim => (
-          <DimBar key={dim.id} label={dim.label} score={data.dimScores[dim.id] ?? 0} />
+          <DimBar key={dim.id} label={dim.label.de} score={data.dimScores[dim.id] ?? 0} />
         ))}
 
         <PdfFooterEs company={data.companyName} />
@@ -715,9 +715,9 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
   // Build label lookup from config
   const labelMap = new Map<string, string>()
   for (const items of Object.values(EU_AI_ACT_OBLIGATIONS)) {
-    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label}`)
+    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label.de}`)
   }
-  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label}`)
+  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label.de}`)
 
   const byReg = new Map<string, ComplianceCheck[]>()
   for (const c of data.checks) {
@@ -727,7 +727,7 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
 
   const riskClassCheck = data.checks.find(c => c.regulation === 'eu_ai_act' && c.check_type === 'risk_class')
   const riskClassName = riskClassCheck?.notes
-    ? EU_AI_ACT_RISK_CLASSES.find(r => r.id === riskClassCheck.notes)?.title ?? riskClassCheck.notes
+    ? EU_AI_ACT_RISK_CLASSES.find(r => r.id === riskClassCheck.notes)?.title.de ?? riskClassCheck.notes
     : null
 
   const matrixCheck = data.checks.find(c => c.regulation === 'risk_matrix' && c.check_type === 'position')
@@ -736,7 +736,7 @@ export function renderCompliancePdf(data: CompliancePdfData): ReactElement {
     try {
       const pos = JSON.parse(matrixCheck.notes) as { impact: number; probability: number }
       const lvl = getRiskLevel(pos.impact, pos.probability)
-      matrixSummary = `${lvl.label} (Auswirkung ${RISK_MATRIX.impactLabels[pos.impact - 1]}, Wahrscheinlichkeit ${RISK_MATRIX.probabilityLabels[pos.probability - 1]})`
+      matrixSummary = `${lvl.label.de} (Auswirkung ${RISK_MATRIX.impactLabels[pos.impact - 1].de}, Wahrscheinlichkeit ${RISK_MATRIX.probabilityLabels[pos.probability - 1].de})`
     } catch { /* ignore */ }
   }
 

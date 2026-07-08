@@ -1,3 +1,5 @@
+import type { LocaleString } from '@/lib/utils/locale-data'
+
 export type InfraOption = 'cloud' | 'hybrid' | 'onprem' | 'multicloud'
 export type DataOption = 'centralized' | 'distributed' | 'silos' | 'to_build'
 export type SkillsOption = 'team' | 'individuals' | 'business' | 'external'
@@ -29,15 +31,15 @@ export interface WizardAnswers {
 
 export interface WizardOption {
   id: string
-  label: string
-  description: string
+  label: LocaleString
+  description: LocaleString
 }
 
 export interface WizardStep {
   id: keyof WizardAnswers
   step: number
-  question: string
-  context: string
+  question: LocaleString
+  context: LocaleString
   options: WizardOption[]
 }
 
@@ -45,147 +47,147 @@ export const WIZARD_STEPS: WizardStep[] = [
   {
     id: 'infra',
     step: 1,
-    question: 'Wo läuft Ihre aktuelle IT-Infrastruktur?',
-    context: 'Die Infrastruktur-Basis bestimmt maßgeblich, welche AI-Architektur-Muster praktikabel sind.',
+    question: { de: 'Wo läuft Ihre aktuelle IT-Infrastruktur?', en: 'Where does your current IT infrastructure run?' },
+    context: { de: 'Die Infrastruktur-Basis bestimmt maßgeblich, welche AI-Architektur-Muster praktikabel sind.', en: 'The infrastructure base largely determines which AI architecture patterns are feasible.' },
     options: [
-      { id: 'cloud', label: 'Public Cloud', description: 'Hauptsächlich AWS, Azure oder GCP — Workloads laufen in der Cloud' },
-      { id: 'hybrid', label: 'Hybrid (Cloud + On-Premise)', description: 'Teile on-premise, Teile in der Cloud — verbunden über VPN oder Private Link' },
-      { id: 'onprem', label: 'Hauptsächlich On-Premise', description: 'Eigene Rechenzentren oder Private Cloud, wenig externer Cloud-Einsatz' },
-      { id: 'multicloud', label: 'Multi-Cloud', description: 'Mehrere Cloud-Anbieter parallel im Einsatz' },
+      { id: 'cloud',      label: { de: 'Public Cloud',                      en: 'Public Cloud'                      }, description: { de: 'Hauptsächlich AWS, Azure oder GCP — Workloads laufen in der Cloud',              en: 'Primarily AWS, Azure or GCP — workloads running in the cloud'              } },
+      { id: 'hybrid',     label: { de: 'Hybrid (Cloud + On-Premise)',        en: 'Hybrid (Cloud + On-Premise)'        }, description: { de: 'Teile on-premise, Teile in der Cloud — verbunden über VPN oder Private Link',     en: 'Parts on-premise, parts in the cloud — connected via VPN or Private Link'   } },
+      { id: 'onprem',     label: { de: 'Hauptsächlich On-Premise',           en: 'Primarily On-Premise'               }, description: { de: 'Eigene Rechenzentren oder Private Cloud, wenig externer Cloud-Einsatz',           en: 'Own data centers or private cloud, minimal external cloud usage'            } },
+      { id: 'multicloud', label: { de: 'Multi-Cloud',                        en: 'Multi-Cloud'                        }, description: { de: 'Mehrere Cloud-Anbieter parallel im Einsatz',                                    en: 'Multiple cloud providers in use in parallel'                               } },
     ],
   },
   {
     id: 'data',
     step: 2,
-    question: 'Wie schätzen Sie Ihre aktuelle Datensituation ein?',
-    context: 'Datenqualität und -verfügbarkeit sind der häufigste Engpass bei AI-Projekten.',
+    question: { de: 'Wie schätzen Sie Ihre aktuelle Datensituation ein?', en: 'How would you assess your current data situation?' },
+    context: { de: 'Datenqualität und -verfügbarkeit sind der häufigste Engpass bei AI-Projekten.', en: 'Data quality and availability are the most common bottleneck in AI projects.' },
     options: [
-      { id: 'centralized', label: 'Zentralisiert und strukturiert', description: 'Data Warehouse oder Data Lake vorhanden, Daten gut dokumentiert und zugänglich' },
-      { id: 'distributed', label: 'Verteilt in Quellsystemen', description: 'Daten in ERP, CRM, etc. — Zugang möglich, aber keine zentrale Plattform' },
-      { id: 'silos', label: 'Siloisiert, wenig Austausch', description: 'Daten in Abteilungssilos, technische und organisatorische Barrieren' },
-      { id: 'to_build', label: 'Infrastruktur muss noch aufgebaut werden', description: 'Kaum strukturierte Daten vorhanden — Foundation fehlt noch' },
+      { id: 'centralized', label: { de: 'Zentralisiert und strukturiert',              en: 'Centralized and structured'              }, description: { de: 'Data Warehouse oder Data Lake vorhanden, Daten gut dokumentiert und zugänglich',        en: 'Data Warehouse or Data Lake in place, data well documented and accessible'      } },
+      { id: 'distributed', label: { de: 'Verteilt in Quellsystemen',                  en: 'Distributed across source systems'        }, description: { de: 'Daten in ERP, CRM, etc. — Zugang möglich, aber keine zentrale Plattform',              en: 'Data in ERP, CRM, etc. — access possible, but no central platform'              } },
+      { id: 'silos',       label: { de: 'Siloisiert, wenig Austausch',                en: 'Siloed, little exchange'                  }, description: { de: 'Daten in Abteilungssilos, technische und organisatorische Barrieren',                  en: 'Data in departmental silos, technical and organizational barriers'               } },
+      { id: 'to_build',   label: { de: 'Infrastruktur muss noch aufgebaut werden',   en: 'Infrastructure still needs to be built'  }, description: { de: 'Kaum strukturierte Daten vorhanden — Foundation fehlt noch',                          en: 'Barely any structured data available — foundation still missing'                } },
     ],
   },
   {
     id: 'skills',
     step: 3,
-    question: 'Welche AI/ML-Kompetenzen sind intern verfügbar?',
-    context: 'Eigene Kompetenzen bestimmen, wie viel Eigenentwicklung vs. Managed Services sinnvoll ist.',
+    question: { de: 'Welche AI/ML-Kompetenzen sind intern verfügbar?', en: 'What AI/ML competencies are available internally?' },
+    context: { de: 'Eigene Kompetenzen bestimmen, wie viel Eigenentwicklung vs. Managed Services sinnvoll ist.', en: 'Internal competencies determine how much custom development vs. managed services makes sense.' },
     options: [
-      { id: 'team', label: 'Dediziertes Data-Science/MLOps-Team', description: 'Mehrere Data Scientists, ML Engineers oder AI-Spezialisten im Haus' },
-      { id: 'individuals', label: 'Einzelne Data Scientists / Analysten', description: 'Einige Personen mit ML-Kenntnissen, kein vollständiges Team' },
-      { id: 'business', label: 'Business-Verständnis, wenig Technik', description: 'Domänenwissen vorhanden, AI/ML-Umsetzungskompetenz fehlt noch' },
-      { id: 'external', label: 'Primär externe Partner', description: 'Umsetzung hauptsächlich über Dienstleister und Beratung' },
+      { id: 'team',        label: { de: 'Dediziertes Data-Science/MLOps-Team',   en: 'Dedicated Data Science/MLOps team'    }, description: { de: 'Mehrere Data Scientists, ML Engineers oder AI-Spezialisten im Haus',          en: 'Multiple Data Scientists, ML Engineers or AI specialists in-house'      } },
+      { id: 'individuals', label: { de: 'Einzelne Data Scientists / Analysten',  en: 'Individual Data Scientists / Analysts' }, description: { de: 'Einige Personen mit ML-Kenntnissen, kein vollständiges Team',                 en: 'Some people with ML knowledge, no complete team'                        } },
+      { id: 'business',    label: { de: 'Business-Verständnis, wenig Technik',   en: 'Business expertise, little tech'       }, description: { de: 'Domänenwissen vorhanden, AI/ML-Umsetzungskompetenz fehlt noch',              en: 'Domain knowledge available, AI/ML implementation expertise still lacking'} },
+      { id: 'external',    label: { de: 'Primär externe Partner',                en: 'Primarily external partners'          }, description: { de: 'Umsetzung hauptsächlich über Dienstleister und Beratung',                    en: 'Implementation mainly via service providers and consultants'             } },
     ],
   },
   {
     id: 'usecase',
     step: 4,
-    question: 'Welcher AI-Use-Case-Typ steht im Fokus?',
-    context: 'Unterschiedliche Use-Case-Typen erfordern unterschiedliche Technologie-Stacks.',
+    question: { de: 'Welcher AI-Use-Case-Typ steht im Fokus?', en: 'Which type of AI use case is the primary focus?' },
+    context: { de: 'Unterschiedliche Use-Case-Typen erfordern unterschiedliche Technologie-Stacks.', en: 'Different use case types require different technology stacks.' },
     options: [
-      { id: 'predictive', label: 'Predictive Analytics / Machine Learning', description: 'Prognosen, Klassifikation, Anomalie-Erkennung auf strukturierten Daten' },
-      { id: 'generative', label: 'Generative AI / LLM', description: 'Chatbots, Dokumentenanalyse, Textgenerierung, RAG-Systeme' },
-      { id: 'vision', label: 'Computer Vision', description: 'Bildanalyse, Qualitätskontrolle, OCR, visuelle Inspektion' },
-      { id: 'automation', label: 'Prozessautomatisierung (RPA + AI)', description: 'Intelligente Dokument-Verarbeitung, Workflow-Automatisierung' },
+      { id: 'predictive',  label: { de: 'Predictive Analytics / Machine Learning', en: 'Predictive Analytics / Machine Learning' }, description: { de: 'Prognosen, Klassifikation, Anomalie-Erkennung auf strukturierten Daten',         en: 'Forecasting, classification, anomaly detection on structured data'          } },
+      { id: 'generative',  label: { de: 'Generative AI / LLM',                    en: 'Generative AI / LLM'                    }, description: { de: 'Chatbots, Dokumentenanalyse, Textgenerierung, RAG-Systeme',                    en: 'Chatbots, document analysis, text generation, RAG systems'                   } },
+      { id: 'vision',      label: { de: 'Computer Vision',                         en: 'Computer Vision'                        }, description: { de: 'Bildanalyse, Qualitätskontrolle, OCR, visuelle Inspektion',                    en: 'Image analysis, quality control, OCR, visual inspection'                    } },
+      { id: 'automation',  label: { de: 'Prozessautomatisierung (RPA + AI)',       en: 'Process Automation (RPA + AI)'          }, description: { de: 'Intelligente Dokument-Verarbeitung, Workflow-Automatisierung',                 en: 'Intelligent document processing, workflow automation'                        } },
     ],
   },
   {
     id: 'sap_landscape',
     step: 5,
-    question: 'Ist SAP Bestandteil Ihrer aktuellen Systemlandschaft?',
-    context: 'SAP-Systeme haben dedizierte AI-Integrationspfade (BTP, Joule, AI Core) — relevant für die Komponenten- und Plattformauswahl.',
+    question: { de: 'Ist SAP Bestandteil Ihrer aktuellen Systemlandschaft?', en: 'Is SAP part of your current system landscape?' },
+    context: { de: 'SAP-Systeme haben dedizierte AI-Integrationspfade (BTP, Joule, AI Core) — relevant für die Komponenten- und Plattformauswahl.', en: 'SAP systems have dedicated AI integration paths (BTP, Joule, AI Core) — relevant for component and platform selection.' },
     options: [
-      { id: 'full', label: 'Ja, SAP-Kernsystem (S/4HANA / ERP)', description: 'SAP ist das zentrale Geschäftssystem — enge AI-Integration auf SAP BTP geplant' },
-      { id: 'partial', label: 'Teilweise (einzelne SAP-Produkte)', description: 'Einige SAP-Komponenten im Einsatz, kein vollständiger SAP-Stack' },
-      { id: 'planned', label: 'SAP-Migration ist in Planung', description: 'Aktuell kein SAP, aber S/4HANA- oder BTP-Einführung geplant' },
-      { id: 'none', label: 'Nein, kein SAP', description: 'SAP spielt in der AI-Architektur keine Rolle' },
+      { id: 'full',    label: { de: 'Ja, SAP-Kernsystem (S/4HANA / ERP)',      en: 'Yes, SAP core system (S/4HANA / ERP)'     }, description: { de: 'SAP ist das zentrale Geschäftssystem — enge AI-Integration auf SAP BTP geplant',   en: 'SAP is the central business system — close AI integration on SAP BTP planned' } },
+      { id: 'partial', label: { de: 'Teilweise (einzelne SAP-Produkte)',        en: 'Partially (individual SAP products)'       }, description: { de: 'Einige SAP-Komponenten im Einsatz, kein vollständiger SAP-Stack',              en: 'Some SAP components in use, no full SAP stack'                                } },
+      { id: 'planned', label: { de: 'SAP-Migration ist in Planung',             en: 'SAP migration is being planned'            }, description: { de: 'Aktuell kein SAP, aber S/4HANA- oder BTP-Einführung geplant',                  en: 'No SAP currently, but S/4HANA or BTP introduction planned'                    } },
+      { id: 'none',    label: { de: 'Nein, kein SAP',                           en: 'No, no SAP'                                }, description: { de: 'SAP spielt in der AI-Architektur keine Rolle',                                  en: 'SAP plays no role in the AI architecture'                                    } },
     ],
   },
   {
     id: 'cloud_provider_hint',
     step: 6,
-    question: 'Welchen Cloud-Anbieter nutzen oder evaluieren Sie primär?',
-    context: 'Der Cloud-Anbieter entscheidet konkret über verfügbare Managed Services, ML-Plattformen und Compliance-Optionen.',
+    question: { de: 'Welchen Cloud-Anbieter nutzen oder evaluieren Sie primär?', en: 'Which cloud provider are you primarily using or evaluating?' },
+    context: { de: 'Der Cloud-Anbieter entscheidet konkret über verfügbare Managed Services, ML-Plattformen und Compliance-Optionen.', en: 'The cloud provider determines the available managed services, ML platforms and compliance options.' },
     options: [
-      { id: 'azure', label: 'Microsoft Azure', description: 'Azure als primäre Cloud — Azure ML, Azure OpenAI, Fabric, Entra ID' },
-      { id: 'aws', label: 'Amazon Web Services (AWS)', description: 'AWS als primäre Cloud — SageMaker, Bedrock, Redshift, DataZone' },
-      { id: 'gcp', label: 'Google Cloud Platform (GCP)', description: 'GCP als primäre Cloud — Vertex AI, BigQuery, Gemini' },
-      { id: 'sap_btp', label: 'SAP Business Technology Platform', description: 'SAP BTP als zentrale Plattform — AI Core, GenAI Hub, Integration Suite, Joule' },
-      { id: 'none_or_multi', label: 'Kein primärer Anbieter / Multi-Cloud', description: 'Mehrere Anbieter parallel oder noch keine Cloud-Strategie festgelegt' },
+      { id: 'azure',        label: { de: 'Microsoft Azure',                         en: 'Microsoft Azure'                         }, description: { de: 'Azure als primäre Cloud — Azure ML, Azure OpenAI, Fabric, Entra ID',         en: 'Azure as primary cloud — Azure ML, Azure OpenAI, Fabric, Entra ID'        } },
+      { id: 'aws',          label: { de: 'Amazon Web Services (AWS)',               en: 'Amazon Web Services (AWS)'               }, description: { de: 'AWS als primäre Cloud — SageMaker, Bedrock, Redshift, DataZone',            en: 'AWS as primary cloud — SageMaker, Bedrock, Redshift, DataZone'            } },
+      { id: 'gcp',          label: { de: 'Google Cloud Platform (GCP)',             en: 'Google Cloud Platform (GCP)'             }, description: { de: 'GCP als primäre Cloud — Vertex AI, BigQuery, Gemini',                       en: 'GCP as primary cloud — Vertex AI, BigQuery, Gemini'                       } },
+      { id: 'sap_btp',     label: { de: 'SAP Business Technology Platform',        en: 'SAP Business Technology Platform'        }, description: { de: 'SAP BTP als zentrale Plattform — AI Core, GenAI Hub, Integration Suite, Joule', en: 'SAP BTP as central platform — AI Core, GenAI Hub, Integration Suite, Joule'} },
+      { id: 'none_or_multi',label: { de: 'Kein primärer Anbieter / Multi-Cloud',   en: 'No primary provider / Multi-Cloud'       }, description: { de: 'Mehrere Anbieter parallel oder noch keine Cloud-Strategie festgelegt',         en: 'Multiple providers in parallel or no cloud strategy defined yet'           } },
     ],
   },
   {
     id: 'industry',
     step: 7,
-    question: 'In welcher Branche ist Ihr Unternehmen hauptsächlich tätig?',
-    context: 'Branchenspezifische AI-Use-Cases, regulatorische Anforderungen und Datenstrukturen unterscheiden sich erheblich.',
+    question: { de: 'In welcher Branche ist Ihr Unternehmen hauptsächlich tätig?', en: 'In which industry does your company primarily operate?' },
+    context: { de: 'Branchenspezifische AI-Use-Cases, regulatorische Anforderungen und Datenstrukturen unterscheiden sich erheblich.', en: 'Industry-specific AI use cases, regulatory requirements and data structures differ significantly.' },
     options: [
-      { id: 'finance', label: 'Finance, Banking & Versicherung', description: 'Finanzdienstleistungen — reguliert (BaFin, EZB), Betrugseerkennung, Kreditrisiko, Compliance' },
-      { id: 'manufacturing', label: 'Industrie & Produktion', description: 'Fertigung, Supply Chain — Predictive Maintenance, Qualitätskontrolle, Prozessoptimierung' },
-      { id: 'healthcare_public', label: 'Gesundheit & Öffentlicher Sektor', description: 'Kliniken, Behörden — hohe Datenschutzanforderungen, sensible Patientendaten' },
-      { id: 'retail_consumer', label: 'Handel & Konsumgüter', description: 'Retail, E-Commerce, FMCG — Personalisierung, Demand Forecasting, Customer Analytics' },
-      { id: 'other', label: 'Andere Branche', description: 'IT-Dienstleistung, Energie, Transport, Chemie oder sonstiges' },
+      { id: 'finance',           label: { de: 'Finance, Banking & Versicherung',         en: 'Finance, Banking & Insurance'         }, description: { de: 'Finanzdienstleistungen — reguliert (BaFin, EZB), Betrugseerkennung, Kreditrisiko, Compliance', en: 'Financial services — regulated (BaFin, ECB), fraud detection, credit risk, compliance' } },
+      { id: 'manufacturing',     label: { de: 'Industrie & Produktion',                  en: 'Manufacturing & Industry'             }, description: { de: 'Fertigung, Supply Chain — Predictive Maintenance, Qualitätskontrolle, Prozessoptimierung',    en: 'Manufacturing, supply chain — predictive maintenance, quality control, process optimization' } },
+      { id: 'healthcare_public', label: { de: 'Gesundheit & Öffentlicher Sektor',        en: 'Healthcare & Public Sector'           }, description: { de: 'Kliniken, Behörden — hohe Datenschutzanforderungen, sensible Patientendaten',              en: 'Clinics, authorities — high data protection requirements, sensitive patient data'           } },
+      { id: 'retail_consumer',   label: { de: 'Handel & Konsumgüter',                   en: 'Retail & Consumer Goods'              }, description: { de: 'Retail, E-Commerce, FMCG — Personalisierung, Demand Forecasting, Customer Analytics',       en: 'Retail, e-commerce, FMCG — personalization, demand forecasting, customer analytics'         } },
+      { id: 'other',             label: { de: 'Andere Branche',                          en: 'Other Industry'                       }, description: { de: 'IT-Dienstleistung, Energie, Transport, Chemie oder sonstiges',                              en: 'IT services, energy, transport, chemicals or other'                                         } },
     ],
   },
   {
     id: 'company_size',
     step: 8,
-    question: 'Wie groß ist Ihr Unternehmen?',
-    context: 'Die Unternehmensgröße bestimmt den empfohlenen Reifegrad-Pfad, die Teamstruktur und den Plattform-Umfang.',
+    question: { de: 'Wie groß ist Ihr Unternehmen?', en: 'How large is your company?' },
+    context: { de: 'Die Unternehmensgröße bestimmt den empfohlenen Reifegrad-Pfad, die Teamstruktur und den Plattform-Umfang.', en: 'Company size determines the recommended maturity path, team structure and platform scope.' },
     options: [
-      { id: 'small', label: 'Bis 500 Mitarbeitende', description: 'Mittelstand — pragmatischer Start mit Managed Services, schlankes Team' },
-      { id: 'medium', label: '500–5.000 Mitarbeitende', description: 'Wachsender Mittelstand — erstes AI-Team aufbauen, Plattform skalieren' },
-      { id: 'large', label: '5.000–10.000 Mitarbeitende', description: 'Großunternehmen — AI CoE sinnvoll, mehrere parallele Use Cases' },
-      { id: 'enterprise', label: 'Über 10.000 Mitarbeitende (Konzern)', description: 'Konzern — dezentrale AI-Teams, Enterprise-Plattform, starke Governance' },
+      { id: 'small',      label: { de: 'Bis 500 Mitarbeitende',                    en: 'Up to 500 employees'                    }, description: { de: 'Mittelstand — pragmatischer Start mit Managed Services, schlankes Team',                  en: 'SME — pragmatic start with managed services, lean team'                           } },
+      { id: 'medium',     label: { de: '500–5.000 Mitarbeitende',                  en: '500–5,000 employees'                    }, description: { de: 'Wachsender Mittelstand — erstes AI-Team aufbauen, Plattform skalieren',                 en: 'Growing SME — build first AI team, scale platform'                                } },
+      { id: 'large',      label: { de: '5.000–10.000 Mitarbeitende',              en: '5,000–10,000 employees'                 }, description: { de: 'Großunternehmen — AI CoE sinnvoll, mehrere parallele Use Cases',                       en: 'Large enterprise — AI CoE meaningful, multiple parallel use cases'                } },
+      { id: 'enterprise', label: { de: 'Über 10.000 Mitarbeitende (Konzern)',     en: 'Over 10,000 employees (Corporate)'      }, description: { de: 'Konzern — dezentrale AI-Teams, Enterprise-Plattform, starke Governance',                en: 'Corporate — decentralized AI teams, enterprise platform, strong governance'       } },
     ],
   },
   {
     id: 'compliance',
     step: 9,
-    question: 'Welche Compliance- und Datenschutz-Anforderungen gelten?',
-    context: 'Regulatorische Anforderungen begrenzen manche Architektur-Optionen und beeinflussen die Datenhaltung.',
+    question: { de: 'Welche Compliance- und Datenschutz-Anforderungen gelten?', en: 'What compliance and data protection requirements apply?' },
+    context: { de: 'Regulatorische Anforderungen begrenzen manche Architektur-Optionen und beeinflussen die Datenhaltung.', en: 'Regulatory requirements limit some architecture options and influence data storage decisions.' },
     options: [
-      { id: 'strict', label: 'Strenge Regulierung', description: 'Hochrisiko (EU AI Act), Finanz (BAFIN), Medizin (MDR), HR-Entscheidungen — On-Premise oder Private Cloud oft Pflicht' },
-      { id: 'moderate', label: 'Moderate Anforderungen', description: 'DSGVO-konform, interne Richtlinien, ISO 27001 — Cloud mit EU-Rechenzentrum akzeptiert' },
-      { id: 'low', label: 'Geringe Anforderungen', description: 'Rein interner Einsatz, keine personenbezogenen Daten, kein Kundenkontakt' },
-      { id: 'undefined', label: 'Noch nicht definiert', description: 'Compliance-Anforderungen müssen noch geklärt werden' },
+      { id: 'strict',    label: { de: 'Strenge Regulierung',          en: 'Strict regulation'           }, description: { de: 'Hochrisiko (EU AI Act), Finanz (BAFIN), Medizin (MDR), HR-Entscheidungen — On-Premise oder Private Cloud oft Pflicht', en: 'High-risk (EU AI Act), finance (BaFin), medical (MDR), HR decisions — on-premise or private cloud often required' } },
+      { id: 'moderate',  label: { de: 'Moderate Anforderungen',       en: 'Moderate requirements'       }, description: { de: 'DSGVO-konform, interne Richtlinien, ISO 27001 — Cloud mit EU-Rechenzentrum akzeptiert',                              en: 'GDPR-compliant, internal policies, ISO 27001 — cloud with EU data center accepted'                             } },
+      { id: 'low',       label: { de: 'Geringe Anforderungen',        en: 'Low requirements'            }, description: { de: 'Rein interner Einsatz, keine personenbezogenen Daten, kein Kundenkontakt',                                          en: 'Purely internal use, no personal data, no customer contact'                                                    } },
+      { id: 'undefined', label: { de: 'Noch nicht definiert',         en: 'Not yet defined'             }, description: { de: 'Compliance-Anforderungen müssen noch geklärt werden',                                                               en: 'Compliance requirements still need to be clarified'                                                            } },
     ],
   },
   {
     id: 'data_platform',
     step: 10,
-    question: 'Welche Datenplattform nutzen oder planen Sie?',
-    context: 'Die Wahl der Data-Plattform bestimmt konkrete Tooling-Empfehlungen für Ihre Architektur.',
+    question: { de: 'Welche Datenplattform nutzen oder planen Sie?', en: 'Which data platform are you using or planning?' },
+    context: { de: 'Die Wahl der Data-Plattform bestimmt konkrete Tooling-Empfehlungen für Ihre Architektur.', en: 'The choice of data platform determines specific tooling recommendations for your architecture.' },
     options: [
-      { id: 'sap_bw', label: 'SAP Datasphere / SAP BW', description: 'SAP-zentrierte Umgebung, HANA als Fundament, enge S/4HANA- oder ERP-Integration geplant' },
-      { id: 'snowflake', label: 'Snowflake oder Databricks', description: 'Cloud-native Analytics-Plattform, SQL-first (Snowflake) oder Lakehouse-Ansatz (Databricks/Delta Lake)' },
-      { id: 'azure_fabric', label: 'Microsoft Fabric / Azure Synapse', description: 'Microsoft-Stack im Einsatz, Power BI-Integration wichtig, Azure als primäre Cloud' },
-      { id: 'open_source', label: 'Open-Source (Spark, dbt, Delta Lake)', description: 'Maximale Kontrolle und Flexibilität, eigenes Engineering-Team vorhanden, kein Vendor-Lock-in' },
+      { id: 'sap_bw',       label: { de: 'SAP Datasphere / SAP BW',              en: 'SAP Datasphere / SAP BW'               }, description: { de: 'SAP-zentrierte Umgebung, HANA als Fundament, enge S/4HANA- oder ERP-Integration geplant',                               en: 'SAP-centric environment, HANA as foundation, close S/4HANA or ERP integration planned'                               } },
+      { id: 'snowflake',    label: { de: 'Snowflake oder Databricks',             en: 'Snowflake or Databricks'               }, description: { de: 'Cloud-native Analytics-Plattform, SQL-first (Snowflake) oder Lakehouse-Ansatz (Databricks/Delta Lake)',                  en: 'Cloud-native analytics platform, SQL-first (Snowflake) or Lakehouse approach (Databricks/Delta Lake)'                } },
+      { id: 'azure_fabric', label: { de: 'Microsoft Fabric / Azure Synapse',     en: 'Microsoft Fabric / Azure Synapse'      }, description: { de: 'Microsoft-Stack im Einsatz, Power BI-Integration wichtig, Azure als primäre Cloud',                                      en: 'Microsoft stack in use, Power BI integration important, Azure as primary cloud'                                      } },
+      { id: 'open_source',  label: { de: 'Open-Source (Spark, dbt, Delta Lake)', en: 'Open-Source (Spark, dbt, Delta Lake)'  }, description: { de: 'Maximale Kontrolle und Flexibilität, eigenes Engineering-Team vorhanden, kein Vendor-Lock-in',                          en: 'Maximum control and flexibility, own engineering team available, no vendor lock-in'                                  } },
     ],
   },
   {
     id: 'model_platform',
     step: 11,
-    question: 'Wie sollen KI-Modelle entwickelt und betrieben werden?',
-    context: 'Die MLOps-Plattform bestimmt, wie effizient Modelle entwickelt, versioniert und in Produktion gebracht werden.',
+    question: { de: 'Wie sollen KI-Modelle entwickelt und betrieben werden?', en: 'How should AI models be developed and operated?' },
+    context: { de: 'Die MLOps-Plattform bestimmt, wie effizient Modelle entwickelt, versioniert und in Produktion gebracht werden.', en: 'The MLOps platform determines how efficiently models are developed, versioned and deployed to production.' },
     options: [
-      { id: 'sap_ai_core', label: 'SAP AI Core & AI Launchpad', description: 'SAP-Ökosystem, BTP-Integration, standardisiertes MLOps im SAP-Stack — ideal bei SAP-Landschaft' },
-      { id: 'cloud_ml', label: 'Cloud ML-Plattform (Azure ML, SageMaker, Vertex AI)', description: 'Vollständig managed, Auto-Scaling, tiefe Cloud-Integration — für cloud-affine Teams' },
-      { id: 'open_mlops', label: 'Open-Source MLOps (Kubeflow, MLflow)', description: 'Maximale Flexibilität und Eigenverantwortung, kein Vendor-Lock-in, eigenes DevOps-Team nötig' },
-      { id: 'no_code', label: 'Low-Code / No-Code KI (Power Platform, AI Studio)', description: 'Kein ML-Team erforderlich, schnelle Time-to-Value — für Business-Teams mit wenig Technik' },
+      { id: 'sap_ai_core', label: { de: 'SAP AI Core & AI Launchpad',                               en: 'SAP AI Core & AI Launchpad'                              }, description: { de: 'SAP-Ökosystem, BTP-Integration, standardisiertes MLOps im SAP-Stack — ideal bei SAP-Landschaft',              en: 'SAP ecosystem, BTP integration, standardized MLOps in SAP stack — ideal for SAP landscapes'            } },
+      { id: 'cloud_ml',    label: { de: 'Cloud ML-Plattform (Azure ML, SageMaker, Vertex AI)',      en: 'Cloud ML Platform (Azure ML, SageMaker, Vertex AI)'      }, description: { de: 'Vollständig managed, Auto-Scaling, tiefe Cloud-Integration — für cloud-affine Teams',                    en: 'Fully managed, auto-scaling, deep cloud integration — for cloud-affine teams'                          } },
+      { id: 'open_mlops',  label: { de: 'Open-Source MLOps (Kubeflow, MLflow)',                     en: 'Open-Source MLOps (Kubeflow, MLflow)'                    }, description: { de: 'Maximale Flexibilität und Eigenverantwortung, kein Vendor-Lock-in, eigenes DevOps-Team nötig',            en: 'Maximum flexibility and self-reliance, no vendor lock-in, own DevOps team required'                    } },
+      { id: 'no_code',     label: { de: 'Low-Code / No-Code KI (Power Platform, AI Studio)',        en: 'Low-Code / No-Code AI (Power Platform, AI Studio)'       }, description: { de: 'Kein ML-Team erforderlich, schnelle Time-to-Value — für Business-Teams mit wenig Technik',                en: 'No ML team required, fast time-to-value — for business teams with little technical expertise'           } },
     ],
   },
   {
     id: 'monitoring',
     step: 12,
-    question: 'Wie wollen Sie KI-Systeme überwachen und deren Qualität sichern?',
-    context: 'KI-spezifisches Monitoring (Drift, Fairness, Performance) geht über klassisches IT-Monitoring hinaus.',
+    question: { de: 'Wie wollen Sie KI-Systeme überwachen und deren Qualität sichern?', en: 'How do you want to monitor AI systems and ensure their quality?' },
+    context: { de: 'KI-spezifisches Monitoring (Drift, Fairness, Performance) geht über klassisches IT-Monitoring hinaus.', en: 'AI-specific monitoring (drift, fairness, performance) goes beyond classical IT monitoring.' },
     options: [
-      { id: 'enterprise', label: 'Enterprise AI-Governance-Platform', description: 'Dedizierte AI-Monitoring-Tools, AI-Registry, vollständiges Audit-Trail — für regulierte Umgebungen' },
-      { id: 'cloud_native_monitor', label: 'Cloud-native Monitoring (Azure Monitor, CloudWatch)', description: 'Cloud-Bordmittel für Basis-Observability, kostengünstig, ausreichend für einfache Use Cases' },
-      { id: 'open_source_monitor', label: 'Open-Source Monitoring (Prometheus, Grafana, Evidently)', description: 'Eigenhosting mit maximaler Flexibilität — Evidently AI für ML-spezifisches Drift-Monitoring' },
-      { id: 'basic', label: 'Einfaches Basis-Monitoring zunächst ausreichend', description: 'Logging + Basis-Alerts reichen für den Start — Ausbau in Phase 2 geplant' },
+      { id: 'enterprise',            label: { de: 'Enterprise AI-Governance-Platform',                       en: 'Enterprise AI Governance Platform'                      }, description: { de: 'Dedizierte AI-Monitoring-Tools, AI-Registry, vollständiges Audit-Trail — für regulierte Umgebungen',   en: 'Dedicated AI monitoring tools, AI registry, full audit trail — for regulated environments'   } },
+      { id: 'cloud_native_monitor',  label: { de: 'Cloud-native Monitoring (Azure Monitor, CloudWatch)',    en: 'Cloud-native Monitoring (Azure Monitor, CloudWatch)'    }, description: { de: 'Cloud-Bordmittel für Basis-Observability, kostengünstig, ausreichend für einfache Use Cases',          en: 'Cloud built-in tools for basic observability, cost-effective, sufficient for simple use cases'} },
+      { id: 'open_source_monitor',   label: { de: 'Open-Source Monitoring (Prometheus, Grafana, Evidently)', en: 'Open-Source Monitoring (Prometheus, Grafana, Evidently)'}, description: { de: 'Eigenhosting mit maximaler Flexibilität — Evidently AI für ML-spezifisches Drift-Monitoring',         en: 'Self-hosted with maximum flexibility — Evidently AI for ML-specific drift monitoring'        } },
+      { id: 'basic',                 label: { de: 'Einfaches Basis-Monitoring zunächst ausreichend',        en: 'Simple basic monitoring sufficient for now'             }, description: { de: 'Logging + Basis-Alerts reichen für den Start — Ausbau in Phase 2 geplant',                           en: 'Logging + basic alerts sufficient for start — expansion planned in phase 2'                  } },
     ],
   },
 ]

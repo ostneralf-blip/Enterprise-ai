@@ -1,5 +1,6 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
@@ -77,6 +78,7 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
 
 export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas }: Props) {
   const t = useTranslations('modules')
+  const locale = useLocale()
   const [archetype, setArchetype] = useState<Archetype>(
     (savedRoadmap?.archetype as Archetype | undefined) ?? initialArchetype ?? 'starter'
   )
@@ -190,12 +192,12 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   active ? 'bg-primary border-primary text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                 )}>
                 <span aria-hidden="true">{meta.icon}</span>
-                {meta.label}
+                {pick(meta.label, locale)}
               </button>
             )
           })}
         </div>
-        <p className="text-xs text-slate-400 mt-2">{ARCHETYPE_LABELS[archetype].desc}</p>
+        <p className="text-xs text-slate-400 mt-2">{pick(ARCHETYPE_LABELS[archetype].desc, locale)}</p>
       </div>
 
       {/* Top Use-Cases aus Scoring */}
@@ -247,13 +249,13 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', colors.badge)}>{phase.duration}</span>
+                    <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', colors.badge)}>{pick(phase.duration, locale)}</span>
                     {doneCount > 0 && (
                       <span className="text-xs text-slate-500">{doneCount}/{phase.actions.length} erledigt</span>
                     )}
                   </div>
-                  <h2 id={`${phaseId}-heading`} className="text-base sm:text-lg font-semibold text-slate-900">{phase.title}</h2>
-                  <p className="text-sm text-slate-600 mt-0.5">{phase.focus}</p>
+                  <h2 id={`${phaseId}-heading`} className="text-base sm:text-lg font-semibold text-slate-900">{pick(phase.title, locale)}</h2>
+                  <p className="text-sm text-slate-600 mt-0.5">{pick(phase.focus, locale)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <span className="text-xs font-medium text-slate-500 whitespace-nowrap">Budget: {phase.budget}</span>
@@ -283,7 +285,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                             {MILESTONE_ICON[status]}
                           </button>
                           <span className={cn('text-sm min-w-0 transition-colors', status === 'done' ? 'line-through text-slate-400' : action.priority === 'high' ? 'text-slate-800' : 'text-slate-600')}>
-                            {action.label}
+                            {pick(action.label, locale)}
                           </span>
                         </li>
                       )
@@ -306,7 +308,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                     {phase.kpis.map((kpi, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <span className="mt-0.5 flex-shrink-0 text-xs text-slate-400" aria-hidden="true">✓</span>
-                        <span className="text-sm text-slate-700 min-w-0">{kpi}</span>
+                        <span className="text-sm text-slate-700 min-w-0">{pick(kpi, locale)}</span>
                       </li>
                     ))}
                   </ul>

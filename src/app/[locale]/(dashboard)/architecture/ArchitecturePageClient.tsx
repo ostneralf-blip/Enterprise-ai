@@ -1,5 +1,6 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
@@ -313,6 +314,7 @@ function CatalogRecommendationsCard({
 }
 
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [] }: Props) {
+  const locale = useLocale()
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
@@ -755,11 +757,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       {/* Question card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Schritt {step.step}</p>
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{step.question}</h2>
-        <p className="text-sm text-slate-500 mb-5">{step.context}</p>
+        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(step.question, locale)}</h2>
+        <p className="text-sm text-slate-500 mb-5">{pick(step.context, locale)}</p>
 
         <fieldset>
-          <legend className="sr-only">{step.question}</legend>
+          <legend className="sr-only">{pick(step.question, locale)}</legend>
           <div className="space-y-2.5">
             {step.options.map(option => {
               const isSelected = selectedOptionId === option.id
@@ -782,8 +784,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     className="mt-0.5 accent-blue-600 flex-shrink-0"
                   />
                   <div className="min-w-0">
-                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>{option.label}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{option.description}</p>
+                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>{pick(option.label, locale)}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{pick(option.description, locale)}</p>
                   </div>
                 </label>
               )

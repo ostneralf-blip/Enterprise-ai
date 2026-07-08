@@ -112,10 +112,10 @@ describe('Accessibility: Compliance Center', () => {
 
 const MOCK_WATCHLIST_ITEM: WatchlistItem = {
   id: 'test_item',
-  title: 'Test Regulierungsänderung',
+  title: { de: 'Test Regulierungsänderung', en: 'Test Regulatory Change' },
   status: 'in_gesetzgebung',
-  summary: 'Zusammenfassung der Änderung.',
-  potentialImpact: 'Betrifft Compliance-Checkliste.',
+  summary: { de: 'Zusammenfassung der Änderung.', en: 'Summary of the change.' },
+  potentialImpact: { de: 'Betrifft Compliance-Checkliste.', en: 'Affects compliance checklist.' },
   sourceUrl: 'https://example.com',
   lastChecked: '2026-07-07',
 }

@@ -148,19 +148,19 @@ export interface ModuleConfig {
 // ─── ASSESSMENT ──────────────────────────────────────────────────────────────
 export interface AssessmentDimension {
   id: string
-  label: string
+  label: LocaleString
   weight: number
   questions: AssessmentQuestion[]
 }
 
 export interface AssessmentQuestion {
   id: string
-  text: string
-  lowLabel: string
-  l2Label?: string
-  l3Label?: string
-  l4Label?: string
-  highLabel: string
+  text: LocaleString
+  lowLabel: LocaleString
+  l2Label?: LocaleString
+  l3Label?: LocaleString
+  l4Label?: LocaleString
+  highLabel: LocaleString
 }
 
 export interface AssessmentResult {

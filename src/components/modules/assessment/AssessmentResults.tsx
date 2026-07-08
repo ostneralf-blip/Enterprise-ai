@@ -6,6 +6,8 @@ import { UpgradeModal } from '@/components/shared/UpgradeModal'
 import { RadarChart } from './RadarChart'
 import { track } from '@/lib/posthog/client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
+import { pick } from '@/lib/utils/locale-data'
 import type { Tier } from '@/types'
 
 interface AssessmentResultsProps {
@@ -23,6 +25,7 @@ export function AssessmentResults({
   totalScore, dimScores, archetype, tier, onSave, onRestart, saving, saved
 }: AssessmentResultsProps) {
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const locale = useLocale()
   const maturity = getMaturityLevel(totalScore)
   const archetypeConfig = ARCHETYPES[archetype]
 
@@ -60,7 +63,7 @@ export function AssessmentResults({
             <div className="text-slate-400 text-xs mt-1">von 5,0</div>
           </div>
           <div className="border-l border-slate-700 pl-4 sm:pl-8 min-w-0 flex-1">
-            <div className="text-white text-base sm:text-lg font-semibold mb-1 break-words">{maturity.label}</div>
+            <div className="text-white text-base sm:text-lg font-semibold mb-1 break-words">{pick(maturity.label, locale)}</div>
             <div className={`inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full mb-3`}
                  style={{ background: `${archetypeConfig.color}22`, color: archetypeConfig.color === 'amber' ? '#d97706' : archetypeConfig.color === 'blue' ? '#3b82f6' : '#10b981' }}>
               {archetypeConfig.icon} {archetypeConfig.label}
@@ -88,9 +91,9 @@ export function AssessmentResults({
               return (
                 <div key={dim.id}>
                   <div className="flex items-start justify-between mb-1.5 gap-3">
-                    <span className="text-sm font-medium text-slate-700 break-words">{dim.label}</span>
+                    <span className="text-sm font-medium text-slate-700 break-words">{pick(dim.label, locale)}</span>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                      {ml && <span className={`text-xs ${ml.color} hidden sm:inline whitespace-nowrap`}>{ml.label}</span>}
+                      {ml && <span className={`text-xs ${ml.color} hidden sm:inline whitespace-nowrap`}>{pick(ml.label, locale)}</span>}
                       <span className="text-sm font-bold text-slate-900 text-right">
                         {score !== undefined ? score.toFixed(1) : '—'}
                       </span>
@@ -98,7 +101,7 @@ export function AssessmentResults({
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden" role="progressbar"
                        aria-valuenow={score} aria-valuemin={0} aria-valuemax={5}
-                       aria-label={`${dim.label}: ${score?.toFixed(1) ?? 'nicht bewertet'} von 5`}>
+                       aria-label={`${pick(dim.label, locale)}: ${score?.toFixed(1) ?? 'nicht bewertet'} von 5`}>
                     <div className="h-full rounded-full animate-grow-width"
                          style={{ width: `${((score ?? 0) / 5) * 100}%`, background: barColor, '--bar-i': barIndex } as React.CSSProperties} />
                   </div>
@@ -126,7 +129,7 @@ export function AssessmentResults({
                   <div key={dimId} className="flex gap-3 text-sm">
                     <span className="text-primary shrink-0 mt-0.5">→</span>
                     <span className="text-slate-700">
-                      <strong>{dim.label}</strong> ({score.toFixed(1)}/5): {
+                      <strong>{pick(dim.label, locale)}</strong> ({score.toFixed(1)}/5): {
                         dimId === 'data' ? 'Data-Governance-Initiative starten, Masterdatenmodell definieren' :
                         dimId === 'skills' ? 'AI-Upskilling-Programm aufsetzen, AI-Champions benennen' :
                         dimId === 'governance' ? 'AI-Policy und RACI in den nächsten 4 Wochen dokumentieren' :

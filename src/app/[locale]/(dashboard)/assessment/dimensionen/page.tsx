@@ -1,4 +1,6 @@
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
+import { getLocale } from 'next-intl/server'
+import { pick } from '@/lib/utils/locale-data'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -37,7 +39,8 @@ const DIMENSION_META: Record<string, { icon: string; description: string }> = {
   },
 }
 
-export default function DimensionenPage() {
+export default async function DimensionenPage() {
+  const locale = await getLocale()
   return (
     <div className="max-w-2xl">
       <div className="mb-6">
@@ -70,7 +73,7 @@ export default function DimensionenPage() {
                 <span className="text-2xl shrink-0 mt-0.5">{meta?.icon}</span>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h2 className="text-base sm:text-lg font-semibold text-slate-900">{dim.label}</h2>
+                    <h2 className="text-base sm:text-lg font-semibold text-slate-900">{pick(dim.label, locale)}</h2>
                     <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-soft text-primary-hover border border-primary-border whitespace-nowrap">
                       {weightPct}% Gewichtung
                     </span>
@@ -87,15 +90,15 @@ export default function DimensionenPage() {
                 <ul className="space-y-3">
                   {dim.questions.map(q => (
                     <li key={q.id}>
-                      <div className="text-sm font-medium text-slate-800 mb-1.5">{q.text}</div>
+                      <div className="text-sm font-medium text-slate-800 mb-1.5">{pick(q.text, locale)}</div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                         <div className="bg-slate-50 rounded-lg px-3 py-2">
                           <span className="text-xs font-semibold text-red-500">1 — Niedrig: </span>
-                          <span className="text-xs text-slate-500">{q.lowLabel}</span>
+                          <span className="text-xs text-slate-500">{pick(q.lowLabel, locale)}</span>
                         </div>
                         <div className="bg-slate-50 rounded-lg px-3 py-2">
                           <span className="text-xs font-semibold text-emerald-600">5 — Sehr hoch: </span>
-                          <span className="text-xs text-slate-500">{q.highLabel}</span>
+                          <span className="text-xs text-slate-500">{pick(q.highLabel, locale)}</span>
                         </div>
                       </div>
                     </li>

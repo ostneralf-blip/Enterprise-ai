@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { pick } from '@/lib/utils/locale-data'
 import type { WatchlistItem, WatchlistStatus } from '@/config/compliance-data'
 
 const STATUS_CONFIG: Record<WatchlistStatus, { label: string; className: string }> = {
@@ -32,6 +34,7 @@ export function computeCountdown(deadline: string, today = new Date()): { label:
 
 export function WatchlistCard({ item }: { item: WatchlistItem }) {
   const [open, setOpen] = useState(false)
+  const locale = useLocale()
   const status = STATUS_CONFIG[item.status]
   const countdown = item.deadline ? computeCountdown(item.deadline) : null
 
@@ -46,9 +49,9 @@ export function WatchlistCard({ item }: { item: WatchlistItem }) {
             {countdown.label}
           </span>
         )}
-        <p className="text-sm font-medium text-slate-800 min-w-0">{item.title}</p>
+        <p className="text-sm font-medium text-slate-800 min-w-0">{pick(item.title, locale)}</p>
       </div>
-      <p className="text-xs text-slate-600">{item.summary}</p>
+      <p className="text-xs text-slate-600">{pick(item.summary, locale)}</p>
       <div>
         <button
           type="button"
@@ -59,7 +62,7 @@ export function WatchlistCard({ item }: { item: WatchlistItem }) {
         </button>
         {open && (
           <p className="text-xs text-slate-500 mt-1.5 pl-2 border-l-2 border-amber-200">
-            {item.potentialImpact}
+            {pick(item.potentialImpact, locale)}
           </p>
         )}
       </div>
