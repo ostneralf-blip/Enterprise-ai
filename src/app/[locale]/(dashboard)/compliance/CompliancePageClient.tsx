@@ -210,11 +210,8 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {tab === 'euaiact' && (
         <div role="tabpanel" id="panel-euaiact" aria-labelledby="tab-euaiact" className="space-y-6">
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-1">Schritt 1: Risikoklasse selbst einordnen</h2>
-            <p className="text-xs text-slate-400 mb-3">
-              Wählen Sie die EU AI Act-Risikoklasse, die auf Ihren primären AI-Use-Case zutrifft.
-              Die passende Pflichten-Checkliste erscheint danach automatisch.
-            </p>
+            <h2 className="text-sm font-semibold text-slate-700 mb-1">{t('compliance.step1Title')}</h2>
+            <p className="text-xs text-slate-400 mb-3">{t('compliance.step1Hint')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {EU_AI_ACT_RISK_CLASSES.map(cls => {
                 const isSelected = riskClass === cls.id
@@ -255,21 +252,15 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {riskClass === 'prohibited' && (
             <div className="bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5">
-              <p className="text-sm font-semibold text-red-800 mb-1">Deployment nicht zulässig</p>
-              <p className="text-xs text-red-600">
-                Systeme dieser Klasse sind nach Art. 5 EU AI Act in der EU verboten. Es gibt kein Übergangsrecht und keine Ausnahmen für gewerbliche Zwecke.
-                Wenden Sie sich an einen Rechtsberater, bevor Sie weitermachen.
-              </p>
+              <p className="text-sm font-semibold text-red-800 mb-1">{t('compliance.prohibitedTitle')}</p>
+              <p className="text-xs text-red-600">{t('compliance.prohibitedDesc')}</p>
             </div>
           )}
 
           {riskClass === 'minimal' && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5">
-              <p className="text-sm font-semibold text-emerald-800 mb-1">Keine gesetzlichen Pflichten nach EU AI Act</p>
-              <p className="text-xs text-emerald-700">
-                Systeme mit minimalem Risiko unterliegen keinen verpflichtenden Anforderungen des EU AI Act.
-                Empfohlen: freiwilliger Code of Practice und interne AI-Governance nach ISO 42001.
-              </p>
+              <p className="text-sm font-semibold text-emerald-800 mb-1">{t('compliance.noObligations')}</p>
+              <p className="text-xs text-emerald-700">{t('compliance.noObligationsDesc')}</p>
             </div>
           )}
 
@@ -278,7 +269,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-slate-700">
-                    Schritt 2: Pflichten-Checkliste ({(() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : null })()})
+                    {t('compliance.step2Title')} ({(() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : null })()})
                   </h2>
                   <InfoHint title="Wie funktioniert die Checkliste?">
                     <p>Klicken Sie auf den Status-Kreis eines Eintrags, um zwischen drei Zuständen zu wechseln:</p>
@@ -331,7 +322,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                           <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                           {item.relevance && (
                             <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1.5">
-                              Warum relevant: {pick(item.relevance, locale)}
+                              {t('compliance.whyRelevant')} {pick(item.relevance, locale)}
                             </p>
                           )}
                         </div>
@@ -345,7 +336,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {!riskClass && (
             <p className="text-sm text-slate-400 text-center py-6">
-              Wählen Sie oben eine Risikoklasse, um die passende Pflichten-Checkliste zu sehen.
+              {t('compliance.noRiskClassSelected')}
             </p>
           )}
         </div>
@@ -674,16 +665,13 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {/* Regulatorische Beobachtungsliste */}
       <div className="border border-amber-200 rounded-xl bg-amber-50 p-4 sm:p-6 space-y-3 mt-6">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold text-amber-700">Regulatorische Beobachtungsliste</span>
+          <span className="text-sm font-semibold text-amber-700">{t('compliance.watchlistTitle')}</span>
           <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full">
-            In Gesetzgebung — noch nicht verbindlich
+            {t('compliance.watchlistBadge')}
           </span>
           <span className="text-xs text-amber-600 ml-auto">({REGULATORY_WATCHLIST.length})</span>
         </div>
-        <p className="text-xs text-amber-600">
-          Diese Einträge sind keine Compliance-Pflichten. Sie zeigen an, was sich ändern könnte.
-          Erst nach Veröffentlichung im EU-Amtsblatt (EUR-Lex) werden sie in die Checklisten übernommen.
-        </p>
+        <p className="text-xs text-amber-600">{t('compliance.watchlistNote')}</p>
         <div className="space-y-2">
           {REGULATORY_WATCHLIST.map(item => (
             <WatchlistCard key={item.id} item={item} />
@@ -699,7 +687,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
           rel="noopener noreferrer"
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
         >
-          PDF exportieren
+          {t('compliance.exportPdf')}
         </a>
       </div>
     </div>

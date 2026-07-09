@@ -6,7 +6,7 @@ import { UpgradeModal } from '@/components/shared/UpgradeModal'
 import { RadarChart } from './RadarChart'
 import { track } from '@/lib/posthog/client'
 import { useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import type { Tier } from '@/types'
 
@@ -26,6 +26,7 @@ export function AssessmentResults({
 }: AssessmentResultsProps) {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const locale = useLocale()
+  const t = useTranslations('modules')
   const maturity = getMaturityLevel(totalScore)
   const archetypeConfig = ARCHETYPES[archetype]
 
@@ -60,7 +61,7 @@ export function AssessmentResults({
                  style={{ color: totalScore >= 4 ? '#10b981' : totalScore >= 3 ? '#f59e0b' : '#ef4444' }}>
               {totalScore.toFixed(1)}
             </div>
-            <div className="text-slate-400 text-xs mt-1">von 5,0</div>
+            <div className="text-slate-400 text-xs mt-1">{t('assessment.outOf')}</div>
           </div>
           <div className="border-l border-slate-700 pl-4 sm:pl-8 min-w-0 flex-1">
             <div className="text-white text-base sm:text-lg font-semibold mb-1 break-words">{pick(maturity.label, locale)}</div>
@@ -74,13 +75,13 @@ export function AssessmentResults({
 
         {/* Radar-Chart */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">AI-Readiness Profil</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">{t('assessment.profileTitle')}</h3>
           <RadarChart dimScores={dimScores} />
         </div>
 
         {/* Dimension Scores */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-5">Ergebnis nach Dimension</h3>
+          <h3 className="font-semibold text-slate-900 mb-5">{t('assessment.resultByDim')}</h3>
           <div className="space-y-4">
             {ASSESSMENT_DIMENSIONS.map((dim, barIndex) => {
               const score = dimScores[dim.id]
@@ -107,7 +108,7 @@ export function AssessmentResults({
                   </div>
                   {score !== undefined && score < 2.5 && (
                     <div className="mt-1 text-xs text-amber-600 flex items-center gap-1">
-                      <span>⚠</span> Prioritäres Handlungsfeld
+                      <span>⚠</span> {t('assessment.priorityField')}
                     </div>
                   )}
                 </div>
@@ -118,7 +119,7 @@ export function AssessmentResults({
 
         {/* Recommendations based on weakest dims */}
         <div className="bg-primary-soft border border-primary-border rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-3">Top Handlungsempfehlungen</h3>
+          <h3 className="font-semibold text-slate-900 mb-3">{t('assessment.recommendationsTitle')}</h3>
           <div className="space-y-2">
             {Object.entries(dimScores)
               .sort(([, a], [, b]) => a - b)
@@ -152,19 +153,19 @@ export function AssessmentResults({
                 ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 focus:ring-emerald-500'
                 : 'bg-slate-900 text-white hover:bg-slate-700 focus:ring-slate-500'
             }`}>
-            {saved ? '✓ Gespeichert' : saving ? 'Wird gespeichert…' : '💾 Ergebnis speichern'}
+            {saved ? t('assessment.saved') : saving ? t('assessment.saving') : t('assessment.save')}
             {tier === 'free' && !saved && <span className="text-xs opacity-60 ml-1">Pro</span>}
           </button>
 
           <button onClick={handleExportPDF}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-300 text-slate-700 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
-            📄 PDF exportieren
+            {t('assessment.exportPdf')}
             {tier === 'free' && <span className="text-xs text-primary ml-1">Pro</span>}
           </button>
 
           <button onClick={onRestart}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2">
-            ↺ Neu starten
+            {t('assessment.restart')}
           </button>
         </div>
 

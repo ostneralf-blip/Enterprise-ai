@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { UseCaseTable } from '@/components/modules/usecase/UseCaseTable'
 import { UseCaseMatrix } from '@/components/modules/usecase/UseCaseMatrix'
 import { UseCaseForm } from '@/components/modules/usecase/UseCaseForm'
@@ -23,6 +23,7 @@ type Tab = 'portfolio' | 'matrix'
 
 export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvases, complianceRisk }: Props) {
   const locale = useLocale()
+  const t = useTranslations('modules')
   const [useCases, setUseCases] = useState<UseCase[]>(initialCases)
   const [weights, setWeights] = useState<UseCaseWeights>(initialPortfolio.weights)
   const [tab, setTab] = useState<Tab>('portfolio')
@@ -55,7 +56,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Use Case löschen?')) return
+    if (!confirm(t('usecase.deleteConfirm'))) return
     await fetch(`/api/usecase/${id}`, { method: 'DELETE' })
     setUseCases(prev => prev.filter(c => c.id !== id))
   }
@@ -91,13 +92,13 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
           )}
         </div>
         <div className="flex items-center gap-2">
-          <InfoHint title="Was sind Bewertungsgewichte?">
-            <p>Jeder Use Case wird nach mehreren Kriterien bewertet (z. B. strategischer Fit, Datenverfügbarkeit, Compliance-Risiko).</p>
-            <p className="mt-1.5">Mit den <strong>Gewichten</strong> legen Sie fest, welche Kriterien für Ihr Unternehmen am wichtigsten sind. Das beeinflusst die Reihenfolge im Portfolio.</p>
+          <InfoHint title={t('usecase.weightsHintTitle')}>
+            <p>{t('usecase.weightsHintP1')}</p>
+            <p className="mt-1.5">{t('usecase.weightsHintP2')}</p>
           </InfoHint>
           <button onClick={() => { setShowWeights(v => !v); setShowForm(false) }}
             className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap">
-            ⚙️ Gewichte
+            {t('usecase.weightsBtn')}
           </button>
           <button onClick={handleAddClick}
             className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
@@ -109,7 +110,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
       {tier === 'free' && (
         <div className="flex items-center gap-2 mb-4 text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
           <span>{useCases.length} / {FREE_LIMIT} Use Cases (Free)</span>
-          {atFreeLimit && <span className="text-primary font-medium cursor-pointer hover:underline" onClick={() => setShowUpgrade(true)}>Upgrade für mehr →</span>}
+          {atFreeLimit && <span className="text-primary font-medium cursor-pointer hover:underline" onClick={() => setShowUpgrade(true)}>{t('usecase.upgradeLink')}</span>}
         </div>
       )}
 
@@ -138,7 +139,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
         >
-          PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+          {t('usecase.exportPdf')}{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
         </a>
       </div>
 

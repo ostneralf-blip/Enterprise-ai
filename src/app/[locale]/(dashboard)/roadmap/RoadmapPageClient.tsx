@@ -136,10 +136,10 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       {linkedCanvas && (
         <div className="mb-5 bg-primary-soft border border-primary-border rounded-2xl p-4">
           <div className="flex items-start gap-2 mb-2">
-            <span className="text-xs font-semibold text-primary">Canvas verknüpft</span>
-            <InfoHint title="Wie beeinflusst der Canvas die Roadmap?" side="bottom">
-              <p>Der verknüpfte Canvas stammt von Ihrem am höchsten bewerteten Use Case. Er liefert strategischen Kontext wie Plattform, Compliance-Anforderungen und Stakeholder-Situation.</p>
-              <p className="mt-1.5">Die erkannten Signale helfen Ihnen, bei der Phasenplanung gezielt zu priorisieren. Wechseln Sie in der Sidebar zu <strong>Canvas</strong>, um den Inhalt zu bearbeiten.</p>
+            <span className="text-xs font-semibold text-primary">{t('roadmap.canvasLinked')}</span>
+            <InfoHint title={t('roadmap.canvasHintTitle')} side="bottom">
+              <p>{t('roadmap.canvasHintP1')}</p>
+              <p className="mt-1.5">{t('roadmap.canvasHintP2')}</p>
             </InfoHint>
           </div>
           <p className="text-xs text-primary-hover font-medium mb-1">{linkedCanvas.title}</p>
@@ -169,7 +169,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             </div>
           )}
           {canvasInsights.length === 0 && (
-            <p className="text-xs text-primary opacity-70">Keine spezifischen Plattform- oder Compliance-Signale erkannt.</p>
+            <p className="text-xs text-primary opacity-70">{t('roadmap.canvasNoSignals')}</p>
           )}
         </div>
       )}
@@ -177,9 +177,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       {/* Archetyp-Auswahl */}
       <div className="mb-6">
         {fromAssessment && initialArchetype && (
-          <p className="text-xs text-slate-500 mb-3">
-            Archetyp basierend auf deinem letzten Assessment — du kannst ihn unten ändern.
-          </p>
+          <p className="text-xs text-slate-500 mb-3">{t('roadmap.archetypeFromAssessmentHint')}</p>
         )}
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('roadmap.archetypeAriaLabel')}>
           {ARCHETYPES.map(a => {
@@ -204,7 +202,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       {topUseCases.length > 0 && (
         <div className="mb-6 bg-primary-soft border border-primary-border rounded-2xl p-4">
           <p className="text-xs font-medium text-primary-hover uppercase tracking-wide mb-2.5">
-            Ihre Top-Use-Cases (aus Use-Case-Scoring)
+            {t('roadmap.topUseCasesLabel')}
           </p>
           <div className="flex flex-wrap gap-2">
             {topUseCases.map((uc, i) => {
@@ -334,14 +332,14 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
         {!saved && (
           <button onClick={handleSave} disabled={saving}
             className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
-            {saving ? 'Wird gespeichert…' : 'Roadmap speichern'}
+            {saving ? t('roadmap.saving') : t('roadmap.save')}
           </button>
         )}
-        {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
+        {saved && <span className="text-sm text-green-700 font-medium">{t('roadmap.saved')}</span>}
         <a href={tier !== 'free' ? `/api/export/pdf?module=roadmap&locale=${locale}` : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5">
-          PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+          {t('roadmap.exportPdf')}{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
         </a>
         {savedId && (
           <>

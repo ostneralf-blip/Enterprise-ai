@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { QUADRANT_META } from '@/config/usecase-data'
 import { pick } from '@/lib/utils/locale-data'
@@ -36,11 +36,12 @@ const LABEL_COLOR: Record<string, string> = {
 export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const locale = useLocale()
+  const t = useTranslations('modules')
 
   if (useCases.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col items-center gap-4 text-center">
-        <svg viewBox="0 0 120 120" className="w-[100px] h-[100px]" role="img" aria-label="Leere Portfolio-Matrix">
+        <svg viewBox="0 0 120 120" className="w-[100px] h-[100px]" role="img" aria-label={t('usecase.emptyMatrixAriaLabel')}>
           <rect x="10" y="10" width="100" height="100" rx="6" fill="none" stroke="#cbd5e1" strokeWidth="1"
                 strokeDasharray="400" strokeDashoffset="400" className="animate-dash-draw" />
           <line x1="10" y1="60" x2="110" y2="60" stroke="#e2e8f0" strokeWidth="0.75"
@@ -51,15 +52,15 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
                 style={{ animationDelay: '600ms' }} />
           <text x="35" y="38" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Strategic</text>
           <text x="85" y="38" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Quick Win</text>
-          <text x="35" y="85" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Vermeiden</text>
+          <text x="35" y="85" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">{t('usecase.vermeiden')}</text>
           <text x="85" y="85" textAnchor="middle" fontSize="7.5" fill="#94a3b8" fontStyle="italic">Low Hanging</text>
         </svg>
         <div className="space-y-1.5">
-          <h3 className="font-serif text-base text-slate-800">Noch keine Use Cases</h3>
-          <p className="text-sm text-slate-500">Legen Sie Ihren ersten Use Case an, um die Matrix zu befüllen.</p>
+          <h3 className="font-serif text-base text-slate-800">{t('usecase.emptyTitle')}</h3>
+          <p className="text-sm text-slate-500">{t('usecase.emptyDesc')}</p>
         </div>
         <Link href="/usecase" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
-          Ersten Use Case anlegen →
+          {t('usecase.emptyLink')}
         </Link>
       </div>
     )
@@ -71,7 +72,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
       <div className="mb-4">
         <h2 className="text-base sm:text-lg font-semibold text-slate-900">Value × Feasibility Matrix</h2>
-        <p className="text-xs text-slate-400 mt-0.5">X-Achse: Umsetzbarkeit · Y-Achse: Business Value</p>
+        <p className="text-xs text-slate-400 mt-0.5">{t('usecase.axisLabel')}</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -96,7 +97,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
                 QUICK WIN
               </text>
               <text x="8" y={S - 8} fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.avoid}>
-                VERMEIDEN
+                {t('usecase.vermeiden').toUpperCase()}
               </text>
               <text x={S - 8} y={S - 8} textAnchor="end" fontSize="9" fontWeight="600" letterSpacing="1.2" fill={LABEL_COLOR.low_hanging_fruit}>
                 LOW HANGING FRUIT
