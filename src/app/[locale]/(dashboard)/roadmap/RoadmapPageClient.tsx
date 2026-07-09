@@ -338,7 +338,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
           </button>
         )}
         {saved && <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>}
-        <a href={tier !== 'free' ? '/api/export/pdf?module=roadmap' : '/upgrade'}
+        <a href={tier !== 'free' ? `/api/export/pdf?module=roadmap&locale=${locale}` : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5">
           PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}

@@ -18,6 +18,7 @@ import { z } from 'zod'
 const querySchema = z.object({
   module: z.enum(['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture', 'executive_summary']),
   entityId: z.string().uuid().optional(),
+  locale: z.enum(['de', 'en']).optional(),
 })
 
 export const maxDuration = 30
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
     const parsed = querySchema.safeParse({
       module: searchParams.get('module'),
       entityId: searchParams.get('entityId') ?? undefined,
+      locale: searchParams.get('locale') ?? undefined,
     })
     if (!parsed.success) {
       return NextResponse.json({ error: 'Ungültige Anfrage' }, {
@@ -36,7 +38,9 @@ export async function GET(req: Request) {
       })
     }
 
-    const locale = await getLocale()
+    // getLocale() funktioniert nicht für /api/-Routen (Middleware wird übersprungen).
+    // Locale kommt als Query-Param vom Frontend; Fallback auf getLocale() für direkte Aufrufe.
+    const locale = parsed.data.locale ?? (await getLocale())
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {

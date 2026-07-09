@@ -694,7 +694,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
         <a
-          href="/api/export/pdf?module=compliance"
+          href={`/api/export/pdf?module=compliance&locale=${locale}`}
           target="_blank"
           rel="noopener noreferrer"
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useLocale } from 'next-intl'
 import { UseCaseTable } from '@/components/modules/usecase/UseCaseTable'
 import { UseCaseMatrix } from '@/components/modules/usecase/UseCaseMatrix'
 import { UseCaseForm } from '@/components/modules/usecase/UseCaseForm'
@@ -21,6 +22,7 @@ interface Props {
 type Tab = 'portfolio' | 'matrix'
 
 export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvases, complianceRisk }: Props) {
+  const locale = useLocale()
   const [useCases, setUseCases] = useState<UseCase[]>(initialCases)
   const [weights, setWeights] = useState<UseCaseWeights>(initialPortfolio.weights)
   const [tab, setTab] = useState<Tab>('portfolio')
@@ -132,7 +134,7 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
       {/* Aktions-Leiste — konsistent unten wie alle anderen Module */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
         <a
-          href={tier !== 'free' ? '/api/export/pdf?module=usecase' : '/upgrade'}
+          href={tier !== 'free' ? `/api/export/pdf?module=usecase&locale=${locale}` : '/upgrade'}
           {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
         >

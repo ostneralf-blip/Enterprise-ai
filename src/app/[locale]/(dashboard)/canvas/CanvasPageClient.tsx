@@ -151,7 +151,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             {saved ? '✓ Gespeichert' : saving ? 'Speichern…' : 'Speichern'}
           </button>
           <a
-            href={tier !== 'free' ? '/api/export/pdf?module=canvas' : '/upgrade'}
+            href={tier !== 'free' ? `/api/export/pdf?module=canvas&locale=${locale}` : '/upgrade'}
             {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
           >

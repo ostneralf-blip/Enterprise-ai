@@ -36,7 +36,7 @@ export function AssessmentResults({
       return
     }
     track('export_pdf', { module: 'assessment' })
-    window.open(`/api/export/pdf?module=assessment`, '_blank')
+    window.open(`/api/export/pdf?module=assessment&locale=${locale}`, '_blank')
   }
 
   const handleSave = () => {
