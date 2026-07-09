@@ -99,6 +99,7 @@ export function Sidebar({ profile }: SidebarProps) {
           <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('impressum')}</Link>
           <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('datenschutz')}</Link>
           <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('agb')}</Link>
+          <Link href="/widerruf" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('widerruf')}</Link>
         </div>
         <div className="flex items-center justify-between">
           <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('euHosting')}</Link>
