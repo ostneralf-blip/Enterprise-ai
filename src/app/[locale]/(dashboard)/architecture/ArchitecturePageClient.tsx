@@ -7,7 +7,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
-import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
@@ -675,10 +675,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const activeComponents = recComponents.filter(c => recNames.has(c.name))
           const dynamicDecisions = generateDynamicKeyDecisions(activeComponents)
           const dynamicSteps = generateDynamicNextSteps(activeComponents)
-          const dynamicDecisionDe = new Set(dynamicDecisions.map(d => d.de))
-          const dynamicStepDe = new Set(dynamicSteps.map(s => s.de))
-          const allDecisions = [...dynamicDecisions, ...result.keyDecisions.filter(d => !dynamicDecisionDe.has(d.de))]
-          const allSteps = [...dynamicSteps, ...result.nextSteps.filter(s => !dynamicStepDe.has(s.de))]
+          const crossDecisions = generateCrossModuleDecisions({
+            assessment: assessmentContext,
+            canvas: canvasContext,
+            governance: governanceContext,
+            roadmap: roadmapContext,
+          })
+          const crossSteps = generateCrossModuleNextSteps({
+            assessment: assessmentContext,
+            canvas: canvasContext,
+            governance: governanceContext,
+            roadmap: roadmapContext,
+          })
+          const seenDecisionDe = new Set([...crossDecisions, ...dynamicDecisions].map(d => d.de))
+          const seenStepDe = new Set([...crossSteps, ...dynamicSteps].map(s => s.de))
+          const allDecisions = [...crossDecisions, ...dynamicDecisions, ...result.keyDecisions.filter(d => !seenDecisionDe.has(d.de))]
+          const allSteps = [...crossSteps, ...dynamicSteps, ...result.nextSteps.filter(s => !seenStepDe.has(s.de))]
           return (
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
