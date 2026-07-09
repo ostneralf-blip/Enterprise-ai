@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { CRITERIA, DOMAINS, calcWeightedScore, deriveQuadrant, QUADRANT_META } from '@/config/usecase-data'
 import { pick } from '@/lib/utils/locale-data'
 import type { UseCase, UseCaseWeights } from '@/types'
@@ -31,19 +31,20 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
   const [error, setError] = useState('')
 
   const locale = useLocale()
+  const t = useTranslations('modules.usecase')
   const preview = calcWeightedScore(scores, weights)
   const quadrant = deriveQuadrant(scores)
   const qMeta = QUADRANT_META[quadrant]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError('Name ist erforderlich.'); return }
+    if (!name.trim()) { setError(t('nameRequired')); return }
     setSaving(true)
     setError('')
     try {
       await onSave({ name: name.trim(), domain: domain || null, description: description || null, scores, canvas_id: canvasId || null })
     } catch {
-      setError('Fehler beim Speichern — bitte erneut versuchen.')
+      setError(t('saveError'))
       setSaving(false)
     }
   }
@@ -51,28 +52,28 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
       <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-4">
-        {editing ? 'Use Case bearbeiten' : 'Neuer Use Case'}
+        {editing ? t('editUseCase') : t('newUseCase')}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Name *</label>
-          <input value={name} onChange={e => setName(e.target.value)} required placeholder="z. B. KI-gestützter Kundenservice"
+          <input value={name} onChange={e => setName(e.target.value)} required placeholder={t('namePlaceholder')}
             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-primary-ring transition-colors" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="uc-domain" className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Bereich</label>
+            <label htmlFor="uc-domain" className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">{t('domainLabel')}</label>
             <select id="uc-domain" value={domain} onChange={e => setDomain(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors bg-white">
-              <option value="">Kein Bereich</option>
+              <option value="">{t('noDomain')}</option>
               {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Beschreibung</label>
-            <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional"
+            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">{t('descriptionLabel')}</label>
+            <input value={description} onChange={e => setDescription(e.target.value)} placeholder={t('optional')}
               className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors" />
           </div>
         </div>
@@ -80,7 +81,7 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
         {canvases && canvases.length > 0 && (
           <div>
             <label htmlFor="uc-canvas" className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
-              Canvas verknüpfen <span className="normal-case text-slate-400">(optional)</span>
+              {t('linkCanvas')} <span className="normal-case text-slate-400">{t('optional')}</span>
             </label>
             <select
               id="uc-canvas"
@@ -88,21 +89,21 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
               onChange={e => setCanvasId(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-primary-ring transition-colors bg-white"
             >
-              <option value="">Kein Canvas verknüpft</option>
+              <option value="">{t('noCanvasLinked')}</option>
               {canvases.map(c => (
-                <option key={c.id} value={c.id}>{c.title || 'Unbenannter Canvas'}</option>
+                <option key={c.id} value={c.id}>{c.title || t('unnamedCanvas')}</option>
               ))}
             </select>
             {canvasId && (
               <p className="text-[11px] text-primary mt-1">
-                ◧ Verknüpfter Canvas wird im Architektur-Generator berücksichtigt.
+                {t('canvasHint')}
               </p>
             )}
           </div>
         )}
 
         <div>
-          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Bewertung (1 = niedrig · 5 = hoch)</label>
+          <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">{t('ratingLabel')}</label>
           <div className="space-y-4" role="group" aria-label="Kriterien bewerten">
             {CRITERIA.map(c => (
               <div key={c.id} className="space-y-1.5">
@@ -149,11 +150,11 @@ export function UseCaseForm({ weights, editing, canvases, onSave, onCancel }: Us
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel}
             className="px-4 py-2.5 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors whitespace-nowrap">
-            Abbrechen
+            {t('cancel')}
           </button>
           <button type="submit" disabled={saving}
             className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
-            {saving ? 'Wird gespeichert…' : editing ? 'Aktualisieren' : 'Use Case hinzufügen'}
+            {saving ? t('saving') : editing ? t('update') : t('addUseCase')}
           </button>
         </div>
       </form>

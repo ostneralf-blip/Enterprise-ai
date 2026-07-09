@@ -89,7 +89,7 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 5. Keine direkten Supabase-Calls im Client
 6. Feature-Gating immer server-seitig
 7. cn() für alle Tailwind-Klassen
-8. Deutsche UI-Texte (EN kommt Phase 2)
+8. **Bilinguale UI (DE + EN) — PFLICHT ab sofort (seit 09.07.2026):** Jede neue UI-Anforderung muss gleichzeitig auf Deutsch und Englisch umgesetzt werden. Kein hardcodierter String im JSX — ausschließlich `t()`-Aufrufe via `useTranslations()` aus next-intl. Neue Keys immer parallel in `messages/de.json` UND `messages/en.json` eintragen. Bestehende Namespaces: `common`, `nav`, `sidebar`, `auth`, `dashboard`, `modules` (mit Untersektionen je Modul), `ergebnisse`, `settings`, `share`, `summary`, `upgrade`, `feedback`, `guidance`, `errors`.
 9. Max. ~150 Zeilen pro Komponente
 
 ### Tier-System

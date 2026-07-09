@@ -1,5 +1,5 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -48,6 +48,7 @@ const labelClass = 'block text-xs font-medium text-slate-500 uppercase tracking-
 
 export function SettingsPageClient({ profile, email }: Props) {
   const t = useTranslations('settings')
+  const locale = useLocale()
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [company, setCompany] = useState(profile.company ?? '')
   const [role, setRole] = useState(profile.role ?? '')
@@ -102,8 +103,8 @@ export function SettingsPageClient({ profile, email }: Props) {
   const pwValid = Object.values(pwRules).every(Boolean) && newPassword === confirmPassword && newPassword.length > 0
 
   const handlePasswordChange = async () => {
-    if (!pwValid) { setPwError('Bitte alle Passwort-Anforderungen erfüllen.'); return }
-    if (newPassword !== confirmPassword) { setPwError('Passwörter stimmen nicht überein.'); return }
+    if (!pwValid) { setPwError(t('pwErrorRequired')); return }
+    if (newPassword !== confirmPassword) { setPwError(t('pwMismatch')); return }
     setPwSaving(true)
     setPwError(null)
     const supabase = createClient()
@@ -119,14 +120,14 @@ export function SettingsPageClient({ profile, email }: Props) {
   const hasBilling = profile.tier !== 'free' && !!profile.stripe_customer_id
 
   const handleWizardReset = async () => {
-    if (!confirm('Geführten Pfad zurücksetzen? Deine bestehenden Ergebnisse bleiben erhalten.')) return
+    if (!confirm(t('wizardResetConfirm'))) return
     setWizardResetting(true)
     setWizardResetError(null)
     const res = await fetch('/api/account/wizard-reset', { method: 'POST' })
     setWizardResetting(false)
     if (!res.ok) {
       const json = await res.json()
-      setWizardResetError(json.error ?? 'Fehler beim Zurücksetzen.')
+      setWizardResetError(json.error ?? t('resetError'))
       return
     }
     setWizardResetAt(new Date().toISOString())
@@ -139,7 +140,7 @@ export function SettingsPageClient({ profile, email }: Props) {
     const res = await fetch('/api/account/delete', { method: 'DELETE' })
     if (!res.ok) {
       const json = await res.json()
-      setDeleteError(json.error ?? 'Fehler beim Löschen.')
+      setDeleteError(json.error ?? t('deleteError'))
       setDeleting(false)
       return
     }
@@ -148,7 +149,7 @@ export function SettingsPageClient({ profile, email }: Props) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!fullName.trim()) { setError('Name ist ein Pflichtfeld.'); return }
+    if (!fullName.trim()) { setError(t('nameRequired')); return }
     setSaving(true)
     setError(null)
     setSaved(false)
@@ -169,7 +170,7 @@ export function SettingsPageClient({ profile, email }: Props) {
     })
     const json = await res.json()
     setSaving(false)
-    if (!res.ok) { setError(json.error ?? 'Fehler beim Speichern.'); return }
+    if (!res.ok) { setError(json.error ?? t('error')); return }
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -180,7 +181,7 @@ export function SettingsPageClient({ profile, email }: Props) {
     const res = await fetch('/api/settings/portal', { method: 'POST' })
     const json = await res.json()
     setPortalLoading(false)
-    if (!res.ok) { setPortalError(json.error ?? 'Portal nicht erreichbar.'); return }
+    if (!res.ok) { setPortalError(json.error ?? t('openPortal')); return }
     window.location.href = json.url
   }
 
@@ -189,7 +190,7 @@ export function SettingsPageClient({ profile, email }: Props) {
 
       {/* Profil */}
       <section aria-labelledby="profile-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="profile-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">Profil</h2>
+        <h2 id="profile-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('profileSection')}</h2>
         <form onSubmit={handleSave} noValidate className="space-y-4">
           <div>
             <label htmlFor="full-name" className={labelClass}>Name *</label>
@@ -207,7 +208,7 @@ export function SettingsPageClient({ profile, email }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="company" className={labelClass}>Unternehmen</label>
+            <label htmlFor="company" className={labelClass}>{t('company')}</label>
             <input
               id="company"
               type="text"
@@ -220,7 +221,7 @@ export function SettingsPageClient({ profile, email }: Props) {
             />
           </div>
           <div>
-            <label htmlFor="role" className={labelClass}>Rolle</label>
+            <label htmlFor="role" className={labelClass}>{t('role')}</label>
             <input
               id="role"
               type="text"
@@ -235,7 +236,7 @@ export function SettingsPageClient({ profile, email }: Props) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="phone" className={labelClass}>Telefon</label>
+              <label htmlFor="phone" className={labelClass}>{t('phone')}</label>
               <input
                 id="phone"
                 type="tel"
@@ -248,7 +249,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               />
             </div>
             <div>
-              <label htmlFor="mobile" className={labelClass}>Mobil</label>
+              <label htmlFor="mobile" className={labelClass}>{t('mobile')}</label>
               <input
                 id="mobile"
                 type="tel"
@@ -263,7 +264,7 @@ export function SettingsPageClient({ profile, email }: Props) {
           </div>
 
           <div>
-            <label htmlFor="street" className={labelClass}>Straße & Hausnummer</label>
+            <label htmlFor="street" className={labelClass}>{t('streetLabel')}</label>
             <input
               id="street"
               type="text"
@@ -278,7 +279,7 @@ export function SettingsPageClient({ profile, email }: Props) {
 
           <div className="grid grid-cols-[120px_1fr] gap-4">
             <div>
-              <label htmlFor="zip" className={labelClass}>PLZ</label>
+              <label htmlFor="zip" className={labelClass}>{t('zip')}</label>
               <input
                 id="zip"
                 type="text"
@@ -291,7 +292,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               />
             </div>
             <div>
-              <label htmlFor="city" className={labelClass}>Stadt</label>
+              <label htmlFor="city" className={labelClass}>{t('city')}</label>
               <input
                 id="city"
                 type="text"
@@ -318,10 +319,10 @@ export function SettingsPageClient({ profile, email }: Props) {
                 saving ? 'bg-primary-ring text-white cursor-not-allowed' : 'bg-primary text-white hover:bg-primary'
               )}
             >
-              {saving ? 'Speichern...' : 'Speichern'}
+              {saving ? t('saving') : t('saveButton')}
             </button>
             {saved && (
-              <span role="status" className="text-sm text-emerald-600 font-medium">Gespeichert</span>
+              <span role="status" className="text-sm text-emerald-600 font-medium">{t('savedStatus')}</span>
             )}
           </div>
         </form>
@@ -329,14 +330,14 @@ export function SettingsPageClient({ profile, email }: Props) {
 
       {/* Konto */}
       <section aria-labelledby="account-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="account-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">Konto</h2>
+        <h2 id="account-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('accountSection')}</h2>
         <dl className="space-y-4">
           <div>
-            <dt className={labelClass}>E-Mail</dt>
+            <dt className={labelClass}>{t('emailLabel')}</dt>
             <dd className="text-sm text-slate-700 min-w-0 truncate">{email}</dd>
           </div>
           <div>
-            <dt className={labelClass}>Tarif</dt>
+            <dt className={labelClass}>{t('tierLabel')}</dt>
             <dd>
               <span className={cn('inline-block text-xs font-semibold px-2.5 py-1 rounded-full', TIER_COLORS[profile.tier])}>
                 {TIER_LABELS[profile.tier]}
@@ -348,10 +349,10 @@ export function SettingsPageClient({ profile, email }: Props) {
 
       {/* Sicherheit */}
       <section aria-labelledby="security-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="security-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">Sicherheit</h2>
+        <h2 id="security-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('securitySection')}</h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="new-password" className={labelClass}>Neues Passwort</label>
+            <label htmlFor="new-password" className={labelClass}>{t('newPasswordLabel')}</label>
             <input id="new-password" type="password" value={newPassword}
               onChange={e => { setNewPassword(e.target.value); setPwSaved(false) }}
               placeholder={t('newPasswordPlaceholder')}
@@ -359,9 +360,9 @@ export function SettingsPageClient({ profile, email }: Props) {
             {newPassword.length > 0 && (
               <ul className="mt-2 space-y-1" aria-label={t('passwordRequirementsLabel')}>
                 {([
-                  { ok: pwRules.length, label: 'Mindestens 8 Zeichen' },
-                  { ok: pwRules.uppercase, label: 'Mindestens 1 Großbuchstabe' },
-                  { ok: pwRules.number, label: 'Mindestens 1 Zahl oder Sonderzeichen' },
+                  { ok: pwRules.length, label: t('pwRuleLength') },
+                  { ok: pwRules.uppercase, label: t('pwRuleUppercase') },
+                  { ok: pwRules.number, label: t('pwRuleNumber') },
                 ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
                   <li key={label} className={cn('text-xs flex items-center gap-1.5 transition-colors', ok ? 'text-emerald-600' : 'text-slate-400')}>
                     <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
@@ -371,21 +372,21 @@ export function SettingsPageClient({ profile, email }: Props) {
             )}
           </div>
           <div>
-            <label htmlFor="confirm-password" className={labelClass}>Passwort bestätigen</label>
+            <label htmlFor="confirm-password" className={labelClass}>{t('confirmPasswordLabel')}</label>
             <input id="confirm-password" type="password" value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               placeholder={t('confirmPasswordPlaceholder')}
               className={cn(inputClass, confirmPassword.length > 0 && newPassword !== confirmPassword ? 'border-red-300 focus:ring-red-400' : '')}
               disabled={pwSaving} />
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">Passwörter stimmen nicht überein.</p>
+              <p className="text-xs text-red-500 mt-1">{t('pwMismatch')}</p>
             )}
           </div>
           {pwError && <p role="alert" className="text-sm text-red-600">{pwError}</p>}
-          {pwSaved && <p role="status" className="text-sm text-emerald-600 font-medium">✓ Passwort erfolgreich geändert</p>}
+          {pwSaved && <p role="status" className="text-sm text-emerald-600 font-medium">{t('pwSavedMsg')}</p>}
           <button type="button" onClick={handlePasswordChange} disabled={!pwValid || pwSaving}
             className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-primary text-white hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
-            {pwSaving ? 'Wird gespeichert…' : 'Passwort ändern'}
+            {pwSaving ? t('pwSaving') : t('changePassword')}
           </button>
         </div>
       </section>
@@ -393,10 +394,8 @@ export function SettingsPageClient({ profile, email }: Props) {
       {/* Abrechnung — nur Pro/Enterprise */}
       {profile.tier !== 'free' && (
         <section aria-labelledby="billing-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-          <h2 id="billing-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Abrechnung</h2>
-          <p className="text-sm text-slate-500 mb-5">
-            Rechnungen, Zahlungsmethode und Abonnement über das Stripe-Portal verwalten.
-          </p>
+          <h2 id="billing-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{t('billingSection')}</h2>
+          <p className="text-sm text-slate-500 mb-5">{t('billingDesc')}</p>
 
           {portalError && (
             <p role="alert" className="text-sm text-red-600 mb-3">{portalError}</p>
@@ -413,29 +412,25 @@ export function SettingsPageClient({ profile, email }: Props) {
                   : 'border-slate-300 text-slate-700 hover:bg-slate-50'
               )}
             >
-              {portalLoading ? 'Weiterleitung...' : 'Abrechnungsportal öffnen →'}
+              {portalLoading ? t('portalLoading') : t('openPortal')}
             </button>
           ) : (
-            <p className="text-sm text-slate-400">
-              Stripe-Kundenkonto noch nicht verknüpft. Wende dich an den Support.
-            </p>
+            <p className="text-sm text-slate-400">{t('stripeNotLinked')}</p>
           )}
         </section>
       )}
       {/* Assistent */}
       <section aria-labelledby="wizard-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="wizard-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-1">Assistent</h2>
-        <p className="text-sm text-slate-500 mb-5">Einstellungen für den geführten 7-Schritte-Pfad.</p>
+        <h2 id="wizard-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-1">{t('assistantSection')}</h2>
+        <p className="text-sm text-slate-500 mb-5">{t('pathSettingsDesc')}</p>
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800">Geführten Pfad zurücksetzen</p>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Der Dashboard-Pfad zeigt alle Schritte als nicht abgeschlossen an — deine gespeicherten Ergebnisse bleiben vollständig erhalten.
-              </p>
+              <p className="text-sm font-medium text-slate-800">{t('resetPathTitle')}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t('resetPathInfo')}</p>
               {wizardResetAt && (
                 <p className="text-xs text-emerald-600 mt-1">
-                  ✓ Zurückgesetzt am {new Date(wizardResetAt).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}
+                  {t('resetAtMsg', { date: new Date(wizardResetAt).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' }) })}
                 </p>
               )}
               {wizardResetError && (
@@ -447,7 +442,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               disabled={wizardResetting}
               className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
-              {wizardResetting ? 'Wird zurückgesetzt…' : 'Pfad zurücksetzen'}
+              {wizardResetting ? t('resetting') : t('resetPath')}
             </button>
           </div>
         </div>
@@ -456,32 +451,32 @@ export function SettingsPageClient({ profile, email }: Props) {
       {/* Darstellung */}
       <section aria-labelledby="display-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-slate-900">Darstellung</h2>
-          {themeSaving && <span className="text-xs text-slate-400">Wird gespeichert…</span>}
+          <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('darstellungSection')}</h2>
+          {themeSaving && <span className="text-xs text-slate-400">{t('themeSavingMsg')}</span>}
         </div>
-        <p className="text-sm text-slate-500 mb-5">Farbtheme der App anpassen. Kostenlos für alle Nutzer.</p>
+        <p className="text-sm text-slate-500 mb-5">{t('themeDesc')}</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {THEMES.map(t => (
+          {THEMES.map(theme => (
             <button
-              key={t.id}
-              onClick={() => handleThemeChange(t.id)}
+              key={theme.id}
+              onClick={() => handleThemeChange(theme.id)}
               className={cn(
                 'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
-                currentTheme === t.id
+                currentTheme === theme.id
                   ? 'border-primary bg-primary-soft'
                   : 'border-slate-200 hover:border-slate-300 bg-white'
               )}
-              aria-pressed={currentTheme === t.id}
-              aria-label={`Theme ${t.label} aktivieren`}
+              aria-pressed={currentTheme === theme.id}
+              aria-label={t('themeActivateAriaLabel', { label: theme.label })}
             >
               <div
                 className="w-8 h-8 rounded-full border-2 border-white shadow-md"
-                style={{ background: t.swatch }}
+                style={{ background: theme.swatch }}
                 aria-hidden="true"
               />
-              <span className="text-xs font-medium text-slate-700">{t.label}</span>
-              {currentTheme === t.id && (
-                <span className="text-[10px] text-primary font-semibold">Aktiv</span>
+              <span className="text-xs font-medium text-slate-700">{theme.label}</span>
+              {currentTheme === theme.id && (
+                <span className="text-[10px] text-primary font-semibold">{t('themeActive')}</span>
               )}
             </button>
           ))}
@@ -491,33 +486,28 @@ export function SettingsPageClient({ profile, email }: Props) {
       {/* Architektur-Diagramm — Demnächst */}
       <section aria-labelledby="diagram-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
         <div className="flex items-center gap-2 mb-1">
-          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-slate-900">Architektur-Diagramm</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('archDiagramSection')}</h2>
+          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
         </div>
-        <p className="text-sm text-slate-400">Diagramm-Stil, Layout und Farbkodierung für den Architektur-Generator.</p>
+        <p className="text-sm text-slate-400">{t('archDiagramDesc')}</p>
       </section>
 
       {/* Geteilte Links — Demnächst */}
       <section aria-labelledby="shared-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
         <div className="flex items-center gap-2 mb-1">
-          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-slate-900">Geteilte Links</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Demnächst</span>
+          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('sharedLinksSection')}</h2>
+          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
         </div>
-        <p className="text-sm text-slate-400">Übersicht aller aktiven Share-Links mit Ablaufdaten und Zugriffszahlen.</p>
+        <p className="text-sm text-slate-400">{t('sharedLinksDesc')}</p>
       </section>
 
       {/* Gefahrenzone */}
       <section aria-labelledby="danger-heading" className="bg-white border border-red-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-red-600 mb-2">Konto löschen</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Löscht dein Konto und alle damit verbundenen Daten unwiderruflich (Art. 17 DSGVO).
-          Diese Aktion kann nicht rückgängig gemacht werden.
-        </p>
+        <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-red-600 mb-2">{t('dangerSection')}</h2>
+        <p className="text-sm text-slate-500 mb-4">{t('deleteDesc')}</p>
         <div className="space-y-3">
           <div>
-            <label htmlFor="delete-confirm" className={labelClass}>
-              Gib <strong>LÖSCHEN</strong> ein, um zu bestätigen
-            </label>
+            <label htmlFor="delete-confirm" className={labelClass}>{t('deleteConfirmLabel')}</label>
             <input
               id="delete-confirm"
               type="text"
@@ -531,19 +521,19 @@ export function SettingsPageClient({ profile, email }: Props) {
           {deleteError && <p role="alert" className="text-sm text-red-600">{deleteError}</p>}
           <button
             onClick={handleDeleteAccount}
-            disabled={deleteConfirm !== 'LÖSCHEN' || deleting}
+            disabled={deleteConfirm !== t('deleteConfirmWord') || deleting}
             className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-red-600 text-white hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            {deleting ? 'Wird gelöscht…' : 'Konto unwiderruflich löschen'}
+            {deleting ? t('deleting') : t('deleteButton')}
           </button>
         </div>
       </section>
 
       {/* Rechtliches */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 pb-1">
-        <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Impressum</Link>
-        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Datenschutz</Link>
-        <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">AGB</Link>
+        <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('impressum')}</Link>
+        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('datenschutz')}</Link>
+        <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('agb')}</Link>
       </div>
 
     </div>

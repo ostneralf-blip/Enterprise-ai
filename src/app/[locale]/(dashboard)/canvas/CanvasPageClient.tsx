@@ -294,13 +294,13 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-slate-500">
-          {canvases.length === 0 ? 'Noch kein Canvas erstellt' : `${canvases.length} Canvas${canvases.length !== 1 ? 'se' : ''}`}
+          {canvases.length === 0 ? t('canvas.noCanvasYet') : t('canvas.canvasCount', { count: canvases.length })}
         </p>
         <button
           onClick={handleCreate}
           className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          + Neues Canvas
+          {t('canvas.newCanvas')}
         </button>
       </div>
 
@@ -308,13 +308,13 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
         <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
           <div className="text-3xl mb-3 text-slate-300" aria-hidden="true">□</div>
           <p className="text-slate-500 text-sm mb-4">
-            Strukturiertes Template für neue AI-Initiativen — 8 Felder, vom Problem bis zu den nächsten Schritten.
+            {t('canvas.canvasTemplateDesc')}
           </p>
           <button
             onClick={handleCreate}
             className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            Canvas erstellen
+            {t('canvas.createCanvas')}
           </button>
         </div>
       ) : (

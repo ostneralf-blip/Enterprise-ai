@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -9,15 +10,16 @@ interface Props {
   tier: string
 }
 
-type ExpiryOption = { label: string; days?: number }
+type ExpiryOption = { key: string; days?: number }
 
 const EXPIRY_OPTIONS: ExpiryOption[] = [
-  { label: '1 Woche', days: 7 },
-  { label: '1 Monat', days: 30 },
-  { label: 'Unbegrenzt' },
+  { key: 'expiryWeek',      days: 7 },
+  { key: 'expiryMonth',     days: 30 },
+  { key: 'expiryUnlimited' },
 ]
 
 export function ShareButton({ module, entityId, tier }: Props) {
+  const t = useTranslations('share')
   const [open, setOpen] = useState(false)
   const [expiryDays, setExpiryDays] = useState<number | undefined>(7)
   const [url, setUrl] = useState<string | null>(null)
@@ -32,7 +34,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
         href="/upgrade"
         className="px-4 py-2 text-sm font-medium border border-violet-200 text-violet-700 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
       >
-        Teilen (Pro)
+        {t('shareProLabel')}
       </a>
     )
   }
@@ -67,30 +69,30 @@ export function ShareButton({ module, entityId, tier }: Props) {
         onClick={() => setOpen(true)}
         className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
       >
-        Teilen
+        {t('shareButton')}
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" role="dialog" aria-modal="true" aria-label="Ergebnis teilen">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" role="dialog" aria-modal="true" aria-label={t('dialogAriaLabel')}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900">Ergebnis teilen</h2>
+              <h2 className="text-base font-semibold text-slate-900">{t('dialogTitle')}</h2>
               <button
                 onClick={() => { setOpen(false); setUrl(null) }}
-                aria-label="Dialog schließen"
+                aria-label={t('closeDialogAriaLabel')}
                 className="text-slate-400 hover:text-slate-600 text-xl leading-none"
               >×</button>
             </div>
 
             {!url ? (
               <>
-                <p className="text-sm text-slate-600 mb-4">Erstellt einen öffentlich lesbaren Link. Keine Anmeldung für Empfänger nötig.</p>
+                <p className="text-sm text-slate-600 mb-4">{t('createLinkDesc')}</p>
                 <div className="mb-5">
-                  <p className="text-xs font-medium text-slate-700 mb-2">Ablaufdatum</p>
+                  <p className="text-xs font-medium text-slate-700 mb-2">{t('expiryLabel')}</p>
                   <div className="flex gap-2">
                     {EXPIRY_OPTIONS.map(opt => (
                       <button
-                        key={opt.label}
+                        key={opt.key}
                         onClick={() => setExpiryDays(opt.days)}
                         className={cn(
                           'flex-1 px-2 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap',
@@ -99,7 +101,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         )}
                       >
-                        {opt.label}
+                        {t(opt.key as Parameters<typeof t>[0])}
                       </button>
                     ))}
                   </div>
@@ -109,25 +111,25 @@ export function ShareButton({ module, entityId, tier }: Props) {
                   disabled={creating}
                   className="w-full py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
                 >
-                  {creating ? 'Link wird erstellt…' : 'Link erstellen'}
+                  {creating ? t('creating') : t('createLink')}
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm text-slate-600 mb-3">Link erstellt. Teilen per E-Mail oder Messenger.</p>
+                <p className="text-sm text-slate-600 mb-3">{t('linkCreated')}</p>
                 <div className="flex gap-2">
                   <input
                     readOnly
                     value={url}
-                    aria-label="Share-Link"
+                    aria-label={t('shareLinkAriaLabel')}
                     className="flex-1 min-w-0 text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none"
                   />
                   <button
                     onClick={handleCopy}
-                    aria-label="Link kopieren"
+                    aria-label={t('copyAriaLabel')}
                     className="px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
                   >
-                    {copied ? '✓' : 'Kopieren'}
+                    {copied ? t('copiedMark') : t('copy')}
                   </button>
                 </div>
               </>

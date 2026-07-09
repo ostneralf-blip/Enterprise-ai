@@ -149,7 +149,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
 
           {/* Achsen-Label außerhalb des SVG als HTML — kein Kollisions-Risiko */}
           <div className="mt-2 text-center">
-            <span className="text-[10px] text-slate-400">← weniger umsetzbar · gut umsetzbar →</span>
+            <span className="text-[10px] text-slate-400">{t('usecase.axisHintBelow')}</span>
           </div>
 
           {/* Legende: horizontal, zentriert, unter der Matrix */}
@@ -166,7 +166,7 @@ export function UseCaseMatrix({ useCases }: UseCaseMatrixProps) {
         {/* Rechte Spalte: Use-Case-Liste — hover/click hebt Punkt in Matrix hervor */}
         <div className="w-full lg:flex-1">
           <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">
-            Bewertete Use Cases
+            {t('usecase.ratedUseCases')}
           </h3>
           <div className="space-y-0.5">
             {useCases.map(uc => (

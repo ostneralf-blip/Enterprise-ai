@@ -213,12 +213,13 @@ const JOULE_DOMAIN_BADGE: Record<string, string> = {
 }
 
 function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
+  const t = useTranslations('modules')
   if (useCases.length === 0) return null
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">SAP</span>
-        <h3 className="text-sm font-semibold text-slate-900">Joule Use Cases für Ihre Branche</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.jouleTitle')}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {useCases.map(uc => (
@@ -232,7 +233,7 @@ function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
                 scaler:      'bg-primary-soft text-primary border-primary-border',
                 transformer: 'bg-violet-50 text-violet-600 border-violet-200',
               }[uc.complexity])}>
-                {uc.complexity === 'starter' ? 'Einstieg' : uc.complexity === 'scaler' ? 'Mittelstufe' : 'Fortgeschritten'}
+                {uc.complexity === 'starter' ? t('architecture.complexityStarter') : uc.complexity === 'scaler' ? t('architecture.complexityScaler') : t('architecture.complexityTransformer')}
               </span>
             </div>
             <p className="text-xs font-semibold text-slate-800">{uc.name}</p>
@@ -253,24 +254,30 @@ function CatalogRecommendationsCard({
   components: CatalogComponent[]
   onSelectComp: (comp: CatalogComponent) => void
 }) {
+  const t = useTranslations('modules')
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
+  const layerLabelT: Record<string, string> = {
+    data: t('architecture.layerData'), model: t('architecture.layerModel'),
+    mlops: 'MLOps', serving: 'Serving', governance: 'Governance', security: 'Security',
+    application: t('architecture.layerApplication'),
+  }
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-5">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-slate-900">Empfohlene Katalog-Komponenten</h3>
-        <InfoHint title="Was sind Katalog-Komponenten?">
-          <p>Diese Komponenten wurden anhand Ihrer Wizard-Eingaben aus dem Technologie-Katalog ausgewählt — bewertet nach DSGVO-Konformität, EU AI Act-Risiko und Hosting-Standort.</p>
-          <p className="mt-1.5"><strong>Klicken Sie auf eine Komponente</strong>, um Details wie Beschreibung, Zertifizierungen und offizielle Website zu sehen.</p>
+        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.catalogSectionTitle')}</h3>
+        <InfoHint title={t('architecture.catalogHintTitle')}>
+          <p>{t('architecture.catalogSelectedDesc')}</p>
+          <p className="mt-1.5"><strong>{t('architecture.catalogSelectedNote')}</strong></p>
         </InfoHint>
       </div>
       <HintBox variant="tip" className="py-2 text-xs">
-        Klicken Sie auf eine Komponente für Details zu DSGVO-Status, EU AI Act-Einordnung und Hosting.
+        {t('architecture.catalogHintClick')}
       </HintBox>
       <div className="space-y-3">
         {recs.layers.map(lr => (
           <div key={lr.layer}>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">
-              {LAYER_LABEL[lr.layer] ?? lr.layer}
+              {layerLabelT[lr.layer] ?? LAYER_LABEL[lr.layer] ?? lr.layer}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {lr.componentNames.map(name => {
@@ -302,7 +309,7 @@ function CatalogRecommendationsCard({
         ))}
       </div>
       <div>
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Empfohlene Rollen</p>
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">{t('architecture.recommendedRoles')}</p>
         <div className="flex flex-wrap gap-1.5">
           {recs.roleNames.map(role => (
             <span key={role} className="px-2.5 py-1 bg-primary-soft border border-primary-border rounded-lg text-xs text-primary-hover font-medium">{role}</span>
@@ -687,7 +694,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             rel="noopener noreferrer"
             className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            PDF exportieren
+            {t('architecture.pdfExport')}
           </a>
           {savedId && result && (
             <>
@@ -705,7 +712,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               onClick={() => setView('list')}
               className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
-              Alle Architekturen
+              {t('architecture.allArchitectures')}
             </button>
           )}
         </div>
@@ -713,11 +720,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Canvas CTA */}
         <div className="bg-primary-soft border border-primary-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-primary">Nächster Schritt: AI Business Canvas</p>
-            <p className="text-xs text-primary-hover mt-0.5">Übersetzen Sie Ihre Architektur in einen konkreten Business Case — mit Problem, Lösung, KPIs und Stakeholdern.</p>
+            <p className="text-sm font-semibold text-primary">{t('architecture.nextStepCanvasTitle')}</p>
+            <p className="text-xs text-primary-hover mt-0.5">{t('architecture.nextStepCanvasDesc')}</p>
           </div>
           <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
-            Canvas öffnen →
+            {t('architecture.openCanvas')}
           </a>
         </div>
 
@@ -743,9 +750,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       )}
 
       {/* Progress */}
-      <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={`Schritt ${currentStep + 1} von ${totalSteps}`}>
+      <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={t('architecture.stepProgress', { step: currentStep + 1, total: totalSteps })}>
         <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-          <span>Schritt {currentStep + 1} von {totalSteps}</span>
+          <span>{t('architecture.stepProgress', { step: currentStep + 1, total: totalSteps })}</span>
           <span>{progress}%</span>
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -755,7 +762,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
       {/* Question card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
-        <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Schritt {step.step}</p>
+        <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">{t('architecture.stepLabel', { step: step.step })}</p>
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(step.question, locale)}</h2>
         <p className="text-sm text-slate-500 mb-5">{pick(step.context, locale)}</p>
 
@@ -800,14 +807,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           disabled={currentStep === 0}
           className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          ← Zurück
+          {t('architecture.back')}
         </button>
         {architectures.length > 0 && (
           <button
             onClick={() => setView('list')}
             className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            Übersicht
+            {t('architecture.overview')}
           </button>
         )}
         <button
@@ -815,7 +822,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           disabled={!selectedOptionId}
           className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          {isLastStep ? 'Architektur generieren' : 'Weiter →'}
+          {isLastStep ? t('architecture.generateArch') : t('architecture.wizardNext')}
         </button>
       </div>
     </div>

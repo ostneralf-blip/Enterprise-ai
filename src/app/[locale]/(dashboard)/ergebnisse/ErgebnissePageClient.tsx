@@ -1,5 +1,5 @@
 'use client'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -30,15 +30,11 @@ export interface UseCaseRow       { id: string; name: string; domain: string | n
 const ARCHETYPES: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
 }
-const VERDICTS: Record<string, { label: string; color: string }> = {
-  approve:    { label: 'Freigegeben',  color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  stop_dsgvo: { label: 'DSGVO-Stop',   color: 'text-red-700 bg-red-50 border-red-200' },
-  stop_risk:  { label: 'Risiko-Stop',  color: 'text-red-700 bg-red-50 border-red-200' },
-  improve:    { label: 'Verbesserung', color: 'text-amber-700 bg-amber-50 border-amber-200' },
-}
-const DIM_LABELS: Record<string, string> = {
-  data: 'Daten', skills: 'Skills', governance: 'Governance',
-  tech: 'Technologie', strategy: 'Strategie', culture: 'Kultur',
+const VERDICT_COLORS: Record<string, string> = {
+  approve:    'text-emerald-700 bg-emerald-50 border-emerald-200',
+  stop_dsgvo: 'text-red-700 bg-red-50 border-red-200',
+  stop_risk:  'text-red-700 bg-red-50 border-red-200',
+  improve:    'text-amber-700 bg-amber-50 border-amber-200',
 }
 const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
   assessment:   'primary_assessment_id',
@@ -49,7 +45,6 @@ const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
   compliance:   'primary_compliance_id',
   usecase:      'primary_usecase_id',
 }
-const fmt = (d: string) => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 const EMPTY_PREFS: Prefs = {
   primary_assessment_id: null, primary_governance_id: null,
@@ -67,34 +62,35 @@ interface RowActionsProps {
 }
 
 function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCancel, onDelete }: RowActionsProps) {
+  const t = useTranslations('ergebnisse')
   return (
     <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
       {isPrimary
         ? (
           <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 whitespace-nowrap">
-            ★ Primär
-            <InfoHint title="Was bedeutet Primär?" side="bottom">
-              <p>Das als Primär markierte Ergebnis wird in anderen Modulen als Standard-Kontext verwendet.</p>
-              <p className="mt-1.5">Zum Beispiel zieht der Architektur-Generator das primäre Assessment-Ergebnis automatisch als Kontext ein — so müssen Sie Ihren Reifegrad nicht erneut eingeben.</p>
+            {t('primaryBadge')}
+            <InfoHint title={t('primaryHintTitle')} side="bottom">
+              <p>{t('primaryHintBody1')}</p>
+              <p className="mt-1.5">{t('primaryHintBody2Assessment')}</p>
             </InfoHint>
           </span>
         )
         : (
           <span className="flex items-center gap-1">
-            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-primary-border rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">Als Primär</button>
-            <InfoHint title="Was bedeutet Primär?" side="bottom">
-              <p>Das als Primär markierte Ergebnis wird als Standard-Kontext in anderen Modulen verwendet.</p>
-              <p className="mt-1.5">Nur ein Ergebnis pro Modul-Typ kann gleichzeitig Primär sein.</p>
+            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-primary-border rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">{t('setPrimary')}</button>
+            <InfoHint title={t('primaryHintTitle')} side="bottom">
+              <p>{t('primaryHintBody1')}</p>
+              <p className="mt-1.5">{t('primaryHintBody2Other')}</p>
             </InfoHint>
           </span>
         )
       }
       {isConfirmDelete
         ? <div className="flex gap-1">
-            <button onClick={onDelete}  className="text-xs text-red-600 border border-red-300 rounded-md px-2 py-0.5 hover:bg-red-50 whitespace-nowrap">Ja, löschen</button>
-            <button onClick={onCancel}  className="text-xs text-slate-500 border border-slate-200 rounded-md px-2 py-0.5 hover:bg-slate-50 whitespace-nowrap">Abbrechen</button>
+            <button onClick={onDelete}  className="text-xs text-red-600 border border-red-300 rounded-md px-2 py-0.5 hover:bg-red-50 whitespace-nowrap">{t('confirmDelete')}</button>
+            <button onClick={onCancel}  className="text-xs text-slate-500 border border-slate-200 rounded-md px-2 py-0.5 hover:bg-slate-50 whitespace-nowrap">{t('cancelDelete')}</button>
           </div>
-        : <button onClick={onConfirm} className="text-xs text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-300 rounded-md px-2 py-0.5 transition-colors">Löschen</button>
+        : <button onClick={onConfirm} className="text-xs text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-300 rounded-md px-2 py-0.5 transition-colors">{t('delete')}</button>
       }
     </div>
   )
@@ -114,6 +110,18 @@ interface Props {
 
 export function ErgebnissePageClient({ assessments: initA, architectures: initArch, governanceSessions: initG, roadmaps: initR, canvases: initC, complianceChecks: initCC, useCases: initUC, initialPreferences, tier }: Props) {
   const t = useTranslations('ergebnisse')
+  const locale = useLocale()
+  const fmt = (d: string) => new Date(d).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const VERDICTS: Record<string, { label: string; color: string }> = {
+    approve:    { label: t('verdictApprove'),   color: VERDICT_COLORS.approve },
+    stop_dsgvo: { label: t('verdictStopDsgvo'), color: VERDICT_COLORS.stop_dsgvo },
+    stop_risk:  { label: t('verdictStopRisk'),  color: VERDICT_COLORS.stop_risk },
+    improve:    { label: t('verdictImprove'),   color: VERDICT_COLORS.improve },
+  }
+  const DIM_LABELS: Record<string, string> = {
+    data: t('dimData'), skills: t('dimSkills'), governance: t('dimGovernance'),
+    tech: t('dimTech'), strategy: t('dimStrategy'), culture: t('dimCulture'),
+  }
   const [tab,           setTab]           = useState<Tab>('assessment')
   const [prefs,         setPrefs]         = useState<Prefs>(initialPreferences ?? EMPTY_PREFS)
   const [expanded,      setExpanded]      = useState<string | null>(null)
@@ -169,13 +177,13 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
   const exitCompare = () => { setCompareMode(false); setCompareIds([]) }
 
   const TABS = [
-    { key: 'assessment'   as Tab, label: 'Assessment',  count: assessments.length,     comparable: true },
-    { key: 'architecture' as Tab, label: 'Architektur', count: architectures.length,   comparable: true },
-    { key: 'governance'   as Tab, label: 'Governance',  count: governance.length,       comparable: true },
-    { key: 'roadmap'      as Tab, label: 'Roadmap',     count: roadmaps.length,         comparable: true },
-    { key: 'canvas'       as Tab, label: 'Canvas',      count: canvases.length,         comparable: true },
-    { key: 'compliance'   as Tab, label: 'Compliance',  count: complianceChecks.length, comparable: false },
-    { key: 'usecase'      as Tab, label: 'Use Cases',   count: useCases.length,         comparable: false },
+    { key: 'assessment'   as Tab, label: 'Assessment',          count: assessments.length,     comparable: true },
+    { key: 'architecture' as Tab, label: t('tabArchitecture'),  count: architectures.length,   comparable: true },
+    { key: 'governance'   as Tab, label: 'Governance',          count: governance.length,       comparable: true },
+    { key: 'roadmap'      as Tab, label: 'Roadmap',             count: roadmaps.length,         comparable: true },
+    { key: 'canvas'       as Tab, label: 'Canvas',              count: canvases.length,         comparable: true },
+    { key: 'compliance'   as Tab, label: 'Compliance',          count: complianceChecks.length, comparable: false },
+    { key: 'usecase'      as Tab, label: 'Use Cases',           count: useCases.length,         comparable: false },
   ]
 
   return (
@@ -196,12 +204,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {compareMode ? (
             <button onClick={exitCompare}
               className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
-              Vergleich beenden
+              {t('endCompare')}
             </button>
           ) : (
             <button onClick={() => { setCompareMode(true); setCompareIds([]) }}
               className="px-3 py-1.5 text-xs font-medium text-primary border border-primary-border bg-primary-soft rounded-lg hover:bg-primary-soft transition-colors whitespace-nowrap">
-              ⇄ Vergleichen
+              {t('startCompare')}
             </button>
           )}
         </div>
@@ -211,13 +219,13 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {compareMode && (
         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-3">
           <p className="text-xs text-amber-800 flex-1">
-            {compareIds.length === 0 && 'Wählen Sie zwei Einträge zum Vergleich aus.'}
-            {compareIds.length === 1 && 'Noch einen Eintrag auswählen…'}
-            {compareIds.length === 2 && 'Beide Einträge ausgewählt — Vergleich wird unten angezeigt.'}
+            {compareIds.length === 0 && t('compareHint0')}
+            {compareIds.length === 1 && t('compareHint1')}
+            {compareIds.length === 2 && t('compareHint2')}
           </p>
           {compareIds.length > 0 && (
             <button onClick={() => setCompareIds([])} className="text-xs text-amber-700 hover:text-amber-900 font-medium whitespace-nowrap">
-              Auswahl zurücksetzen
+              {t('resetSelection')}
             </button>
           )}
         </div>
@@ -236,7 +244,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
-                      aria-label={`Assessment vom ${fmt(a.created_at)} zum Vergleich auswählen`}
+                      aria-label={t('assessmentSelectAriaLabel', { date: fmt(a.created_at) })}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -262,7 +270,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                         </div>
                       ))}
                     </div>
-                    <Link href="/assessment" className="text-xs text-primary hover:underline">Vollständiges Ergebnis ansehen →</Link>
+                    <Link href="/assessment" className="text-xs text-primary hover:underline">{t('viewFullResult')}</Link>
                   </div>
                 )}
               </div>
@@ -278,10 +286,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Assessments</p>
+                  <p className="text-xs font-semibold text-slate-700">{t('compareAssessments')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Dimension</div>
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('dimensionCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Number(a1.total_score).toFixed(1)}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.created_at)}</div>
@@ -326,7 +334,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
-                      aria-label={`Architektur „${a.title}" zum Vergleich auswählen`}
+                      aria-label={t('archSelectAriaLabel', { title: a.title })}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -344,8 +352,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 {!compareMode && expanded === a.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500">{Object.keys(a.wizard_data ?? {}).length} Konfigurationsfelder gespeichert</p>
-                      <Link href="/architecture" className="text-xs text-primary hover:underline mt-1 inline-block">Im Generator öffnen →</Link>
+                      <p className="text-xs text-slate-500">{t('configFieldsSaved', { count: Object.keys(a.wizard_data ?? {}).length })}</p>
+                      <Link href="/architecture" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInGenerator')}</Link>
                     </div>
                     <VersionsPanel
                       module="architecture"
@@ -373,15 +381,15 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Architekturen</p>
+                  <p className="text-xs font-semibold text-slate-700">{t('compareArchitectures')}</p>
                   <div className="flex flex-wrap gap-3 mt-1.5">
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-primary-soft border-primary-border" />nur in A1</span>
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-emerald-50 border-emerald-200" />nur in A2</span>
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-slate-50 border-slate-200" />in beiden</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-primary-soft border-primary-border" />{t('onlyInA1')}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-emerald-50 border-emerald-200" />{t('onlyInA2')}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-slate-50 border-slate-200" />{t('inBoth')}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {a1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.updated_at)}</div>
@@ -390,12 +398,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {a2.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Muster</div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('patternRow')}</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res1.pattern ?? '—'}</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res2.pattern ?? '—'}</div>
                   {res1.description || res2.description ? (
                     <Fragment key="arch-desc">
-                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Beschreibung</div>
+                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('descriptionRow')}</div>
                       <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res1.description ?? '—'}</div>
                       <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res2.description ?? '—'}</div>
                     </Fragment>
@@ -458,7 +466,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(g.id)}
                       onClick={e => e.stopPropagation()}
-                      aria-label={`Governance-Check „${g.use_case_name ?? fmt(g.created_at)}" zum Vergleich auswählen`}
+                      aria-label={t('govSelectAriaLabel', { title: g.use_case_name ?? fmt(g.created_at) })}
                       className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -477,8 +485,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 {!compareMode && expanded === g.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-600">Use Case: <strong>{g.use_case_name ?? '—'}</strong></p>
-                      <p className="text-xs text-slate-600">Ergebnis: <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
+                      <p className="text-xs text-slate-600">{t('useCaseLabel')} <strong>{g.use_case_name ?? '—'}</strong></p>
+                      <p className="text-xs text-slate-600">{t('ergebnisLabel')} <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
                     </div>
                     <VersionsPanel module="governance" entityId={g.id} tier={tier} currentData={{ result: g.result, protocol: g.protocol } as Record<string, unknown>} />
                   </div>
@@ -497,10 +505,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Governance-Checks</p>
+                  <p className="text-xs font-semibold text-slate-700">{t('compareGovernance')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {g1.use_case_name ?? '—'}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(g1.created_at)}</div>
@@ -510,7 +518,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(g2.created_at)}</div>
                   </div>
                   {/* Row: Ergebnis */}
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Ergebnis</div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('resultLabel')}</div>
                   <div className="px-4 py-2 border-t border-slate-100 border-l">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v1.color}`}>{v1.label}</span>
                   </div>
@@ -523,7 +531,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l truncate">{g2.use_case_name ?? '—'}</div>
                   {/* Rows: Protocol entries (up to 5) */}
                   {protocolEntries.map((entry, i) => {
-                    const q = entry.question ?? entry.label ?? `Frage ${i + 1}`
+                    const q = entry.question ?? entry.label ?? t('questionLabel', { number: i + 1 })
                     const a1 = entry.answer ?? entry.value ?? '—'
                     const g2entry = (g2.protocol ?? [])[i]
                     const a2 = g2entry ? (g2entry.answer ?? g2entry.value ?? '—') : '—'
@@ -573,8 +581,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 {!compareMode && expanded === r.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500">{Array.isArray(r.phases) ? r.phases.length : 0} Phasen</p>
-                      <Link href="/roadmap" className="text-xs text-primary hover:underline mt-1 inline-block">In Roadmap öffnen →</Link>
+                      <p className="text-xs text-slate-500">{t('phaseCount', { count: Array.isArray(r.phases) ? r.phases.length : 0 })}</p>
+                      <Link href="/roadmap" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInRoadmap')}</Link>
                     </div>
                     <VersionsPanel module="roadmap" entityId={r.id} tier={tier} currentData={{ title: r.title, archetype: r.archetype, phases: r.phases } as Record<string, unknown>} />
                   </div>
@@ -594,10 +602,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Roadmaps</p>
+                  <p className="text-xs font-semibold text-slate-700">{t('compareRoadmaps')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Eigenschaft</div>
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {r1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(r1.updated_at)}</div>
@@ -606,7 +614,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {r2.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(r2.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Archetyp</div>
+                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('archetypeRow')}</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r1.archetype] ?? r1.archetype}</div>
                   <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r2.archetype] ?? r2.archetype}</div>
                   {Array.from({ length: maxPhases }, (_, i) => {
@@ -614,7 +622,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     const p2 = phases2[i]
                     return (
                       <Fragment key={`phase-${i}`}>
-                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Phase {i + 1}</div>
+                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('phaseLabel', { number: i + 1 })}</div>
                         <div className="px-4 py-2 border-t border-slate-100 border-l">
                           {p1 ? (
                             <>
@@ -647,12 +655,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {tab === 'canvas' && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-xs text-slate-500">
-              Der <strong>AI Strategy Canvas</strong> ist Ihre strategische Grundlage — Use Cases, Architekturen und Roadmaps bauen auf ihm auf.
-            </p>
-            <InfoHint title="Was ist der Canvas?" side="bottom">
-              <p>Der Canvas erfasst in 8 Feldern den strategischen Kontext Ihres AI-Projekts: Vision, Herausforderungen, Stakeholder, Ressourcen, Zeitplan, Risiken, KPIs und Governance-Struktur.</p>
-              <p className="mt-1.5">Ein als <strong>Primär</strong> markierter Canvas wird automatisch in den Architektur-Generator und andere Module übernommen, um kontextsensitive Empfehlungen zu liefern.</p>
+            <p className="text-xs text-slate-500">{t('canvasIntro')}</p>
+            <InfoHint title={t('canvasHintTitle')} side="bottom">
+              <p>{t('canvasHintBody1')}</p>
+              <p className="mt-1.5">{t('canvasHintBody2')}</p>
             </InfoHint>
           </div>
 
@@ -675,7 +681,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     {c.archetype && (
                       <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[c.archetype] ?? c.archetype}</span>
                     )}
-                    <span className="text-xs text-slate-400 shrink-0">{filledFields}/8 Felder · {fmt(c.updated_at)}</span>
+                    <span className="text-xs text-slate-400 shrink-0">{t('fieldsCount', { filled: filledFields })} · {fmt(c.updated_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_canvas_id === c.id} isConfirmDelete={confirmId === c.id}
@@ -694,7 +700,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                           <span className="text-slate-500 line-clamp-2">{value}</span>
                         </div>
                       ))}
-                      <Link href="/canvas" className="text-xs text-primary hover:underline mt-1 inline-block">In Canvas öffnen →</Link>
+                      <Link href="/canvas" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInCanvas')}</Link>
                     </div>
                     <VersionsPanel module="canvas" entityId={c.id} tier={tier} currentData={c.data as Record<string, unknown>} />
                   </div>
@@ -711,10 +717,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             return (
               <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">Vergleich: zwei Canvas</p>
+                  <p className="text-xs font-semibold text-slate-700">{t('compareCanvas')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">Feld</div>
+                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('fieldCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
                     {c1.title}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(c1.updated_at)}</div>
@@ -747,11 +753,11 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               cc.status === 'non_compliant' ? 'text-red-700 bg-red-50 border-red-200' :
               'text-amber-700 bg-amber-50 border-amber-200'
             const statusLabel =
-              cc.status === 'compliant'     ? 'Konform' :
-              cc.status === 'non_compliant' ? 'Nicht konform' : 'Offen'
+              cc.status === 'compliant'     ? t('statusCompliant') :
+              cc.status === 'non_compliant' ? t('statusNonCompliant') : t('statusOpen')
             const regulationLabel =
-              cc.regulation === 'eu_ai_act' ? 'EU AI Act' :
-              cc.regulation === 'dsgvo'     ? 'DSGVO' :
+              cc.regulation === 'eu_ai_act' ? t('regulationEuAiAct') :
+              cc.regulation === 'dsgvo'     ? t('regulationDsgvo') :
               cc.regulation
             return (
               <div key={cc.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -774,8 +780,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 </div>
                 {expanded === cc.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
-                    {cc.notes && <p className="text-xs text-slate-600">Notiz: {cc.notes}</p>}
-                    <Link href="/compliance" className="text-xs text-primary hover:underline mt-1 inline-block">In Compliance öffnen →</Link>
+                    {cc.notes && <p className="text-xs text-slate-600">{t('notesLabel', { text: cc.notes })}</p>}
+                    <Link href="/compliance" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInCompliance')}</Link>
                     <VersionsPanel module="compliance" entityId={cc.id} tier={tier} currentData={{ regulation: cc.regulation, check_type: cc.check_type, status: cc.status, notes: cc.notes } as Record<string, unknown>} />
                   </div>
                 )}
@@ -796,10 +802,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               uc.quadrant === 'evaluate'     ? 'text-amber-700 bg-amber-50 border-amber-200' :
               'text-slate-500 bg-slate-50 border-slate-200'
             const quadrantLabel =
-              uc.quadrant === 'build'        ? 'Bauen' :
-              uc.quadrant === 'pilot'        ? 'Pilot' :
-              uc.quadrant === 'evaluate'     ? 'Evaluieren' :
-              uc.quadrant === 'deprioritize' ? 'Zurückstellen' :
+              uc.quadrant === 'build'        ? t('quadrantBuild') :
+              uc.quadrant === 'pilot'        ? t('quadrantPilot') :
+              uc.quadrant === 'evaluate'     ? t('quadrantEvaluate') :
+              uc.quadrant === 'deprioritize' ? t('deprioritize') :
               uc.quadrant ?? '—'
             const gov = uc.governance_result ? (VERDICTS[uc.governance_result] ?? null) : null
             return (
@@ -813,7 +819,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     <span className="text-sm font-medium text-slate-700 truncate min-w-0">{uc.name}</span>
                     {uc.domain && <span className="text-xs text-slate-500 shrink-0">{uc.domain}</span>}
                     {uc.weighted_score != null && (
-                      <span className="text-xs text-slate-400 shrink-0">{Math.round(uc.weighted_score)} Pkt.</span>
+                      <span className="text-xs text-slate-400 shrink-0">{t('scoreLabel', { score: Math.round(uc.weighted_score) })}</span>
                     )}
                   </div>
                   <RowActions
@@ -828,9 +834,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 {expanded === uc.id && (
                   <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
                     {gov && (
-                      <p className="text-xs text-slate-600">Governance: <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
+                      <p className="text-xs text-slate-600">{t('governanceLabel')} <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
                     )}
-                    <Link href="/usecase" className="text-xs text-primary hover:underline mt-1 inline-block">In Use Cases öffnen →</Link>
+                    <Link href="/usecase" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInUseCases')}</Link>
                     <VersionsPanel module="usecase" entityId={uc.id} tier={tier} currentData={{ name: uc.name, domain: uc.domain, weighted_score: uc.weighted_score, quadrant: uc.quadrant } as Record<string, unknown>} />
                   </div>
                 )}

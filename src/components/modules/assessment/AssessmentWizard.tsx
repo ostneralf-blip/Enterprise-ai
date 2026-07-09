@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ASSESSMENT_DIMENSIONS, ALL_QUESTIONS, FREE_QUESTIONS, calcDimScore, calcTotalScore, deriveArchetype } from '@/config/assessment-data'
 import { AssessmentResults } from './AssessmentResults'
 import { track } from '@/lib/posthog/client'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import type { Tier } from '@/types'
 
@@ -30,6 +30,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   const [saved, setSaved] = useState(false)
 
   const locale = useLocale()
+  const t = useTranslations('modules.assessment')
   const questions = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
   const totalQ = questions.length
   const currentQ = questions[currentIdx]
@@ -124,7 +125,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Fortschritt: ${currentIdx + 1} von ${totalQ} Fragen`}
+            aria-label={t('progressAria', { current: currentIdx + 1, total: totalQ })}
           />
         </div>
       </div>
@@ -138,7 +139,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
           {pick(currentQ.text, locale)}
         </h2>
 
-        <div className="space-y-3" role="group" aria-label="Bewertung auswählen">
+        <div className="space-y-3" role="group" aria-label={t('ratingGroupLabel')}>
           {[1, 2, 3, 4, 5].map(score => (
             <button
               key={score}
@@ -158,9 +159,9 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
                 </span>
                 <span className="text-sm text-slate-700 min-w-0">
                   {score === 1 ? pick(currentQ.lowLabel, locale)
-                    : score === 2 ? (currentQ.l2Label ? pick(currentQ.l2Label, locale) : 'Ansätze vorhanden, nicht systematisch')
-                    : score === 3 ? (currentQ.l3Label ? pick(currentQ.l3Label, locale) : 'Teilweise etabliert, ausbaufähig')
-                    : score === 4 ? (currentQ.l4Label ? pick(currentQ.l4Label, locale) : 'Weitgehend etabliert, vereinzelte Lücken')
+                    : score === 2 ? (currentQ.l2Label ? pick(currentQ.l2Label, locale) : t('l2Fallback'))
+                    : score === 3 ? (currentQ.l3Label ? pick(currentQ.l3Label, locale) : t('l3Fallback'))
+                    : score === 4 ? (currentQ.l4Label ? pick(currentQ.l4Label, locale) : t('l4Fallback'))
                     : pick(currentQ.highLabel, locale)}
                 </span>
               </div>
@@ -174,16 +175,16 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
         <button
           onClick={() => currentIdx === 0 ? setState('intro') : setCurrentIdx(i => i - 1)}
           className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
-          aria-label={currentIdx === 0 ? 'Zurück zur Übersicht' : 'Vorherige Frage'}
+          aria-label={currentIdx === 0 ? t('backToOverview') : t('prevQuestion')}
         >
-          ← Zurück
+          {t('back')}
         </button>
         <button
           onClick={handleNext}
           disabled={!selectedScore}
           className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          {currentIdx === totalQ - 1 ? 'Auswertung →' : 'Weiter →'}
+          {currentIdx === totalQ - 1 ? t('evaluate') : t('wizardNext')}
         </button>
       </div>
     </div>
@@ -191,9 +192,10 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
 }
 
 function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void }) {
+  const t = useTranslations('modules.assessment')
   const isPro = tier !== 'free'
   const questionCount = isPro ? 42 : 16
-  const duration = isPro ? 'ca. 25 Minuten' : 'ca. 10 Minuten'
+  const duration = isPro ? t('introDuration25') : t('introDuration10')
 
   return (
     <div className="max-w-xl mx-auto">
@@ -201,23 +203,28 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void })
         <div className="text-3xl mb-4">◎</div>
         <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900 mb-2">AI-Readiness Assessment</h1>
         <p className="text-slate-500 text-sm leading-relaxed mb-6">
-          Bewerten Sie Ihr Unternehmen in <strong className="text-slate-700">6 Dimensionen</strong> mit{' '}
-          <strong className="text-slate-700">{questionCount} Fragen</strong> auf einer Skala von 1–5 (L1 Initial bis L5 Optimizing). Dauer: {duration}.
+          {t.rich('introDesc', {
+            count: questionCount,
+            duration,
+            b: (chunks) => <strong className="text-slate-700">{chunks}</strong>,
+          })}
           {!isPro && (
             <span className="block mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Kurzversion (16 Fragen). Mit <a href="/upgrade" className="underline font-medium">Pro</a> erhalten Sie das vollständige 42-Fragen-Assessment mit vertieftem Reifegradmodell.
+              {t.rich('introShortVersion', {
+                pro: (chunks) => <a href="/upgrade" className="underline font-medium">{chunks}</a>,
+              })}
             </span>
           )}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
           {[
-            { id: 'data',       icon: '📊', label: 'Daten & Zugriff', weight: '25%' },
-            { id: 'skills',     icon: '🎓', label: 'Skills',          weight: '20%' },
-            { id: 'governance', icon: '⚖️', label: 'Governance',      weight: '20%' },
-            { id: 'tech',       icon: '⚙️', label: 'Technologie',     weight: '20%' },
-            { id: 'strategy',   icon: '🎯', label: 'Strategie',       weight: '10%' },
-            { id: 'culture',    icon: '🌱', label: 'Kultur',          weight: '5%'  },
+            { id: 'data',       icon: '📊', labelKey: 'introDimData',       weight: '25%' },
+            { id: 'skills',     icon: '🎓', labelKey: 'introDimSkills',      weight: '20%' },
+            { id: 'governance', icon: '⚖️', labelKey: 'introDimGovernance',  weight: '20%' },
+            { id: 'tech',       icon: '⚙️', labelKey: 'introDimTech',        weight: '20%' },
+            { id: 'strategy',   icon: '🎯', labelKey: 'introDimStrategy',    weight: '10%' },
+            { id: 'culture',    icon: '🌱', labelKey: 'introDimCulture',     weight: '5%'  },
           ].map(d => (
             <Link
               key={d.id}
@@ -226,23 +233,23 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void })
             >
               <span className="shrink-0">{d.icon}</span>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-slate-700 group-hover:text-primary-hover">{d.label}</div>
-                <div className="text-xs text-slate-400">Gewicht: {d.weight}</div>
+                <div className="text-sm font-medium text-slate-700 group-hover:text-primary-hover">{t(d.labelKey as Parameters<typeof t>[0])}</div>
+                <div className="text-xs text-slate-400">{t('introDimWeight', { weight: d.weight })}</div>
               </div>
               <span className="text-slate-300 group-hover:text-primary text-xs shrink-0">→</span>
             </Link>
           ))}
         </div>
         <p className="text-xs text-slate-400 text-center mb-6">
-          Auf eine Dimension klicken für Details zur Gewichtung
+          {t('introDimHint')}
         </p>
 
         <button
           onClick={onStart}
           className="w-full bg-primary hover:bg-primary text-white font-medium px-5 py-2.5 rounded-xl transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
-          aria-label="Assessment starten"
+          aria-label={t('startAriaLabel')}
         >
-          Assessment starten →
+          {t('startBtn')}
         </button>
       </div>
     </div>

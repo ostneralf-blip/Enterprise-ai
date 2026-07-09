@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 interface MiniUseCase {
   id: string
@@ -22,17 +23,18 @@ const DOT_FILL: Record<string, string> = {
   avoid:             '#94a3b8',
 }
 
-const CHIP_LABEL: Record<string, string> = {
-  quick_win:         'Quick Win',
-  strategic_bet:     'Strategic Bet',
-  low_hanging_fruit: 'Low Hanging',
-  avoid:             'Vermeiden',
-}
-
 const CHIP_ORDER = ['quick_win', 'strategic_bet', 'low_hanging_fruit', 'avoid'] as const
 
 export function MiniPortfolioMatrix({ useCases }: { useCases: MiniUseCase[] }) {
+  const t = useTranslations('modules.usecase')
   const [activeId, setActiveId] = useState<string | null>(null)
+
+  const CHIP_LABEL: Record<string, string> = {
+    quick_win:         'Quick Win',
+    strategic_bet:     'Strategic Bet',
+    low_hanging_fruit: 'Low Hanging',
+    avoid:             t('vermeiden'),
+  }
 
   const activeUc = useCases.find(u => u.id === activeId)
   const isEmpty = useCases.length === 0
@@ -83,7 +85,7 @@ export function MiniPortfolioMatrix({ useCases }: { useCases: MiniUseCase[] }) {
           <text x={S - 2.5} y="6" textAnchor="end" fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.quick_win} fillOpacity="0.75">QUICK WIN</text>
           <text x="2.5" y={S - 2} fontSize="3.5" fontWeight="600" letterSpacing="0.4"
-                fill={DOT_FILL.avoid} fillOpacity="0.75">VERMEIDEN</text>
+                fill={DOT_FILL.avoid} fillOpacity="0.75">{t('vermeiden').toUpperCase()}</text>
           <text x={S - 2.5} y={S - 2} textAnchor="end" fontSize="3.5" fontWeight="600" letterSpacing="0.4"
                 fill={DOT_FILL.low_hanging_fruit} fillOpacity="0.75">LOW HANGING</text>
 

@@ -1,19 +1,24 @@
 'use client'
 import React, { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 import { SelectionSidebar } from '@/components/modules/SelectionSidebar'
 import { findConflicts, findSuggestions } from '@/lib/utils/catalog-compatibility'
 
-const LAYER_META: Record<string, { label: string; band: string; dot: string; cross?: boolean }> = {
-  data:        { label: 'Daten',      band: 'bg-primary-soft border-primary-border',     dot: 'bg-primary' },
-  model:       { label: 'Modell',     band: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
-  mlops:       { label: 'MLOps',      band: 'bg-amber-50 border-amber-200',   dot: 'bg-amber-500' },
-  serving:     { label: 'Serving',    band: 'bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
-  application: { label: 'Anwendung',  band: 'bg-indigo-50 border-indigo-200', dot: 'bg-indigo-500' },
-  governance:  { label: 'Governance', band: 'bg-orange-50 border-orange-200', dot: 'bg-orange-500', cross: true },
-  security:    { label: 'Security',   band: 'bg-red-50 border-red-200',       dot: 'bg-red-500',    cross: true },
+const LAYER_META: Record<string, { labelKey: string; band: string; dot: string; cross?: boolean }> = {
+  data:        { labelKey: 'layerData',        band: 'bg-primary-soft border-primary-border',     dot: 'bg-primary' },
+  model:       { labelKey: 'layerModel',       band: 'bg-violet-50 border-violet-200', dot: 'bg-violet-500' },
+  mlops:       { labelKey: 'mlops',            band: 'bg-amber-50 border-amber-200',   dot: 'bg-amber-500' },
+  serving:     { labelKey: 'serving',          band: 'bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' },
+  application: { labelKey: 'layerApplication', band: 'bg-indigo-50 border-indigo-200', dot: 'bg-indigo-500' },
+  governance:  { labelKey: 'governance',       band: 'bg-orange-50 border-orange-200', dot: 'bg-orange-500', cross: true },
+  security:    { labelKey: 'security',         band: 'bg-red-50 border-red-200',       dot: 'bg-red-500',    cross: true },
+}
+
+const LAYER_STATIC_LABEL: Record<string, string> = {
+  mlops: 'MLOps', serving: 'Serving', governance: 'Governance', security: 'Security',
 }
 
 const DSGVO_BADGE: Record<string, string> = {
@@ -40,6 +45,7 @@ interface DetailPanelProps {
 }
 
 function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
+  const t = useTranslations('modules.architecture')
   return (
     <div className="border-t border-slate-100 px-4 sm:px-5 py-3.5 bg-slate-50/70">
       <div className="flex items-start justify-between gap-3">
@@ -66,10 +72,10 @@ function DetailPanel({ name, comp, onClose }: DetailPanelProps) {
               )}
             </div>
           ) : (
-            <p className="text-xs text-slate-400">Keine Katalog-Details verfügbar.</p>
+            <p className="text-xs text-slate-400">{t('noCatalogDetails')}</p>
           )}
         </div>
-        <button onClick={onClose} aria-label="Details schließen"
+        <button onClick={onClose} aria-label={t('detailsCloseAriaLabel')}
           className="text-slate-400 hover:text-slate-600 text-xl leading-none flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 rounded">
           ×
         </button>
@@ -99,6 +105,7 @@ function ComponentButton({
   onCheck: () => void
   onFocus: () => void
 }) {
+  const t = useTranslations('modules.architecture')
   if (locked) {
     return <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
   }
@@ -115,8 +122,8 @@ function ComponentButton({
       isFocused && 'ring-2 ring-primary-ring ring-offset-1',
     )}
     title={
-      isConflicting ? `Inkompatibel mit einer ausgewählten Komponente` :
-      isSuggested   ? `Empfohlen als Ergänzung` :
+      isConflicting ? t('conflictTooltip') :
+      isSuggested   ? t('suggestionTooltip') :
       undefined
     }
     >
@@ -125,7 +132,7 @@ function ComponentButton({
           type="checkbox"
           checked={isChecked}
           onChange={onCheck}
-          aria-label={`${name} auswählen`}
+          aria-label={t('selectAriaLabel', { name })}
           className="w-3 h-3 rounded accent-blue-500 cursor-pointer flex-shrink-0"
         />
       </label>
@@ -166,8 +173,13 @@ function SwimlaneTable({
   onCheck: (name: string) => void
   onFocus: (name: string) => void
 }) {
+  const t = useTranslations('modules.architecture')
   const mainLayers = recs.layers.filter(lr => !LAYER_META[lr.layer]?.cross)
   const crossLayers = recs.layers.filter(lr => LAYER_META[lr.layer]?.cross)
+  const layerLabelT: Record<string, string> = {
+    data: t('layerData'), model: t('layerModel'), application: t('layerApplication'),
+    ...LAYER_STATIC_LABEL,
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -182,7 +194,7 @@ function SwimlaneTable({
                 <td className={cn('px-3 py-3 w-28 align-middle border-r border-slate-100 shrink-0', meta.band)}>
                   <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <span className={cn('w-2 h-2 rounded-full flex-shrink-0', meta.dot)} />
-                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{meta.label}</span>
+                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{layerLabelT[lr.layer] ?? lr.layer}</span>
                   </div>
                 </td>
                 <td className="px-3 py-2.5 align-middle">
@@ -216,7 +228,7 @@ function SwimlaneTable({
       {crossLayers.length > 0 && (
         <div className="border-t-2 border-dashed border-slate-200 mt-1 min-w-[480px]">
           <div className="px-3 py-1.5 bg-slate-50">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Querschnittsfunktionen</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t('crossCutting')}</span>
           </div>
           <div className="flex flex-wrap gap-0 divide-x divide-slate-100">
             {crossLayers.map(lr => {
@@ -225,8 +237,8 @@ function SwimlaneTable({
                 <div key={lr.layer} className={cn('flex-1 min-w-[220px] px-3 py-2.5', meta.band)}>
                   <div className="flex items-center gap-1.5 mb-2">
                     <span className={cn('w-2 h-2 rounded-full flex-shrink-0', meta.dot)} />
-                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{meta.label}</span>
-                    <span className="text-[9px] text-slate-400 ml-1">gilt für alle Layer</span>
+                    <span className="font-semibold text-[11px] uppercase tracking-wide text-slate-700">{layerLabelT[lr.layer] ?? lr.layer}</span>
+                    <span className="text-[9px] text-slate-400 ml-1">{t('appliesToAllLayers')}</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {locked
@@ -277,6 +289,7 @@ function FullscreenModal({ children, onClose }: { children: React.ReactNode; onC
 }
 
 export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, archetype }: ArchitectureDiagramProps) {
+  const t = useTranslations('modules.architecture')
   const locked  = tier === 'free'
   const byName  = Object.fromEntries(components.map(c => [c.name, c]))
   const [checked, setChecked]       = useState<Set<string>>(new Set())
@@ -415,9 +428,9 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
       </div>
       {locked && (
         <div className="absolute inset-0 backdrop-blur-[3px] bg-white/55 flex flex-col items-center justify-center gap-3 rounded-b-2xl">
-          <p className="text-sm font-semibold text-slate-700 text-center">Vollständiges Architekturdiagramm</p>
+          <p className="text-sm font-semibold text-slate-700 text-center">{t('fullDiagramTitle')}</p>
           <p className="text-xs text-slate-500 text-center max-w-52">
-            {totalComponents} Komponenten in {mainLayers.length} Schichten — verfügbar ab Pro
+            {t('diagramLayersCount', { count: totalComponents, layers: mainLayers.length })}
           </p>
           <a href="/upgrade"
             className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors">
