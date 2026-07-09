@@ -774,8 +774,8 @@ export const ADDITIONAL_REGULATIONS: AdditionalRegulation[] = [
       en: 'EU Directive 2022/2555 expands the scope to more sectors and tightens requirements for risk management, reporting obligations and supply chain security.',
     },
     applicability: {
-      de: 'Gilt für „wesentliche" und „wichtige" Einrichtungen in 18 Sektoren (u. a. Energie, Finanzen, Gesundheit, Digitale Infrastruktur) ab Oktober 2024.',
-      en: 'Applies to "essential" and "important" entities in 18 sectors (incl. energy, finance, health, digital infrastructure) from October 2024.',
+      de: 'Gilt für „wesentliche" und „wichtige" Einrichtungen in 18 Sektoren (u. a. Energie, Finanzen, Gesundheit, Digitale Infrastruktur). EU-Umsetzungsfrist: Oktober 2024. In Deutschland in Kraft durch das NIS2UmsuCG ab 6. Dezember 2025 (ohne Übergangsfrist).',
+      en: 'Applies to "essential" and "important" entities in 18 sectors (incl. energy, finance, health, digital infrastructure). EU transposition deadline: October 2024. In Germany enforceable via NIS2UmsuCG from 6 December 2025 (no grace period).',
     },
     items: [
       { id: 'nis2_governance',    label: { de: 'Leitungsebene für Cybersicherheitsmaßnahmen verantwortlich gemacht',               en: 'Management made accountable for cybersecurity measures'                       }, category: 'Governance'    },

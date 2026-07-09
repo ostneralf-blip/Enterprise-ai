@@ -109,7 +109,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['genai_hub','ai_core','btp'],
     use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', website_url: 'https://www.sap.com/genai-hub',
-    description: 'Einheitlicher Zugriff auf LLMs (GPT-4o, Llama, Mistral) über SAP BTP mit eingebautem Prompt-Management und Usage Tracking.',
+    description: 'Einheitlicher Zugriff auf LLMs (GPT-5, Llama 4, Mistral Large 3 u. a.) über SAP BTP mit eingebautem Prompt-Management und Usage Tracking.',
     tags: ['sap','llm','genai','btp','joule'],
     suggests: ['SAP AI Core', 'SAP AI Launchpad', 'SAP Datasphere'],
     incompatible_with: [] },
@@ -126,7 +126,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'limited',
     sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'aws',
     icon_name: 'logos:aws', website_url: 'https://aws.amazon.com/bedrock',
-    description: 'Serverloser LLM-Zugriff auf Claude (Anthropic), Llama, Titan und weitere Modelle via API.',
+    description: 'Serverloser LLM-Zugriff auf Claude (Anthropic), Llama 4, Nova (Amazon) und weitere Modelle via API. Titan-Familie nicht mehr aktiv entwickelt.',
     tags: ['aws','llm','bedrock','claude'] },
 
   // ── MODEL LAYER — Azure ───────────────────────────────────────────────────
@@ -141,7 +141,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'limited',
     sap_compatible: false, use_case_types: ['generative'], infra_types: ['cloud'], cloud_provider: 'azure',
     icon_name: 'logos:microsoft', website_url: 'https://azure.microsoft.com/openai',
-    description: 'GPT-4o, o3 und weitere OpenAI-Modelle in Azure-Infrastruktur mit DSGVO-Verträgen und EU-Hosting-Option.',
+    description: 'Aktuelle OpenAI-Modelle (GPT-5.x-Generation) in Azure-Infrastruktur mit DSGVO-Verträgen und EU-Hosting-Option.',
     tags: ['azure','gpt','openai','llm'] },
 
   // ── MODEL LAYER — EU-first LLMs ───────────────────────────────────────────
@@ -150,7 +150,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     sap_compatible: true, sap_components: ['genai_hub'],
     use_case_types: ['generative'], infra_types: ['cloud','onprem'], cloud_provider: 'independent',
     icon_name: null, website_url: 'https://mistral.ai',
-    description: 'Europäisches LLM (Paris, FR) — Mistral Large, Mixtral und offene Modelle. DSGVO-konform, EU-Hosting.',
+    description: 'Europäisches LLM (Paris, FR) — Mistral Large 3 (MoE, Dez. 2025), Ministral und offene Modelle. DSGVO-konform, EU-Hosting.',
     tags: ['llm','eu','france','open-source'] },
 
   { name: 'Aleph Alpha', vendor: 'Aleph Alpha', category: 'llm', architecture_layer: 'model',
