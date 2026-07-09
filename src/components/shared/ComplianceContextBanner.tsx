@@ -1,23 +1,30 @@
-const RISK_CONFIG: Record<string, { bg: string; border: string; text: string; label: string; message: string }> = {
-  prohibited: {
-    bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
-    label: 'EU AI Act: Verboten',
-    message: 'Compliance-Check: EU AI Act stuft diesen Use-Case-Typ als verboten ein. Eine Umsetzung ist rechtlich nicht zulässig.',
-  },
-  high: {
-    bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
-    label: 'EU AI Act: Hochrisiko',
-    message: 'Compliance-Check: EU AI Act Hochrisiko erkannt. Prüfen Sie Governance-Gates und Datenschutzmaßnahmen sorgfältig.',
-  },
-  limited: {
-    bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800',
-    label: 'EU AI Act: Begrenztes Risiko',
-    message: 'Compliance-Check: Eingeschränktes Risiko laut EU AI Act. Transparenzpflichten können gelten — bitte prüfen.',
-  },
-}
+'use client'
+import { useTranslations } from 'next-intl'
 
 export function ComplianceContextBanner({ riskClass }: { riskClass: string | null | undefined }) {
-  if (!riskClass || !RISK_CONFIG[riskClass]) return null
+  const t = useTranslations('modules')
+
+  if (!riskClass) return null
+
+  const RISK_CONFIG: Record<string, { bg: string; border: string; text: string; label: string; message: string }> = {
+    prohibited: {
+      bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
+      label: t('compliance.bannerProhibitedLabel'),
+      message: t('compliance.bannerProhibitedMsg'),
+    },
+    high: {
+      bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
+      label: t('compliance.bannerHighLabel'),
+      message: t('compliance.bannerHighMsg'),
+    },
+    limited: {
+      bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800',
+      label: t('compliance.bannerLimitedLabel'),
+      message: t('compliance.bannerLimitedMsg'),
+    },
+  }
+
+  if (!RISK_CONFIG[riskClass]) return null
 
   const cfg = RISK_CONFIG[riskClass]
   const icon = riskClass === 'limited' ? '⚠' : '⛔'
@@ -37,7 +44,7 @@ export function ComplianceContextBanner({ riskClass }: { riskClass: string | nul
           href="/compliance"
           className={`text-xs underline mt-1 inline-block ${cfg.text} opacity-60 hover:opacity-100 transition-opacity`}
         >
-          Compliance-Ergebnis ansehen →
+          {t('compliance.bannerLink')}
         </a>
       </div>
     </div>

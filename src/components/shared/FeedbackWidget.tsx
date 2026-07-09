@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { track } from '@/lib/posthog/client'
 import type { ModuleId } from '@/types'
 
@@ -8,6 +9,7 @@ interface FeedbackWidgetProps {
 }
 
 export function FeedbackWidget({ module }: FeedbackWidgetProps) {
+  const t = useTranslations('feedback')
   const [sentiment, setSentiment] = useState<'positive' | 'negative' | null>(null)
   const [comment, setComment] = useState('')
   const [submitted, setSubmitted] = useState(false)
@@ -44,35 +46,35 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
   if (submitted) {
     return (
       <div className="text-center py-4 text-sm text-slate-500">
-        ✓ Danke für Ihr Feedback!
+        {t('thanks')}
       </div>
     )
   }
 
   return (
     <div className="border-t border-slate-200 pt-6 mt-6">
-      <p className="text-sm text-slate-500 mb-3 text-center">War dieses Tool hilfreich?</p>
+      <p className="text-sm text-slate-500 mb-3 text-center">{t('question')}</p>
       {!sentiment ? (
         <div className="flex justify-center gap-2 sm:gap-3">
           <button onClick={() => handleSubmit('positive')}
             className={`${buttonBase} bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-400`}>
-            👍 Ja, hilfreich
+            {t('positive')}
           </button>
           <button onClick={() => setSentiment('negative')}
             className={`${buttonBase} bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 focus:ring-slate-400`}>
-            👎 Verbesserungsbedarf
+            {t('negative')}
           </button>
         </div>
       ) : sentiment === 'negative' ? (
         <div className="max-w-sm mx-auto">
           <textarea value={comment} onChange={e => setComment(e.target.value)}
-            placeholder="Was hätten Sie sich gewünscht? (Optional)"
+            placeholder={t('placeholder')}
             rows={3}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary-ring resize-none mb-2"
           />
           <button onClick={() => submit('negative', comment)} disabled={loading}
             className={`${buttonBase} w-full bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500 disabled:opacity-60`}>
-            {loading ? 'Wird gesendet…' : 'Feedback senden'}
+            {loading ? t('sending') : t('send')}
           </button>
         </div>
       ) : null}

@@ -169,12 +169,12 @@ export function GovernancePageClient({
         {actionItems.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-sm font-semibold text-slate-900">Handlungsfelder</h3>
-              <InfoHint title="Was bedeuten die Handlungsfelder?">
-                <p>Diese Punkte stammen aus Gates, die Sie nicht mit &bdquo;OK&ldquo; bewertet haben.</p>
-                <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />Gelb: Verbesserungsbedarf, aber kein sofortiger Stopp.</p>
-                <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />Rot: Kritische Lücke, die vor Go-Live geschlossen werden muss.</p>
-                <p className="mt-1.5">Die Empfehlungen sind Ausgangspunkte — die finale Bewertung obliegt Ihrem Team und ggf. einem Rechtsbeistand.</p>
+              <h3 className="text-sm font-semibold text-slate-900">{t('governance.actionFieldsTitle')}</h3>
+              <InfoHint title={t('governance.actionFieldsHintTitle')}>
+                <p>{t('governance.actionFieldsHintP1')}</p>
+                <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />{t('governance.actionFieldsHintYellow')}</p>
+                <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />{t('governance.actionFieldsHintRed')}</p>
+                <p className="mt-1.5">{t('governance.actionFieldsHintFootnote')}</p>
               </InfoHint>
             </div>
             <ul className="space-y-4" role="list">
@@ -196,13 +196,13 @@ export function GovernancePageClient({
 
         {/* Gate summary */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Zusammenfassung der Prüfpunkte</h3>
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">{t('governance.summaryTitle')}</h3>
           <ul className="space-y-3" role="list">
             {reviews.map(({ gate: g, option }) => (
               <li key={g.id} className="flex items-start gap-3">
                 <span
                   className={cn('mt-1 flex-shrink-0 w-2.5 h-2.5 rounded-full', WEIGHT_DOT[option.weight])}
-                  aria-label={option.weight === 'green' ? 'OK' : option.weight === 'yellow' ? 'Hinweis' : 'Kritisch'}
+                  aria-label={option.weight === 'green' ? 'OK' : option.weight === 'yellow' ? t('governance.weightHint') : t('governance.weightCritical')}
                 />
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500">Gate {g.step}</p>
@@ -218,7 +218,7 @@ export function GovernancePageClient({
             onClick={handleReset}
             className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            Neu starten
+            {t('governance.restart')}
           </button>
           {!saved && (
             <button
@@ -226,18 +226,18 @@ export function GovernancePageClient({
               disabled={saving}
               className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
-              {saving ? 'Wird gespeichert…' : 'Ergebnis speichern'}
+              {saving ? t('governance.saving') : t('governance.save')}
             </button>
           )}
           {saved && (
-            <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
+            <span className="text-sm text-green-700 font-medium">{t('governance.saved')}</span>
           )}
           <a
             href={tier !== 'free' ? `/api/export/pdf?module=governance&locale=${locale}` : '/upgrade'}
             {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
           >
-            PDF exportieren{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
+            {t('governance.exportPdf')}{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
           </a>
           {savedId && (
             <>
@@ -256,14 +256,14 @@ export function GovernancePageClient({
     <div className="max-w-2xl">
       <ComplianceContextBanner riskClass={complianceRisk} />
       <HintBox variant="info" className="mb-6">
-        <strong>Was ist der AI-Governance-Check?</strong> Dieser strukturierte Prüfprozess bewertet Ihren AI-Use-Case anhand von {totalSteps} ethischen und rechtlichen Gates — von der Rechtmäßigkeit der Datenverarbeitung bis zu Transparenz und Risikomanagement. Das Ergebnis ist keine Rechtsberatung, aber eine fundierte Orientierung für interne Freigabeprozesse.
-        <span className="block mt-1 text-xs opacity-75">Tipp: Wählen Sie die Antwort, die den aktuellen Stand Ihres Projekts am besten beschreibt — nicht den Soll-Zustand.</span>
+        <strong>{t('governance.infoTitle')}</strong> {t('governance.infoBody', { totalSteps })}
+        <span className="block mt-1 text-xs opacity-75">{t('governance.infoTip')}</span>
       </HintBox>
 
       {/* Use-Case-Auswahl */}
       <div className="mb-5">
         <p className="text-xs font-medium text-slate-600 mb-1.5">
-          Use Cases <span className="text-slate-400 font-normal">(optional — mehrere wählbar)</span>
+          Use Cases <span className="text-slate-400 font-normal">{t('governance.useCasesOptional')}</span>
         </p>
         {useCases.length > 0 ? (
           <div className="border border-slate-200 rounded-xl overflow-hidden">
@@ -325,7 +325,7 @@ export function GovernancePageClient({
                     onClick={() => setShowExtraInput(true)}
                     className="w-full text-left px-3 py-2.5 text-sm text-primary hover:text-primary"
                   >
-                    + Anderen Namen eingeben…
+                    {t('governance.addOtherName')}
                   </button>
                 )}
               </li>
@@ -345,9 +345,9 @@ export function GovernancePageClient({
       </div>
 
       {/* Progress */}
-      <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={`Gate ${currentStep + 1} von ${totalSteps}`}>
+      <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={t('governance.gateProgressAria', { current: currentStep + 1, total: totalSteps })}>
         <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
-          <span>Gate {currentStep + 1} von {totalSteps}</span>
+          <span>{t('governance.gateProgress', { current: currentStep + 1, total: totalSteps })}</span>
           <span>{progress}%</span>
         </div>
         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -407,14 +407,14 @@ export function GovernancePageClient({
           disabled={currentStep === 0}
           className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          ← Zurück
+          {t('governance.back')}
         </button>
         <button
           onClick={handleNext}
           disabled={!selectedOptionId}
           className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
-          {isLastStep ? 'Ergebnis anzeigen' : 'Weiter →'}
+          {isLastStep ? t('governance.showResult') : t('governance.next')}
         </button>
       </div>
 

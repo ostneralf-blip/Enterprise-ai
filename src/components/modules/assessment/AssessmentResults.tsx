@@ -131,12 +131,12 @@ export function AssessmentResults({
                     <span className="text-primary shrink-0 mt-0.5">→</span>
                     <span className="text-slate-700">
                       <strong>{pick(dim.label, locale)}</strong> ({score.toFixed(1)}/5): {
-                        dimId === 'data' ? 'Data-Governance-Initiative starten, Masterdatenmodell definieren' :
-                        dimId === 'skills' ? 'AI-Upskilling-Programm aufsetzen, AI-Champions benennen' :
-                        dimId === 'governance' ? 'AI-Policy und RACI in den nächsten 4 Wochen dokumentieren' :
-                        dimId === 'tech' ? 'API-Strategie für Kernsysteme entwickeln, Cloud-Readiness prüfen' :
-                        dimId === 'strategy' ? 'AI-Strategie im nächsten Board-Meeting verabschieden' :
-                        'Executive-Sponsorship sichern, AI-Kulturprogramm starten'
+                        dimId === 'data' ? t('assessment.dimRec.data') :
+                        dimId === 'skills' ? t('assessment.dimRec.skills') :
+                        dimId === 'governance' ? t('assessment.dimRec.governance') :
+                        dimId === 'tech' ? t('assessment.dimRec.tech') :
+                        dimId === 'strategy' ? t('assessment.dimRec.strategy') :
+                        t('assessment.dimRec.default')
                       }
                     </span>
                   </div>
