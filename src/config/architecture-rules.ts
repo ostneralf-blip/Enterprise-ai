@@ -353,3 +353,74 @@ export function generateDynamicNextSteps(components: CatalogComponent[]): { de: 
 
   return steps
 }
+
+interface CrossModuleContext {
+  assessment?: { archetype: string | null; total_score: number; dim_scores: Record<string, number> } | null
+  canvas?: { canvas: { title: string }; useCase: { name: string; quadrant?: string } } | null
+  governance?: { use_case_name: string | null; result: string | null } | null
+  roadmap?: { title: string; phasesCount: number } | null
+}
+
+export function generateCrossModuleDecisions(ctx: CrossModuleContext): { de: string; en: string }[] {
+  const items: { de: string; en: string }[] = []
+
+  if (ctx.assessment) {
+    const { archetype, dim_scores } = ctx.assessment
+    if (archetype === 'starter') {
+      items.push({ de: 'Managed Services priorisieren — AI Readiness Assessment zeigt frühe Phase: Keine eigene ML-Infrastruktur aufbauen, bevor Datenbasis und Team-Kompetenzen etabliert sind', en: 'Prioritise managed services — AI Readiness Assessment shows early stage: do not build custom ML infrastructure before data foundation and team skills are established' })
+    } else if (archetype === 'scaler') {
+      items.push({ de: 'MLOps-Automatisierung als nächste Investitionsstufe — Assessment zeigt etablierte Basis: CI/CD für Modelle und Feature Store als kritische nächste Architektur-Ebene', en: 'MLOps automation as the next investment tier — Assessment shows an established base: CI/CD for models and a Feature Store as the critical next architectural layer' })
+    } else if (archetype === 'transformer') {
+      items.push({ de: 'Multi-Modell-Betrieb und Enterprise-Governance — Assessment zeigt hohe KI-Reife: AI Registry, Modell-Versionierung und zentrales Monitoring jetzt konsequent umsetzen', en: 'Multi-model operations and enterprise governance — Assessment shows high AI maturity: implement AI Registry, model versioning, and centralised monitoring consistently now' })
+    }
+    const dataScore = dim_scores?.data ?? dim_scores?.Daten ?? null
+    if (dataScore !== null && dataScore < 50) {
+      items.push({ de: 'Datenqualität als Architekturblocker — Assessment zeigt Datenbasis als schwächste Dimension: Datenplattform vor ML-Infrastruktur priorisieren', en: 'Data quality is an architecture blocker — Assessment identifies data foundation as the weakest dimension: prioritise data platform before ML infrastructure' })
+    }
+  }
+
+  if (ctx.canvas) {
+    const { useCase } = ctx.canvas
+    if (useCase.quadrant === 'quick_win') {
+      items.push({ de: `Use Case "${useCase.name}" als Quick Win starten — Canvas-Analyse zeigt hohes Potenzial bei geringem Aufwand: Als erstes Pilot-Deployment in dieser Architektur wählen`, en: `Start use case "${useCase.name}" as a quick win — Canvas analysis shows high potential with low effort: select it as the first pilot deployment in this architecture` })
+    } else {
+      items.push({ de: `Use Case "${useCase.name}" als Pilot-Maßstab — konkrete Anforderungen aus dem Canvas bei Architekturentscheidungen berücksichtigen`, en: `Use case "${useCase.name}" as the pilot benchmark — incorporate concrete requirements from the Canvas into architecture decisions` })
+    }
+  }
+
+  if (ctx.governance?.result && (ctx.governance.result === 'critical' || ctx.governance.result === 'high_risk')) {
+    const name = ctx.governance.use_case_name ?? 'Use Case'
+    items.push({ de: `Governance-Check zeigt erhöhtes Risiko für "${name}" — Compliance-Anforderungen in Architektur-Design einbeziehen, nicht nachträglich ergänzen`, en: `Governance check flags elevated risk for "${name}" — embed compliance requirements in the architecture design upfront, not as an afterthought` })
+  }
+
+  if (ctx.roadmap && ctx.roadmap.phasesCount > 0) {
+    items.push({ de: `Architektur-Entscheidungen mit Roadmap "${ctx.roadmap.title}" abstimmen — ${ctx.roadmap.phasesCount} Phasen als Umsetzungs-Zeitrahmen für schrittweise Komponenten-Einführung nutzen`, en: `Align architecture decisions with roadmap "${ctx.roadmap.title}" — use its ${ctx.roadmap.phasesCount} phases as the rollout schedule for incremental component adoption` })
+  }
+
+  return items
+}
+
+export function generateCrossModuleNextSteps(ctx: CrossModuleContext): { de: string; en: string }[] {
+  const items: { de: string; en: string }[] = []
+
+  if (ctx.assessment && ctx.assessment.total_score < 50) {
+    const score = Math.round(ctx.assessment.total_score)
+    items.push({ de: `AI Readiness Score (${score} %) ausbauen — parallel zur Architektur-Implementierung Datenstrategie und Team-Kompetenzen stärken, bevor komplexe ML-Infrastruktur aufgebaut wird`, en: `Raise AI Readiness Score (${score} %) — strengthen data strategy and team skills in parallel with architecture implementation, before building complex ML infrastructure` })
+  }
+
+  if (ctx.canvas) {
+    const { useCase } = ctx.canvas
+    items.push({ de: `Use Case "${useCase.name}" als erstes Architektur-Pilotprojekt umsetzen — Canvas-Blueprint als Anforderungsspezifikation für das erste Deployment nutzen`, en: `Implement use case "${useCase.name}" as the first architecture pilot — use the Canvas blueprint as the requirements specification for the initial deployment` })
+  }
+
+  if (ctx.roadmap && ctx.roadmap.phasesCount > 0) {
+    items.push({ de: `Roadmap-Meilensteine mit Architektur-Komponenten verknüpfen — Phase-1-Aktivitäten aus "${ctx.roadmap.title}" mit konkreten Technologien aus diesem Architektur-Plan synchronisieren`, en: `Link roadmap milestones to architecture components — synchronise phase-1 activities from "${ctx.roadmap.title}" with concrete technologies from this architecture plan` })
+  }
+
+  if (ctx.governance?.result === 'approved' || ctx.governance?.result === 'low_risk') {
+    const name = ctx.governance.use_case_name ?? 'Use Case'
+    items.push({ de: `"${name}" direkt in Architektur-Pilot integrieren — Governance-Check bestätigt Freigabe: Keine weiteren Compliance-Hürden vor erstem Deployment`, en: `Integrate "${name}" directly into the architecture pilot — Governance check confirms approval: no further compliance hurdles before first deployment` })
+  }
+
+  return items
+}
