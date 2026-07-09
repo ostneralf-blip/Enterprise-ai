@@ -53,6 +53,19 @@ interface RoadmapContext {
   phasesCount: number
 }
 
+interface RoleCatalogEntry {
+  role_name: string
+  role_category: string | null
+  description: string | null
+}
+
+const ROLE_CATEGORY_CLASS: Record<string, string> = {
+  strategic:   'bg-blue-50 border-blue-200 text-blue-800',
+  technical:   'bg-violet-50 border-violet-200 text-violet-800',
+  governance:  'bg-amber-50 border-amber-200 text-amber-800',
+  operational: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+}
+
 interface Props {
   initialArchitectures?: SavedArchitecture[]
   assessmentContext?: AssessmentContext | null
@@ -62,6 +75,7 @@ interface Props {
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
   roadmapContext?: RoadmapContext | null
   synonyms?: CanvasSynonym[]
+  rolesCatalog?: RoleCatalogEntry[]
 }
 
 
@@ -249,13 +263,16 @@ function CatalogRecommendationsCard({
   recs,
   components,
   onSelectComp,
+  rolesCatalog = [],
 }: {
   recs: CatalogRecommendations
   components: CatalogComponent[]
   onSelectComp: (comp: CatalogComponent) => void
+  rolesCatalog?: RoleCatalogEntry[]
 }) {
   const t = useTranslations('modules')
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
+  const catalogMap = Object.fromEntries(rolesCatalog.map(r => [r.role_name, r]))
   const layerLabelT: Record<string, string> = {
     data: t('architecture.layerData'), model: t('architecture.layerModel'),
     mlops: 'MLOps', serving: 'Serving', governance: 'Governance', security: 'Security',
@@ -311,16 +328,22 @@ function CatalogRecommendationsCard({
       <div>
         <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">{t('architecture.recommendedRoles')}</p>
         <div className="flex flex-wrap gap-1.5">
-          {recs.roleNames.map(role => (
-            <span key={role} className="px-2.5 py-1 bg-primary-soft border border-primary-border rounded-lg text-xs text-primary-hover font-medium">{role}</span>
-          ))}
+          {recs.roleNames.map(role => {
+            const entry = catalogMap[role]
+            const cls = entry?.role_category ? (ROLE_CATEGORY_CLASS[entry.role_category] ?? 'bg-primary-soft border-primary-border text-primary-hover') : 'bg-primary-soft border-primary-border text-primary-hover'
+            return (
+              <span key={role} title={entry?.description ?? undefined} className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium', cls)}>
+                {role}
+              </span>
+            )
+          })}
         </div>
       </div>
     </div>
   )
 }
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [] }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
@@ -561,7 +584,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Catalog recommendations */}
         {catalogRecs && (
           <>
-            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} onSelectComp={setSelectedComp} />
+            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} onSelectComp={setSelectedComp} rolesCatalog={rolesCatalog} />
             {recComponents.length > 0 && (() => {
               const latest = recComponents.reduce((a, b) => a.updated_at > b.updated_at ? a : b)
               const days = Math.floor((NOW - new Date(latest.updated_at).getTime()) / 86_400_000)

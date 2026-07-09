@@ -57,7 +57,7 @@ export default async function ArchitecturePage({
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }, { data: synonyms }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }, { data: synonyms }, { data: rolesCatalog }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('user_preferences')
       .select('primary_assessment_id, primary_governance_id, primary_roadmap_id')
@@ -78,6 +78,9 @@ export default async function ArchitecturePage({
       .maybeSingle(),
     supabase.from('canvas_synonyms')
       .select('*')
+      .eq('is_active', true),
+    supabase.from('roles_catalog')
+      .select('role_name, role_category, description')
       .eq('is_active', true),
   ])
 
@@ -158,6 +161,7 @@ export default async function ArchitecturePage({
         canvasContext={canvasContext}
         roadmapContext={roadmapContext}
         synonyms={(synonyms ?? []) as CanvasSynonym[]}
+        rolesCatalog={(rolesCatalog ?? []) as { role_name: string; role_category: string | null; description: string | null }[]}
       />
     </div>
   )
