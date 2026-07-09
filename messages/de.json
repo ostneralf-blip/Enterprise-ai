@@ -216,6 +216,21 @@
     "footerImprint": "Impressum",
     "footerSecurity": "Sicherheit"
   },
+  "ai": {
+    "analyzeButton": "Mit KI analysieren",
+    "analyzing": "KI analysiert …",
+    "badge": "KI-gestützt",
+    "badgeGenerated": "KI-generiert",
+    "usageRemaining": "{remaining} von {limit} KI-Analysen heute verbleibend",
+    "usageExceeded": "Tages-Limit erreicht ({limit}/Tag) — deterministisches Ergebnis aktiv",
+    "failed": "KI-Analyse nicht verfügbar — klassisches Ergebnis wird angezeigt",
+    "proRequired": "KI-Analyse verfügbar ab Pro",
+    "confirmApply": "KI-Vorschläge übernehmen?",
+    "confirmApplyDesc": "Die KI-Klassifikation wird mit deinen manuellen Angaben zusammengeführt. Compliance-Flags bleiben erhalten.",
+    "apply": "Übernehmen",
+    "discard": "Verwerfen",
+    "generatedAt": "Analysiert am {date}"
+  },
   "modules": {
     "assessment": {
       "title": "AI-Readiness Assessment",

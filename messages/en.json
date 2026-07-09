@@ -217,6 +217,21 @@
     "footerSecurity": "Security",
     "footerLegalNote": "Legal pages (Imprint, Privacy Policy) are provided in German only, as required by German law."
   },
+  "ai": {
+    "analyzeButton": "Analyse with AI",
+    "analyzing": "AI is analysing …",
+    "badge": "AI-powered",
+    "badgeGenerated": "AI-generated",
+    "usageRemaining": "{remaining} of {limit} AI analyses remaining today",
+    "usageExceeded": "Daily limit reached ({limit}/day) — deterministic result active",
+    "failed": "AI analysis unavailable — showing classic result",
+    "proRequired": "AI analysis available from Pro",
+    "confirmApply": "Apply AI suggestions?",
+    "confirmApplyDesc": "The AI classification will be merged with your manual inputs. Compliance flags are preserved.",
+    "apply": "Apply",
+    "discard": "Discard",
+    "generatedAt": "Analysed on {date}"
+  },
   "modules": {
     "assessment": {
       "title": "AI Readiness Assessment",
