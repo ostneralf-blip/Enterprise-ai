@@ -4,7 +4,7 @@ describe('computeCountdown', () => {
   it('zeigt grünen Badge für mehr als 12 Monate', () => {
     const today = new Date('2026-07-07')
     const result = computeCountdown('2027-12-01', today)
-    expect(result.label).toMatch(/noch \d+ Monate/)
+    expect(result.months).toBeGreaterThanOrEqual(12)
     expect(result.className).toContain('emerald')
   })
 
@@ -20,17 +20,18 @@ describe('computeCountdown', () => {
     expect(result.className).toContain('red')
   })
 
-  it('zeigt roten Badge für überschrittenen Stichtag', () => {
+  it('zeigt roten Badge und negative Tage für überschrittenen Stichtag', () => {
     const today = new Date('2028-01-01')
     const result = computeCountdown('2027-12-01', today)
-    expect(result.label).toBe('⏱ Stichtag überschritten')
+    expect(result.days).toBeLessThan(0)
     expect(result.className).toContain('red')
   })
 
-  it('zeigt Tage statt Monate wenn unter 30 Tage verbleiben', () => {
+  it('gibt months=0 zurück wenn unter 30 Tage verbleiben', () => {
     const today = new Date('2027-11-20')
     const result = computeCountdown('2027-12-01', today)
-    expect(result.label).toMatch(/noch \d+ Tag/)
+    expect(result.months).toBe(0)
+    expect(result.days).toBeGreaterThan(0)
     expect(result.className).toContain('red')
   })
 
@@ -38,6 +39,6 @@ describe('computeCountdown', () => {
     const today = new Date('2026-07-07')
     const result = computeCountdown('2027-12-01', today)
     // Juli 2026 → Dez 2027 = ca. 17 Monate
-    expect(result.label).toContain('17')
+    expect(result.months).toBe(17)
   })
 })

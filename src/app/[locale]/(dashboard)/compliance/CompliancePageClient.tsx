@@ -21,14 +21,8 @@ import { WatchlistCard } from '@/components/modules/WatchlistCard'
 
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'euaiact', label: 'EU AI Act' },
-  { id: 'dsgvo', label: 'DSGVO' },
-  { id: 'matrix', label: 'Risikomatrix' },
-  { id: 'summary', label: 'Zusammenfassung' },
-  { id: 'templates', label: 'Policy-Templates' },
-  { id: 'extras', label: 'Weitere Gesetze' },
-]
+// Tab labels are resolved at render time via useTranslations — see getTabLabel() below
+const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'extras']
 
 const CONTENT_REVIEWED_AT = '2026-06-25'
 const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
@@ -45,6 +39,15 @@ export function CompliancePageClient({ initialChecks }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [tab, setTab] = useState<Tab>('euaiact')
+
+  const getTabLabel = (id: Tab): string => {
+    if (id === 'euaiact')   return 'EU AI Act'
+    if (id === 'dsgvo')     return 'DSGVO'
+    if (id === 'matrix')    return t('compliance.tabRiskMatrix')
+    if (id === 'summary')   return t('compliance.tabSummary')
+    if (id === 'templates') return t('compliance.tabTemplates')
+    return t('compliance.tabExtras')
+  }
   const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
     const m = new Map<string, CheckRow>()
     for (const c of initialChecks) m.set(makeKey(c.regulation, c.check_type), c)
@@ -174,30 +177,30 @@ export function CompliancePageClient({ initialChecks }: Props) {
       )}>
         {COMPLIANCE_REVIEWED_DAYS > 90 ? '⚠' : '✓'}
         <span>
-          Inhalt zuletzt geprüft: {new Date(CONTENT_REVIEWED_AT).toLocaleDateString('de-DE')}
-          {COMPLIANCE_REVIEWED_DAYS > 90 && ' — Review empfohlen'}
+          {t('compliance.contentLastChecked')} {new Date(CONTENT_REVIEWED_AT).toLocaleDateString(locale === 'en' ? 'en-GB' : 'de-DE')}
+          {COMPLIANCE_REVIEWED_DAYS > 90 && ` ${t('compliance.contentReviewRecommended')}`}
         </span>
       </div>
 
       {/* Tab bar */}
       <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-        {TABS.map(t => (
+        {TAB_IDS.map(id => (
           <button
-            key={t.id}
+            key={id}
             role="tab"
-            id={`tab-${t.id}`}
-            aria-selected={tab === t.id}
-            aria-controls={`panel-${t.id}`}
-            onClick={() => setTab(t.id)}
+            id={`tab-${id}`}
+            aria-selected={tab === id}
+            aria-controls={`panel-${id}`}
+            onClick={() => setTab(id)}
             className={cn(
               'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
-              tab === t.id
+              tab === id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             )}
           >
-            {t.label}
-            {t.id === 'summary' && allOpenItems.length > 0 && (
+            {getTabLabel(id)}
+            {id === 'summary' && allOpenItems.length > 0 && (
               <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
                 {allOpenItems.length}
               </span>
@@ -271,17 +274,17 @@ export function CompliancePageClient({ initialChecks }: Props) {
                   <h2 className="text-sm font-semibold text-slate-700">
                     {t('compliance.step2Title')} ({(() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : null })()})
                   </h2>
-                  <InfoHint title="Wie funktioniert die Checkliste?">
-                    <p>Klicken Sie auf den Status-Kreis eines Eintrags, um zwischen drei Zuständen zu wechseln:</p>
-                    <p className="mt-1.5"><strong>○ Offen</strong> — noch nicht geprüft (Ausgangszustand)</p>
-                    <p className="mt-1.5"><strong>✓ Erfüllt</strong> — Anforderung ist umgesetzt</p>
-                    <p className="mt-1.5"><strong>✗ Nicht erfüllt</strong> — geprüft, aber Lücke identifiziert. Diese Punkte erscheinen als Offene Punkte in der Zusammenfassung.</p>
+                  <InfoHint title={t('compliance.checklistHowTitle')}>
+                    <p>{t('compliance.checklistHowP1')}</p>
+                    <p className="mt-1.5"><strong>○</strong> {t('compliance.checklistHowOpen')}</p>
+                    <p className="mt-1.5"><strong>✓</strong> {t('compliance.checklistHowDone')}</p>
+                    <p className="mt-1.5"><strong>✗</strong> {t('compliance.checklistHowFail')}</p>
                   </InfoHint>
                 </div>
                 <span className="text-xs text-slate-400 flex-shrink-0">
-                  {euAiActDone}/{obligations.length} erfüllt
+                  {t('compliance.countFulfilled', { done: euAiActDone, total: obligations.length })}
                   {euAiActNonCompliant > 0 && (
-                    <span className="ml-2 text-red-600 font-medium">· {euAiActNonCompliant} offen</span>
+                    <span className="ml-2 text-red-600 font-medium">{t('compliance.countOpen', { count: euAiActNonCompliant })}</span>
                   )}
                 </span>
               </div>
@@ -347,16 +350,16 @@ export function CompliancePageClient({ initialChecks }: Props) {
         <div role="tabpanel" id="panel-dsgvo" aria-labelledby="tab-dsgvo">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 min-w-0">
-              <p className="text-sm text-slate-500 whitespace-nowrap">{dsgvoDone} von {DSGVO_CHECKLIST.length} erfüllt</p>
+              <p className="text-sm text-slate-500 whitespace-nowrap">{t('compliance.countFulfilledOf', { done: dsgvoDone, total: DSGVO_CHECKLIST.length })}</p>
               {dsgvoNonCompliant > 0 && (
-                <span className="text-xs text-red-600 font-medium whitespace-nowrap">· {dsgvoNonCompliant} nicht erfüllt</span>
+                <span className="text-xs text-red-600 font-medium whitespace-nowrap">{t('compliance.countNotFulfilled', { count: dsgvoNonCompliant })}</span>
               )}
-              <InfoHint title="Wie funktioniert die DSGVO-Checkliste?">
-                <p>Klicken Sie auf den Kreis links neben einem Eintrag, um seinen Status zu ändern:</p>
-                <p className="mt-1.5"><strong>○ Offen</strong> — noch nicht geprüft</p>
-                <p className="mt-1.5"><strong>✓ Erfüllt</strong> — Anforderung ist umgesetzt</p>
-                <p className="mt-1.5"><strong>✗ Nicht erfüllt</strong> — Lücke identifiziert, muss adressiert werden</p>
-                <p className="mt-2">Nicht erfüllte Punkte erscheinen als Handlungsbedarf in der Zusammenfassung.</p>
+              <InfoHint title={t('compliance.dsgvoHowTitle')}>
+                <p>{t('compliance.dsgvoHowP1')}</p>
+                <p className="mt-1.5"><strong>○</strong> {t('compliance.dsgvoHowOpen')}</p>
+                <p className="mt-1.5"><strong>✓</strong> {t('compliance.dsgvoHowDone')}</p>
+                <p className="mt-1.5"><strong>✗</strong> {t('compliance.dsgvoHowFail')}</p>
+                <p className="mt-2">{t('compliance.dsgvoHowSummary')}</p>
               </InfoHint>
             </div>
             <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden flex-shrink-0">
@@ -397,7 +400,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                       <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                       {item.relevance && (
                         <p className="text-xs text-primary-hover bg-primary-soft rounded px-2 py-1 mt-1.5">
-                          AI-Relevanz: {pick(item.relevance, locale)}
+                          {t('compliance.aiRelevance')} {pick(item.relevance, locale)}
                         </p>
                       )}
                     </div>
@@ -413,7 +416,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {tab === 'matrix' && (
         <div role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix">
           <p className="text-sm text-slate-500 mb-5">
-            Positionieren Sie Ihren AI-Use-Case nach Auswirkung (bei Fehler) und Eintrittswahrscheinlichkeit.
+            {t('compliance.riskMatrixIntro')}
           </p>
           <RiskMatrixSelector
             value={getRiskMatrixPos()}
@@ -427,24 +430,24 @@ export function CompliancePageClient({ initialChecks }: Props) {
         <div role="tabpanel" id="panel-summary" aria-labelledby="tab-summary" className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
             <SummaryCard
-              label="EU AI Act Risikoklasse"
+              label={t('compliance.summaryRiskClass')}
               value={riskClass
                 ? (() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : '—' })()
-                : 'Nicht eingestuft'}
+                : t('compliance.summaryNotClassified')}
               sub={riskClass ? EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass)?.articleRef : undefined}
               done={!!riskClass}
             />
             <SummaryCard
-              label="EU AI Act Pflichten"
-              value={obligations.length > 0 ? `${euAiActDone} / ${obligations.length}` : riskClass ? 'Keine Pflichten' : '—'}
-              sub={obligations.length > 0 ? `${Math.round((euAiActDone / obligations.length) * 100)}% abgeschlossen` : undefined}
+              label={t('compliance.summaryObligations')}
+              value={obligations.length > 0 ? `${euAiActDone} / ${obligations.length}` : riskClass ? t('compliance.summaryNoObligations') : '—'}
+              sub={obligations.length > 0 ? t('compliance.summaryPercent', { pct: Math.round((euAiActDone / obligations.length) * 100) }) : undefined}
               done={obligations.length > 0 ? euAiActDone === obligations.length : !!riskClass}
               issues={euAiActNonCompliant}
             />
             <SummaryCard
-              label="DSGVO-Checkliste"
+              label={t('compliance.summaryDsgvo')}
               value={`${dsgvoDone} / ${DSGVO_CHECKLIST.length}`}
-              sub={`${Math.round((dsgvoDone / DSGVO_CHECKLIST.length) * 100)}% abgeschlossen`}
+              sub={t('compliance.summaryPercent', { pct: Math.round((dsgvoDone / DSGVO_CHECKLIST.length) * 100) })}
               done={dsgvoDone === DSGVO_CHECKLIST.length}
               issues={dsgvoNonCompliant}
             />
@@ -458,12 +461,12 @@ export function CompliancePageClient({ initialChecks }: Props) {
               <div className={cn('rounded-2xl border p-4', level.color.bg, level.color.border)}>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', level.color.badge)}>
-                    Risikoniveau: {pick(level.label, locale)}
+                    {t('compliance.summaryRiskLevel')} {pick(level.label, locale)}
                   </span>
                 </div>
                 <p className="text-sm font-medium text-slate-800">{pick(level.action, locale)}</p>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Auswirkung: {pick(RISK_MATRIX.impactLabels[pos.impact - 1], locale)} · Wahrscheinlichkeit: {pick(RISK_MATRIX.probabilityLabels[pos.probability - 1], locale)}
+                  {t('compliance.summaryImpact')} {pick(RISK_MATRIX.impactLabels[pos.impact - 1], locale)} · {t('compliance.summaryProbability')} {pick(RISK_MATRIX.probabilityLabels[pos.probability - 1], locale)}
                 </p>
               </div>
             )
@@ -474,16 +477,16 @@ export function CompliancePageClient({ initialChecks }: Props) {
             <div className="border border-red-200 rounded-2xl p-4 sm:p-5 bg-red-50">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-sm font-semibold text-red-900">
-                  Offene Punkte ({allOpenItems.length})
+                  {t('compliance.openItemsTitle')} ({allOpenItems.length})
                 </h3>
-                <InfoHint title="Was sind Offene Punkte?" side="bottom">
-                  <p>Alle Anforderungen, die Sie als <strong>&bdquo;Nicht erfüllt&ldquo; (✗)</strong> markiert haben.</p>
-                  <p className="mt-1.5">Diese Lücken sollten vor einem Go-Live adressiert werden — durch technische Maßnahmen, Prozessanpassungen oder Dokumentation.</p>
-                  <p className="mt-1.5">Klicken Sie in der Checkliste auf den roten Status-Kreis, um den Status zurückzusetzen.</p>
+                <InfoHint title={t('compliance.openItemsHintTitle')} side="bottom">
+                  <p>{t('compliance.openItemsHintP1')}</p>
+                  <p className="mt-1.5">{t('compliance.openItemsHintP2')}</p>
+                  <p className="mt-1.5">{t('compliance.openItemsHintP3')}</p>
                 </InfoHint>
               </div>
               <p className="text-xs text-red-700 mb-3">
-                Folgende Anforderungen wurden als &bdquo;Nicht erfüllt&ldquo; markiert und müssen vor einem Go-Live adressiert werden.
+                {t('compliance.openItemsDesc')}
               </p>
               <ul className="space-y-2">
                 {allOpenItems.map((item, i) => (
@@ -504,7 +507,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {allOpenItems.length === 0 && (dsgvoDone > 0 || euAiActDone > 0) && (
             <div className="border border-emerald-200 rounded-xl p-3.5 bg-emerald-50">
-              <p className="text-xs font-medium text-emerald-800">✓ Keine offenen Punkte — alle geprüften Anforderungen sind erfüllt.</p>
+              <p className="text-xs font-medium text-emerald-800">{t('compliance.noOpenItems')}</p>
             </div>
           )}
         </div>
@@ -522,10 +525,10 @@ export function CompliancePageClient({ initialChecks }: Props) {
                 </div>
                 <button
                   onClick={() => handleCopy(tpl.id, tpl.content)}
-                  aria-label={`${pick(tpl.title, locale)} in Zwischenablage kopieren`}
+                  aria-label={t('compliance.copyAriaLabel', { title: pick(tpl.title, locale) })}
                   className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                 >
-                  {copied === tpl.id ? '✓ Kopiert' : 'Kopieren'}
+                  {copied === tpl.id ? t('compliance.copiedButton') : t('compliance.copyButton')}
                 </button>
               </div>
               <pre className="text-xs text-slate-500 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
@@ -540,19 +543,18 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {tab === 'extras' && (
         <div role="tabpanel" id="panel-extras" aria-labelledby="tab-extras" className="space-y-6">
           <HintBox variant="info" className="mb-1">
-            <strong>Wählen Sie branchenspezifische Regelwerke aus</strong>, die für Ihr Unternehmen relevant sind.
-            Aktivierte Gesetze erscheinen als ausfüllbare Checklisten — Ihr Fortschritt wird automatisch gespeichert.
+            <strong>{t('compliance.extrasInfoStrong')}</strong>, {t('compliance.extrasInfoBody')}
           </HintBox>
 
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-sm font-semibold text-slate-700">Regelwerke aktivieren</h2>
-              <InfoHint title="Warum zusätzliche Regelwerke?">
-                <p>EU AI Act und DSGVO sind für alle AI-Projekte relevant. Je nach Branche und Unternehmensgröße kommen weitere Anforderungen hinzu:</p>
-                <p className="mt-1"><strong>ISO 42001</strong> ist der internationale KI-Management-Standard — häufige Anforderung in Enterprise-Ausschreibungen.</p>
-                <p className="mt-1"><strong>NIS-2</strong> gilt seit Oktober 2024 für kritische Infrastrukturen und digitale Dienste.</p>
-                <p className="mt-1"><strong>BAIT</strong> ist verpflichtend für Banken und Finanzdienstleister unter BaFin-Aufsicht.</p>
-                <p className="mt-1"><strong>LkSG</strong> betrifft Unternehmen ab 1.000 Mitarbeitenden — auch bei externer Datenbeschaffung relevant.</p>
+              <h2 className="text-sm font-semibold text-slate-700">{t('compliance.activateTitle')}</h2>
+              <InfoHint title={t('compliance.activateHintTitle')}>
+                <p>{t('compliance.activateHintP1')}</p>
+                <p className="mt-1"><strong>ISO 42001</strong> {t('compliance.activateHintISO42001')}</p>
+                <p className="mt-1"><strong>NIS-2</strong> {t('compliance.activateHintNIS2')}</p>
+                <p className="mt-1"><strong>BAIT</strong> {t('compliance.activateHintBAIT')}</p>
+                <p className="mt-1"><strong>LkSG</strong> {t('compliance.activateHintLkSG')}</p>
               </InfoHint>
             </div>
 
@@ -576,13 +578,13 @@ export function CompliancePageClient({ initialChecks }: Props) {
                         {pick(reg.shortLabel, locale)}
                       </span>
                       <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-slate-400')}>
-                        {isActive ? '✓ Aktiv' : 'Aktivieren'}
+                        {isActive ? t('compliance.activateActive') : t('compliance.activateButton')}
                       </span>
                     </div>
                     <p className="text-xs font-semibold text-slate-800 mb-1 leading-snug">{pick(reg.label, locale)}</p>
                     <p className="text-xs text-slate-500 leading-relaxed mb-2">{pick(reg.description, locale)}</p>
                     <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
-                      <strong>Gilt für:</strong> {pick(reg.applicability, locale)}
+                      <strong>{t('compliance.appliesTo')}</strong> {pick(reg.applicability, locale)}
                     </p>
                   </button>
                 )
@@ -592,7 +594,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
 
           {activeRegs.length === 0 && (
             <p className="text-sm text-slate-400 text-center py-6">
-              Aktivieren Sie oben ein Regelwerk, um die passende Checkliste anzuzeigen.
+              {t('compliance.extrasEmptyState')}
             </p>
           )}
 
@@ -606,13 +608,13 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     <h3 className="text-sm font-semibold text-slate-800 truncate">{pick(reg.label, locale)}</h3>
                     <InfoHint title={pick(reg.label, locale)} side="bottom">
                       <p>{pick(reg.description, locale)}</p>
-                      <p className="mt-1.5"><strong>Gilt für:</strong> {pick(reg.applicability, locale)}</p>
+                      <p className="mt-1.5"><strong>{t('compliance.appliesTo')}</strong> {pick(reg.applicability, locale)}</p>
                     </InfoHint>
                   </div>
                   <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
-                    {regDone}/{reg.items.length} erfüllt
+                    {t('compliance.regCountFulfilled', { done: regDone, total: reg.items.length })}
                     {regNonCompliant > 0 && (
-                      <span className="ml-1.5 text-red-600 font-medium">· {regNonCompliant} offen</span>
+                      <span className="ml-1.5 text-red-600 font-medium">{t('compliance.regCountOpen', { count: regNonCompliant })}</span>
                     )}
                   </span>
                 </div>
@@ -624,7 +626,7 @@ export function CompliancePageClient({ initialChecks }: Props) {
                     aria-valuenow={regDone}
                     aria-valuemin={0}
                     aria-valuemax={reg.items.length}
-                    aria-label={`${pick(reg.shortLabel, locale)} Fortschritt`}
+                    aria-label={t('compliance.regProgress', { label: pick(reg.shortLabel, locale) })}
                   />
                 </div>
                 <ul className="space-y-2">
@@ -757,13 +759,14 @@ function SummaryCard({
   done: boolean
   issues?: number
 }) {
+  const t = useTranslations('modules')
   return (
     <div className={cn('rounded-xl border p-4', done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200')}>
       <p className="text-xs text-slate-500 mb-1">{label}</p>
       <p className={cn('text-base font-semibold', done ? 'text-emerald-800' : 'text-slate-900')}>{value}</p>
       {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
       {issues != null && issues > 0 && (
-        <p className="text-xs text-red-600 mt-1 font-medium">✗ {issues} nicht erfüllt</p>
+        <p className="text-xs text-red-600 mt-1 font-medium">✗ {t('compliance.countNotFulfilled', { count: issues })}</p>
       )}
     </div>
   )
@@ -777,13 +780,14 @@ function RiskMatrixSelector({
   onChange: (v: { impact: number; probability: number }) => void
 }) {
   const locale = useLocale()
+  const t = useTranslations('modules')
   const level = getRiskLevel(value.impact, value.probability)
 
   return (
     <div className="space-y-5">
       <div>
         <label className="block text-xs font-semibold text-slate-700 mb-2">
-          Auswirkung bei Fehler <span className="font-normal text-slate-400">(Was passiert wenn das System falsch liegt?)</span>
+          {t('compliance.riskMatrixImpactLabel')} <span className="font-normal text-slate-400">{t('compliance.riskMatrixImpactHint')}</span>
         </label>
         <div className="flex gap-2 flex-wrap">
           {RISK_MATRIX.impactLabels.map((label, i) => (
@@ -806,7 +810,7 @@ function RiskMatrixSelector({
 
       <div>
         <label className="block text-xs font-semibold text-slate-700 mb-2">
-          Eintrittswahrscheinlichkeit <span className="font-normal text-slate-400">(Wie häufig könnte das Fehler passieren?)</span>
+          {t('compliance.riskMatrixProbLabel')} <span className="font-normal text-slate-400">{t('compliance.riskMatrixProbHint')}</span>
         </label>
         <div className="flex gap-2 flex-wrap">
           {RISK_MATRIX.probabilityLabels.map((label, i) => (
