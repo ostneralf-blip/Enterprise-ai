@@ -213,23 +213,23 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
         {insights && insights.filledCount >= 2 && (
           <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Kontextanalyse</h2>
-              <InfoHint title="Was ist die Kontextanalyse?" side="top">
-                <p>Während Sie Ihren Canvas ausfüllen, analysiert das Tool automatisch Schlüsselbegriffe und erkennt Plattformen, Use-Case-Typen und Compliance-Anforderungen.</p>
-                <p className="mt-1.5">Diese Erkenntnisse werden in anderen Modulen verwendet — z. B. schlägt der Architektur-Generator passende Komponenten vor, wenn SAP oder Azure erkannt wurde.</p>
-                <p className="mt-1.5">Die Analyse verbessert sich, je vollständiger der Canvas ist ({insights.filledCount}/8 Felder ausgefüllt).</p>
+              <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{t('canvas.contextAnalysisTitle')}</h2>
+              <InfoHint title={t('canvas.contextAnalysisHintTitle')} side="top">
+                <p>{t('canvas.contextAnalysisHintP1')}</p>
+                <p className="mt-1.5">{t('canvas.contextAnalysisHintP2')}</p>
+                <p className="mt-1.5">{t('canvas.contextAnalysisHintP3', { count: insights.filledCount })}</p>
               </InfoHint>
             </div>
 
             {insights.filledCount < 4 && (
               <HintBox variant="tip" className="text-xs">
-                Füllen Sie mehr Felder aus, um präzisere Empfehlungen zu erhalten ({insights.filledCount}/8 ausgefüllt).
+                {t('canvas.contextFillHint', { count: insights.filledCount })}
               </HintBox>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Plattform</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxPlatform')}</p>
                 {insights.platform.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {insights.platform.map(p => (
@@ -237,21 +237,21 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">Nicht erkannt</p>
+                  <p className="text-xs text-slate-400">{t('canvas.ctxNotDetected')}</p>
                 )}
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">AI-Typ</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxAiType')}</p>
                 {insights.usecaseType ? (
                   <span className="text-xs bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-medium">{insights.usecaseType}</span>
                 ) : (
-                  <p className="text-xs text-slate-400">Nicht erkannt</p>
+                  <p className="text-xs text-slate-400">{t('canvas.ctxNotDetected')}</p>
                 )}
               </div>
 
               <div>
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Compliance</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxCompliance')}</p>
                 {insights.compliance.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {insights.compliance.map(c => (
@@ -259,14 +259,14 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">Keine Flags</p>
+                  <p className="text-xs text-slate-400">{t('canvas.ctxNoFlags')}</p>
                 )}
               </div>
             </div>
 
             {detectedProvider && catalogSuggestions && catalogSuggestions.length > 0 && (
               <div className="pt-2 border-t border-slate-100">
-                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Passende Komponenten</p>
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxComponents')}</p>
                 <div className="flex flex-wrap gap-1">
                   {catalogSuggestions.map(c => (
                     <span key={c.name} className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 font-medium">{c.name}</span>
@@ -276,12 +276,12 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             )}
 
             <div className="flex gap-3 pt-1 border-t border-slate-200">
-              <p className="text-xs text-slate-500 flex-1">Erkannte Signale automatisch in anderen Modulen verwenden:</p>
+              <p className="text-xs text-slate-500 flex-1">{t('canvas.ctxUseSignals')}</p>
               <Link href="/architecture" className="text-xs text-primary hover:underline whitespace-nowrap font-medium">
-                → Architektur
+                {t('canvas.ctxLinkArch')}
               </Link>
               <Link href="/compliance" className="text-xs text-primary hover:underline whitespace-nowrap font-medium">
-                → Compliance
+                {t('canvas.ctxLinkCompliance')}
               </Link>
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import type { ArchitectureResult } from '@/config/architecture-data'
 
 interface Version {
@@ -21,6 +22,8 @@ interface Props {
 type CompareMode = null | { a: Version; b: Version }
 
 export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
+  const t = useTranslations('modules')
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
   const [versions, setVersions] = useState<Version[]>([])
   const [loading, setLoading] = useState(false)
@@ -81,7 +84,7 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
         href="/upgrade"
         className="px-4 py-2 text-sm font-medium border border-violet-200 text-violet-700 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
       >
-        Versionen (Pro)
+        {t('versions.panelButtonPro')}
       </a>
     )
   }
@@ -92,15 +95,15 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
         onClick={() => setOpen(true)}
         className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
       >
-        Versionen
+        {t('versions.panelButton')}
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/40 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Versionen verwalten">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/40 overflow-y-auto" role="dialog" aria-modal="true" aria-label={t('versions.dialogAriaLabel')}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900">Versionen</h2>
-              <button onClick={() => { setOpen(false); setCompare(null) }} aria-label="Dialog schließen" className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+              <h2 className="text-base font-semibold text-slate-900">{t('versions.dialogTitle')}</h2>
+              <button onClick={() => { setOpen(false); setCompare(null) }} aria-label={t('versions.closeAriaLabel')} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
 
             {/* Save new version */}
@@ -108,8 +111,8 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
               <input
                 value={label}
                 onChange={e => setLabel(e.target.value)}
-                placeholder="Bezeichnung (optional)"
-                aria-label="Version-Bezeichnung"
+                placeholder={t('versions.labelPlaceholder')}
+                aria-label={t('versions.labelAriaLabel')}
                 className="flex-1 min-w-0 text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-ring"
               />
               <button
@@ -117,15 +120,15 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
                 disabled={saving}
                 className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary disabled:opacity-50 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
               >
-                {saving ? '…' : 'Speichern'}
+                {saving ? t('versions.saving') : t('versions.save')}
               </button>
             </div>
 
             {/* Version list */}
             {loading ? (
-              <p className="text-sm text-slate-400 text-center py-4">Lädt…</p>
+              <p className="text-sm text-slate-400 text-center py-4">{t('versions.loading')}</p>
             ) : versions.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">Noch keine Versionen gespeichert.</p>
+              <p className="text-sm text-slate-400 text-center py-4">{t('versions.empty')}</p>
             ) : (
               <>
                 <ul className="space-y-2 mb-4" role="list">
@@ -133,9 +136,9 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
                     <li key={v.id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-xl px-3 py-2.5">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-slate-800">
-                          Version #{v.version_no}{v.label ? ` — ${v.label}` : ''}
+                          {t('versions.versionNo', { no: v.version_no })}{v.label ? ` — ${v.label}` : ''}
                         </p>
-                        <p className="text-xs text-slate-400">{new Date(v.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-xs text-slate-400">{new Date(v.created_at).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                       <div className="flex gap-1.5 flex-shrink-0">
                         <button
@@ -168,6 +171,7 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
 }
 
 function VersionCompare({ a, b, module }: { a: Version; b: Version; module: string }) {
+  const t = useTranslations('modules')
   if (module === 'architecture') {
     const aResult = (a.data as { result?: ArchitectureResult }).result
     const bResult = (b.data as { result?: ArchitectureResult }).result
@@ -184,11 +188,11 @@ function VersionCompare({ a, b, module }: { a: Version; b: Version; module: stri
     ]
 
     return (
-      <div className="border border-slate-200 rounded-xl overflow-hidden" role="table" aria-label="Versions-Vergleich">
+      <div className="border border-slate-200 rounded-xl overflow-hidden" role="table" aria-label={t('versions.compareAriaLabel')}>
         <div className="grid grid-cols-3 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 border-b border-slate-200">
-          <span>Feld</span>
-          <span>Version #{a.version_no}</span>
-          <span>Version #{b.version_no}</span>
+          <span>{t('versions.compareFieldCol')}</span>
+          <span>{t('versions.versionNo', { no: a.version_no })}</span>
+          <span>{t('versions.versionNo', { no: b.version_no })}</span>
         </div>
         {rows.map((row, i) => (
           <div key={i} className={`grid grid-cols-3 px-3 py-2 text-xs gap-2 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
@@ -202,6 +206,6 @@ function VersionCompare({ a, b, module }: { a: Version; b: Version; module: stri
   }
 
   return (
-    <p className="text-xs text-slate-400 text-center py-2">Vergleich für dieses Modul noch nicht verfügbar.</p>
+    <p className="text-xs text-slate-400 text-center py-2">{t('versions.compareNotAvailable')}</p>
   )
 }

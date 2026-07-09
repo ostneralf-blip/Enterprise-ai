@@ -13,11 +13,11 @@ import type { Archetype, Tier } from '@/types'
 type GovernanceVerdict = 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve'
 type TopUseCase = { id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null; governance_result: GovernanceVerdict | null }
 
-const GOVERNANCE_BADGE: Record<GovernanceVerdict, { label: string; className: string }> = {
-  approve:    { label: '✓ Freigegeben',  className: 'bg-emerald-100 text-emerald-700' },
-  improve:    { label: '⚠ Bedingt',      className: 'bg-amber-100 text-amber-700' },
-  stop_risk:  { label: '✗ Risiko-Stop',  className: 'bg-red-100 text-red-700' },
-  stop_dsgvo: { label: '✗ DSGVO-Stop',   className: 'bg-red-100 text-red-700' },
+const GOVERNANCE_BADGE_CLASS: Record<GovernanceVerdict, string> = {
+  approve:    'bg-emerald-100 text-emerald-700',
+  improve:    'bg-amber-100 text-amber-700',
+  stop_risk:  'bg-red-100 text-red-700',
+  stop_dsgvo: 'bg-red-100 text-red-700',
 }
 type MilestoneStatus = 'not_started' | 'in_progress' | 'done'
 type SavedRoadmap = { id: string; archetype: string; phases: unknown[] }
@@ -79,6 +79,12 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
 export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
+  const governanceBadgeLabel: Record<GovernanceVerdict, string> = {
+    approve:    `✓ ${t('architecture.governanceApprove')}`,
+    improve:    `⚠ ${t('architecture.governanceImprove')}`,
+    stop_risk:  `✗ ${t('architecture.governanceStopRisk')}`,
+    stop_dsgvo: `✗ ${t('architecture.governanceStopDsgvo')}`,
+  }
   const [archetype, setArchetype] = useState<Archetype>(
     (savedRoadmap?.archetype as Archetype | undefined) ?? initialArchetype ?? 'starter'
   )
@@ -147,13 +153,13 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             <div className="mt-1 mb-2 space-y-1">
               {linkedCanvas.data.problem && (
                 <p className="text-xs text-primary-hover opacity-90">
-                  <span className="font-medium">Problem: </span>
+                  <span className="font-medium">{t('roadmap.problemLabel')} </span>
                   {linkedCanvas.data.problem.length > 120 ? `${linkedCanvas.data.problem.slice(0, 120)}…` : linkedCanvas.data.problem}
                 </p>
               )}
               {linkedCanvas.data.kpis && (
                 <p className="text-xs text-primary-hover opacity-90">
-                  <span className="font-medium">KPIs: </span>
+                  <span className="font-medium">{t('roadmap.kpisPrefix')} </span>
                   {linkedCanvas.data.kpis.length > 100 ? `${linkedCanvas.data.kpis.slice(0, 100)}…` : linkedCanvas.data.kpis}
                 </p>
               )}
@@ -223,8 +229,8 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                     <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
                   )}
                   {uc.governance_result && (
-                    <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0', GOVERNANCE_BADGE[uc.governance_result].className)}>
-                      {GOVERNANCE_BADGE[uc.governance_result].label}
+                    <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0', GOVERNANCE_BADGE_CLASS[uc.governance_result])}>
+                      {governanceBadgeLabel[uc.governance_result]}
                     </span>
                   )}
                 </div>
@@ -267,7 +273,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Maßnahmen</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{t('roadmap.measuresLabel')}</p>
                   <ul className="space-y-2" role="list">
                     {phase.actions.map((action, i) => {
                       const key = `${phaseId}_${i}`
@@ -291,7 +297,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   </ul>
                   {phaseId === 'phase1' && linkedCanvas?.data.next_steps && (
                     <div className="mt-3 pt-3 border-t border-slate-200/60">
-                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Aus Ihrem Canvas</p>
+                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">{t('roadmap.fromCanvas')}</p>
                       <p className="text-sm text-slate-600">
                         {linkedCanvas.data.next_steps.length > 250
                           ? `${linkedCanvas.data.next_steps.slice(0, 250)}…`
@@ -301,7 +307,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Ziel-KPIs</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{t('roadmap.kpisLabel')}</p>
                   <ul className="space-y-2" role="list">
                     {phase.kpis.map((kpi, i) => (
                       <li key={i} className="flex items-start gap-2">
@@ -312,7 +318,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   </ul>
                   {phaseId === 'phase1' && linkedCanvas?.data.kpis && (
                     <div className="mt-3 pt-3 border-t border-slate-200/60">
-                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">Ihre KPIs (Canvas)</p>
+                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-1">{t('roadmap.canvasKpisLabel')}</p>
                       <p className="text-sm text-slate-600">
                         {linkedCanvas.data.kpis.length > 200
                           ? `${linkedCanvas.data.kpis.slice(0, 200)}…`

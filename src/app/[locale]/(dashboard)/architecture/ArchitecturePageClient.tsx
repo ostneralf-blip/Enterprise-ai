@@ -21,13 +21,6 @@ const ARCHETYPE_LABELS: Record<string, string> = {
   transformer: 'Transformer',
 }
 
-const GOVERNANCE_LABELS: Record<string, string> = {
-  approve: 'Freigegeben',
-  stop_dsgvo: 'DSGVO-Stop',
-  stop_risk: 'Risiko-Stop',
-  improve: 'Verbesserung nötig',
-}
-
 const GOVERNANCE_COLORS: Record<string, string> = {
   approve: 'text-green-700 bg-green-50',
   stop_dsgvo: 'text-red-700 bg-red-50',
@@ -71,12 +64,6 @@ interface Props {
   synonyms?: CanvasSynonym[]
 }
 
-const COMPLIANCE_PRESET_LABELS: Record<string, string> = {
-  strict:    'Strenge Regulierung (Hochrisiko EU AI Act)',
-  moderate:  'Moderate Anforderungen (DSGVO + EU)',
-  low:       'Geringe Anforderungen',
-  undefined: 'Noch nicht definiert',
-}
 
 interface ContextBannerProps {
   assessmentContext: AssessmentContext | null | undefined
@@ -86,37 +73,50 @@ interface ContextBannerProps {
 }
 
 function ContextBanner({ assessmentContext, governanceContext, compliancePreset, roadmapContext }: ContextBannerProps) {
+  const t = useTranslations('modules')
   if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
+  const governanceLabel: Record<string, string> = {
+    approve:    t('architecture.governanceApprove'),
+    improve:    t('architecture.governanceImprove'),
+    stop_dsgvo: t('architecture.governanceStopDsgvo'),
+    stop_risk:  t('architecture.governanceStopRisk'),
+  }
+  const complianceLabel: Record<string, string> = {
+    strict:    t('architecture.complianceStrict'),
+    moderate:  t('architecture.complianceModerate'),
+    low:       t('architecture.complianceLow'),
+    undefined: t('architecture.complianceUndefined'),
+  }
   return (
     <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-primary space-y-1.5">
-      <p className="font-semibold text-primary">Kontext aus anderen Modulen</p>
+      <p className="font-semibold text-primary">{t('architecture.contextTitle')}</p>
       {assessmentContext?.archetype && (
         <p>
-          <span className="font-medium">Reifegradprofil:</span>{' '}
+          <span className="font-medium">{t('architecture.contextMaturity')}</span>{' '}
           {ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype}
           {' '}(Score: {assessmentContext.total_score})
         </p>
       )}
       {governanceContext?.result && (
         <p>
-          <span className="font-medium">Governance-Prüfung:</span>{' '}
+          <span className="font-medium">{t('architecture.contextGovernance')}</span>{' '}
           {governanceContext.use_case_name && <span>{governanceContext.use_case_name} — </span>}
           <span className={cn('px-1.5 py-0.5 rounded font-medium', GOVERNANCE_COLORS[governanceContext.result] ?? 'text-slate-700 bg-slate-100')}>
-            {GOVERNANCE_LABELS[governanceContext.result] ?? governanceContext.result}
+            {governanceLabel[governanceContext.result] ?? governanceContext.result}
           </span>
         </p>
       )}
       {compliancePreset && (
         <p>
-          <span className="font-medium">Compliance (vorausgefüllt):</span>{' '}
-          {COMPLIANCE_PRESET_LABELS[compliancePreset] ?? compliancePreset}
+          <span className="font-medium">{t('architecture.contextCompliance')}</span>{' '}
+          {complianceLabel[compliancePreset] ?? compliancePreset}
         </p>
       )}
       {roadmapContext && (
         <p>
-          <span className="font-medium">Roadmap:</span>{' '}
+          <span className="font-medium">{t('architecture.roadmapLabel')}</span>{' '}
           {roadmapContext.title}
-          {roadmapContext.phasesCount > 0 && ` · ${roadmapContext.phasesCount} Phasen`}
+          {roadmapContext.phasesCount > 0 && ` · ${t('architecture.phasesLabel', { count: roadmapContext.phasesCount })}`}
         </p>
       )}
     </div>
@@ -149,13 +149,13 @@ function CanvasContextBanner({
     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-5">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-emerald-700 font-semibold text-xs shrink-0">◧ Kontext aus Canvas &amp; Scoring</span>
+          <span className="text-emerald-700 font-semibold text-xs shrink-0">◧ {t('architecture.canvasContextLabel')}</span>
           <span className="text-xs text-emerald-600 truncate">{canvasTitle} · {useCaseName}</span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => setCollapsed(v => !v)}
-            aria-label={collapsed ? 'Ausklappen' : 'Einklappen'}
+            aria-label={collapsed ? t('architecture.expandAriaLabel') : t('architecture.collapseAriaLabel')}
             className="text-xs text-emerald-700 hover:text-emerald-900 p-1"
           >
             {collapsed ? '▾' : '▴'}
@@ -180,7 +180,7 @@ function CanvasContextBanner({
             ))}
           </div>
           <p className="text-[10px] text-emerald-600 mt-1.5">
-            {filledCount} von 12 Wizard-Schritten vorausgefüllt · Alle Felder können überschrieben werden
+            {t('architecture.prefillHint', { count: filledCount })}
           </p>
         </>
       )}
@@ -314,6 +314,7 @@ function CatalogRecommendationsCard({
 }
 
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [] }: Props) {
+  const t = useTranslations('modules')
   const locale = useLocale()
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
@@ -474,17 +475,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       <div className="max-w-2xl space-y-5">
         <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-slate-900">Gespeicherte Architekturen ({architectures.length})</h2>
+          <h2 className="text-sm font-semibold text-slate-900">{t('architecture.savedTitle', { count: architectures.length })}</h2>
           <button
             onClick={handleNewWizard}
             className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            Neue Architektur →
+            {t('architecture.newButton')}
           </button>
         </div>
         {architectures.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-sm">
-            Noch keine Architektur gespeichert.
+            {t('architecture.emptyList')}
           </div>
         ) : (
           <ul className="space-y-3" role="list">
@@ -495,7 +496,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     <p className="text-sm font-semibold text-slate-900 truncate">{arch.title ?? arch.result.pattern}</p>
                     <p className="text-xs text-slate-500 mt-0.5">{arch.result.pattern}</p>
                     <p className="text-xs text-slate-400 mt-1">
-                      {new Date(arch.updated_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      {new Date(arch.updated_at).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
@@ -503,15 +504,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       onClick={() => handleViewSaved(arch)}
                       className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                     >
-                      Ansehen
+                      {t('architecture.viewButton')}
                     </button>
                     <button
                       onClick={() => handleDelete(arch.id)}
                       disabled={deletingId === arch.id}
-                      aria-label={`Architektur ${arch.title ?? arch.result.pattern} löschen`}
+                      aria-label={t('architecture.deleteAriaLabel', { title: arch.title ?? arch.result.pattern })}
                       className="px-3 py-1.5 text-xs font-medium border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors whitespace-nowrap disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                     >
-                      {deletingId === arch.id ? '…' : 'Löschen'}
+                      {deletingId === arch.id ? '…' : t('architecture.deleteButton')}
                     </button>
                   </div>
                 </div>
@@ -532,7 +533,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <div className={cn('rounded-2xl border p-5 sm:p-6', result.color.bg, result.color.border)}>
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', result.color.badge)}>
-              Empfohlenes Muster
+              {t('architecture.patternBadge')}
             </span>
           </div>
           <h2 className={cn('text-base sm:text-lg font-semibold mb-1', result.color.title)}>{result.pattern}</h2>
@@ -560,8 +561,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               return (
                 <p className={cn('text-xs mt-1', days > 30 ? 'text-amber-600' : 'text-slate-400')}>
                   {days > 30
-                    ? `⚠ Katalog zuletzt aktualisiert vor ${days} Tagen — Admin-Panel → Sync empfohlen`
-                    : `Katalog aktualisiert: ${new Date(latest.updated_at).toLocaleDateString('de-DE')}`
+                    ? t('architecture.catalogStale', { days })
+                    : `${t('architecture.catalogUpdated')} ${new Date(latest.updated_at).toLocaleDateString(locale)}`
                   }
                 </p>
               )
@@ -580,12 +581,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 <span className="text-amber-600 text-lg flex-shrink-0" aria-hidden="true">⚠</span>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-semibold text-amber-900 mb-1">
-                    DSGVO-Hinweis: Bedingte Konformität
+                    {t('architecture.dsgvoWarningTitle')}
                   </h3>
                   <p className="text-xs text-amber-800 mb-2 leading-relaxed">
-                    Die folgenden empfohlenen Komponenten sind nur bedingt DSGVO-konform. Ein{' '}
-                    <strong>Auftragsverarbeitungsvertrag (AVV)</strong> mit dem Anbieter sowie eine{' '}
-                    Datenschutz-Folgenabschätzung (DSFA) können erforderlich sein:
+                    {t('architecture.dsgvoWarningBody')}
                   </p>
                   <ul className="mb-3 space-y-1">
                     {conditionalComps.map(c => (
@@ -601,12 +600,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       onClick={() => setDsgvoConfirmed(true)}
                       className="text-xs font-medium px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
                     >
-                      Ich bestätige, das Risiko ist bekannt
+                      {t('architecture.dsgvoConfirmButton')}
                     </button>
                   )}
                   {dsgvoConfirmed && (
                     <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
-                      <span aria-hidden="true">✓</span> Risiko bestätigt — Architektur kann gespeichert werden
+                      <span aria-hidden="true">✓</span> {t('architecture.dsgvoConfirmedMsg')}
                     </p>
                   )}
                 </div>
@@ -629,7 +628,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           return (
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">Schlüssel-Entscheidungen</h3>
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.keyDecisions')}</h3>
                 <ul className="space-y-2.5" role="list">
                   {allDecisions.map((decision, i) => (
                     <li key={i} className="flex gap-2.5 text-xs text-slate-600">
@@ -642,7 +641,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 </ul>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">Nächste Schritte</h3>
+                <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.nextSteps')}</h3>
                 <ul className="space-y-2.5" role="list">
                   {allSteps.map((s, i) => (
                     <li key={i} className="flex gap-2.5 text-xs text-slate-600">
@@ -664,7 +663,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             onClick={handleNewWizard}
             className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
-            Neue Architektur generieren
+            {t('architecture.newGenerate')}
           </button>
           {!saved && (() => {
             const needsDsgvoConfirm = recComponents.some(c => c.dsgvo_status === 'conditional') && !dsgvoConfirmed
@@ -672,15 +671,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               <button
                 onClick={handleSave}
                 disabled={saving || needsDsgvoConfirm}
-                title={needsDsgvoConfirm ? 'Bitte zuerst den DSGVO-Hinweis bestätigen' : undefined}
+                title={needsDsgvoConfirm ? t('architecture.dsgvoConfirmTitle') : undefined}
                 className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
               >
-                {saving ? 'Wird gespeichert…' : needsDsgvoConfirm ? 'DSGVO-Hinweis bestätigen ↑' : 'Architektur speichern'}
+                {saving ? t('architecture.saving') : needsDsgvoConfirm ? t('architecture.dsgvoBlockButton') : t('architecture.save')}
               </button>
             )
           })()}
           {saved && (
-            <span className="text-sm text-green-700 font-medium">✓ Gespeichert</span>
+            <span className="text-sm text-green-700 font-medium">{t('architecture.saved')}</span>
           )}
           <a
             href={`/api/export/pdf?module=architecture&locale=${locale}`}
