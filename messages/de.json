@@ -404,7 +404,8 @@
       "extrasEmptyState": "Aktivieren Sie oben ein Regelwerk, um die passende Checkliste anzuzeigen.",
       "regCountFulfilled": "{done}/{total} erfüllt",
       "regCountOpen": "· {count} offen",
-      "regProgress": "{label} Fortschritt"
+      "regProgress": "{label} Fortschritt",
+      "templatesEmpty": "Keine Policy-Templates verfügbar."
     },
     "architecture": {
       "title": "Architektur-Generator",

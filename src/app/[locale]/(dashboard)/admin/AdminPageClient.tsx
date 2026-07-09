@@ -25,6 +25,17 @@ const KNOWN_VENDORS = [
   'MongoDB', 'Chroma', 'unabhängig / Open Source',
 ]
 
+interface PolicyTemplate {
+  id: string
+  slug: string
+  locale: string
+  title: string
+  subtitle: string
+  content: string
+  is_published: boolean
+  display_order: number
+}
+
 interface Props {
   initialEntries: ContentLibraryEntry[]
   initialUsers?: UserProfile[]
@@ -34,9 +45,10 @@ interface Props {
   initialUploadLog?: CatalogUploadLog[]
   initialDrafts?: ComplianceSourceDraft[]
   initialSourceSnapshots?: SourceScanStatus[]
+  initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner'
+type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates'
 
 type FormState = {
   module: string
@@ -50,7 +62,7 @@ type FormState = {
 
 const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
 
-export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [] }: Props) {
+export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [], initialPolicyTemplates = [] }: Props) {
   const t = useTranslations('admin')
   const [tab, setTab] = useState<Tab>('content')
 
@@ -129,6 +141,41 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number; sources: ScanSourceResult[] } | null>(null)
   const [showArchive, setShowArchive] = useState(false)
   const [sourceSnapshots, setSourceSnapshots] = useState<SourceScanStatus[]>(initialSourceSnapshots)
+
+  // ── Policy Templates state ───────────────────────────────────────────────────
+  const [policyTemplates, setPolicyTemplates] = useState<PolicyTemplate[]>(initialPolicyTemplates)
+  const [ptEditing, setPtEditing] = useState<PolicyTemplate | null>(null)
+  const [ptSaving, setPtSaving] = useState(false)
+  const [ptError, setPtError] = useState<string | null>(null)
+
+  async function savePolicyTemplate(patch: Partial<PolicyTemplate>) {
+    if (!ptEditing) return
+    setPtSaving(true)
+    setPtError(null)
+    try {
+      const res = await fetch(`/api/admin/policy-templates?id=${ptEditing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      const json = await res.json()
+      if (!res.ok) { setPtError(json.error ?? 'Fehler'); return }
+      setPolicyTemplates(prev => prev.map(t => t.id === json.data.id ? json.data : t))
+      setPtEditing(null)
+    } finally {
+      setPtSaving(false)
+    }
+  }
+
+  async function togglePtPublished(tpl: PolicyTemplate) {
+    const res = await fetch(`/api/admin/policy-templates?id=${tpl.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_published: !tpl.is_published }),
+    })
+    const json = await res.json()
+    if (res.ok) setPolicyTemplates(prev => prev.map(t => t.id === json.data.id ? json.data : t))
+  }
 
   // ── Learn suggestions state ──────────────────────────────────────────────────
   type LearnSuggestion = { word: string; count: number; fields: string[]; suggested_type: CanvasSynonym['synonym_type'] }
@@ -736,6 +783,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['catalog', 'Komponenten-Katalog', componentCount],
           ['synonyms', 'Canvas-Synonyme', synonyms.length],
           ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
+          ['policy_templates', 'Policy Templates', policyTemplates.length],
         ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
@@ -2077,6 +2125,108 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               </>
             )
           })()}
+        </div>
+      )}
+
+      {/* ─── Policy Templates tab ────────────────────────────────────────────── */}
+      {tab === 'policy_templates' && (
+        <div className="space-y-4">
+          <p className="text-xs text-slate-400">
+            {policyTemplates.length} Templates (DE + EN) · Klicken Sie auf &bdquo;Bearbeiten&ldquo;, um Inhalt zu ändern. Veröffentlichungsstatus toggelbar.
+          </p>
+          {ptError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{ptError}</p>
+          )}
+
+          {['de', 'en'].map(loc => (
+            <div key={loc}>
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                {loc === 'de' ? 'Deutsch (DE)' : 'English (EN)'}
+              </h3>
+              <div className="space-y-2">
+                {policyTemplates.filter(t => t.locale === loc).sort((a, b) => a.display_order - b.display_order).map(tpl => (
+                  <div key={tpl.id} className="bg-white border border-slate-200 rounded-xl p-4">
+                    {ptEditing?.id === tpl.id ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">Titel</label>
+                          <input
+                            value={ptEditing.title}
+                            onChange={e => setPtEditing({ ...ptEditing, title: e.target.value })}
+                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">Untertitel</label>
+                          <input
+                            value={ptEditing.subtitle}
+                            onChange={e => setPtEditing({ ...ptEditing, subtitle: e.target.value })}
+                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">Inhalt (Markdown)</label>
+                          <textarea
+                            value={ptEditing.content}
+                            onChange={e => setPtEditing({ ...ptEditing, content: e.target.value })}
+                            rows={12}
+                            className="w-full text-xs font-mono border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => savePolicyTemplate({ title: ptEditing.title, subtitle: ptEditing.subtitle, content: ptEditing.content })}
+                            disabled={ptSaving}
+                            className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50"
+                          >
+                            {ptSaving ? 'Speichern…' : 'Speichern'}
+                          </button>
+                          <button
+                            onClick={() => setPtEditing(null)}
+                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
+                          >
+                            Abbrechen
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[10px] font-mono text-slate-400">{tpl.slug}</span>
+                            <span className={cn(
+                              'text-[10px] font-medium px-1.5 py-0.5 rounded-full border',
+                              tpl.is_published
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-slate-50 text-slate-400 border-slate-200'
+                            )}>
+                              {tpl.is_published ? '✓ Veröffentlicht' : '○ Entwurf'}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-900">{tpl.title}</p>
+                          <p className="text-xs text-slate-400">{tpl.subtitle}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <button
+                            onClick={() => togglePtPublished(tpl)}
+                            className="px-2.5 py-1 text-[10px] font-medium border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50"
+                          >
+                            {tpl.is_published ? 'Verbergen' : 'Veröffentlichen'}
+                          </button>
+                          <button
+                            onClick={() => setPtEditing(tpl)}
+                            className="px-2.5 py-1 text-[10px] font-medium bg-primary text-white rounded-lg hover:bg-primary-hover"
+                          >
+                            Bearbeiten
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

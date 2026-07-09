@@ -9,13 +9,22 @@ import {
   DSGVO_CHECKLIST,
   RISK_MATRIX,
   getRiskLevel,
-  POLICY_TEMPLATES,
   ADDITIONAL_REGULATIONS,
   REGULATORY_WATCHLIST,
   type CheckRow,
   type CheckStatus,
   type EuAiActRiskClass,
 } from '@/config/compliance-data'
+
+interface DbPolicyTemplate {
+  id: string
+  slug: string
+  locale: string
+  title: string
+  subtitle: string
+  content: string
+  display_order: number
+}
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
 
@@ -29,13 +38,14 @@ const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIE
 
 interface Props {
   initialChecks: CheckRow[]
+  policyTemplates?: DbPolicyTemplate[]
 }
 
 function makeKey(regulation: string, checkType: string) {
   return `${regulation}::${checkType}`
 }
 
-export function CompliancePageClient({ initialChecks }: Props) {
+export function CompliancePageClient({ initialChecks, policyTemplates = [] }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [tab, setTab] = useState<Tab>('euaiact')
@@ -516,16 +526,19 @@ export function CompliancePageClient({ initialChecks }: Props) {
       {/* ── POLICY TEMPLATES ── */}
       {tab === 'templates' && (
         <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" className="space-y-4">
-          {POLICY_TEMPLATES.map(tpl => (
+          {policyTemplates.length === 0 && (
+            <p className="text-sm text-slate-400 text-center py-8">{t('compliance.templatesEmpty')}</p>
+          )}
+          {policyTemplates.map(tpl => (
             <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
-                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{pick(tpl.title, locale)}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">{pick(tpl.subtitle, locale)}</p>
+                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{tpl.title}</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">{tpl.subtitle}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(tpl.id, tpl.content)}
-                  aria-label={t('compliance.copyAriaLabel', { title: pick(tpl.title, locale) })}
+                  aria-label={t('compliance.copyAriaLabel', { title: tpl.title })}
                   className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                 >
                   {copied === tpl.id ? t('compliance.copiedButton') : t('compliance.copyButton')}

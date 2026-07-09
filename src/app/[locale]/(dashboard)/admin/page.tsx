@@ -21,7 +21,7 @@ export default async function AdminPage() {
 
   // Service-role client bypasses RLS to load all user profiles
   const adminClient = await createAdminClient()
-  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }, { data: uploadLog }, { data: drafts }, { data: snapshots }] = await Promise.all([
+  const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }, { data: uploadLog }, { data: drafts }, { data: snapshots }, { data: policyTemplates }] = await Promise.all([
     adminClient
       .from('content_library')
       .select('*')
@@ -60,6 +60,11 @@ export default async function AdminPage() {
       .select('url, label, fetched_at')
       .order('fetched_at', { ascending: false })
       .limit(25),
+    adminClient
+      .from('policy_templates')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('locale', { ascending: true }),
   ])
 
   // Letzten Scan-Zeitpunkt je Quelle ermitteln (neuester Snapshot gewinnt)
@@ -83,6 +88,7 @@ export default async function AdminPage() {
       initialUploadLog={(uploadLog ?? []) as CatalogUploadLog[]}
       initialDrafts={(drafts ?? []) as ComplianceSourceDraft[]}
       initialSourceSnapshots={initialSourceSnapshots}
+      initialPolicyTemplates={policyTemplates ?? []}
     />
   )
 }

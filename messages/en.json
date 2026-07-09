@@ -405,7 +405,8 @@
       "extrasEmptyState": "Activate a regulation above to display the corresponding checklist.",
       "regCountFulfilled": "{done}/{total} fulfilled",
       "regCountOpen": "· {count} open",
-      "regProgress": "{label} progress"
+      "regProgress": "{label} progress",
+      "templatesEmpty": "No policy templates available."
     },
     "architecture": {
       "title": "Architecture Generator",
