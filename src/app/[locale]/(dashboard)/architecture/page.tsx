@@ -80,7 +80,7 @@ export default async function ArchitecturePage({
       .select('*')
       .eq('is_active', true),
     supabase.from('roles_catalog')
-      .select('role_name, role_category, description')
+      .select('role_name, role_category, description, responsibilities, raci_activities')
       .eq('is_active', true),
   ])
 
@@ -161,7 +161,7 @@ export default async function ArchitecturePage({
         canvasContext={canvasContext}
         roadmapContext={roadmapContext}
         synonyms={(synonyms ?? []) as CanvasSynonym[]}
-        rolesCatalog={(rolesCatalog ?? []) as { role_name: string; role_category: string | null; description: string | null }[]}
+        rolesCatalog={(rolesCatalog ?? []) as { role_name: string; role_category: string | null; description: string | null; responsibilities: string[] | null; raci_activities: { activity: string; type: string }[] | null }[]}
       />
     </div>
   )

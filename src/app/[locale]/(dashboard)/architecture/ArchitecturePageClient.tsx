@@ -57,7 +57,17 @@ interface RoleCatalogEntry {
   role_name: string
   role_category: string | null
   description: string | null
+  responsibilities: string[] | null
+  raci_activities: { activity: string; type: string }[] | null
 }
+
+const RACI_COLORS: Record<string, string> = {
+  R: 'bg-blue-100 text-blue-800 border-blue-200',
+  A: 'bg-amber-100 text-amber-800 border-amber-200',
+  C: 'bg-violet-100 text-violet-800 border-violet-200',
+  I: 'bg-slate-100 text-slate-600 border-slate-200',
+}
+const RACI_LABEL: Record<string, string> = { R: 'Responsible', A: 'Accountable', C: 'Consulted', I: 'Informed' }
 
 const ROLE_CATEGORY_CLASS: Record<string, string> = {
   strategic:   'bg-blue-50 border-blue-200 text-blue-800',
@@ -271,8 +281,10 @@ function CatalogRecommendationsCard({
   rolesCatalog?: RoleCatalogEntry[]
 }) {
   const t = useTranslations('modules')
+  const tc = useTranslations('common')
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
   const catalogMap = Object.fromEntries(rolesCatalog.map(r => [r.role_name, r]))
+  const [selectedRole, setSelectedRole] = useState<RoleCatalogEntry | null>(null)
   const layerLabelT: Record<string, string> = {
     data: t('architecture.layerData'), model: t('architecture.layerModel'),
     mlops: 'MLOps', serving: 'Serving', governance: 'Governance', security: 'Security',
@@ -331,13 +343,23 @@ function CatalogRecommendationsCard({
           {recs.roleNames.map(role => {
             const entry = catalogMap[role]
             const cls = entry?.role_category ? (ROLE_CATEGORY_CLASS[entry.role_category] ?? 'bg-primary-soft border-primary-border text-primary-hover') : 'bg-primary-soft border-primary-border text-primary-hover'
-            return (
-              <span key={role} title={entry?.description ?? undefined} className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium', cls)}>
+            return entry ? (
+              <button
+                key={role}
+                type="button"
+                onClick={() => setSelectedRole(entry)}
+                className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium transition-opacity hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1', cls)}
+              >
                 {role}
-              </span>
+              </button>
+            ) : (
+              <span key={role} className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium', cls)}>{role}</span>
             )
           })}
         </div>
+        {selectedRole && (
+          <RoleDetailModal role={selectedRole} onClose={() => setSelectedRole(null)} tc={tc} />
+        )}
       </div>
     </div>
   )
@@ -917,6 +939,75 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
             </div>
           )}
         </dl>
+      </div>
+    </div>
+  )
+}
+
+function RoleDetailModal({ role, onClose, tc }: {
+  role: RoleCatalogEntry
+  onClose: () => void
+  tc: (key: string) => string
+}) {
+  const catClass = role.role_category ? (ROLE_CATEGORY_CLASS[role.role_category] ?? '') : ''
+  return (
+    <div role="dialog" aria-modal="true" aria-labelledby="role-modal-title" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="relative bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0">
+            <h2 id="role-modal-title" className="text-sm font-semibold text-slate-900">{role.role_name}</h2>
+            {role.role_category && (
+              <span className={cn('mt-1 inline-block text-[10px] font-medium px-2 py-0.5 border rounded-full', catClass)}>
+                {role.role_category}
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} aria-label={tc('close')} className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5">✕</button>
+        </div>
+
+        {role.description && (
+          <p className="text-xs text-slate-600 mb-4 leading-relaxed">{role.description}</p>
+        )}
+
+        {role.responsibilities && role.responsibilities.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-slate-700 mb-2">Verantwortlichkeiten</p>
+            <ul className="space-y-1.5">
+              {role.responsibilities.map((r, i) => (
+                <li key={i} className="flex gap-2 text-xs text-slate-600">
+                  <span className="flex-shrink-0 text-primary mt-0.5">•</span>
+                  <span className="min-w-0">{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {role.raci_activities && role.raci_activities.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-slate-700 mb-2">RACI</p>
+            <div className="space-y-1.5">
+              {role.raci_activities.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className={cn('flex-shrink-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold border rounded', RACI_COLORS[item.type] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+                    {item.type}
+                  </span>
+                  <span className="text-xs text-slate-600 min-w-0">{item.activity}</span>
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap">{RACI_LABEL[item.type]}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+              {Object.entries(RACI_LABEL).map(([k, v]) => (
+                <span key={k} className="flex items-center gap-1 text-[10px] text-slate-500">
+                  <span className={cn('w-4 h-4 flex items-center justify-center font-bold border rounded text-[9px]', RACI_COLORS[k])}>{k}</span>
+                  {v}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
