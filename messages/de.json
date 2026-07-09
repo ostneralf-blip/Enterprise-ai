@@ -732,7 +732,9 @@
       "versions": "Versionierung",
       "sharing": "Sharing-Links",
       "allModules": "Alle 7 Module"
-    }
+    },
+    "withdrawalWaiverLabel": "Ich stimme ausdrücklich zu, dass Sie mit der Ausführung des Vertrags vor Ablauf der Widerrufsfrist beginnen. Ich habe zur Kenntnis genommen, dass ich mein Widerrufsrecht mit Beginn der Ausführung verliere.",
+    "withdrawalWaiverRequired": "Bitte bestätigen Sie den Widerrufsrechtsverzicht, um fortzufahren."
   },
   "feedback": {
     "question": "War dieses Tool hilfreich?",

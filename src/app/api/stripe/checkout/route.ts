@@ -3,7 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { createCheckoutSession } from '@/lib/stripe/client'
 import { z } from 'zod'
 
-const schema = z.object({ interval: z.enum(['monthly', 'yearly']) })
+const schema = z.object({
+  interval: z.enum(['monthly', 'yearly']),
+  confirmed_withdrawal_waiver: z.literal(true),
+})
 
 export async function POST(req: Request) {
   try {

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { track } from '@/lib/posthog/client'
 
 const FEATURES = [
@@ -14,10 +15,18 @@ const FEATURES = [
 ]
 
 export function UpgradePageClient() {
+  const t = useTranslations('upgrade')
   const [loading, setLoading] = useState<'monthly' | 'yearly' | null>(null)
   const [error, setError] = useState('')
+  const [withdrawalWaiver, setWithdrawalWaiver] = useState(false)
+  const [waiverError, setWaiverError] = useState(false)
 
   const handleUpgrade = async (interval: 'monthly' | 'yearly') => {
+    if (!withdrawalWaiver) {
+      setWaiverError(true)
+      return
+    }
+    setWaiverError(false)
     setLoading(interval)
     setError('')
     track('upgrade_clicked', { feature: 'upgrade_page', interval })
@@ -26,7 +35,7 @@ export function UpgradePageClient() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interval }),
+        body: JSON.stringify({ interval, confirmed_withdrawal_waiver: true }),
       })
       const data = await res.json()
       if (data.url) {
@@ -63,6 +72,27 @@ export function UpgradePageClient() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* § 356a BGB — Widerrufsrechtsverzicht */}
+      <div className={`mb-6 p-4 border rounded-xl ${waiverError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'}`}>
+        <label className="flex gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={withdrawalWaiver}
+            onChange={e => {
+              setWithdrawalWaiver(e.target.checked)
+              if (e.target.checked) setWaiverError(false)
+            }}
+            className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-slate-300 text-primary focus:ring-primary"
+          />
+          <span className="text-xs text-slate-600 leading-relaxed">
+            {t('withdrawalWaiverLabel')}
+          </span>
+        </label>
+        {waiverError && (
+          <p className="mt-2 text-xs text-red-600 pl-7">{t('withdrawalWaiverRequired')}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

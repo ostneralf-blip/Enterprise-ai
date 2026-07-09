@@ -733,7 +733,9 @@
       "versions": "Versioning",
       "sharing": "Sharing links",
       "allModules": "All 7 modules"
-    }
+    },
+    "withdrawalWaiverLabel": "I expressly agree that you begin performing the contract before the end of the withdrawal period. I acknowledge that I lose my right of withdrawal once performance has begun.",
+    "withdrawalWaiverRequired": "Please confirm the withdrawal waiver to proceed."
   },
   "feedback": {
     "question": "Was this tool helpful?",
