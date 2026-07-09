@@ -173,7 +173,22 @@
     "step7Desc": "PDF-Export & Überblick",
     "savedResultsLabel": "gespeicherte Ergebnisse",
     "portfolioLabel": "Use Cases bewertet",
-    "portfolioLabelOne": "Use Case bewertet"
+    "portfolioLabelOne": "Use Case bewertet",
+    "pathTitle": "Ihr geführter AI-Pfad",
+    "pathCompleted": "{done}/{total} abgeschlossen",
+    "pathProgressAria": "Fortschritt: {done} von {total} Schritten abgeschlossen",
+    "pathStepsAria": "Geführter AI-Pfad Schritte",
+    "pathStepAriaDone": "Schritt {step}: {title} (abgeschlossen)",
+    "pathStepAriaCurrent": "Schritt {step}: {title} (aktuell empfohlen)",
+    "pathStepAria": "Schritt {step}: {title}",
+    "pathNextLabel": "Nächster Schritt · {step} von {total}",
+    "pathAllDoneTitle": "AI-Navigator Pfad vollständig!",
+    "pathAllDoneDesc": "Alle Module abgeschlossen — Ergebnisse in PDF zusammenfassen.",
+    "tileDone": "✓ Erledigt — Ergebnis ansehen",
+    "tileNext": "Nächster Schritt →",
+    "tileStart": "Starten →",
+    "tileDragAria": "{title} verschieben",
+    "tileResetOrder": "Reihenfolge zurücksetzen"
   },
   "landing": {
     "eyebrow": "Enterprise AI Toolset · Version 1.0",

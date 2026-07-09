@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
 
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function GuidedPathHero({ steps, tier }: Props) {
+  const t = useTranslations('dashboard')
   const [mounted, setMounted] = useState(false)
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, [])
@@ -48,8 +50,8 @@ export function GuidedPathHero({ steps, tier }: Props) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-slate-700">Ihr geführter AI-Pfad</h2>
-        <span className="text-xs text-slate-400">{completedCount}/{steps.length} abgeschlossen</span>
+        <h2 className="text-sm font-semibold text-slate-700">{t('pathTitle')}</h2>
+        <span className="text-xs text-slate-400">{t('pathCompleted', { done: completedCount, total: steps.length })}</span>
       </div>
 
       {/* Fortschrittsbalken */}
@@ -61,7 +63,7 @@ export function GuidedPathHero({ steps, tier }: Props) {
           aria-valuenow={progressPct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Fortschritt: ${completedCount} von ${steps.length} Schritten abgeschlossen`}
+          aria-label={t('pathProgressAria', { done: completedCount, total: steps.length })}
         />
       </div>
 
@@ -69,7 +71,7 @@ export function GuidedPathHero({ steps, tier }: Props) {
       <ul
         className="grid gap-1 mb-4 list-none p-0 m-0"
         style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
-        aria-label="Geführter AI-Pfad Schritte"
+        aria-label={t('pathStepsAria')}
       >
         {steps.map((s) => {
           const isCurrent = s === nextStep
@@ -78,7 +80,7 @@ export function GuidedPathHero({ steps, tier }: Props) {
             <li key={s.step}>
               <Link
                 href={isLocked ? '/upgrade' : s.href}
-                aria-label={`Schritt ${s.step}: ${s.title}${s.done ? ' (abgeschlossen)' : isCurrent ? ' (aktuell empfohlen)' : ''}`}
+                aria-label={s.done ? t('pathStepAriaDone', { step: s.step, title: s.title }) : isCurrent ? t('pathStepAriaCurrent', { step: s.step, title: s.title }) : t('pathStepAria', { step: s.step, title: s.title })}
                 className={cn(
                   'flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border transition-[transform,box-shadow] duration-150 text-center',
                   'hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none',
@@ -110,11 +112,11 @@ export function GuidedPathHero({ steps, tier }: Props) {
         <Link
           href={nextStep.proOnly && tier === 'free' ? '/upgrade' : nextStep.href}
           className="group flex items-center gap-3 bg-primary hover:bg-primary-hover text-white rounded-lg px-4 py-3 transition-colors"
-          aria-label={`Nächster Schritt: ${nextStep.title}`}
+          aria-label={t('pathStepAriaCurrent', { step: nextStep.step, title: nextStep.title })}
         >
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-medium text-white/70 mb-0.5">
-              Nächster Schritt · {nextStep.step} von {steps.length}
+              {t('pathNextLabel', { step: nextStep.step, total: steps.length })}
             </div>
             <div className="text-sm font-semibold">{nextStep.title}</div>
           </div>
@@ -129,8 +131,8 @@ export function GuidedPathHero({ steps, tier }: Props) {
         <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
           <span className="text-xl" aria-hidden="true">✓</span>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-emerald-800">AI-Navigator Pfad vollständig!</div>
-            <div className="text-xs text-emerald-600">Alle Module abgeschlossen — Ergebnisse in PDF zusammenfassen.</div>
+            <div className="text-sm font-semibold text-emerald-800">{t('pathAllDoneTitle')}</div>
+            <div className="text-xs text-emerald-600">{t('pathAllDoneDesc')}</div>
           </div>
         </div>
       )}

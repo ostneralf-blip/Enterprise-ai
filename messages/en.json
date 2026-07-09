@@ -173,7 +173,22 @@
     "step7Desc": "PDF export & overview",
     "savedResultsLabel": "saved results",
     "portfolioLabel": "use cases scored",
-    "portfolioLabelOne": "use case scored"
+    "portfolioLabelOne": "use case scored",
+    "pathTitle": "Your guided AI path",
+    "pathCompleted": "{done}/{total} completed",
+    "pathProgressAria": "Progress: {done} of {total} steps completed",
+    "pathStepsAria": "Guided AI path steps",
+    "pathStepAriaDone": "Step {step}: {title} (completed)",
+    "pathStepAriaCurrent": "Step {step}: {title} (currently recommended)",
+    "pathStepAria": "Step {step}: {title}",
+    "pathNextLabel": "Next step · {step} of {total}",
+    "pathAllDoneTitle": "AI Navigator path complete!",
+    "pathAllDoneDesc": "All modules completed — compile your results into a PDF.",
+    "tileDone": "✓ Completed — View result",
+    "tileNext": "Next step →",
+    "tileStart": "Start →",
+    "tileDragAria": "Move {title}",
+    "tileResetOrder": "Reset order"
   },
   "landing": {
     "eyebrow": "Enterprise AI Toolset · Version 1.0",

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   DndContext,
   closestCenter,
@@ -47,6 +48,7 @@ export interface TileData {
 }
 
 function SortableTile({ tile }: { tile: TileData }) {
+  const t = useTranslations('dashboard')
   const {
     attributes,
     listeners,
@@ -69,9 +71,9 @@ function SortableTile({ tile }: { tile: TileData }) {
   const chipIcon = tile.locked ? 'text-slate-400' : tile.done ? 'text-emerald-700' : tile.isNext ? 'text-white'  : 'text-primary'
 
   const statusText  = tile.locked ? '🔒 Pro'
-    : tile.done   ? '✓ Erledigt — Ergebnis ansehen'
-    : tile.isNext ? 'Nächster Schritt →'
-    : 'Starten →'
+    : tile.done   ? t('tileDone')
+    : tile.isNext ? t('tileNext')
+    : t('tileStart')
   const statusColor = tile.locked ? 'text-slate-400' : tile.done ? 'text-emerald-700' : 'text-primary'
 
   return (
@@ -89,7 +91,7 @@ function SortableTile({ tile }: { tile: TileData }) {
           {...listeners}
           {...attributes}
           className="absolute top-1.5 right-1.5 w-9 h-9 z-10 flex items-center justify-center text-slate-200 hover:text-slate-400 rounded-md touch-none cursor-grab active:cursor-grabbing opacity-40 group-hover/tile:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
-          aria-label={`${tile.title} verschieben`}
+          aria-label={t('tileDragAria', { title: tile.title })}
           onClick={e => e.preventDefault()}
         >
           <GripVertical size={13} />
@@ -121,6 +123,7 @@ interface SortableTileGridProps {
 }
 
 export function SortableTileGrid({ tiles: defaultTiles }: SortableTileGridProps) {
+  const t = useTranslations('dashboard')
   const [tiles, setTiles] = useState(defaultTiles)
   const trackedRef = useRef(false)
 
@@ -195,7 +198,7 @@ export function SortableTileGrid({ tiles: defaultTiles }: SortableTileGridProps)
             onClick={handleReset}
             className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-2"
           >
-            Reihenfolge zurücksetzen
+            {t('tileResetOrder')}
           </button>
         </div>
       )}
