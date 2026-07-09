@@ -205,8 +205,8 @@ export interface ArchitectureResult {
   summary: string
   color: { bg: string; border: string; badge: string; title: string }
   layers: ArchitectureLayer[]
-  keyDecisions: string[]
-  nextSteps: string[]
+  keyDecisions: { de: string; en: string }[]
+  nextSteps: { de: string; en: string }[]
 }
 
 const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
@@ -220,8 +220,20 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
       { name: 'Serving & Monitoring', role: 'Modell-Deployment und Betriebsüberwachung', components: ['Container Orchestration', 'API Gateway', 'Model Monitoring', 'CI/CD für Modelle'], examples: 'z. B. Kubernetes/KServe + Kong + Prometheus/Grafana' },
       { name: 'Anwendung & Governance', role: 'Business-Integration und Compliance', components: ['Interne Anwendungen', 'AI Registry', 'Audit Logging', 'Cloud-native Observability'], examples: 'z. B. Power Apps + MLflow Registry + Cloud Monitor' },
     ],
-    keyDecisions: ['Cloud-Anbieter-Auswahl: Azure vs. AWS vs. GCP — Lock-in vs. Kostenstruktur abwägen', 'Zentrales Data Warehouse oder dezentrales Data Mesh?', 'Eigene MLOps-Pipeline oder Cloud-nativer Managed Service?', 'Feature Store: Zentralisiert (Feast/Tecton) oder Ad-hoc?', 'Multi-Tenant oder Single-Tenant für ML-Workloads?'],
-    nextSteps: ['Cloud-Anbieter evaluieren und ML-Plattform-PoC aufsetzen (Monat 1–2)', 'Data Lake und Warehouse Migration/Aufbau (Monat 2–4)', 'Erstes Modell mit Cloud-Services in Produktion bringen (Monat 3–5)', 'MLOps-Pipeline: CI/CD für Modelle, Monitoring, automatisches Retraining (Monat 4–6)', 'Governance-Framework und AI Registry einrichten (parallel)'],
+    keyDecisions: [
+      { de: 'Cloud-Anbieter-Auswahl: Azure vs. AWS vs. GCP — Lock-in vs. Kostenstruktur abwägen', en: 'Cloud provider selection: Azure vs. AWS vs. GCP — weigh lock-in against cost structure' },
+      { de: 'Zentrales Data Warehouse oder dezentrales Data Mesh?', en: 'Centralised Data Warehouse or decentralised Data Mesh?' },
+      { de: 'Eigene MLOps-Pipeline oder Cloud-nativer Managed Service?', en: 'Custom MLOps pipeline or cloud-native managed service?' },
+      { de: 'Feature Store: Zentralisiert (Feast/Tecton) oder Ad-hoc?', en: 'Feature Store: centralised (Feast/Tecton) or ad-hoc?' },
+      { de: 'Multi-Tenant oder Single-Tenant für ML-Workloads?', en: 'Multi-tenant or single-tenant for ML workloads?' },
+    ],
+    nextSteps: [
+      { de: 'Cloud-Anbieter evaluieren und ML-Plattform-PoC aufsetzen (Monat 1–2)', en: 'Evaluate cloud provider and set up ML platform PoC (months 1–2)' },
+      { de: 'Data Lake und Warehouse Migration/Aufbau (Monat 2–4)', en: 'Data Lake and Warehouse migration / build-out (months 2–4)' },
+      { de: 'Erstes Modell mit Cloud-Services in Produktion bringen (Monat 3–5)', en: 'Deploy first model to production using cloud services (months 3–5)' },
+      { de: 'MLOps-Pipeline: CI/CD für Modelle, Monitoring, automatisches Retraining (Monat 4–6)', en: 'MLOps pipeline: CI/CD for models, monitoring, automated retraining (months 4–6)' },
+      { de: 'Governance-Framework und AI Registry einrichten (parallel)', en: 'Set up governance framework and AI registry (ongoing, in parallel)' },
+    ],
   },
   managed: {
     pattern: 'Managed AI Services',
@@ -233,8 +245,20 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
       { name: 'Serving & Monitoring', role: 'Managed Endpoints und Built-in Observability', components: ['Managed API Endpoints', 'Built-in Monitoring', 'Rate Limiting', 'Basis-Audit-Log'], examples: 'z. B. Azure AI Studio / Bedrock Endpoints + CloudWatch' },
       { name: 'Anwendung & Governance', role: 'Schnelle Business-Integration mit Low-Code', components: ['Low-Code-Integrationen', 'Workflow-Automation', 'Basis-Audit-Trail', 'Datenschutz-konforme Konfiguration'], examples: 'z. B. Power Automate + Teams Bot + Azure Policy' },
     ],
-    keyDecisions: ['Welche Foundation Models? (GPT-4o, Llama, Gemini) — Kosten, Datenschutz, Qualität', 'Prompt Engineering vs. Fine-Tuning vs. RAG — welcher Ansatz für den Use Case?', 'Single-Provider oder Multi-Provider? Lock-in vs. Flexibilität', 'Datenschutz: Private Deployment oder Managed Service mit DPA?', 'Ausstiegsstrategie bei Vendor-Problemen oder Kostenexplosion planen'],
-    nextSteps: ['Provider-Evaluierung und DPA/Datenschutz-Assessment (Monat 1)', 'Pilotprojekt mit einem Use Case aufsetzen (Monat 1–2)', 'Prompt Engineering / RAG-Architektur für Use Case entwickeln (Monat 2–3)', 'Rollout mit Business-KPIs und Monitoring (Monat 3–4)', 'FinOps: Token-Kosten überwachen und optimieren (ab Monat 2)'],
+    keyDecisions: [
+      { de: 'Welche Foundation Models? (GPT-4o, Llama, Gemini) — Kosten, Datenschutz, Qualität', en: 'Which foundation models? (GPT-4o, Llama, Gemini) — cost, privacy, quality' },
+      { de: 'Prompt Engineering vs. Fine-Tuning vs. RAG — welcher Ansatz für den Use Case?', en: 'Prompt engineering vs. fine-tuning vs. RAG — which approach suits your use case?' },
+      { de: 'Single-Provider oder Multi-Provider? Lock-in vs. Flexibilität', en: 'Single-provider or multi-provider? Lock-in vs. flexibility' },
+      { de: 'Datenschutz: Private Deployment oder Managed Service mit DPA?', en: 'Privacy: private deployment or managed service with DPA?' },
+      { de: 'Ausstiegsstrategie bei Vendor-Problemen oder Kostenexplosion planen', en: 'Plan an exit strategy for vendor issues or cost escalation' },
+    ],
+    nextSteps: [
+      { de: 'Provider-Evaluierung und DPA/Datenschutz-Assessment (Monat 1)', en: 'Provider evaluation and DPA / privacy assessment (month 1)' },
+      { de: 'Pilotprojekt mit einem Use Case aufsetzen (Monat 1–2)', en: 'Set up a pilot project with one use case (months 1–2)' },
+      { de: 'Prompt Engineering / RAG-Architektur für Use Case entwickeln (Monat 2–3)', en: 'Develop prompt engineering / RAG architecture for the use case (months 2–3)' },
+      { de: 'Rollout mit Business-KPIs und Monitoring (Monat 3–4)', en: 'Roll out with business KPIs and monitoring in place (months 3–4)' },
+      { de: 'FinOps: Token-Kosten überwachen und optimieren (ab Monat 2)', en: 'FinOps: monitor and optimise token costs (from month 2)' },
+    ],
   },
   hybrid: {
     pattern: 'Hybrid AI Platform',
@@ -246,8 +270,20 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
       { name: 'Serving & Monitoring', role: 'Lokales Serving mit Cloud-Failover-Option', components: ['On-Premise Model Serving', 'Cloud Failover / Burst Serving', 'Zentrales Monitoring', 'VPN/Private Link'], examples: 'z. B. Seldon/TorchServe + KServe Cloud + Grafana' },
       { name: 'Anwendung & Governance', role: 'Hybride Apps mit zentralem Audit-Trail', components: ['Hybride Unternehmensanwendungen', 'Zentrales Identity Management', 'Data Lineage', 'Einheitliches Audit-Log'], examples: 'z. B. Internal apps + Azure AD + Apache Atlas + ELK Stack' },
     ],
-    keyDecisions: ['Workload-Klassifikation: Was bleibt on-premise? (Datenschutz-Kriterien definieren)', 'Cloud für Training + On-Premise für Inference — oder umgekehrt?', 'Netzwerklatenz und Bandbreite zwischen Standorten messen und planen', 'Single Identity Provider für Cloud und On-Premise (Azure AD, Okta)', 'FinOps-Modell für Cloud-Kosten-Chargeback definieren'],
-    nextSteps: ['Workload-Klassifizierung und Datenschutz-Assessment (Monat 1)', 'Netzwerk- und Security-Architektur für Hybrid-Konnektivität (Monat 1–2)', 'Einheitliche Identity- und Access-Management-Lösung einrichten (Monat 2)', 'Pilotprojekt in der Hybrid-Architektur mit repräsentativem Use Case (Monat 2–4)', 'FinOps-Dashboard für Cloud-Kosten-Transparenz (ab Monat 3)'],
+    keyDecisions: [
+      { de: 'Workload-Klassifikation: Was bleibt on-premise? (Datenschutz-Kriterien definieren)', en: 'Workload classification: what stays on-premise? (define data-privacy criteria)' },
+      { de: 'Cloud für Training + On-Premise für Inference — oder umgekehrt?', en: 'Cloud for training + on-premise for inference — or the other way around?' },
+      { de: 'Netzwerklatenz und Bandbreite zwischen Standorten messen und planen', en: 'Measure and plan network latency and bandwidth between sites' },
+      { de: 'Single Identity Provider für Cloud und On-Premise (Azure AD, Okta)', en: 'Single identity provider for cloud and on-premise (Azure AD, Okta)' },
+      { de: 'FinOps-Modell für Cloud-Kosten-Chargeback definieren', en: 'Define a FinOps model for cloud-cost chargeback' },
+    ],
+    nextSteps: [
+      { de: 'Workload-Klassifizierung und Datenschutz-Assessment (Monat 1)', en: 'Workload classification and privacy assessment (month 1)' },
+      { de: 'Netzwerk- und Security-Architektur für Hybrid-Konnektivität (Monat 1–2)', en: 'Network and security architecture for hybrid connectivity (months 1–2)' },
+      { de: 'Einheitliche Identity- und Access-Management-Lösung einrichten (Monat 2)', en: 'Set up a unified identity and access management solution (month 2)' },
+      { de: 'Pilotprojekt in der Hybrid-Architektur mit repräsentativem Use Case (Monat 2–4)', en: 'Run a pilot project in the hybrid architecture with a representative use case (months 2–4)' },
+      { de: 'FinOps-Dashboard für Cloud-Kosten-Transparenz (ab Monat 3)', en: 'FinOps dashboard for cloud cost transparency (from month 3)' },
+    ],
   },
   onprem: {
     pattern: 'On-Premise AI (Data Sovereignty)',
@@ -259,8 +295,20 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
       { name: 'Serving & Monitoring', role: 'Interne Microservices ohne Cloud-Abhängigkeit', components: ['Interne Model Serving', 'Lokales API Gateway', 'SIEM-Integration', 'On-Premise Monitoring Stack'], examples: 'z. B. TorchServe/Triton + Kong on-premise + Splunk + Prometheus' },
       { name: 'Anwendung & Governance', role: 'Interne Apps mit vollständigem Audit-Trail', components: ['On-Premise Anwendungen', 'Vollständiger Audit-Trail', 'Air-Gap-Deployment-Option', 'Interne Zertifizierungsstelle'], examples: 'z. B. Interne Web-Apps + Splunk SIEM + GitLab (lokal)' },
     ],
-    keyDecisions: ['GPU-Infrastruktur: Kauf, Leasing oder Private Cloud (z. B. Nutanix, VMware)?', 'MLOps-Platform: Kubeflow vs. MLflow vs. kommerzielle Lösung (Weights & Biases on-premise)', 'Datenzugangs-Governance: Wer darf welche Daten für Training nutzen?', 'Update-Strategie: Wie werden Modelle aktualisiert ohne externe Abhängigkeit?', 'Air-Gap-Option: Ist vollständige Netzwerk-Isolation für bestimmte Systeme erforderlich?'],
-    nextSteps: ['GPU-Infrastruktur-Assessment: Anforderungen definieren, Angebote einholen (Monat 1)', 'Netzwerk-Segregation und Security-Konzept (Monat 1–2)', 'MLOps-Platform-Auswahl und Pilotinstallation (Monat 2–3)', 'Daten-Governance-Framework und Zugangskontrollen (Monat 2–3)', 'Erstes Modell vollständig on-premise trainieren und deployen (Monat 4–6)'],
+    keyDecisions: [
+      { de: 'GPU-Infrastruktur: Kauf, Leasing oder Private Cloud (z. B. Nutanix, VMware)?', en: 'GPU infrastructure: purchase, lease, or private cloud (e.g. Nutanix, VMware)?' },
+      { de: 'MLOps-Platform: Kubeflow vs. MLflow vs. kommerzielle Lösung (Weights & Biases on-premise)', en: 'MLOps platform: Kubeflow vs. MLflow vs. commercial solution (Weights & Biases on-premise)' },
+      { de: 'Datenzugangs-Governance: Wer darf welche Daten für Training nutzen?', en: 'Data access governance: who may use which data for training?' },
+      { de: 'Update-Strategie: Wie werden Modelle aktualisiert ohne externe Abhängigkeit?', en: 'Update strategy: how are models updated without external dependencies?' },
+      { de: 'Air-Gap-Option: Ist vollständige Netzwerk-Isolation für bestimmte Systeme erforderlich?', en: 'Air-gap option: is full network isolation required for certain systems?' },
+    ],
+    nextSteps: [
+      { de: 'GPU-Infrastruktur-Assessment: Anforderungen definieren, Angebote einholen (Monat 1)', en: 'GPU infrastructure assessment: define requirements, gather quotes (month 1)' },
+      { de: 'Netzwerk-Segregation und Security-Konzept (Monat 1–2)', en: 'Network segmentation and security concept (months 1–2)' },
+      { de: 'MLOps-Platform-Auswahl und Pilotinstallation (Monat 2–3)', en: 'MLOps platform selection and pilot installation (months 2–3)' },
+      { de: 'Daten-Governance-Framework und Zugangskontrollen (Monat 2–3)', en: 'Data governance framework and access controls (months 2–3)' },
+      { de: 'Erstes Modell vollständig on-premise trainieren und deployen (Monat 4–6)', en: 'Train and deploy the first model fully on-premise (months 4–6)' },
+    ],
   },
   data_first: {
     pattern: 'Data-First Approach',
@@ -272,8 +320,20 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
       { name: 'Serving & Monitoring', role: 'Einfach starten, dann ausbauen', components: ['REST-API-Layer', 'Basis-Monitoring', 'Datenqualitäts-Dashboards', 'Alerts bei Datenproblemen'], examples: 'z. B. FastAPI + Azure Monitor + dbt-Docs' },
       { name: 'Governance als Fundament', role: 'Governance von Anfang an — nicht nachträglich', components: ['Master Data Management', 'Dateneigentümerschaft definieren', 'DSGVO-Compliance in Datenpipelines', 'AI-Governance-Framework (vorbereiten)'], examples: 'z. B. Atlan/Collibra + Internal data owners + GDPR-Annotation' },
     ],
-    keyDecisions: ['Datenplattform-Architektur: Data Warehouse, Data Lake oder Lakehouse (z. B. Delta Lake)?', 'Datenqualität und Master Data Management als erste Investition priorisieren', 'Self-Service Analytics vor KI: BI-Tools zuerst für Business-Value', 'AI-Ready-Kriterien definieren: Wann sind Daten gut genug für ML?', 'Team-Entwicklung: Data Engineer zuerst, dann Data Scientist'],
-    nextSteps: ['Data Audit: Welche Daten existieren, wo, welche Qualität? (Monat 1)', 'Datenplattform-Architektur entscheiden und Cloud-Anbieter wählen (Monat 1–2)', 'Core-Ingestion-Pipelines für 2–3 wichtigste Quellsysteme (Monat 2–4)', 'Data Catalog, Governance und Qualitäts-Monitoring einrichten (Monat 3–5)', 'Ersten AI Use Case auf stabiler Datenbasis umsetzen (Monat 5+)'],
+    keyDecisions: [
+      { de: 'Datenplattform-Architektur: Data Warehouse, Data Lake oder Lakehouse (z. B. Delta Lake)?', en: 'Data platform architecture: Data Warehouse, Data Lake, or Lakehouse (e.g. Delta Lake)?' },
+      { de: 'Datenqualität und Master Data Management als erste Investition priorisieren', en: 'Prioritise data quality and Master Data Management as the first investment' },
+      { de: 'Self-Service Analytics vor KI: BI-Tools zuerst für Business-Value', en: 'Self-service analytics before AI: BI tools first for business value' },
+      { de: 'AI-Ready-Kriterien definieren: Wann sind Daten gut genug für ML?', en: 'Define AI-readiness criteria: when are the data good enough for ML?' },
+      { de: 'Team-Entwicklung: Data Engineer zuerst, dann Data Scientist', en: 'Team development: Data Engineer first, then Data Scientist' },
+    ],
+    nextSteps: [
+      { de: 'Data Audit: Welche Daten existieren, wo, welche Qualität? (Monat 1)', en: 'Data audit: what data exists, where, and at what quality? (month 1)' },
+      { de: 'Datenplattform-Architektur entscheiden und Cloud-Anbieter wählen (Monat 1–2)', en: 'Decide on data platform architecture and select cloud provider (months 1–2)' },
+      { de: 'Core-Ingestion-Pipelines für 2–3 wichtigste Quellsysteme (Monat 2–4)', en: 'Core ingestion pipelines for 2–3 key source systems (months 2–4)' },
+      { de: 'Data Catalog, Governance und Qualitäts-Monitoring einrichten (Monat 3–5)', en: 'Set up Data Catalog, governance, and quality monitoring (months 3–5)' },
+      { de: 'Ersten AI Use Case auf stabiler Datenbasis umsetzen (Monat 5+)', en: 'Implement first AI use case on a solid data foundation (month 5+)' },
+    ],
   },
 }
 

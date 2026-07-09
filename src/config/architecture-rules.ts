@@ -307,48 +307,48 @@ export function recommendFromCatalog(
   return { layers, roleNames: [...new Set(roles)] }
 }
 
-export function generateDynamicKeyDecisions(components: CatalogComponent[]): string[] {
+export function generateDynamicKeyDecisions(components: CatalogComponent[]): { de: string; en: string }[] {
   const vendors = new Set(components.map(c => c.vendor))
-  const decisions: string[] = []
+  const decisions: { de: string; en: string }[] = []
 
   if (vendors.has('SAP')) {
-    decisions.push('SAP BTP Lizenzmodell und AI Core Service-Tier vorab klären — Kosten skalieren mit Inferenz-Volumen')
-    decisions.push('SAP AI Core Deployment-Quota (GPU-Ressourcen) rechtzeitig beim SAP-Account-Team beantragen')
+    decisions.push({ de: 'SAP BTP Lizenzmodell und AI Core Service-Tier vorab klären — Kosten skalieren mit Inferenz-Volumen', en: 'Clarify SAP BTP licence model and AI Core service tier upfront — costs scale with inference volume' })
+    decisions.push({ de: 'SAP AI Core Deployment-Quota (GPU-Ressourcen) rechtzeitig beim SAP-Account-Team beantragen', en: 'Request SAP AI Core deployment quota (GPU resources) from the SAP account team in good time' })
   }
   if (vendors.has('Microsoft')) {
-    decisions.push('Azure OpenAI Service Agreement: EU-Datenspeicherung (West Europe) und Zero-Retention-Option vertraglich sichern')
+    decisions.push({ de: 'Azure OpenAI Service Agreement: EU-Datenspeicherung (West Europe) und Zero-Retention-Option vertraglich sichern', en: 'Azure OpenAI Service Agreement: contractually secure EU data residency (West Europe) and the zero-retention option' })
   }
   if (vendors.has('AWS')) {
-    decisions.push('AWS Bedrock Model Access in eu-central-1 (Frankfurt) vorab beantragen — nicht alle Modelle in EU verfügbar')
+    decisions.push({ de: 'AWS Bedrock Model Access in eu-central-1 (Frankfurt) vorab beantragen — nicht alle Modelle in EU verfügbar', en: 'Request AWS Bedrock model access in eu-central-1 (Frankfurt) upfront — not all models are available in the EU' })
   }
   if (components.some(c => c.dsgvo_status === 'conditional')) {
-    decisions.push('DSGVO-Risiko: Mindestens eine Komponente mit bedingter Konformität — Auftragsverarbeitungsvertrag (AVV) zwingend abschließen')
+    decisions.push({ de: 'DSGVO-Risiko: Mindestens eine Komponente mit bedingter Konformität — Auftragsverarbeitungsvertrag (AVV) zwingend abschließen', en: 'GDPR risk: at least one component with conditional compliance — a Data Processing Agreement (DPA) is mandatory' })
   }
   if (components.some(c => c.eu_ai_act_risk === 'high' || c.eu_ai_act_risk === 'limited')) {
-    decisions.push('EU AI Act: Hochrisiko-Einstufung prüfen — Technische Dokumentation und Risk Assessment vorbereiten')
+    decisions.push({ de: 'EU AI Act: Hochrisiko-Einstufung prüfen — Technische Dokumentation und Risk Assessment vorbereiten', en: 'EU AI Act: review high-risk classification — prepare technical documentation and risk assessment' })
   }
 
   return decisions
 }
 
-export function generateDynamicNextSteps(components: CatalogComponent[]): string[] {
+export function generateDynamicNextSteps(components: CatalogComponent[]): { de: string; en: string }[] {
   const vendors = new Set(components.map(c => c.vendor))
-  const steps: string[] = []
+  const steps: { de: string; en: string }[] = []
 
   if (vendors.has('SAP')) {
-    steps.push('SAP BTP Trial-Account oder Productive Account einrichten → AI Core Service aktivieren → ersten Deployment-Workspace anlegen')
+    steps.push({ de: 'SAP BTP Trial-Account oder Productive Account einrichten → AI Core Service aktivieren → ersten Deployment-Workspace anlegen', en: 'Set up SAP BTP Trial or Productive account → activate AI Core service → create first deployment workspace' })
   }
   if (vendors.has('Microsoft')) {
-    steps.push('Azure OpenAI Service in West Europe beantragen → Modell-Quota konfigurieren → Content-Filter-Policy festlegen')
+    steps.push({ de: 'Azure OpenAI Service in West Europe beantragen → Modell-Quota konfigurieren → Content-Filter-Policy festlegen', en: 'Apply for Azure OpenAI Service in West Europe → configure model quota → define Content Filter policy' })
   }
   if (vendors.has('AWS')) {
-    steps.push('AWS Bedrock Konsole: Zugriff auf Wunschmodelle in eu-central-1 aktivieren → IAM-Rollen für Least Privilege einrichten')
+    steps.push({ de: 'AWS Bedrock Konsole: Zugriff auf Wunschmodelle in eu-central-1 aktivieren → IAM-Rollen für Least Privilege einrichten', en: 'AWS Bedrock console: enable access to target models in eu-central-1 → configure IAM roles for least privilege' })
   }
   if (components.some(c => c.dsgvo_status === 'conditional')) {
-    steps.push('AVV mit allen Drittanbietern mit bedingter DSGVO-Konformität abschließen — Vorlage beim Datenschutzbeauftragten anfordern')
+    steps.push({ de: 'AVV mit allen Drittanbietern mit bedingter DSGVO-Konformität abschließen — Vorlage beim Datenschutzbeauftragten anfordern', en: 'Conclude DPAs with all third-party vendors with conditional GDPR compliance — request template from Data Protection Officer' })
   }
   if (vendors.size > 0 && !vendors.has('SAP') && !vendors.has('Microsoft') && !vendors.has('AWS')) {
-    steps.push('Proof-of-Concept mit gewählten Komponenten aufsetzen und interne Akzeptanzkriterien definieren')
+    steps.push({ de: 'Proof-of-Concept mit gewählten Komponenten aufsetzen und interne Akzeptanzkriterien definieren', en: 'Set up a proof of concept with selected components and define internal acceptance criteria' })
   }
 
   return steps

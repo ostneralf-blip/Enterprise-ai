@@ -5,6 +5,7 @@ import type { ArchitectureResult } from '@/config/architecture-data'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { formatDate } from '@/lib/utils/format'
 import type { Locale } from '@/i18n/routing'
+import { pick } from '@/lib/utils/locale-data'
 
 const LAYER_ICONS = ['⬡', '◈', '◉', '◎', '⊞']
 
@@ -153,7 +154,7 @@ function ArchitectureShareView({
             {result.keyDecisions.map((d, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
                 <span className="flex-shrink-0 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
-                <span className="min-w-0">{d}</span>
+                <span className="min-w-0">{pick(d, locale)}</span>
               </li>
             ))}
           </ul>
@@ -164,7 +165,7 @@ function ArchitectureShareView({
             {result.nextSteps.map((s, i) => (
               <li key={i} className="flex gap-2 text-xs text-slate-600">
                 <span className="flex-shrink-0 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
-                <span className="min-w-0">{s}</span>
+                <span className="min-w-0">{pick(s, locale)}</span>
               </li>
             ))}
           </ul>

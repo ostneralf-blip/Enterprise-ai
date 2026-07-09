@@ -630,8 +630,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const activeComponents = recComponents.filter(c => recNames.has(c.name))
           const dynamicDecisions = generateDynamicKeyDecisions(activeComponents)
           const dynamicSteps = generateDynamicNextSteps(activeComponents)
-          const allDecisions = [...dynamicDecisions, ...result.keyDecisions.filter(d => !dynamicDecisions.includes(d))]
-          const allSteps = [...dynamicSteps, ...result.nextSteps.filter(s => !dynamicSteps.includes(s))]
+          const dynamicDecisionDe = new Set(dynamicDecisions.map(d => d.de))
+          const dynamicStepDe = new Set(dynamicSteps.map(s => s.de))
+          const allDecisions = [...dynamicDecisions, ...result.keyDecisions.filter(d => !dynamicDecisionDe.has(d.de))]
+          const allSteps = [...dynamicSteps, ...result.nextSteps.filter(s => !dynamicStepDe.has(s.de))]
           return (
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
@@ -642,7 +644,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
                         {i + 1}
                       </span>
-                      <span className="min-w-0">{decision}</span>
+                      <span className="min-w-0">{pick(decision, locale)}</span>
                     </li>
                   ))}
                 </ul>
@@ -655,7 +657,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
                         {i + 1}
                       </span>
-                      <span className="min-w-0">{s}</span>
+                      <span className="min-w-0">{pick(s, locale)}</span>
                     </li>
                   ))}
                 </ul>

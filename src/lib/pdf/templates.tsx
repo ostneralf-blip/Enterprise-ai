@@ -84,6 +84,7 @@ const PDF_T: Record<PdfLocale, Record<string, string>> = {
     uc_bewertet_ready: 'sofort umsetzbar', gov_no_protocol: 'Kein Protokoll verfügbar.',
     phasen_label: 'Phasen',
     uc_overview: 'Use Cases im Überblick', no_uc: 'Keine Use Cases im Portfolio', col_domain: 'Domäne', col_category: 'Kategorie',
+    doc_roadmap: 'AI-Roadmap', doc_architecture: 'AI-Architektur',
   },
   en: {
     created_on: 'Created on', no_advice: 'Not a substitute for individual advice.',
@@ -120,6 +121,7 @@ const PDF_T: Record<PdfLocale, Record<string, string>> = {
     uc_bewertet_ready: 'ready to pilot', gov_no_protocol: 'No protocol available.',
     phasen_label: 'Phases',
     uc_overview: 'Use Cases Overview', no_uc: 'No use cases in portfolio', col_domain: 'Domain', col_category: 'Category',
+    doc_roadmap: 'AI Roadmap', doc_architecture: 'AI Architecture',
   },
 }
 function pt(key: string, locale: string): string {
@@ -605,7 +607,7 @@ const ROADMAP_RECS: Record<string, Rec3[]> = {
 export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElement {
   const archetypeRecs = ROADMAP_RECS[data.archetype ?? ''] ?? ROADMAP_RECS.starter
   return (
-    <Document title="AI-Roadmap">
+    <Document title={pt('doc_roadmap', locale)}>
       {/* Seite 1: Deckblatt */}
       <PdfCoverPage
         title={data.title}
@@ -619,7 +621,7 @@ export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElem
         <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.title}</Text>
         <Text style={s.sub}>
-          AI-Roadmap{data.archetype ? ` · ${ARCHETYPE_LABELS[data.archetype] ?? data.archetype}` : ''} · Enterprise AI Navigator
+          {pt('doc_roadmap', locale)}{data.archetype ? ` · ${ARCHETYPE_LABELS[data.archetype] ?? data.archetype}` : ''} · Enterprise AI Navigator
         </Text>
 
         <Text style={s.h2}>{pt('phase_overview', locale)}</Text>
@@ -662,7 +664,7 @@ export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElem
         <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{pt('recommendations', locale)}</Text>
         <Text style={s.sub}>
-          {data.archetype ? `${ARCHETYPE_LABELS[data.archetype] ?? data.archetype} · ` : ''}AI-Roadmap · Enterprise AI Navigator
+          {data.archetype ? `${ARCHETYPE_LABELS[data.archetype] ?? data.archetype} · ` : ''}{pt('doc_roadmap', locale)} · Enterprise AI Navigator
         </Text>
 
         {archetypeRecs.map((rec, i) => (
@@ -1043,7 +1045,7 @@ const ARCHITECTURE_RECS: Rec3[] = [
 
 export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'): ReactElement {
   return (
-    <Document title="AI-Architektur">
+    <Document title={pt('doc_architecture', locale)}>
       {/* Seite 1: Deckblatt */}
       <PdfCoverPage
         title={data.title}
@@ -1056,7 +1058,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'):
       <Page size="A4" style={s.page}>
         <PdfHeader company={data.companyName} locale={locale} />
         <Text style={s.h1}>{data.title}</Text>
-        <Text style={s.sub}>{locale === 'en' ? 'AI Architecture' : 'AI-Architektur'} · {data.result?.pattern ?? ''} · Enterprise AI Navigator</Text>
+        <Text style={s.sub}>{pt('doc_architecture', locale)} · {data.result?.pattern ?? ''} · Enterprise AI Navigator</Text>
 
         {data.result?.description && (
           <View style={[s.card, { marginBottom: 16 }]}>
