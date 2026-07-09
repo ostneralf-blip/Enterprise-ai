@@ -279,18 +279,19 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                       const key = `${phaseId}_${i}`
                       const status = milestones[key] ?? 'not_started'
                       return (
-                        <li key={i} className="flex items-start gap-2">
+                        <li key={i}>
                           <button
                             type="button"
                             onClick={() => toggleMilestone(key)}
-                            aria-label={`Status: ${status}`}
-                            className={cn('mt-0.5 flex-shrink-0 text-base leading-none transition-colors', MILESTONE_COLOR[status])}
+                            className="flex w-full items-start gap-2 rounded-lg px-1 py-0.5 -mx-1 hover:bg-slate-50 cursor-pointer transition-colors text-left"
                           >
-                            {MILESTONE_ICON[status]}
+                            <span className={cn('mt-0.5 flex-shrink-0 text-base leading-none transition-colors', MILESTONE_COLOR[status])}>
+                              {MILESTONE_ICON[status]}
+                            </span>
+                            <span className={cn('text-sm min-w-0 transition-colors', status === 'done' ? 'line-through text-slate-400' : action.priority === 'high' ? 'text-slate-800' : 'text-slate-600')}>
+                              {pick(action.label, locale)}
+                            </span>
                           </button>
-                          <span className={cn('text-sm min-w-0 transition-colors', status === 'done' ? 'line-through text-slate-400' : action.priority === 'high' ? 'text-slate-800' : 'text-slate-600')}>
-                            {pick(action.label, locale)}
-                          </span>
                         </li>
                       )
                     })}
