@@ -8,6 +8,7 @@ import { CANVAS_FIELDS } from '@/config/canvas-data'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
+import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Canvas, CanvasData, Archetype, Tier } from '@/types'
 
 function analyzeCanvasData(data: CanvasData) {
@@ -72,6 +73,8 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [saved, setSaved] = useState(false)
   const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active])
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
+  const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   const detectedProvider = insights && insights.platform.length > 0
     ? platformToProvider(insights.platform[0])
@@ -126,6 +129,26 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
     if (active?.id === id) setActive(null)
   }
 
+  const handleAIEnrich = async () => {
+    if (!active) return
+    setAiError(null)
+    const res = await fetch(`/api/canvas/${active.id}/ai-enrich`, { method: 'POST' })
+    const json = await res.json() as {
+      result?: Record<string, unknown>
+      usage?: { remaining: number; used: number; limit: number; exceeded: boolean }
+      error?: string
+      code?: string
+    }
+    if (json.usage) setAiUsage(json.usage)
+    if (!res.ok) {
+      setAiError(json.error ?? 'KI-Analyse fehlgeschlagen')
+      return
+    }
+    if (json.result) {
+      setActive(prev => prev ? { ...prev, ai_enrichment: json.result, ai_generated_at: new Date().toISOString() } : prev)
+    }
+  }
+
   if (active) {
     return (
       <div className="max-w-3xl">
@@ -136,13 +159,16 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           >
             ← Zurück
           </button>
-          <input
-            value={active.title}
-            onChange={e => setActive(prev => prev ? { ...prev, title: e.target.value } : prev)}
-            placeholder={t('canvas.titlePlaceholder')}
-            className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-primary-ring focus:bg-white focus:outline-none transition-colors"
-            aria-label={t('canvas.titleAriaLabel')}
-          />
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <input
+              value={active.title}
+              onChange={e => setActive(prev => prev ? { ...prev, title: e.target.value } : prev)}
+              placeholder={t('canvas.titlePlaceholder')}
+              className="flex-1 min-w-0 text-xl font-semibold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 hover:border-slate-300 focus:border-primary-ring focus:bg-white focus:outline-none transition-colors"
+              aria-label={t('canvas.titleAriaLabel')}
+            />
+            {active.ai_generated_at && <AIBadge generatedAt={active.ai_generated_at} />}
+          </div>
           <button
             onClick={handleSave}
             disabled={saving}
@@ -275,6 +301,36 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
               </div>
             )}
 
+            {/* AI-Analyse-Bereich */}
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <AIAnalysisButton
+                  tier={tier}
+                  onAnalyze={handleAIEnrich}
+                  usage={aiUsage}
+                />
+                {aiError && (
+                  <p className="text-xs text-red-500">{aiError}</p>
+                )}
+              </div>
+              {active.ai_enrichment && (
+                <div className="bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 text-xs text-violet-700 space-y-1">
+                  {(active.ai_enrichment as { use_case_type?: string; industry?: string; suggested_quadrant?: string; infra_hints?: string[] }).use_case_type && (
+                    <p><span className="font-medium">KI-Typ:</span> {(active.ai_enrichment as { use_case_type?: string }).use_case_type}</p>
+                  )}
+                  {(active.ai_enrichment as { industry?: string }).industry && (
+                    <p><span className="font-medium">Branche:</span> {(active.ai_enrichment as { industry?: string }).industry}</p>
+                  )}
+                  {(active.ai_enrichment as { suggested_quadrant?: string }).suggested_quadrant && (
+                    <p><span className="font-medium">Empfohlener Quadrant:</span> {(active.ai_enrichment as { suggested_quadrant?: string }).suggested_quadrant}</p>
+                  )}
+                  {((active.ai_enrichment as { infra_hints?: string[] }).infra_hints ?? []).length > 0 && (
+                    <p><span className="font-medium">Infra-Hinweise:</span> {((active.ai_enrichment as { infra_hints?: string[] }).infra_hints ?? []).join(', ')}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-1 border-t border-slate-200">
               <p className="text-xs text-slate-500 flex-1">{t('canvas.ctxUseSignals')}</p>
               <Link href="/architecture" className="text-xs text-primary hover:underline whitespace-nowrap font-medium">
@@ -325,6 +381,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 <div className="flex items-center gap-1.5 mb-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-900 truncate min-w-0">{canvas.title}</p>
                   <span className="text-slate-300 text-xs flex-shrink-0" title="Titel im Editor bearbeitbar">✎</span>
+                  {canvas.ai_generated_at && <AIBadge className="flex-shrink-0" />}
                 </div>
                 {canvas.archetype && (
                   <p className="text-xs text-slate-400 mb-1 capitalize">{canvas.archetype}</p>

@@ -8,6 +8,7 @@ import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym } from '@/types'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
@@ -397,6 +398,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [savedId, setSavedId] = useState<string | null>(null)
   const [dsgvoConfirmed, setDsgvoConfirmed] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [aiNarrative, setAiNarrative] = useState<{ key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null>(null)
+  const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
+  const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
@@ -488,6 +492,36 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSavedId(arch.id)
     setView('result')
     applyRecs(arch.wizard_data)
+  }
+
+  const handleAINarrative = async () => {
+    if (!savedId) return
+    setAiNarrativeError(null)
+    const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+    const components = recComponents.filter(c => activeNames.has(c.name)).map(c => c.name)
+    const roles = rolesCatalog.map(r => r.role_name).slice(0, 10)
+    const res = await fetch(`/api/architecture/${savedId}/ai-narrative`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        components,
+        roles,
+        compliance: answers.compliance ?? undefined,
+        archetype: assessmentContext?.archetype ?? undefined,
+        canvas_quadrant: canvasContext?.useCase?.quadrant ?? undefined,
+        governance_result: governanceContext?.result ?? undefined,
+        roadmap_phases: roadmapContext?.phasesCount ?? 0,
+        locale,
+      }),
+    })
+    const json = await res.json() as {
+      result?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] }
+      usage?: { remaining: number; used: number; limit: number; exceeded: boolean }
+      error?: string
+    }
+    if (json.usage) setAiUsageArch(json.usage)
+    if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); return }
+    if (json.result) setAiNarrative(json.result)
   }
 
   const handleSave = async () => {
@@ -669,7 +703,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* SAP Joule use cases */}
         <JouleUseCasesCard useCases={jouleUseCases} />
 
-        {/* Key decisions + Next steps — nur aktive Komponenten aus catalogRecs, nicht den gesamten Katalog */}
+        {/* Key decisions + Next steps */}
         {(() => {
           const recNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
           const activeComponents = recComponents.filter(c => recNames.has(c.name))
@@ -687,14 +721,36 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             governance: governanceContext,
             roadmap: roadmapContext,
           })
-          const seenDecisionDe = new Set([...crossDecisions, ...dynamicDecisions].map(d => d.de))
-          const seenStepDe = new Set([...crossSteps, ...dynamicSteps].map(s => s.de))
-          const allDecisions = [...crossDecisions, ...dynamicDecisions, ...result.keyDecisions.filter(d => !seenDecisionDe.has(d.de))]
-          const allSteps = [...crossSteps, ...dynamicSteps, ...result.nextSteps.filter(s => !seenStepDe.has(s.de))]
+          // AI-Narrative hat höchste Priorität, dann Cross-Modul, dann dynamisch, dann statisch
+          const aiDec = aiNarrative?.key_decisions ?? []
+          const aiStp = aiNarrative?.next_steps ?? []
+          const seenDecisionDe = new Set([...aiDec, ...crossDecisions, ...dynamicDecisions].map(d => d.de))
+          const seenStepDe = new Set([...aiStp, ...crossSteps, ...dynamicSteps].map(s => s.de))
+          const allDecisions = [...aiDec, ...crossDecisions, ...dynamicDecisions, ...result.keyDecisions.filter(d => !seenDecisionDe.has(d.de))]
+          const allSteps = [...aiStp, ...crossSteps, ...dynamicSteps, ...result.nextSteps.filter(s => !seenStepDe.has(s.de))]
           return (
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.keyDecisions')}</h3>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
+                    {aiNarrative && <AIBadge />}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <AIAnalysisButton
+                      tier={tier}
+                      onAnalyze={handleAINarrative}
+                      usage={aiUsageArch}
+                      size="sm"
+                    />
+                    {!savedId && tier !== 'free' && (
+                      <p className="text-[11px] text-slate-400">Erst speichern, dann KI aktivieren</p>
+                    )}
+                    {aiNarrativeError && (
+                      <p className="text-[11px] text-red-500">{aiNarrativeError}</p>
+                    )}
+                  </div>
+                </div>
                 <ul className="space-y-2.5" role="list">
                   {allDecisions.map((decision, i) => (
                     <li key={i} className="flex gap-2.5 text-xs text-slate-600">
