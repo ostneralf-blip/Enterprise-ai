@@ -35,6 +35,7 @@ interface SavedArchitecture {
   wizard_data: WizardAnswers
   result: ArchitectureResult
   updated_at: string
+  ai_narrative?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null
 }
 
 interface AssessmentContext {
@@ -490,6 +491,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setResult(arch.result)
     setSaved(true)
     setSavedId(arch.id)
+    setAiNarrative(arch.ai_narrative ?? null)
+    setAiUsageArch(null)
     setView('result')
     applyRecs(arch.wizard_data)
   }
