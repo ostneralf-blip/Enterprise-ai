@@ -1,4 +1,4 @@
-import { hasAccess, requiresTier } from '@/lib/utils/tier-check'
+import { hasAccess, FEATURE_TIERS, type FeatureKey } from '@/config/tiers'
 
 describe('Tier-Check Utility (Feature Gating)', () => {
 
@@ -31,30 +31,51 @@ describe('Tier-Check Utility (Feature Gating)', () => {
     })
   })
 
-  describe('requiresTier', () => {
-    it('ordnet pdf_export korrekt "pro" zu', () => {
-      expect(requiresTier('pdf_export')).toBe('pro')
+  describe('FEATURE_TIERS — einzige Quelle der Wahrheit', () => {
+    it('pdf_export ist "pro"', () => {
+      expect(FEATURE_TIERS['pdf_export']).toBe('pro')
     })
 
-    it('ordnet sso korrekt "enterprise" zu', () => {
-      expect(requiresTier('sso')).toBe('enterprise')
+    it('sso ist "enterprise"', () => {
+      expect(FEATURE_TIERS['sso']).toBe('enterprise')
     })
 
-    it('ordnet unbekannte Features "free" zu (sicherer Default)', () => {
-      expect(requiresTier('some_unknown_feature_xyz')).toBe('free')
+    it('sharing ist "pro"', () => {
+      expect(FEATURE_TIERS['sharing']).toBe('pro')
     })
 
-    it('KRITISCH: jedes als "pro" markierte Feature darf NICHT gleichzeitig als enterprise-only behandelt werden', () => {
-      // Regressionstest gegen Tier-Verwechslung
-      const proFeature = requiresTier('pdf_export')
-      const entFeature = requiresTier('sso')
-      expect(proFeature).not.toBe(entFeature)
+    it('versioning ist "pro"', () => {
+      expect(FEATURE_TIERS['versioning']).toBe('pro')
+    })
+
+    it('ai_enrich ist "pro"', () => {
+      expect(FEATURE_TIERS['ai_enrich']).toBe('pro')
+    })
+
+    it('KRITISCH: kein pro-Feature ist gleichzeitig enterprise-only', () => {
+      const proKeys = (Object.keys(FEATURE_TIERS) as FeatureKey[]).filter(k => FEATURE_TIERS[k] === 'pro')
+      const entKeys = (Object.keys(FEATURE_TIERS) as FeatureKey[]).filter(k => FEATURE_TIERS[k] === 'enterprise')
+      const overlap = proKeys.filter(k => entKeys.includes(k))
+      expect(overlap).toHaveLength(0)
+    })
+
+    it('tabellengetrieben: Free-Nutzer wird für alle Pro-Features blockiert', () => {
+      const proFeatures = (Object.keys(FEATURE_TIERS) as FeatureKey[]).filter(k => FEATURE_TIERS[k] === 'pro')
+      for (const feature of proFeatures) {
+        expect(hasAccess('free', FEATURE_TIERS[feature])).toBe(false)
+      }
+    })
+
+    it('tabellengetrieben: Pro-Nutzer wird für Enterprise-Features blockiert', () => {
+      const entFeatures = (Object.keys(FEATURE_TIERS) as FeatureKey[]).filter(k => FEATURE_TIERS[k] === 'enterprise')
+      for (const feature of entFeatures) {
+        expect(hasAccess('pro', FEATURE_TIERS[feature])).toBe(false)
+      }
     })
   })
 
   describe('Security: Privilege Escalation Verhinderung', () => {
     it('niedrigerer Tier kann sich nicht selbst höheren Zugriff verschaffen', () => {
-      // Simuliert: Was, wenn ein Client manipulierte Tier-Strings sendet?
       const maliciousTier = 'free' as const
       expect(hasAccess(maliciousTier, 'enterprise')).toBe(false)
     })

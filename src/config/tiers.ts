@@ -1,5 +1,31 @@
 import type { Tier } from '@/types'
 
+// Feature → Mindest-Tier-Mapping — einzige Quelle der Wahrheit für Tier-Gating.
+// requireFeature() in lib/utils/tier-check.ts erzwingt dies server-seitig.
+export const FEATURE_TIERS = {
+  pdf_export:          'pro',
+  save_results:        'pro',
+  versioning:          'pro',
+  sharing:             'pro',
+  ai_enrich:           'pro',
+  deep_assessment:     'pro',
+  compliance_full:     'pro',
+  architecture_wizard: 'pro',
+  team_sharing:        'enterprise',
+  sso:                 'enterprise',
+  audit_trail:         'enterprise',
+} as const satisfies Record<string, Tier>
+
+export type FeatureKey = keyof typeof FEATURE_TIERS
+
+const TIER_RANK: Record<Tier, number> = { free: 0, pro: 1, enterprise: 2 }
+
+// Reine Hilfsfunktion — kein Server-Dependency, sicher in Tests und Client importierbar.
+// Wird von requireFeature() (server-only) intern genutzt.
+export function hasAccess(userTier: Tier, requiredTier: Tier): boolean {
+  return TIER_RANK[userTier] >= TIER_RANK[requiredTier]
+}
+
 // Maximale AI-Calls pro Tag und Tier — eine Quelle der Wahrheit.
 // Werte können über Admin-Panel (app_settings) in Stufe 3 überschrieben werden.
 export const AI_CALL_LIMITS: Record<Tier, number> = {

@@ -6,10 +6,16 @@ import { getTranslations, getLocale } from 'next-intl/server'
 import { formatDate } from '@/lib/utils/format'
 import type { Locale } from '@/i18n/routing'
 import { pick } from '@/lib/utils/locale-data'
+import * as Sentry from '@sentry/nextjs'
 
 const LAYER_ICONS = ['⬡', '◈', '◉', '◎', '⊞']
 
-async function getShareData(token: string) {
+type ShareReason = 'token_not_found' | 'expired' | 'entity_not_found' | 'module_unsupported'
+type ShareData =
+  | { ok: true; module: string; entity: unknown; link: { view_count: number | null } }
+  | { ok: false; reason: ShareReason }
+
+async function getShareData(token: string): Promise<ShareData> {
   const admin = await createAdminClient()
 
   const { data: link } = await admin
@@ -18,8 +24,10 @@ async function getShareData(token: string) {
     .eq('token', token)
     .maybeSingle()
 
-  if (!link) return null
-  if (link.expires_at && new Date(link.expires_at) < new Date()) return null
+  if (!link) return { ok: false, reason: 'token_not_found' }
+  if (link.expires_at && new Date(link.expires_at) < new Date()) {
+    return { ok: false, reason: 'expired' }
+  }
 
   // increment view count (best-effort)
   admin.from('share_links').update({ view_count: (link.view_count ?? 0) + 1 }).eq('token', token).then(() => {})
@@ -30,8 +38,8 @@ async function getShareData(token: string) {
       .select('title, result, wizard_data, updated_at')
       .eq('id', link.entity_id)
       .maybeSingle()
-    if (!arch) return null
-    return { module: 'architecture', entity: arch, link }
+    if (!arch) return { ok: false, reason: 'entity_not_found' }
+    return { ok: true, module: 'architecture', entity: arch, link }
   }
 
   if (link.module === 'assessment') {
@@ -40,11 +48,13 @@ async function getShareData(token: string) {
       .select('archetype, total_score, dimension_scores, created_at')
       .eq('id', link.entity_id)
       .maybeSingle()
-    if (!session) return null
-    return { module: 'assessment', entity: session, link }
+    if (!session) return { ok: false, reason: 'entity_not_found' }
+    return { ok: true, module: 'assessment', entity: session, link }
   }
 
-  return null
+  // Modul existiert in DB aber hat kein Rendering — API-Bug oder Alt-Daten
+  Sentry.captureMessage(`share_module_unsupported: ${link.module}`, { level: 'warning', extra: { token: token.slice(0, 8) } })
+  return { ok: false, reason: 'module_unsupported' }
 }
 
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
@@ -54,8 +64,9 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
     getLocale(),
   ])
   const locale = rawLocale as Locale
-  const share = await getShareData(token)
-  if (!share) notFound()
+  const shareResult = await getShareData(token)
+  if (!shareResult.ok) notFound()
+  const share = shareResult
 
   return (
     <div className="min-h-screen bg-slate-50">

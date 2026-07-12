@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireFeature } from '@/lib/utils/tier-check'
 import { z } from 'zod'
 
+// Nur Module, für die die Share-Seite ein Rendering hat.
+// Weitere Module → eigenes Issue nach Priorität Roadmap > Canvas > Governance > Compliance > UseCase
+const SHARING_MODULES = ['architecture', 'assessment'] as const
+
 const CreateShareSchema = z.object({
-  module: z.string().min(1).max(50),
+  module: z.enum(SHARING_MODULES),
   entity_id: z.string().uuid(),
   expires_in_days: z.number().int().min(1).max(365).optional(),
 })
@@ -29,16 +34,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const gate = await requireFeature('sharing')
+  if (gate instanceof NextResponse) return gate
+  const { userId } = gate
+
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase
-    .from('profiles').select('tier').eq('id', user.id).single()
-  if (profile?.tier !== 'pro' && profile?.tier !== 'enterprise') {
-    return NextResponse.json({ error: 'Pro-Feature' }, { status: 403 })
-  }
-
   const body = await req.json()
   const parsed = CreateShareSchema.safeParse(body)
   if (!parsed.success) {
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   const { data: link, error } = await supabase
     .from('share_links')
-    .insert({ user_id: user.id, module, entity_id, expires_at })
+    .insert({ user_id: userId, module, entity_id, expires_at })
     .select('id, token, expires_at')
     .single()
 

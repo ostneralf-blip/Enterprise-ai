@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasAccess } from '@/lib/utils/tier-check'
+import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { ArchitectureNarrativeSchema } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
-import type { Tier } from '@/types'
 import { z } from 'zod'
 
 const BodySchema = z.object({
-  components:     z.array(z.string()).max(30),
-  roles:          z.array(z.string()).max(15),
-  compliance:     z.string().max(50).optional(),
-  archetype:      z.string().max(50).optional(),
-  canvas_quadrant: z.string().max(50).optional(),
+  components:        z.array(z.string()).max(30),
+  roles:             z.array(z.string()).max(15),
+  compliance:        z.string().max(50).optional(),
+  archetype:         z.string().max(50).optional(),
+  canvas_quadrant:   z.string().max(50).optional(),
   governance_result: z.string().max(50).optional(),
-  roadmap_phases: z.number().int().min(0).max(10).optional(),
-  locale:         z.enum(['de', 'en']).default('de'),
+  roadmap_phases:    z.number().int().min(0).max(10).optional(),
+  locale:            z.enum(['de', 'en']).default('de'),
 })
 
 export async function POST(
@@ -23,36 +22,25 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', user.id)
-    .single()
-
-  const tier = (profile?.tier ?? 'free') as Tier
-  if (!hasAccess(tier, 'pro')) {
-    return NextResponse.json({ error: 'Pro oder Enterprise erforderlich', code: 'TIER_REQUIRED' }, { status: 403 })
-  }
+  const gate = await requireFeature('ai_enrich')
+  if (gate instanceof NextResponse) return gate
+  const { userId, tier } = gate
 
   const body = BodySchema.safeParse(await req.json())
   if (!body.success) return NextResponse.json({ error: 'Ungültige Anfrage' }, { status: 400 })
 
-  // Ownership prüfen
+  const supabase = await createClient()
   const { data: arch } = await supabase
     .from('architectures')
     .select('id')
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single()
 
   if (!arch) return NextResponse.json({ error: 'Architektur nicht gefunden' }, { status: 404 })
 
-  const usage = await getAIUsageStatus(user.id, tier)
+  const usage = await getAIUsageStatus(userId, tier)
   if (usage.exceeded) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
@@ -83,7 +71,7 @@ Return this exact JSON structure:
   ]
 }`
 
-  const ok = await incrementAIUsage(user.id, tier)
+  const ok = await incrementAIUsage(userId, tier)
   if (!ok) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
@@ -106,8 +94,8 @@ Return this exact JSON structure:
       ai_generated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
 
-  const updatedUsage = await getAIUsageStatus(user.id, tier)
+  const updatedUsage = await getAIUsageStatus(userId, tier)
   return NextResponse.json({ result, usage: updatedUsage })
 }

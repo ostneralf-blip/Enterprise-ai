@@ -11,7 +11,7 @@
  *   🔶 erfordert Live-Supabase-Instanz (siehe manuelle Checkliste)
  */
 
-import { requiresTier } from '@/lib/utils/tier-check'
+import { FEATURE_TIERS } from '@/config/tiers'
 
 describe('Security: Input Validation', () => {
   // ✅ Zod-Schema-Validierung für API-Inputs
@@ -55,12 +55,13 @@ describe('Security: Input Validation', () => {
 })
 
 describe('Security: Feature-Gating darf nicht client-seitig umgehbar sein', () => {
-  // ✅ Stellt sicher, dass Pro-Features nicht durch simples Tier-Spoofing freigeschaltet werden
-  it('requiresTier ist eine reine Funktion ohne Client-Input-Abhängigkeit', () => {
-    // Diese Funktion nimmt KEINEN User-Tier als Parameter — das ist beabsichtigt.
-    // Tier-Vergleich passiert immer serverseitig via hasAccess(serverTier, requiresTier(feature))
-    expect(requiresTier('pdf_export')).toBe('pro')
-    expect(typeof requiresTier).toBe('function')
+  // ✅ FEATURE_TIERS ist ein statisches const-Objekt — kein Client-Input beeinflusst die Tier-Zuordnung
+  it('FEATURE_TIERS definiert pdf_export als pro-Feature', () => {
+    expect(FEATURE_TIERS['pdf_export']).toBe('pro')
+  })
+
+  it('FEATURE_TIERS definiert sharing als pro-Feature', () => {
+    expect(FEATURE_TIERS['sharing']).toBe('pro')
   })
 
   /**
@@ -205,10 +206,10 @@ describe('Security: Proxy/Middleware schließt API-Routen von Auth-Guard aus', (
     const content = fs.readFileSync(filePath, 'utf-8')
 
     // Muss einen expliziten early-return für /api/ Pfade haben, VOR dem Auth-Check
-    expect(content).toMatch(/path\.startsWith\(['"]\/api\/['"]\)/)
+    expect(content).toMatch(/pathname\.startsWith\(['"]\/api\/['"]\)/)
 
     // Der /api/-Check muss vor dem supabase.auth.getUser() Call stehen
-    const apiCheckIndex = content.indexOf("path.startsWith('/api/')")
+    const apiCheckIndex = content.indexOf("pathname.startsWith('/api/')")
     const authCheckIndex = content.indexOf('supabase.auth.getUser()')
     expect(apiCheckIndex).toBeGreaterThan(-1)
     expect(apiCheckIndex).toBeLessThan(authCheckIndex)

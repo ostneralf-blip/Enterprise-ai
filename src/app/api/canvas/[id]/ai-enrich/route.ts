@@ -1,34 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { hasAccess } from '@/lib/utils/tier-check'
+import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { CanvasAIEnrichmentSchema } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
-import type { Tier } from '@/types'
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const gate = await requireFeature('ai_enrich')
+  if (gate instanceof NextResponse) return gate
+  const { userId, tier } = gate
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', user.id)
-    .single()
-
-  const tier = (profile?.tier ?? 'free') as Tier
-  if (!hasAccess(tier, 'pro')) {
-    return NextResponse.json({ error: 'Pro oder Enterprise erforderlich', code: 'TIER_REQUIRED' }, { status: 403 })
-  }
-
-  // Usage-Limit prüfen
-  const usage = await getAIUsageStatus(user.id, tier)
+  const usage = await getAIUsageStatus(userId, tier)
   if (usage.exceeded) {
     return NextResponse.json({
       error: 'Tages-Limit erreicht',
@@ -37,12 +24,12 @@ export async function POST(
     }, { status: 429 })
   }
 
-  // Canvas laden und Ownership prüfen
+  const supabase = await createClient()
   const { data: canvas } = await supabase
     .from('canvases')
     .select('id, title, problem, solution, target_group, value_proposition, data_sources, success_metrics, risks, use_case_type, industry')
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single()
 
   if (!canvas) return NextResponse.json({ error: 'Canvas nicht gefunden' }, { status: 404 })
@@ -70,7 +57,7 @@ Return JSON with this exact structure:
   "confidence": 0.85
 }`
 
-  const ok = await incrementAIUsage(user.id, tier)
+  const ok = await incrementAIUsage(userId, tier)
   if (!ok) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
@@ -81,7 +68,6 @@ Return JSON with this exact structure:
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministisches Ergebnis bleibt aktiv', code: 'AI_FAILED' }, { status: 503 })
   }
 
-  // Provenienz aus meta — kein hardkodierter String mehr
   const aiModel = meta.provider === 'cache'
     ? `${meta.modelId} (cached)`
     : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
@@ -94,8 +80,8 @@ Return JSON with this exact structure:
       ai_generated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
 
-  const updatedUsage = await getAIUsageStatus(user.id, tier)
+  const updatedUsage = await getAIUsageStatus(userId, tier)
   return NextResponse.json({ result, usage: updatedUsage })
 }

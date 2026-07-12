@@ -135,3 +135,126 @@ describe('extractCanvasContext', () => {
     expect(ctx.compliance_flags).toContain('eu_hosting_required')
   })
 })
+
+// ════════════════════════════════════════════════════════════════════════════
+// Gold-Canvas-Evaluationsset — AC zu Issue #144
+// Jede Änderung an Keywords/Synonymen muss diese Suite unverändert passieren.
+// ════════════════════════════════════════════════════════════════════════════
+describe('Gold-Canvas-Evaluationsset (Issue #144)', () => {
+
+  // ── False-Positive-Guards ─────────────────────────────────────────────────
+
+  it('FP-1: "Tax" erzeugt keinen Microsoft-Treffer ("ax" braucht Wortgrenze)', () => {
+    const msComp = mockComp({ name: 'Dynamics AX', vendor: 'Microsoft', tags: [], aliases: ['ax'] })
+    const score = scoreComponentAgainstText(msComp, 'tax compliance workflow automatisieren')
+    expect(score).toBe(0)
+  })
+
+  it('FP-2: "Snowboard" erzeugt keinen Snowflake-Treffer', () => {
+    const sfComp = mockComp({ name: 'Snowflake', vendor: 'Snowflake', tags: ['data-warehouse'], aliases: ['snowpark'] })
+    const score = scoreComponentAgainstText(sfComp, 'snowboard-verleih digitalisieren buchungssystem optimieren')
+    expect(score).toBe(0)
+  })
+
+  it('FP-3: "Delta-Wert" erzeugt keinen Databricks-Treffer (standalone "delta" entfernt)', () => {
+    const dbComp = mockComp({ name: 'Delta Lake', vendor: 'Databricks', tags: ['datalake'], aliases: [] })
+    const score = scoreComponentAgainstText(dbComp, 'delta-wert analyse kpi quartalsvergleich')
+    expect(score).toBe(0)
+  })
+
+  it('FP-4: Governance-Canvas ohne Finanzbezug wird NICHT als Finance klassifiziert', () => {
+    const canvas = mockCanvas({
+      problem: 'AI Governance Framework fehlt im Unternehmen',
+      solution: 'Audit-Trail und Compliance-Monitoring einführen, Risikomanagement-Framework aufbauen',
+      data_sources: 'Governance-Dokumente, Audit-Logs, Controlling-Berichte',
+    })
+    const useCase = mockUseCase({ name: 'AI Governance', domain: 'IT-Governance', weighted_score: undefined, quadrant: undefined })
+    const ctx = extractCanvasContext(canvas, useCase, [])
+    expect(ctx.wizard_prefill.industry).not.toBe('finance')
+  })
+
+  // ── Confidence-Nenner-Fix ─────────────────────────────────────────────────
+
+  it('CONF-1: Confidence ist immer ≤ 1.0 (Nenner = 8 Prefill-Felder)', () => {
+    // Reichhaltigster Canvas — alle 8 Felder erkennbar
+    const canvas = mockCanvas({
+      problem: 'Predictive Maintenance Anlage via SAP S/4HANA',
+      solution: 'ML-Modell via Azure OpenAI. On-Premise Infrastruktur hybrid.',
+      data_sources: 'SAP Datasphere, Azure Synapse. DSGVO: personenbezogene Sensordaten.',
+      architecture: 'SAP BTP + SAP AI Core.',
+    })
+    const useCase = mockUseCase({ name: 'Predictive Maintenance', domain: 'Fertigung' })
+    const ctx = extractCanvasContext(canvas, useCase, [])
+    expect(ctx.confidence).toBeLessThanOrEqual(1.0)
+    // Regression gegen alten Nenner 12 (max war 0.67)
+    expect(ctx.confidence).toBeGreaterThan(0.67)
+  })
+
+  it('CONF-2: Canvas ohne erkennbare Felder hat Confidence 0', () => {
+    const minimalCanvas: import('@/types').Canvas = {
+      id: 'x', user_id: 'u', title: '', archetype: null, version_no: 1,
+      created_at: '', updated_at: '',
+      data: { problem: '', solution: '', data_sources: '', stakeholders: '', kpis: '', risks: '', architecture: '', next_steps: '' },
+    }
+    const minimalUc = mockUseCase({ name: '', domain: null, weighted_score: undefined, quadrant: undefined })
+    const ctx = extractCanvasContext(minimalCanvas, minimalUc, [])
+    expect(ctx.confidence).toBe(0)
+  })
+
+  // ── Richtige Erkennungen ──────────────────────────────────────────────────
+
+  it('GS-1: Manufacturing-Canvas → industry = manufacturing', () => {
+    const canvas = mockCanvas({
+      problem: 'Predictive Maintenance für Produktionsanlage',
+      solution: 'Sensordaten von PLCs auswerten, Maschinendaten analysieren',
+      data_sources: 'MES-Daten, Schichtpläne, Fertigungsplanung',
+    })
+    const useCase = mockUseCase({ name: 'Predictive Maintenance', domain: 'Fertigung', weighted_score: undefined, quadrant: undefined })
+    const ctx = extractCanvasContext(canvas, useCase, [])
+    expect(ctx.wizard_prefill.industry).toBe('manufacturing')
+  })
+
+  it('GS-2: Echter Finance-Canvas (Bank/Fraud) → industry = finance', () => {
+    const canvas = mockCanvas({
+      problem: 'Kreditvergabe dauert zu lang, Fraud-Risiko steigt',
+      solution: 'ML-Scoring für Kreditrisikoanalyse, Fraud Detection',
+      data_sources: 'Bankdaten, Zahlungsabwicklung, Treasury-Berichte, Jahresabschluss, Bilanzdaten',
+    })
+    const useCase = mockUseCase({ name: 'Fraud Detection', domain: 'Banking', weighted_score: undefined, quadrant: undefined })
+    const ctx = extractCanvasContext(canvas, useCase, [])
+    expect(ctx.wizard_prefill.industry).toBe('finance')
+  })
+
+  it('GS-3: Azure OpenAI Chatbot → cloud_provider_hint = azure', () => {
+    const canvas = mockCanvas({
+      problem: 'Mitarbeiter finden Informationen nicht schnell genug',
+      solution: 'FAQ-Chatbot mit Azure OpenAI und Teams-Integration',
+      data_sources: 'SharePoint-Dokumente, Microsoft 365',
+      architecture: 'Azure Cloud Infrastruktur',   // override SAP-Default aus mockCanvas
+    })
+    const useCase = mockUseCase({ name: 'Knowledge Bot', domain: null, weighted_score: undefined, quadrant: undefined })
+    const ctx = extractCanvasContext(canvas, useCase, [])
+    expect(ctx.wizard_prefill.cloud_provider_hint).toBe('azure')
+  })
+
+  it('GS-4: DSGVO+Frankfurt → dsgvo_strict + eu_hosting_required gesetzt', () => {
+    const canvas = mockCanvas({
+      risks: 'Verarbeitung personenbezogener Daten (DSGVO). EU-Hosting in Frankfurt verpflichtend.',
+    })
+    const ctx = extractCanvasContext(canvas, mockUseCase(), [])
+    expect(ctx.compliance_flags).toContain('dsgvo_strict')
+    expect(ctx.compliance_flags).toContain('eu_hosting_required')
+  })
+
+  it('GS-5: "ax" als eigenständiges Wort matcht Microsoft-Komponente', () => {
+    const msComp = mockComp({ name: 'Dynamics AX', vendor: 'Microsoft', tags: [], aliases: ['ax'] })
+    const score = scoreComponentAgainstText(msComp, 'wir nutzen ax für hr und personalwesen')
+    expect(score).toBeGreaterThan(0)
+  })
+
+  it('GS-6: "delta lake" als Langform matcht Databricks-Komponente', () => {
+    const dbComp = mockComp({ name: 'Delta Lake', vendor: 'Databricks', tags: ['datalake'], aliases: [] })
+    const score = scoreComponentAgainstText(dbComp, 'delta lake als storage layer im lakehouse')
+    expect(score).toBeGreaterThanOrEqual(30)
+  })
+})

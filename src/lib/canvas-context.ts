@@ -1,6 +1,25 @@
 import type { Canvas, UseCase, CatalogComponent, CanvasSynonym } from '@/types'
 import type { WizardAnswers } from '@/config/architecture-data'
 
+// Felder, die maximal in wizard_prefill gesetzt werden können (8 Stück).
+// Confidence = gefüllte Felder / PREFILL_FIELDS.length — niemals > 1.
+const PREFILL_FIELDS = [
+  'usecase', 'sap_landscape', 'cloud_provider_hint', 'industry',
+  'data_platform', 'model_platform', 'compliance', 'infra',
+] as const
+
+// Wortgrenz-Matching für kurze Terme (≤ 4 Zeichen) verhindert Substring-False-Positives
+// wie "Tax" → "ax" (Microsoft Dynamics AX) oder "Snowboard" → "snow" (Snowflake).
+// Längere Terme nutzen includes() für Komposita wie "S/4HANA-Migration".
+function matchesTerm(text: string, term: string): boolean {
+  const t = term.toLowerCase()
+  if (t.length <= 4) {
+    const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return new RegExp(`\\b${esc}\\b`, 'i').test(text)
+  }
+  return text.includes(t)
+}
+
 export interface CanvasContext {
   wizard_prefill: Partial<WizardAnswers>
   pre_scored_components: CatalogComponent[]
@@ -67,11 +86,14 @@ export const VENDOR_ALIASES: Record<string, string[]> = {
     'jd edwards', 'siebel',
   ],
   'Databricks': [
-    'databricks', 'delta lake', 'mlflow', 'unity catalog', 'spark',
-    'apache spark', 'delta',
+    'databricks', 'delta lake', 'mlflow', 'unity catalog',
+    'apache spark',
+    // 'delta' und 'spark' entfernt — zu generisch in DE-Businesstexten (Delta-Wert, Funken)
   ],
   'Snowflake': [
-    'snowflake', 'snowpark', 'snow',
+    'snowflake', 'snowpark',
+    // 'snow' entfernt — matchesTerm(≤4) + Wortgrenzen würden "Snowboard" nicht treffen,
+    // aber 'snow' allein ist auch ohne Kompositum zu generisch (Wetterberichte etc.)
   ],
   'Siemens': [
     'siemens', 'teamcenter', 'mindsphere', 'industrial edge', 'opcenter',
@@ -119,10 +141,11 @@ const INDUSTRY_KEYWORDS: Record<string, string[]> = {
     'schicht', 'produktionsplanung', 'mes', 'erp fertigung',
   ],
   'finance': [
-    'finanz', 'finance', 'bank', 'versicher', 'buchhaltung', 'controlling',
+    // 'compliance', 'audit', 'controlling', 'risikomanagement' entfernt —
+    // erscheinen in praktisch jedem Governance-Canvas und kippen Finance fälschlich
+    'finanz', 'finance', 'bank', 'versicher', 'buchhaltung',
     'kreditoren', 'debitoren', 'hauptbuch', 'bilanz', 'rechnungswesen',
-    'treasury', 'audit', 'compliance', 'risikomanagement', 'fraud',
-    'invoice', 'rechnung', 'zahlungsabwicklung', 'fibu', 'jahresabschluss',
+    'treasury', 'fraud', 'zahlungsabwicklung', 'fibu', 'jahresabschluss',
     'konzernabschluss', 'reporting finance', 'finanzplanung', 'liquidität',
     'kostenrechnung', 'kalkulation', 'steuer', 'steuern',
   ],
@@ -232,25 +255,24 @@ export function scoreComponentAgainstText(
   const text = canvasText.toLowerCase()
   let score = 0
 
-  if (text.includes(component.name.toLowerCase()))                            score += 30
+  if (matchesTerm(text, component.name.toLowerCase()))                        score += 30
 
-  // Komponenten-eigene Aliases (aus Katalog-Feld)
   for (const alias of (component.aliases ?? [])) {
-    if (text.includes(alias.toLowerCase())) { score += 20; break }
+    if (matchesTerm(text, alias.toLowerCase())) { score += 20; break }
   }
 
   if (component.vendor) {
     const vendorLower = component.vendor.toLowerCase()
-    if (text.includes(vendorLower)) {
+    if (matchesTerm(text, vendorLower)) {
       score += 15
     } else {
       const aliases = vendorAliases[component.vendor] ?? []
-      if (aliases.some(alias => text.includes(alias))) score += 12
+      if (aliases.some(alias => matchesTerm(text, alias))) score += 12
     }
   }
 
   for (const tag of component.tags) {
-    if (text.includes(tag.toLowerCase()))                                     score += 5
+    if (matchesTerm(text, tag.toLowerCase()))                                  score += 5
   }
 
   score += clusterBonus
@@ -261,8 +283,8 @@ export function scoreComponentAgainstText(
 function countVendorHits(vendor: string, text: string, vendorAliases: Record<string, string[]> = VENDOR_ALIASES): number {
   const vendorLower = vendor.toLowerCase()
   const aliases = vendorAliases[vendor] ?? []
-  return (text.includes(vendorLower) ? 1 : 0) +
-    aliases.filter(a => text.includes(a)).length
+  return (matchesTerm(text, vendorLower) ? 1 : 0) +
+    aliases.filter(a => matchesTerm(text, a)).length
 }
 
 // ─── Merged Vendor-Aliases aufbauen ───────────────────────────────────────────
@@ -340,7 +362,7 @@ export function extractCanvasContext(
   let topScore = 0
   for (const [uct, keywords] of Object.entries(vocab)) {
     let s = 0
-    for (const kw of keywords) { if (textLower.includes(kw)) s++ }
+    for (const kw of keywords) { if (matchesTerm(textLower, kw)) s++ }
     if (s > topScore) { topScore = s; topUseCase = uct as WizardAnswers['usecase'] }
   }
   if (topScore === 0) topUseCase = undefined
@@ -368,19 +390,29 @@ export function extractCanvasContext(
 
   // ── Branche ──────────────────────────────────────────────────────────────────
   let industry: WizardAnswers['industry']
-  // Volltext (Domain + alle Canvas-Felder) für Branchenerkennung
   let bestIndustry: string | undefined
   let bestIndustryScore = 0
+  let secondBestScore = 0
   for (const [ind, keywords] of Object.entries(INDUSTRY_KEYWORDS)) {
     if (ind === 'other') continue
-    const hits = keywords.filter(kw => textLower.includes(kw)).length
-    if (hits > bestIndustryScore) { bestIndustryScore = hits; bestIndustry = ind }
+    const hits = keywords.filter(kw => matchesTerm(textLower, kw)).length
+    if (hits > bestIndustryScore) {
+      secondBestScore = bestIndustryScore
+      bestIndustryScore = hits
+      bestIndustry = ind
+    } else if (hits > secondBestScore) {
+      secondBestScore = hits
+    }
+  }
+  // Finance-Bias-Guard: Finance nur wenn ≥2 Hits Vorsprung vor zweitbester Branche
+  if (bestIndustry === 'finance' && bestIndustryScore - secondBestScore < 2) {
+    bestIndustry = undefined
+    bestIndustryScore = 0
   }
   if (bestIndustry && bestIndustryScore > 0) {
     industry = bestIndustry as WizardAnswers['industry']
   } else {
-    // Fallback: prüfe "other"-Industrie-Keywords
-    const otherHits = (INDUSTRY_KEYWORDS['other'] ?? []).filter(kw => textLower.includes(kw)).length
+    const otherHits = (INDUSTRY_KEYWORDS['other'] ?? []).filter(kw => matchesTerm(textLower, kw)).length
     if (otherHits > 0) industry = 'other'
   }
 
@@ -431,7 +463,7 @@ export function extractCanvasContext(
   // ── Komponenten-Scoring ───────────────────────────────────────────────────────
   const platformContext = new Set<string>()
   for (const [cat, keywords] of Object.entries(allCategoryKeywords)) {
-    if (keywords.some(kw => textLower.includes(kw))) platformContext.add(cat)
+    if (keywords.some(kw => matchesTerm(textLower, kw))) platformContext.add(cat)
   }
 
   const pre_scored_components = catalog
@@ -486,7 +518,7 @@ export function extractCanvasContext(
   if (compliance_flags.includes('eu_ai_act_high'))
     detected_tags.push({ label: 'EU AI Act High Risk', type: 'compliance' })
 
-  const confidence = Object.keys(wizard_prefill).length / 12
+  const confidence = Object.keys(wizard_prefill).length / PREFILL_FIELDS.length
 
   return { wizard_prefill, pre_scored_components, compliance_flags, detected_tags, confidence }
 }
