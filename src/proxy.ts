@@ -9,7 +9,7 @@ const EN_ENABLED = process.env.NEXT_PUBLIC_EN_ENABLED === 'true'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share', '/forgot-password', '/reset-password', '/trust', '/sitemap.xml', '/robots.txt']
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify', '/share', '/forgot-password', '/reset-password', '/trust', '/sitemap.xml', '/robots.txt', '/impressum', '/datenschutz', '/agb', '/widerruf']
 const AUTH_ROUTES = ['/login', '/register']
 
 export async function proxy(request: NextRequest) {
