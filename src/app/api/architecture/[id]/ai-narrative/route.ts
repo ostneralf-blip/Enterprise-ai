@@ -98,7 +98,7 @@ Return this exact JSON structure:
     .from('architectures')
     .update({
       ai_narrative:    result,
-      ai_model:        'anthropic.claude-sonnet-4-6 via AWS Bedrock eu-central-1',
+      ai_model:        'anthropic.claude-sonnet-4-6 via AWS Bedrock eu-west-1',
       ai_generated_at: new Date().toISOString(),
     })
     .eq('id', id)
