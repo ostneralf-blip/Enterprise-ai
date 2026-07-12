@@ -72,7 +72,7 @@ Return JSON with this exact structure:
   "suggested_quadrant": "one of: quick_win | strategic | support | avoid",
   "suggested_complexity": "one of: low | medium | high",
   "infra_hints": ["array of max 5 short infrastructure hints"],
-  "additional_compliance_flags": ["array of max 3 compliance flags if applicable, e.g. 'gdpr_sensitive', 'eu_ai_act_high_risk'"],
+  "additional_compliance_flags": ["array of max 3 flags, ONLY from this fixed set (do not invent other wording): 'gdpr' (personal/sensitive data processing), 'eu_ai_act_high_risk', 'iso27001' (information security / data residency / hosting location controls), 'nis2' (critical infrastructure), 'health_data' (patient/medical data), 'financial_regulation' (payments/banking/insurance)"],
   "confidence": 0.85
 }`
 

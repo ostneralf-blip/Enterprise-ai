@@ -49,6 +49,24 @@ function analyzeCanvasData(data: CanvasData) {
   return { platform, usecaseType, compliance, filledCount }
 }
 
+// Rohe KI-Compliance-Flags sind Freitext ohne festes Vokabular (der Prompt in
+// ai-enrich/route.ts gibt nur Beispiele vor, kein Enum) — bildet sie auf
+// dieselben kanonischen Kategorien ab wie die deterministische Erkennung
+// oben, statt technische Bezeichner (z.B. "gdpr_sensitive",
+// "data_residency_consideration") roh als eigene Badges anzuzeigen.
+export function normalizeComplianceFlag(raw: string): string {
+  const v = raw.toLowerCase()
+  if (/dsgvo|gdpr|personenbezogen|personal.?data|\bpii\b|datenschutz|privacy|consent|einwilligung/.test(v)) return 'DSGVO relevant'
+  if (/eu.?ai.?act|ai.?act|hochrisiko|high.?risk.?ai|ki.?verordnung/.test(v)) return 'EU AI Act relevant'
+  if (/iso.?27001|isms|informationssicherheit|it.?sicherheit|soc.?2|pentest|schwachstellen|data.?residency|\bresidency\b/.test(v)) return 'ISO 27001 / IT-Sicherheit relevant'
+  if (/nis.?2|kritis|critical.?infrastructure/.test(v)) return 'NIS2 / KRITIS relevant'
+  if (/health|patient|medical|gesundheit|hipaa|\bmdr\b/.test(v)) return 'Gesundheitsdaten / MDR relevant'
+  if (/financ|payment|psd2|bafin|\bbank/.test(v)) return 'Finanzregulierung relevant'
+  if (/eu.?host|sovereignt|cross.?border|drittland|schrems/.test(v)) return 'EU-Hosting / Datensouveränität'
+  // Fallback: unbekannter Flag — technischen Bezeichner lesbar machen statt roh anzuzeigen
+  return raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 export function platformToProvider(platform: string): string | null {
   const map: Record<string, string> = { SAP: 'sap', Azure: 'azure', AWS: 'aws', GCP: 'gcp' }
   return map[platform] ?? null
@@ -110,7 +128,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const aiInfraHints = aiEnrichment?.infra_hints ?? []
   const displayCompliance = useMemo(() => {
     const base = insights?.compliance ?? []
-    const extra = aiEnrichment?.additional_compliance_flags ?? []
+    const extra = (aiEnrichment?.additional_compliance_flags ?? []).map(normalizeComplianceFlag)
     return Array.from(new Set([...base, ...extra]))
   }, [insights, aiEnrichment])
 
