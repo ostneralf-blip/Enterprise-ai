@@ -11,6 +11,16 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Canvas, CanvasData, Archetype, Tier } from '@/types'
 
+type CanvasAIEnrichment = {
+  use_case_type?: string
+  industry?: string
+  suggested_quadrant?: string
+  suggested_complexity?: string
+  infra_hints?: string[]
+  additional_compliance_flags?: string[]
+  confidence?: number
+}
+
 function analyzeCanvasData(data: CanvasData) {
   const text = Object.values(data).join(' ').toLowerCase()
   const platform: string[] = []
@@ -39,6 +49,50 @@ function analyzeCanvasData(data: CanvasData) {
   return { platform, usecaseType, compliance, filledCount }
 }
 
+// Rohe KI-Compliance-Flags sind Freitext ohne festes Vokabular (der Prompt in
+// ai-enrich/route.ts gibt nur Beispiele vor, kein Enum) — bildet sie auf
+// dieselben kanonischen Kategorien ab wie die deterministische Erkennung
+// oben, statt technische Bezeichner (z.B. "gdpr_sensitive",
+// "data_residency_consideration") roh als eigene Badges anzuzeigen.
+export function normalizeComplianceFlag(raw: string): string {
+  const v = raw.toLowerCase()
+  if (/dsgvo|gdpr|personenbezogen|personal.?data|\bpii\b|datenschutz|privacy|consent|einwilligung/.test(v)) return 'DSGVO relevant'
+  if (/eu.?ai.?act|ai.?act|hochrisiko|high.?risk.?ai|ki.?verordnung/.test(v)) return 'EU AI Act relevant'
+  if (/iso.?27001|isms|informationssicherheit|it.?sicherheit|soc.?2|pentest|schwachstellen|data.?residency|\bresidency\b/.test(v)) return 'ISO 27001 / IT-Sicherheit relevant'
+  if (/nis.?2|kritis|critical.?infrastructure/.test(v)) return 'NIS2 / KRITIS relevant'
+  if (/health|patient|medical|gesundheit|hipaa|\bmdr\b/.test(v)) return 'Gesundheitsdaten / MDR relevant'
+  if (/financ|payment|psd2|bafin|\bbank/.test(v)) return 'Finanzregulierung relevant'
+  if (/eu.?host|sovereignt|cross.?border|drittland|schrems/.test(v)) return 'EU-Hosting / Datensouveränität'
+  // Fallback: unbekannter Flag — technischen Bezeichner lesbar machen statt roh anzuzeigen
+  return raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// Rohe KI-Infra-Hinweise sind ebenfalls Freitext ohne festes Vokabular — bildet
+// erkennbare Vendor-/System-Namen und generische Infra-Kategorien auf kurze,
+// kanonische Tags ab statt lange technische Sätze (z.B. "RF Scanner
+// integration layer", "Warehouse management system bridge") roh als eigene
+// Badges in der Platform-Spalte anzuzeigen.
+export function normalizeInfraHint(raw: string): string {
+  const v = raw.toLowerCase()
+  if (/\bsap\b/.test(v)) return 'SAP'
+  if (/\bazure\b/.test(v)) return 'Azure'
+  if (/\baws\b|amazon web/.test(v)) return 'AWS'
+  if (/\bgcp\b|google cloud/.test(v)) return 'GCP'
+  if (/navision|dynamics.?nav|dynamics.?365.?business.?central/.test(v)) return 'Microsoft Dynamics (Navision)'
+  if (/salesforce/.test(v)) return 'Salesforce'
+  if (/snowflake/.test(v)) return 'Snowflake'
+  if (/databricks/.test(v)) return 'Databricks'
+  if (/\boracle\b/.test(v)) return 'Oracle'
+  if (/rf.?scanner|barcode|qr.?code|\bscanner\b/.test(v)) return 'Hardware-/Scanner-Integration'
+  if (/warehouse.?management|\bwms\b|lagerverwaltung/.test(v)) return 'WMS-Integration'
+  if (/real.?time|echtzeit|\bsync\b/.test(v)) return 'Echtzeit-Datenintegration'
+  if (/on.?prem|\bserver\b|\blokal\b/.test(v)) return 'On-Premises'
+  if (/\bapi\b/.test(v)) return 'API-Integration'
+  // Fallback: unbekannter Hinweis — kürzen statt als vollen Satz anzuzeigen
+  const words = raw.split(/\s+/)
+  return words.length > 3 ? words.slice(0, 3).join(' ') + '…' : raw
+}
+
 export function platformToProvider(platform: string): string | null {
   const map: Record<string, string> = { SAP: 'sap', Azure: 'azure', AWS: 'aws', GCP: 'gcp' }
   return map[platform] ?? null
@@ -50,6 +104,19 @@ export function usecaseToApiType(usecaseType: string | null): string | null {
   if (usecaseType.includes('Predictive')) return 'predictive'
   if (usecaseType.includes('Vision')) return 'vision'
   if (usecaseType.includes('Prozess')) return 'automation'
+  return null
+}
+
+// KI-Enrichment liefert use_case_type als Freitext (kein festes Enum) —
+// dieselbe Normalisierung wie usecaseToApiType, aber robuster gegenüber
+// Englisch/Deutsch-Mischformen aus dem LLM-Ergebnis.
+export function aiUseCaseToApiType(useCaseType: string | null | undefined): string | null {
+  if (!useCaseType) return null
+  const v = useCaseType.toLowerCase()
+  if (/generativ|llm|gpt|chatbot|sprachmodell/.test(v)) return 'generative'
+  if (/predict|prognose|forecast|vorhersage/.test(v)) return 'predictive'
+  if (/vision|bild/.test(v)) return 'vision'
+  if (/automat|rpa|workflow|prozess/.test(v)) return 'automation'
   return null
 }
 
@@ -66,6 +133,7 @@ interface Props {
 
 export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const t = useTranslations('modules')
+  const tAi = useTranslations('ai')
   const locale = useLocale()
   const [canvases, setCanvases] = useState<Canvas[]>(initialCanvases)
   const [active, setActive] = useState<Canvas | null>(null)
@@ -76,10 +144,31 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
 
+  const aiEnrichment = active?.ai_enrichment as CanvasAIEnrichment | undefined
+
+  // Zusammengeführter Kontext: KI-Signale ergänzen/überschreiben die
+  // deterministische Keyword-Erkennung, statt in einer separaten Box
+  // isoliert angezeigt zu werden.
+  const displayUsecaseType = aiEnrichment?.use_case_type ?? insights?.usecaseType ?? null
+  const usecaseFromAi = Boolean(aiEnrichment?.use_case_type)
+  const displayPlatform = useMemo(() => {
+    const base = insights?.platform ?? []
+    const extra = (aiEnrichment?.infra_hints ?? []).map(normalizeInfraHint)
+    return Array.from(new Set([...base, ...extra]))
+  }, [insights, aiEnrichment])
+  const displayCompliance = useMemo(() => {
+    const base = insights?.compliance ?? []
+    const extra = (aiEnrichment?.additional_compliance_flags ?? []).map(normalizeComplianceFlag)
+    return Array.from(new Set([...base, ...extra]))
+  }, [insights, aiEnrichment])
+
   const detectedProvider = insights && insights.platform.length > 0
     ? platformToProvider(insights.platform[0])
     : null
-  const detectedUsecase = insights ? usecaseToApiType(insights.usecaseType) : null
+  // KI-Use-Case-Typ hat Vorrang: verbessert die Grundlage, gegen die die
+  // Matching Components im Katalog gefiltert werden.
+  const detectedUsecase = aiUseCaseToApiType(aiEnrichment?.use_case_type)
+    ?? (insights ? usecaseToApiType(insights.usecaseType) : null)
 
   useEffect(() => {
     if (!detectedProvider) return
@@ -235,7 +324,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           ))}
         </div>
 
-        {/* Kontextanalyse-Panel */}
+        {/* Kontextanalyse-Panel — deterministische Erkennung + KI-Enrichment gemergt */}
         {insights && insights.filledCount >= 2 && (
           <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -256,9 +345,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxPlatform')}</p>
-                {insights.platform.length > 0 ? (
+                {displayPlatform.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
-                    {insights.platform.map(p => (
+                    {displayPlatform.map(p => (
                       <span key={p} className="text-xs bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">{p}</span>
                     ))}
                   </div>
@@ -269,8 +358,16 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
 
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxAiType')}</p>
-                {insights.usecaseType ? (
-                  <span className="text-xs bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-medium">{insights.usecaseType}</span>
+                {displayUsecaseType ? (
+                  <div className="space-y-1">
+                    <span className="text-xs bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-medium inline-flex items-center gap-1">
+                      {displayUsecaseType}
+                      {usecaseFromAi && <span className="text-[9px] font-semibold text-violet-500">{tAi('badge')}</span>}
+                    </span>
+                    {aiEnrichment?.industry && (
+                      <p className="text-[11px] text-slate-400">{t('canvas.ctxIndustry')}: {aiEnrichment.industry}</p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-xs text-slate-400">{t('canvas.ctxNotDetected')}</p>
                 )}
@@ -278,9 +375,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
 
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxCompliance')}</p>
-                {insights.compliance.length > 0 ? (
+                {displayCompliance.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
-                    {insights.compliance.map(c => (
+                    {displayCompliance.map(c => (
                       <span key={c} className="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 font-medium">{c}</span>
                     ))}
                   </div>
@@ -301,7 +398,6 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
               </div>
             )}
 
-            {/* AI-Analyse-Bereich */}
             <div className="pt-2 border-t border-slate-200 space-y-2">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <AIAnalysisButton
@@ -313,21 +409,16 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                   <p className="text-xs text-red-500">{aiError}</p>
                 )}
               </div>
-              {active.ai_enrichment && (
-                <div className="bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 text-xs text-violet-700 space-y-1">
-                  {(active.ai_enrichment as { use_case_type?: string; industry?: string; suggested_quadrant?: string; infra_hints?: string[] }).use_case_type && (
-                    <p><span className="font-medium">KI-Typ:</span> {(active.ai_enrichment as { use_case_type?: string }).use_case_type}</p>
+              {(aiEnrichment?.suggested_quadrant || aiEnrichment?.suggested_complexity) && (
+                <p className="text-xs text-slate-500">
+                  {aiEnrichment.suggested_quadrant && (
+                    <>{t('canvas.ctxQuadrant')}: <span className="font-medium text-slate-600">{aiEnrichment.suggested_quadrant}</span></>
                   )}
-                  {(active.ai_enrichment as { industry?: string }).industry && (
-                    <p><span className="font-medium">Branche:</span> {(active.ai_enrichment as { industry?: string }).industry}</p>
+                  {aiEnrichment.suggested_quadrant && aiEnrichment.suggested_complexity && ' · '}
+                  {aiEnrichment.suggested_complexity && (
+                    <>{t('canvas.ctxComplexity')}: <span className="font-medium text-slate-600">{aiEnrichment.suggested_complexity}</span></>
                   )}
-                  {(active.ai_enrichment as { suggested_quadrant?: string }).suggested_quadrant && (
-                    <p><span className="font-medium">Empfohlener Quadrant:</span> {(active.ai_enrichment as { suggested_quadrant?: string }).suggested_quadrant}</p>
-                  )}
-                  {((active.ai_enrichment as { infra_hints?: string[] }).infra_hints ?? []).length > 0 && (
-                    <p><span className="font-medium">Infra-Hinweise:</span> {((active.ai_enrichment as { infra_hints?: string[] }).infra_hints ?? []).join(', ')}</p>
-                  )}
-                </div>
+                </p>
               )}
             </div>
 
