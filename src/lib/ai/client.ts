@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 import { z } from 'zod'
 import { createHash } from 'crypto'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 const REGION = 'eu-central-1'
 const DEFAULT_TIMEOUT_MS = 15_000
@@ -57,7 +57,7 @@ export async function callLLM<T>(
   // Cache-Check: identische Prompts nicht erneut aufrufen
   const cacheKey = hashPrompt(userPrompt + (opts.systemPrompt ?? ''), modelId)
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const { data: cached } = await supabase
       .from('ai_prompt_cache')
       .select('response')
@@ -108,7 +108,7 @@ export async function callLLM<T>(
 
     // Cache 24h schreiben (fire-and-forget)
     try {
-      const supabase = await createClient()
+      const supabase = await createAdminClient()
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       await supabase.from('ai_prompt_cache').upsert({
         cache_key:  cacheKey,
