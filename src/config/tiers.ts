@@ -1,5 +1,13 @@
 import type { Tier } from '@/types'
 
+// Maximale AI-Calls pro Tag und Tier — eine Quelle der Wahrheit.
+// Werte können über Admin-Panel (app_settings) in Stufe 3 überschrieben werden.
+export const AI_CALL_LIMITS: Record<Tier, number> = {
+  free:       1,
+  pro:        10,
+  enterprise: 50,
+}
+
 export const TIER_CONFIG = {
   free: {
     name: 'Explorer',

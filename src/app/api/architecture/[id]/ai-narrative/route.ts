@@ -52,7 +52,7 @@ export async function POST(
 
   if (!arch) return NextResponse.json({ error: 'Architektur nicht gefunden' }, { status: 404 })
 
-  const usage = await getAIUsageStatus(user.id)
+  const usage = await getAIUsageStatus(user.id, tier)
   if (usage.exceeded) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
@@ -83,27 +83,31 @@ Return this exact JSON structure:
   ]
 }`
 
-  const ok = await incrementAIUsage(user.id)
+  const ok = await incrementAIUsage(user.id, tier)
   if (!ok) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
 
-  const result = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
+  const { data: result, meta } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
 
   if (!result) {
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministische Bausteine bleiben aktiv', code: 'AI_FAILED' }, { status: 503 })
   }
 
+  const aiModel = meta.provider === 'cache'
+    ? `${meta.modelId} (cached)`
+    : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
+
   await supabase
     .from('architectures')
     .update({
       ai_narrative:    result,
-      ai_model:        'anthropic.claude-sonnet-4-6 via AWS Bedrock eu-central-1',
+      ai_model:        aiModel,
       ai_generated_at: new Date().toISOString(),
     })
     .eq('id', id)
     .eq('user_id', user.id)
 
-  const updatedUsage = await getAIUsageStatus(user.id)
+  const updatedUsage = await getAIUsageStatus(user.id, tier)
   return NextResponse.json({ result, usage: updatedUsage })
 }

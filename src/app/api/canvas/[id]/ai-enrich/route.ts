@@ -28,7 +28,7 @@ export async function POST(
   }
 
   // Usage-Limit prüfen
-  const usage = await getAIUsageStatus(user.id)
+  const usage = await getAIUsageStatus(user.id, tier)
   if (usage.exceeded) {
     return NextResponse.json({
       error: 'Tages-Limit erreicht',
@@ -70,28 +70,32 @@ Return JSON with this exact structure:
   "confidence": 0.85
 }`
 
-  const ok = await incrementAIUsage(user.id)
+  const ok = await incrementAIUsage(user.id, tier)
   if (!ok) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
 
-  const result = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 512 })
+  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 512 })
 
   if (!result) {
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministisches Ergebnis bleibt aktiv', code: 'AI_FAILED' }, { status: 503 })
   }
 
-  // Ergebnis in Canvas persistieren
+  // Provenienz aus meta — kein hardkodierter String mehr
+  const aiModel = meta.provider === 'cache'
+    ? `${meta.modelId} (cached)`
+    : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
+
   await supabase
     .from('canvases')
     .update({
       ai_enrichment:   result,
-      ai_model:        'anthropic.claude-haiku-4-5 via AWS Bedrock eu-central-1',
+      ai_model:        aiModel,
       ai_generated_at: new Date().toISOString(),
     })
     .eq('id', id)
     .eq('user_id', user.id)
 
-  const updatedUsage = await getAIUsageStatus(user.id)
+  const updatedUsage = await getAIUsageStatus(user.id, tier)
   return NextResponse.json({ result, usage: updatedUsage })
 }

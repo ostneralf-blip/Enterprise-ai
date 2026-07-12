@@ -3,18 +3,29 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
+import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 import { createHash } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
 
-const REGION = 'eu-central-1'
-const DEFAULT_TIMEOUT_MS = 15_000
+// Alle Infra-Parameter über Env-Vars konfigurierbar — Änderung ohne Deploy
+const REGION          = process.env.BEDROCK_REGION ?? 'eu-west-1'
+const DEFAULT_TIMEOUT = parseInt(process.env.BEDROCK_TIMEOUT_MS ?? '15000', 10)
 
-// Lazy-init damit die Credentials erst beim ersten echten Call gelesen werden
-let _client: BedrockRuntimeClient | null = null
-function getClient(): BedrockRuntimeClient {
-  if (!_client) {
-    _client = new BedrockRuntimeClient({
+const MODEL_IDS = {
+  haiku:  process.env.BEDROCK_MODEL_HAIKU  ?? 'anthropic.claude-haiku-4-5-20251001',
+  sonnet: process.env.BEDROCK_MODEL_SONNET ?? 'anthropic.claude-sonnet-4-6-20250514',
+} as const
+
+// Typo-Fix: ALLOW_NON_EU_AI_FALLBACK (früher: ALLOW_NON_EU_AI_FALLACK)
+const ALLOW_FALLBACK = process.env.ALLOW_NON_EU_AI_FALLBACK === 'true'
+
+let _bedrockClient: BedrockRuntimeClient | null = null
+let _startupLogged = false
+
+function getBedrockClient(): BedrockRuntimeClient {
+  if (!_bedrockClient) {
+    _bedrockClient = new BedrockRuntimeClient({
       region: REGION,
       credentials: {
         accessKeyId:     process.env.AWS_BEDROCK_ACCESS_KEY_ID!,
@@ -22,14 +33,25 @@ function getClient(): BedrockRuntimeClient {
       },
     })
   }
-  return _client
+  if (!_startupLogged) {
+    _startupLogged = true
+    console.info('[ai/client] Bedrock konfiguriert:', { region: REGION, haiku: MODEL_IDS.haiku, sonnet: MODEL_IDS.sonnet, fallback: ALLOW_FALLBACK })
+  }
+  return _bedrockClient
 }
 
 export type LLMModel = 'haiku' | 'sonnet'
 
-const MODEL_IDS: Record<LLMModel, string> = {
-  haiku:  'anthropic.claude-haiku-4-5-20251001',
-  sonnet: 'anthropic.claude-sonnet-4-6-20250514',
+export interface LLMMeta {
+  provider: 'bedrock' | 'direct' | 'cache'
+  modelId: string
+  latencyMs: number
+  region: string
+}
+
+export interface LLMResult<T> {
+  data: T | null
+  meta: LLMMeta
 }
 
 interface CallLLMOptions {
@@ -39,22 +61,31 @@ interface CallLLMOptions {
   timeoutMs?: number
 }
 
-// Prompt hashen für Cache-Lookup
 function hashPrompt(prompt: string, model: string): string {
   return createHash('sha256').update(`${model}:${prompt}`).digest('hex').slice(0, 32)
+}
+
+function classifyBedrockError(err: unknown): string {
+  const msg = String(err instanceof Error ? err.message : err)
+  if (msg.includes('ThrottlingException')) return 'ThrottlingException'
+  if (msg.includes('ValidationException')) return 'ValidationException'
+  if (msg.includes('AccessDeniedException') || msg.includes('registration is incomplete')) return 'AccessDeniedException'
+  if (msg.includes('ResourceNotFoundException')) return 'ResourceNotFoundException'
+  return 'UnknownError'
 }
 
 export async function callLLM<T>(
   userPrompt: string,
   schema: z.ZodType<T>,
   opts: CallLLMOptions = {},
-): Promise<T | null> {
-  const model = opts.model ?? 'haiku'
-  const modelId = MODEL_IDS[model]
+): Promise<LLMResult<T>> {
+  const model     = opts.model ?? 'haiku'
+  const modelId   = MODEL_IDS[model]
   const maxTokens = opts.maxTokens ?? 1024
-  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
+  const t0        = Date.now()
 
-  // Cache-Check: identische Prompts nicht erneut aufrufen
+  // Cache-Check
   const cacheKey = hashPrompt(userPrompt + (opts.systemPrompt ?? ''), modelId)
   try {
     const supabase = await createAdminClient()
@@ -66,11 +97,11 @@ export async function callLLM<T>(
       .maybeSingle()
     if (cached?.response) {
       const parsed = schema.safeParse(cached.response)
-      if (parsed.success) return parsed.data
+      if (parsed.success) {
+        return { data: parsed.data, meta: { provider: 'cache', modelId, latencyMs: Date.now() - t0, region: REGION } }
+      }
     }
-  } catch {
-    // Cache-Fehler sind nicht blockierend
-  }
+  } catch { /* Cache-Fehler sind nicht blockierend */ }
 
   const body = JSON.stringify({
     anthropic_version: 'bedrock-2023-05-31',
@@ -79,7 +110,14 @@ export async function callLLM<T>(
     messages: [{ role: 'user', content: userPrompt }],
   })
 
+  const noData = (provider: LLMMeta['provider']): LLMResult<T> =>
+    ({ data: null, meta: { provider, modelId, latencyMs: Date.now() - t0, region: REGION } })
+
+  // Bedrock-Versuch (primär)
   try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+
     const command = new InvokeModelCommand({
       modelId,
       contentType: 'application/json',
@@ -87,40 +125,73 @@ export async function callLLM<T>(
       body:        Buffer.from(body),
     })
 
-    const timeoutPromise = new Promise<null>((resolve) =>
-      setTimeout(() => resolve(null), timeoutMs)
-    )
-    const callPromise = getClient().send(command).then(async (res) => {
-      const text = new TextDecoder().decode(res.body)
-      const raw  = JSON.parse(text)
-      // Bedrock wraps the response: { content: [{ text: "..." }] }
-      const content = raw?.content?.[0]?.text ?? ''
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) return null
-      return JSON.parse(jsonMatch[0])
-    })
+    const res  = await getBedrockClient().send(command, { abortSignal: controller.signal })
+    clearTimeout(timer)
 
-    const result = await Promise.race([callPromise, timeoutPromise])
-    if (!result) return null
+    const text     = new TextDecoder().decode(res.body)
+    const raw      = JSON.parse(text)
+    const content  = raw?.content?.[0]?.text ?? ''
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return noData('bedrock')
 
-    const parsed = schema.safeParse(result)
-    if (!parsed.success) return null
+    const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
+    if (!parsed.success) return noData('bedrock')
 
     // Cache 24h schreiben (fire-and-forget)
-    try {
-      const supabase = await createAdminClient()
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      await supabase.from('ai_prompt_cache').upsert({
-        cache_key:  cacheKey,
-        response:   parsed.data,
-        expires_at: expiresAt,
-      }, { onConflict: 'cache_key' })
-    } catch {
-      // Cache-Write-Fehler sind nicht blockierend
-    }
+    createAdminClient().then(async sb => {
+      const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
+      await sb.from('ai_prompt_cache').upsert(
+        { cache_key: cacheKey, response: parsed.data, expires_at: expiresAt },
+        { onConflict: 'cache_key' }
+      )
+    }).catch(() => {})
 
-    return parsed.data
+    return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
+  } catch (err) {
+    const errorCode = classifyBedrockError(err)
+    Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': errorCode, region: REGION } })
+    console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
+
+    // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
+    if (!ALLOW_FALLBACK || !process.env.ANTHROPIC_API_KEY) return noData('bedrock')
+
+    // Sicherheits-Guard: Fallback in Produktion verbieten
+    if (process.env.VERCEL_ENV === 'production') {
+      Sentry.captureMessage('ALLOW_NON_EU_AI_FALLBACK in production — sofort deaktivieren!', 'error')
+      return noData('bedrock')
+    }
+  }
+
+  // Direct-Fallback (nur lokal/staging)
+  try {
+    const directModel = model === 'sonnet'
+      ? (process.env.ANTHROPIC_MODEL_SONNET ?? 'claude-sonnet-4-6-20250514')
+      : (process.env.ANTHROPIC_MODEL_HAIKU  ?? 'claude-haiku-4-5-20251001')
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key':         process.env.ANTHROPIC_API_KEY!,
+        'anthropic-version': '2023-06-01',
+        'content-type':      'application/json',
+      },
+      body: JSON.stringify({
+        model: directModel, max_tokens: maxTokens,
+        system: opts.systemPrompt ?? 'You are a precise JSON-only API. Respond ONLY with valid JSON.',
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+    const json     = await res.json()
+    const content  = json?.content?.[0]?.text ?? ''
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return noData('direct')
+
+    const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
+    if (!parsed.success) return noData('direct')
+
+    return { data: parsed.data, meta: { provider: 'direct', modelId: directModel, latencyMs: Date.now() - t0, region: 'us' } }
   } catch {
-    return null
+    return noData('direct')
   }
 }

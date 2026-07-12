@@ -1,5 +1,13 @@
+import 'server-only'
 import { createHash } from 'crypto'
+import { z } from 'zod'
+import { callLLM } from '@/lib/ai/client'
 import type { ScanSourceResult } from '@/types'
+
+const ScanSummarySchema = z.object({
+  summary:          z.string(),
+  status_estimate:  z.enum(['final', 'entwurf', 'unklar']),
+})
 
 export const COMPLIANCE_SOURCES = [
   { url: 'https://www.edpb.europa.eu/news_de', label: 'EDPB Newsroom' },
@@ -48,23 +56,7 @@ export async function summarizeWithClaude(
     status_estimate: 'unklar' as const,
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return FALLBACK
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: `Du bist ein Compliance-Analyst. Vergleiche die beiden Texte und antworte NUR als JSON ohne Markdown-Wrapper.
+  const prompt = `Du bist ein Compliance-Analyst. Vergleiche die beiden Texte und antworte NUR als JSON ohne Markdown-Wrapper.
 
 VORHER:
 ${oldText.slice(0, 3000)}
@@ -75,21 +67,8 @@ ${newText.slice(0, 3000)}
 Antworte genau so:
 {"summary":"<max 3 Sätze auf Deutsch was sich geändert hat>","status_estimate":"<final|entwurf|unklar>"}
 
-final = im EU-Amtsblatt veröffentlicht. entwurf = Vorschlag/Einigung noch nicht verabschiedet. unklar = nicht bestimmbar.`,
-        }],
-      }),
-      signal: AbortSignal.timeout(30000),
-    })
-    if (!res.ok) return FALLBACK
-    const data = await res.json() as { content: Array<{ text: string }> }
-    const text = data.content?.[0]?.text ?? ''
-    const parsed = JSON.parse(text) as { summary: string; status_estimate: string }
-    if (!parsed.summary) return FALLBACK
-    const estimate = ['final', 'entwurf', 'unklar'].includes(parsed.status_estimate)
-      ? (parsed.status_estimate as 'final' | 'entwurf' | 'unklar')
-      : 'unklar'
-    return { summary: parsed.summary, status_estimate: estimate }
-  } catch {
-    return FALLBACK
-  }
+final = im EU-Amtsblatt veröffentlicht. entwurf = Vorschlag/Einigung noch nicht verabschiedet. unklar = nicht bestimmbar.`
+
+  const { data } = await callLLM(prompt, ScanSummarySchema, { model: 'haiku', maxTokens: 300, timeoutMs: 30_000 })
+  return data ?? FALLBACK
 }

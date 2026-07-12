@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe/client'
+import { deriveTier, safePeriodEnd } from '@/lib/stripe/tier-logic'
 import { createAdminClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
@@ -96,13 +97,14 @@ export async function POST(req: Request) {
       const sub = event.data.object as Stripe.Subscription
       const profile = await profileByCustomer(supabase, sub.customer as string)
       if (!profile) break
-      const isActive = sub.status === 'active' || sub.status === 'trialing'
-      const periodEnd = (sub as unknown as { current_period_end: number }).current_period_end
-      await updateProfile(supabase, profile.id, {
-        tier:                    isActive ? 'pro' : 'free',
-        subscription_status:     sub.status,
-        subscription_period_end: new Date(periodEnd * 1000).toISOString(),
-      })
+      const periodEnd = safePeriodEnd(sub)
+      const { tier, subscription_status } = deriveTier(sub.status, periodEnd)
+      const patch: Record<string, unknown> = { tier, subscription_status }
+      if (periodEnd) {
+        patch.subscription_period_end = new Date(periodEnd * 1000).toISOString()
+      }
+      console.info('[webhook]', { event_id: event.id, type: event.type, customer: sub.customer, tier, subscription_status, period_end: patch.subscription_period_end })
+      await updateProfile(supabase, profile.id, patch)
       break
     }
 
@@ -112,6 +114,9 @@ export async function POST(req: Request) {
       const customerId = invoice.customer as string
       const profile = await profileByCustomer(supabase, customerId)
       if (!profile) break
+      // Nur Status setzen — Tier-Ableitung inkl. Grace Period erfolgt via subscription.updated,
+      // das Stripe parallel sendet und period_end enthält.
+      console.info('[webhook]', { event_id: event.id, type: event.type, customer: customerId, subscription_status: 'past_due' })
       await updateProfile(supabase, profile.id, { subscription_status: 'past_due' })
       if (profile.email) await sendPaymentFailedEmail(profile.email)
       break

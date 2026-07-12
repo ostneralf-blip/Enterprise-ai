@@ -1,7 +1,7 @@
 import 'server-only'
-import { createClient } from '@/lib/supabase/server'
-
-const DAILY_LIMIT = 5
+import { createAdminClient } from '@/lib/supabase/server'
+import { AI_CALL_LIMITS } from '@/config/tiers'
+import type { Tier } from '@/types'
 
 export interface UsageStatus {
   remaining: number
@@ -10,9 +10,10 @@ export interface UsageStatus {
   exceeded: boolean
 }
 
-export async function getAIUsageStatus(userId: string): Promise<UsageStatus> {
-  const supabase = await createClient()
+export async function getAIUsageStatus(userId: string, tier: Tier = 'free'): Promise<UsageStatus> {
+  const supabase = await createAdminClient()
   const today = new Date().toISOString().slice(0, 10)
+  const limit = AI_CALL_LIMITS[tier]
 
   const { data } = await supabase
     .from('ai_usage_log')
@@ -22,25 +23,14 @@ export async function getAIUsageStatus(userId: string): Promise<UsageStatus> {
     .maybeSingle()
 
   const used = data?.call_count ?? 0
-  return {
-    used,
-    limit: DAILY_LIMIT,
-    remaining: Math.max(0, DAILY_LIMIT - used),
-    exceeded: used >= DAILY_LIMIT,
-  }
+  return { used, limit, remaining: Math.max(0, limit - used), exceeded: used >= limit }
 }
 
-// Gibt false zurück wenn Limit überschritten, true wenn Call erfasst wurde
-export async function incrementAIUsage(userId: string): Promise<boolean> {
-  const status = await getAIUsageStatus(userId)
-  if (status.exceeded) return false
+// Atomares Increment via Postgres-RPC. Gibt false zurück wenn Limit erreicht.
+export async function incrementAIUsage(userId: string, tier: Tier = 'free'): Promise<boolean> {
+  const supabase = await createAdminClient()
+  const limit = AI_CALL_LIMITS[tier]
 
-  const supabase = await createClient()
-  const today = new Date().toISOString().slice(0, 10)
-
-  await supabase.from('ai_usage_log').upsert(
-    { user_id: userId, call_date: today, call_count: status.used + 1, updated_at: new Date().toISOString() },
-    { onConflict: 'user_id,call_date' }
-  )
-  return true
+  const { data } = await supabase.rpc('increment_ai_usage', { p_user: userId, p_limit: limit })
+  return data !== null
 }

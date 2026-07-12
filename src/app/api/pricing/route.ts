@@ -23,21 +23,22 @@ export interface PricingData {
 export async function GET() {
   const supabase = await createAdminClient()
 
+  const nowIso = new Date().toISOString()
   const [{ data: config }, { data: promos }] = await Promise.all([
     supabase.from('price_config').select('*').eq('tier', 'pro').single(),
-    supabase.from('promotions').select('*').eq('is_active', true).limit(1),
+    supabase.from('promotions').select('*')
+      .eq('is_active', true)
+      .or(`valid_from.is.null,valid_from.lte.${nowIso}`)
+      .or(`valid_until.is.null,valid_until.gte.${nowIso}`)
+      .order('valid_from', { ascending: false })
+      .limit(1),
   ])
 
   if (!config) {
     return NextResponse.json({ monthly: 49, yearly: 399, currency: 'EUR', stripe_price_id: null, stripe_price_id_yearly: null, promotion: null } satisfies PricingData)
   }
 
-  const now = new Date().toISOString()
-  const activePromo = promos?.find(p => {
-    if (p.valid_from && p.valid_from > now) return false
-    if (p.valid_until && p.valid_until < now) return false
-    return true
-  }) ?? null
+  const activePromo = promos?.[0] ?? null
 
   const result: PricingData = {
     monthly: Number(config.monthly_price),
