@@ -595,7 +595,20 @@
       "crossCutting": "Cross-Cutting Functions",
       "conflictTooltip": "Incompatible with a selected component",
       "suggestionTooltip": "Recommended as complement",
-      "selectAriaLabel": "Select {name}"
+      "selectAriaLabel": "Select {name}",
+      "costTitle": "Investment Estimate",
+      "costHintTitle": "How should these estimates be read?",
+      "costHintBody": "These indicative ranges are based on industry benchmarks and scale with your company size. They do not replace professional project cost planning.",
+      "costSetup": "Initial Investment",
+      "costOneTime": "one-time",
+      "costMonthly": "Monthly",
+      "costPerMonth": "per month",
+      "costDuration": "Timeline",
+      "costMonths": "months",
+      "costDisclaimer": "Indicative values — depends on company size and project scope.",
+      "patternReasonTitle": "Why is this pattern recommended?",
+      "teamHintTitle": "Recommended Project Team",
+      "teamClickHint": "Click a role for details, responsibilities and RACI mapping."
     },
     "roadmap": {
       "title": "Roadmap Generator",

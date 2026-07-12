@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
-import { WIZARD_STEPS, generateArchitecture, type WizardAnswers, type ArchitectureResult } from '@/config/architecture-data'
+import { WIZARD_STEPS, generateArchitecture, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym } from '@/types'
@@ -214,6 +214,79 @@ function CanvasContextBanner({
   )
 }
 
+function CostIndicationCard({ patternId, companySize, locale }: {
+  patternId: PatternId
+  companySize?: string
+  locale: string
+}) {
+  const t = useTranslations('modules')
+  const base = COST_ESTIMATES[patternId]
+  const est = scaleCostEstimate(base, companySize)
+  const fmt = (v: number) => v >= 1_000_000
+    ? `€${(v / 1_000_000).toFixed(1).replace('.0', '')}M`
+    : `€${Math.round(v / 1_000)}k`
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.costTitle')}</h3>
+        <InfoHint title={t('architecture.costHintTitle')}>
+          <p>{t('architecture.costHintBody')}</p>
+        </InfoHint>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="text-center">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costSetup')}</p>
+          <p className="text-sm font-semibold text-slate-800">{fmt(est.setup.min)}–{fmt(est.setup.max)}</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costOneTime')}</p>
+        </div>
+        <div className="text-center border-x border-slate-100">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costMonthly')}</p>
+          <p className="text-sm font-semibold text-slate-800">{fmt(est.monthly.min)}–{fmt(est.monthly.max)}</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costPerMonth')}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costDuration')}</p>
+          <p className="text-sm font-semibold text-slate-800">{est.durationMonths.min}–{est.durationMonths.max}</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costMonths')}</p>
+        </div>
+      </div>
+      <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+        {pick(base.note, locale)} {t('architecture.costDisclaimer')}
+      </p>
+    </div>
+  )
+}
+
+function PatternReasonSection({ answers, locale }: { answers: WizardAnswers; locale: string }) {
+  const t = useTranslations('modules')
+  const [open, setOpen] = useState(false)
+  const reasons = selectPatternReason(answers)
+  if (reasons.length === 0) return null
+  return (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 rounded"
+        aria-expanded={open}
+      >
+        <span className="text-xs font-semibold text-slate-700 flex-1">{t('architecture.patternReasonTitle')}</span>
+        <span className="text-slate-400 text-[10px]" aria-hidden="true">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <ul className="mt-2.5 space-y-1.5">
+          {reasons.map((r, i) => (
+            <li key={i} className="flex gap-2 text-xs text-slate-600">
+              <span className="flex-shrink-0 text-primary font-medium">✓</span>
+              <span className="min-w-0">{pick(r, locale)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 type View = 'list' | 'wizard' | 'result'
 
 const DSGVO_BADGE: Record<string, string> = {
@@ -340,22 +413,36 @@ function CatalogRecommendationsCard({
         ))}
       </div>
       <div>
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">{t('architecture.recommendedRoles')}</p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{t('architecture.recommendedRoles')}</p>
+          <InfoHint title={t('architecture.teamHintTitle')}>
+            <p>{t('architecture.teamClickHint')}</p>
+          </InfoHint>
+        </div>
+        <div className="space-y-1.5">
           {recs.roleNames.map(role => {
             const entry = catalogMap[role]
-            const cls = entry?.role_category ? (ROLE_CATEGORY_CLASS[entry.role_category] ?? 'bg-primary-soft border-primary-border text-primary-hover') : 'bg-primary-soft border-primary-border text-primary-hover'
+            const catCls = entry?.role_category ? (ROLE_CATEGORY_CLASS[entry.role_category] ?? 'bg-slate-50 border-slate-200 text-slate-600') : 'bg-slate-50 border-slate-200 text-slate-600'
             return entry ? (
               <button
                 key={role}
                 type="button"
                 onClick={() => setSelectedRole(entry)}
-                className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium transition-opacity hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1', cls)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-left hover:bg-white hover:border-primary-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
               >
-                {role}
+                <span className={cn('shrink-0 px-1.5 py-0.5 border rounded text-[10px] font-semibold uppercase tracking-wide whitespace-nowrap', catCls)}>
+                  {entry.role_category ?? '—'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-slate-800 truncate">{role}</p>
+                  {entry.description && (
+                    <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{entry.description}</p>
+                  )}
+                </div>
+                <span className="shrink-0 text-slate-300 text-xs" aria-hidden="true">›</span>
               </button>
             ) : (
-              <span key={role} className={cn('px-2.5 py-1 border rounded-lg text-xs font-medium', cls)}>{role}</span>
+              <span key={role} className="inline-flex items-center px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 font-medium">{role}</span>
             )
           })}
         </div>
@@ -628,6 +715,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <h2 className={cn('text-base sm:text-lg font-semibold mb-1', result.color.title)}>{result.pattern}</h2>
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
+
+        {/* Warum dieses Muster? */}
+        <PatternReasonSection answers={answers} locale={locale} />
+
+        {/* Kosten-Indikator */}
+        <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
 
         {/* Architecture diagram */}
         {catalogRecs && (

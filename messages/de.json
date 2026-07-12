@@ -594,7 +594,20 @@
       "crossCutting": "Querschnittsfunktionen",
       "conflictTooltip": "Inkompatibel mit einer ausgewählten Komponente",
       "suggestionTooltip": "Empfohlen als Ergänzung",
-      "selectAriaLabel": "{name} auswählen"
+      "selectAriaLabel": "{name} auswählen",
+      "costTitle": "Investitionsrahmen",
+      "costHintTitle": "Wie sind diese Richtwerte zu verstehen?",
+      "costHintBody": "Diese Werte basieren auf Branchenerfahrungswerten und skalieren mit der Unternehmensgröße. Sie ersetzen keine professionelle Projektplanung.",
+      "costSetup": "Einmalinvestition",
+      "costOneTime": "einmalig",
+      "costMonthly": "Monatlich",
+      "costPerMonth": "pro Monat",
+      "costDuration": "Dauer",
+      "costMonths": "Monate",
+      "costDisclaimer": "Richtwerte — abhängig von Unternehmensgröße und Projektumfang.",
+      "patternReasonTitle": "Warum wird dieses Muster empfohlen?",
+      "teamHintTitle": "Empfohlenes Projektteam",
+      "teamClickHint": "Klicken Sie auf eine Rolle für Details, Verantwortlichkeiten und RACI-Zuordnung."
     },
     "roadmap": {
       "title": "Roadmap-Generator",

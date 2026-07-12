@@ -385,3 +385,88 @@ export function generateArchitecture(answers: WizardAnswers): ArchitectureResult
 
   return { patternId, ...base, layers }
 }
+
+// ── Sprint 20: Kosten-Indikator + Pattern-Begründung ─────────────────────────
+
+export interface CostEstimate {
+  setup:          { min: number; max: number }
+  monthly:        { min: number; max: number }
+  durationMonths: { min: number; max: number }
+  note: LocaleString
+}
+
+// Base estimates for a medium-sized company. Scaled via scaleCostEstimate().
+export const COST_ESTIMATES: Record<PatternId, CostEstimate> = {
+  cloud_native: {
+    setup:          { min: 80_000,  max: 250_000 },
+    monthly:        { min: 8_000,   max: 25_000  },
+    durationMonths: { min: 4, max: 8 },
+    note: { de: 'Skaliert stark mit Datenmenge, Team-Größe und Cloud-Nutzung.', en: 'Scales heavily with data volume, team size, and cloud usage.' },
+  },
+  managed: {
+    setup:          { min: 20_000,  max: 80_000  },
+    monthly:        { min: 3_000,   max: 12_000  },
+    durationMonths: { min: 1, max: 3 },
+    note: { de: 'Günstigster Einstieg. Token-Kosten können bei hohem Volumen stark steigen.', en: 'Lowest entry cost. Token costs can rise sharply at high volumes.' },
+  },
+  hybrid: {
+    setup:          { min: 150_000, max: 400_000 },
+    monthly:        { min: 12_000,  max: 35_000  },
+    durationMonths: { min: 6, max: 12 },
+    note: { de: 'Netzwerk- und Hardware-Kosten erhöhen die initiale Investition.', en: 'Network and hardware costs increase the initial investment.' },
+  },
+  onprem: {
+    setup:          { min: 200_000, max: 600_000 },
+    monthly:        { min: 10_000,  max: 30_000  },
+    durationMonths: { min: 8, max: 18 },
+    note: { de: 'Hohe Anfangsinvestition — dafür keine laufenden Cloud-Gebühren.', en: 'High initial investment — but no ongoing cloud fees.' },
+  },
+  data_first: {
+    setup:          { min: 50_000,  max: 150_000 },
+    monthly:        { min: 5_000,   max: 15_000  },
+    durationMonths: { min: 3, max: 6 },
+    note: { de: 'Phase 1 fokussiert auf Datenplattform. AI-Budget folgt in Phase 2.', en: 'Phase 1 focuses on the data platform. AI budget follows in phase 2.' },
+  },
+}
+
+const SIZE_FACTOR: Record<string, number> = {
+  small: 0.4, medium: 0.7, large: 1.0, enterprise: 1.6,
+}
+
+export function scaleCostEstimate(base: CostEstimate, companySize?: string): CostEstimate {
+  const f = SIZE_FACTOR[companySize ?? 'large'] ?? 1.0
+  return {
+    ...base,
+    setup:   { min: Math.round(base.setup.min * f),   max: Math.round(base.setup.max * f)   },
+    monthly: { min: Math.round(base.monthly.min * f), max: Math.round(base.monthly.max * f) },
+  }
+}
+
+export function selectPatternReason(answers: WizardAnswers): LocaleString[] {
+  const reasons: LocaleString[] = []
+  if (answers.compliance === 'strict') {
+    reasons.push({ de: 'Strenge Compliance-Anforderungen erfordern maximale Datenkontrolle.', en: 'Strict compliance requirements demand maximum data control.' })
+  }
+  if (answers.infra === 'onprem') {
+    reasons.push({ de: 'Hauptsächlich On-Premise-Infrastruktur — Architektur passt sich daran an.', en: 'Primarily on-premise infrastructure — architecture adapts accordingly.' })
+  }
+  if (answers.data === 'to_build') {
+    reasons.push({ de: 'Datenbasis muss erst aufgebaut werden — Data-First ist die solide Grundlage.', en: 'The data foundation still needs to be built — Data-First is the solid foundation.' })
+  }
+  if (answers.data === 'silos') {
+    reasons.push({ de: 'Daten in Silos: Zuerst eine einheitliche Datenplattform schaffen.', en: 'Data in silos: first establish a unified data platform.' })
+  }
+  if (answers.skills === 'business' || answers.skills === 'external') {
+    reasons.push({ de: 'Begrenzte interne AI/ML-Kompetenz: Managed Services reduzieren den Fachkräftebedarf.', en: 'Limited internal AI/ML expertise: managed services reduce the need for specialists.' })
+  }
+  if (answers.usecase === 'generative' && answers.skills !== 'team') {
+    reasons.push({ de: 'Generative AI ohne dediziertes ML-Team: Managed LLM-APIs sind der schnellste Weg.', en: 'Generative AI without a dedicated ML team: managed LLM APIs are the fastest route.' })
+  }
+  if (answers.infra === 'hybrid') {
+    reasons.push({ de: 'Hybride Infrastruktur ermöglicht flexible Verteilung zwischen Cloud und On-Premise.', en: 'Hybrid infrastructure enables flexible distribution between cloud and on-premise.' })
+  }
+  if (reasons.length === 0 && (answers.infra === 'cloud' || answers.infra === 'multicloud')) {
+    reasons.push({ de: 'Cloud-native Infrastruktur bietet maximale Skalierbarkeit und Entwicklungsgeschwindigkeit.', en: 'Cloud-native infrastructure offers maximum scalability and development velocity.' })
+  }
+  return reasons
+}

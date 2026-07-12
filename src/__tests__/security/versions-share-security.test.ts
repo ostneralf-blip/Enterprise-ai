@@ -3,6 +3,8 @@ import { join } from 'path'
 
 const versionsRoute = readFileSync(join(process.cwd(), 'src/app/api/versions/route.ts'), 'utf-8')
 const shareRoute    = readFileSync(join(process.cwd(), 'src/app/api/share/route.ts'), 'utf-8')
+// tier-check.ts zentralisiert Auth + 401/403 seit Sprint 19 (requireFeature)
+const tierCheckSrc  = readFileSync(join(process.cwd(), 'src/lib/utils/tier-check.ts'), 'utf-8')
 const governanceClient  = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/governance/GovernancePageClient.tsx'), 'utf-8')
 const roadmapClient     = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/roadmap/RoadmapPageClient.tsx'), 'utf-8')
 const canvasClient      = readFileSync(join(process.cwd(), 'src/app/[locale]/(dashboard)/canvas/CanvasPageClient.tsx'), 'utf-8')
@@ -14,12 +16,14 @@ describe('Security: /api/versions', () => {
   })
 
   it('POST prüft Auth und gibt 401 zurück', () => {
-    expect(versionsRoute).toContain("status: 401")
+    // 401 wird in requireFeature() zentralisiert zurückgegeben
+    expect(tierCheckSrc).toContain("status: 401")
   })
 
-  it('POST erfordert Pro-Tier und gibt 403 zurück', () => {
-    expect(versionsRoute).toContain("status: 403")
-    expect(versionsRoute).toMatch(/tier.*pro|pro.*tier/i)
+  it('POST erfordert Pro-Tier — requireFeature delegiert 403 an tier-check.ts', () => {
+    // Route nutzt requireFeature('versioning') — 403 liegt in tier-check.ts, nicht in der Route
+    expect(versionsRoute).toContain("requireFeature('versioning')")
+    expect(tierCheckSrc).toContain("status: 403")
   })
 
   it('POST validiert entity_id als UUID via Zod', () => {
@@ -42,9 +46,9 @@ describe('Security: /api/share', () => {
     expect(shareRoute).toContain('supabase.auth.getUser()')
   })
 
-  it('POST erfordert Pro-Tier und gibt 403 zurück', () => {
-    expect(shareRoute).toContain("status: 403")
-    expect(shareRoute).toMatch(/tier.*pro|pro.*tier/i)
+  it('POST erfordert Pro-Tier — requireFeature delegiert 403 an tier-check.ts', () => {
+    expect(shareRoute).toContain("requireFeature('sharing')")
+    expect(tierCheckSrc).toContain("status: 403")
   })
 
   it('POST validiert entity_id als UUID via Zod', () => {
