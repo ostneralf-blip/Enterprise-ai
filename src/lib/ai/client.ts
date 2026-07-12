@@ -7,7 +7,12 @@ import { z } from 'zod'
 import { createHash } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 
-const REGION = 'eu-central-1'
+// Anthropic-Modelle sind für diesen AWS-Account nicht in eu-central-1
+// (Frankfurt) freischaltbar, wohl aber in eu-west-1 (Irland) — beides
+// EU/GDPR-Gebiet, erfüllt weiterhin "NIEMALS Daten außerhalb EU".
+// Beim Model-Access-Request in der AWS-Konsole ebenfalls auf
+// Europe (Ireland) / eu-west-1 umstellen, bevor der Zugriff angefragt wird.
+const REGION = 'eu-west-1'
 const DEFAULT_TIMEOUT_MS = 15_000
 
 // Lazy-init damit die Credentials erst beim ersten echten Call gelesen werden
