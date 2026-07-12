@@ -48,7 +48,7 @@ interface Props {
   initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing'
+type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings'
 
 type FormState = {
   module: string
@@ -74,6 +74,25 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [promoForm, setPromoForm] = useState({ name: '', badge_text: '', description: '', promo_price: '', promo_price_yearly: '', valid_from: '', valid_until: '', stripe_price_id: '', stripe_price_id_yearly: '', is_active: false })
   const [promoSaving, setPromoSaving] = useState(false)
   const [pricingLoaded, setPricingLoaded] = useState(false)
+
+  // ─── App-Settings State ──────────────────────────────────────────────────
+  const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number } | null>(null)
+  const [appSettingsSaving, setAppSettingsSaving] = useState(false)
+  const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
+
+  async function loadAppSettings() {
+    if (appSettingsLoaded) return
+    const data = await fetch('/api/admin/settings').then(r => r.json())
+    setAppSettings(data)
+    setAppSettingsLoaded(true)
+  }
+
+  async function saveAppSettings() {
+    if (!appSettings) return
+    setAppSettingsSaving(true)
+    await fetch('/api/admin/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(appSettings) })
+    setAppSettingsSaving(false)
+  }
 
   async function loadPricing() {
     if (pricingLoaded) return
@@ -843,12 +862,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
           ['policy_templates', 'Policy Templates', policyTemplates.length],
           ['pricing', 'Preise & Aktionen', promotions.filter(p => p.is_active).length],
+          ['app_settings', 'Einstellungen', 0],
         ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
-            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms(); if (id === 'pricing') loadPricing() }}
+            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms(); if (id === 'pricing') loadPricing(); if (id === 'app_settings') loadAppSettings() }}
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
@@ -2456,6 +2476,58 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               ))}
             </div>
           </div>
+        </div>
+      )}
+      {/* ─── App-Settings Tab ─────────────────────────────────────────────────── */}
+      {tab === 'app_settings' && (
+        <div className="space-y-8 py-6">
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">AI-Nutzungslimits</h2>
+            <p className="text-xs text-slate-500 mb-5">Max. AI-Calls pro Tag je Tier. Wirksam nach nächstem Cold Start der Serverinstanz.</p>
+            {appSettings && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {([
+                  ['ai_limit_free', 'Free (Explorer)'] as const,
+                  ['ai_limit_pro', 'Pro (Professional)'] as const,
+                  ['ai_limit_enterprise', 'Enterprise'] as const,
+                ]).map(([key, label]) => (
+                  <label key={key} className="block">
+                    <span className="text-xs font-medium text-slate-600">{label}</span>
+                    <input
+                      type="number" min="0" max="1000" step="1"
+                      value={appSettings[key]}
+                      onChange={e => setAppSettings(s => s ? { ...s, [key]: Number(e.target.value) } : s)}
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Stripe Grace-Period</h2>
+            <p className="text-xs text-slate-500 mb-5">Tage bis Downgrade nach fehlgeschlagener Zahlung. 0 = sofortiger Downgrade.</p>
+            {appSettings && (
+              <label className="block max-w-xs">
+                <span className="text-xs font-medium text-slate-600">Grace-Period (Tage)</span>
+                <input
+                  type="number" min="0" max="90" step="1"
+                  value={appSettings.stripe_grace_period_days}
+                  onChange={e => setAppSettings(s => s ? { ...s, stripe_grace_period_days: Number(e.target.value) } : s)}
+                  className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                />
+              </label>
+            )}
+          </div>
+
+          <button
+            onClick={saveAppSettings}
+            disabled={appSettingsSaving || !appSettings}
+            className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50"
+          >
+            {appSettingsSaving ? 'Wird gespeichert…' : 'Einstellungen speichern'}
+          </button>
         </div>
       )}
     </div>

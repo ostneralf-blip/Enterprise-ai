@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       const profile = await profileByCustomer(supabase, sub.customer as string)
       if (!profile) break
       const periodEnd = safePeriodEnd(sub)
-      const { tier, subscription_status } = deriveTier(sub.status, periodEnd)
+      const { tier, subscription_status } = await deriveTier(sub.status, periodEnd)
       const patch: Record<string, unknown> = { tier, subscription_status }
       if (periodEnd) {
         patch.subscription_period_end = new Date(periodEnd * 1000).toISOString()

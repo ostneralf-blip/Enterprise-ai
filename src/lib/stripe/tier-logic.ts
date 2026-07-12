@@ -1,17 +1,13 @@
 import 'server-only'
-
-const GRACE_PERIOD_DAYS = parseInt(process.env.STRIPE_GRACE_PERIOD_DAYS ?? '7', 10)
+import { getGracePeriodDays } from '@/lib/app-settings'
 
 export interface TierResult {
   tier: 'pro' | 'free'
   subscription_status: string
 }
 
-/**
- * Einzige Quelle der Wahrheit für Tier-Ableitung aus Stripe-Subscription-Status.
- * past_due = Pro bleibt erhalten bis period_end + STRIPE_GRACE_PERIOD_DAYS (Default: 7).
- */
-export function deriveTier(subStatus: string, periodEnd: number | undefined): TierResult {
+// Grace-Period-Reihenfolge: DB (app_settings) > Env-Var STRIPE_GRACE_PERIOD_DAYS > Default 7
+export async function deriveTier(subStatus: string, periodEnd: number | undefined): Promise<TierResult> {
   switch (subStatus) {
     case 'active':
     case 'trialing':
@@ -19,7 +15,8 @@ export function deriveTier(subStatus: string, periodEnd: number | undefined): Ti
 
     case 'past_due': {
       if (periodEnd) {
-        const graceUntil = new Date(periodEnd * 1000 + GRACE_PERIOD_DAYS * 86_400_000)
+        const graceDays = await getGracePeriodDays()
+        const graceUntil = new Date(periodEnd * 1000 + graceDays * 86_400_000)
         if (new Date() < graceUntil) {
           return { tier: 'pro', subscription_status: 'past_due' }
         }
@@ -32,10 +29,6 @@ export function deriveTier(subStatus: string, periodEnd: number | undefined): Ti
   }
 }
 
-/**
- * Liest current_period_end versionssicher aus Stripe-Subscription.
- * Neuere API-Versionen legen das Feld auf items.data[0], ältere direkt auf der Sub.
- */
 export function safePeriodEnd(sub: unknown): number | undefined {
   const s = sub as Record<string, unknown>
   const items = s?.items as { data?: Array<Record<string, unknown>> } | undefined
