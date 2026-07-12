@@ -1,7 +1,10 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 
-const DAILY_LIMIT = 5
+// Globaler Default — über Vercel Env-Var AI_DAILY_LIMIT_DEFAULT ohne
+// Code-Deploy anhebbar. Fällt auf 5 zurück wenn nicht gesetzt oder ungültig.
+const envDefault = Number(process.env.AI_DAILY_LIMIT_DEFAULT)
+const DEFAULT_DAILY_LIMIT = Number.isFinite(envDefault) && envDefault > 0 ? envDefault : 5
 
 export interface UsageStatus {
   remaining: number
@@ -10,23 +13,43 @@ export interface UsageStatus {
   exceeded: boolean
 }
 
+// Pro-User-Override aus profiles.feature_flags.ai_daily_limit_override —
+// z.B. ein höheres Limit gezielt für einzelne Nutzer ("Geschenk"), ohne den
+// globalen Default für alle anzuheben. Gesetzt via Admin-Panel/-API
+// (PATCH /api/admin/users/[id]).
+async function resolveDailyLimit(userId: string): Promise<number> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('feature_flags')
+    .eq('id', userId)
+    .maybeSingle()
+
+  const flags = data?.feature_flags as Record<string, unknown> | null | undefined
+  const override = flags?.ai_daily_limit_override
+  return typeof override === 'number' && override > 0 ? override : DEFAULT_DAILY_LIMIT
+}
+
 export async function getAIUsageStatus(userId: string): Promise<UsageStatus> {
   const supabase = await createClient()
   const today = new Date().toISOString().slice(0, 10)
 
-  const { data } = await supabase
-    .from('ai_usage_log')
-    .select('call_count')
-    .eq('user_id', userId)
-    .eq('call_date', today)
-    .maybeSingle()
+  const [limit, { data }] = await Promise.all([
+    resolveDailyLimit(userId),
+    supabase
+      .from('ai_usage_log')
+      .select('call_count')
+      .eq('user_id', userId)
+      .eq('call_date', today)
+      .maybeSingle(),
+  ])
 
   const used = data?.call_count ?? 0
   return {
     used,
-    limit: DAILY_LIMIT,
-    remaining: Math.max(0, DAILY_LIMIT - used),
-    exceeded: used >= DAILY_LIMIT,
+    limit,
+    remaining: Math.max(0, limit - used),
+    exceeded: used >= limit,
   }
 }
 
