@@ -71,7 +71,7 @@ Return JSON with this exact structure:
   "industry": "string (max 100 chars, e.g. 'Manufacturing', 'Finance', 'Healthcare', 'Retail', 'Logistics')",
   "suggested_quadrant": "one of: quick_win | strategic | support | avoid",
   "suggested_complexity": "one of: low | medium | high",
-  "infra_hints": ["array of max 5 short infrastructure hints"],
+  "infra_hints": ["array of max 5 SHORT tags (1-3 words each, NOT full sentences) naming recognizable platforms, vendors, or system categories — e.g. 'SAP', 'Azure', 'Navision', 'Snowflake', 'On-Premises', 'WMS Integration', 'Scanner Hardware'. Do NOT describe functionality in a sentence (avoid things like 'Real-time data sync protocol' — use 'Real-time Sync' instead)"],
   "additional_compliance_flags": ["array of max 3 flags, ONLY from this fixed set (do not invent other wording): 'gdpr' (personal/sensitive data processing), 'eu_ai_act_high_risk', 'iso27001' (information security / data residency / hosting location controls), 'nis2' (critical infrastructure), 'health_data' (patient/medical data), 'financial_regulation' (payments/banking/insurance)"],
   "confidence": 0.85
 }`

@@ -67,6 +67,32 @@ export function normalizeComplianceFlag(raw: string): string {
   return raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+// Rohe KI-Infra-Hinweise sind ebenfalls Freitext ohne festes Vokabular — bildet
+// erkennbare Vendor-/System-Namen und generische Infra-Kategorien auf kurze,
+// kanonische Tags ab statt lange technische Sätze (z.B. "RF Scanner
+// integration layer", "Warehouse management system bridge") roh als eigene
+// Badges in der Platform-Spalte anzuzeigen.
+export function normalizeInfraHint(raw: string): string {
+  const v = raw.toLowerCase()
+  if (/\bsap\b/.test(v)) return 'SAP'
+  if (/\bazure\b/.test(v)) return 'Azure'
+  if (/\baws\b|amazon web/.test(v)) return 'AWS'
+  if (/\bgcp\b|google cloud/.test(v)) return 'GCP'
+  if (/navision|dynamics.?nav|dynamics.?365.?business.?central/.test(v)) return 'Microsoft Dynamics (Navision)'
+  if (/salesforce/.test(v)) return 'Salesforce'
+  if (/snowflake/.test(v)) return 'Snowflake'
+  if (/databricks/.test(v)) return 'Databricks'
+  if (/\boracle\b/.test(v)) return 'Oracle'
+  if (/rf.?scanner|barcode|qr.?code|\bscanner\b/.test(v)) return 'Hardware-/Scanner-Integration'
+  if (/warehouse.?management|\bwms\b|lagerverwaltung/.test(v)) return 'WMS-Integration'
+  if (/real.?time|echtzeit|\bsync\b/.test(v)) return 'Echtzeit-Datenintegration'
+  if (/on.?prem|\bserver\b|\blokal\b/.test(v)) return 'On-Premises'
+  if (/\bapi\b/.test(v)) return 'API-Integration'
+  // Fallback: unbekannter Hinweis — kürzen statt als vollen Satz anzuzeigen
+  const words = raw.split(/\s+/)
+  return words.length > 3 ? words.slice(0, 3).join(' ') + '…' : raw
+}
+
 export function platformToProvider(platform: string): string | null {
   const map: Record<string, string> = { SAP: 'sap', Azure: 'azure', AWS: 'aws', GCP: 'gcp' }
   return map[platform] ?? null
@@ -125,7 +151,11 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   // isoliert angezeigt zu werden.
   const displayUsecaseType = aiEnrichment?.use_case_type ?? insights?.usecaseType ?? null
   const usecaseFromAi = Boolean(aiEnrichment?.use_case_type)
-  const aiInfraHints = aiEnrichment?.infra_hints ?? []
+  const displayPlatform = useMemo(() => {
+    const base = insights?.platform ?? []
+    const extra = (aiEnrichment?.infra_hints ?? []).map(normalizeInfraHint)
+    return Array.from(new Set([...base, ...extra]))
+  }, [insights, aiEnrichment])
   const displayCompliance = useMemo(() => {
     const base = insights?.compliance ?? []
     const extra = (aiEnrichment?.additional_compliance_flags ?? []).map(normalizeComplianceFlag)
@@ -315,13 +345,10 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxPlatform')}</p>
-                {(insights.platform.length > 0 || aiInfraHints.length > 0) ? (
+                {displayPlatform.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
-                    {insights.platform.map(p => (
+                    {displayPlatform.map(p => (
                       <span key={p} className="text-xs bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">{p}</span>
-                    ))}
-                    {aiInfraHints.map(h => (
-                      <span key={`ai-${h}`} className="text-xs bg-primary-soft/60 text-primary-hover rounded-full px-2 py-0.5 font-medium border border-dashed border-primary-ring/40">{h}</span>
                     ))}
                   </div>
                 ) : (
