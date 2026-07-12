@@ -36,6 +36,9 @@ Thumbs.db
 # Testing
 coverage/
 
+# TypeScript Build-Artefakt
+tsconfig.tsbuildinfo
+
 # Vercel
 .vercel
 

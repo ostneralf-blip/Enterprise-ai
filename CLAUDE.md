@@ -109,6 +109,7 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - NIEMALS User-Daten außerhalb EU
 - NIEMALS `.env*`-Dateien oder Backups davon (`.env.local.backup` etc.) committen — vor jedem `git add .` einen `git status`-Check auf unerwartete Dateien durchführen (siehe Incident vom 20.06.2026 in `docs/testing/rls-verification-results.md`)
 - NIEMALS Migrationen manuell im SQL-Editor ausführen — immer `supabase migration new` + `db push` (siehe Abschnitt oben)
+- NIEMALS `package.json` ohne begleitendes `package-lock.json` ändern — nach jedem Dependency-Change lokal `npm ci` als Gegenprobe (Lektion #140, 12.07.2026: desynchrones Lockfile machte CI für mehrere Commits blind)
 
 ### Obsidian Vault — Pflicht nach jedem finalen Push (seit 06.07.2026)
 Nach jedem `git push origin main` (finaler Push, nicht feature-branch) muss der Obsidian Vault
