@@ -6,6 +6,7 @@ import { z } from 'zod'
 const schema = z.object({
   interval: z.enum(['monthly', 'yearly']),
   confirmed_withdrawal_waiver: z.literal(true),
+  price_id: z.string().max(200).optional(),
 })
 
 export async function POST(req: Request) {
@@ -15,11 +16,12 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
-    const { interval } = schema.parse(body)
+    const { interval, price_id } = schema.parse(body)
 
-    const priceId = interval === 'yearly'
+    // Aktionspreis hat Vorrang; andernfalls Umgebungsvariable
+    const priceId = price_id ?? (interval === 'yearly'
       ? process.env.STRIPE_PRO_YEARLY_PRICE_ID!
-      : process.env.STRIPE_PRO_MONTHLY_PRICE_ID!
+      : process.env.STRIPE_PRO_MONTHLY_PRICE_ID!)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL!
     const session = await createCheckoutSession({

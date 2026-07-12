@@ -36,9 +36,9 @@ export default async function DashboardPage() {
 
   const { data: profileData } = await supabase
     .from('profiles')
-    .select('full_name, company, tier, guided_path_reset_at')
+    .select('full_name, company, tier, guided_path_reset_at, subscription_status')
     .eq('id', user!.id)
-    .single() as { data: { full_name: string | null; company: string | null; tier: string; guided_path_reset_at: string | null } | null }
+    .single() as { data: { full_name: string | null; company: string | null; tier: string; guided_path_reset_at: string | null; subscription_status: string | null } | null }
 
   const resetAt = profileData?.guided_path_reset_at ?? null
   const uid = user!.id
@@ -143,8 +143,21 @@ export default async function DashboardPage() {
     ? t('portfolioLabelOne')
     : t('portfolioLabel')
 
+  const isPastDue = profileData?.subscription_status === 'past_due'
+
   return (
     <div>
+      {isPastDue && (
+        <div className="mb-5 bg-red-50 border border-red-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-red-800">Zahlung fehlgeschlagen</p>
+            <p className="text-xs text-red-700 mt-0.5">Deine letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisiere deine Zahlungsmethode, um deinen Pro-Zugang zu behalten.</p>
+          </div>
+          <a href="/einstellungen" className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors whitespace-nowrap">
+            Zahlungsmethode aktualisieren
+          </a>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap mb-6"
            data-reveal style={{ '--i': '0' } as React.CSSProperties}>

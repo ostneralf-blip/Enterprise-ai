@@ -48,7 +48,7 @@ interface Props {
   initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates'
+type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing'
 
 type FormState = {
   module: string
@@ -65,6 +65,64 @@ const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: ''
 export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [], initialPolicyTemplates = [] }: Props) {
   const t = useTranslations('admin')
   const [tab, setTab] = useState<Tab>('content')
+
+  // ── Preise & Aktionen state ─────────────────────────────────────────────────
+  const [priceCfg, setPriceCfg] = useState<{ monthly_price: number; yearly_price: number | null; currency: string; stripe_price_id: string | null; stripe_price_id_yearly: string | null } | null>(null)
+  const [priceSaving, setPriceSaving] = useState(false)
+  const [promotions, setPromotions] = useState<{ id: string; name: string; badge_text: string; description: string | null; promo_price: number; promo_price_yearly: number | null; valid_from: string | null; valid_until: string | null; stripe_price_id: string | null; stripe_price_id_yearly: string | null; is_active: boolean }[]>([])
+  const [promoEditing, setPromoEditing] = useState<string | null>(null)
+  const [promoForm, setPromoForm] = useState({ name: '', badge_text: '', description: '', promo_price: '', promo_price_yearly: '', valid_from: '', valid_until: '', stripe_price_id: '', stripe_price_id_yearly: '', is_active: false })
+  const [promoSaving, setPromoSaving] = useState(false)
+  const [pricingLoaded, setPricingLoaded] = useState(false)
+
+  async function loadPricing() {
+    if (pricingLoaded) return
+    const [cfgRes, promoRes] = await Promise.all([
+      fetch('/api/admin/pricing').then(r => r.json()),
+      fetch('/api/admin/promotions').then(r => r.json()),
+    ])
+    setPriceCfg(cfgRes)
+    setPromotions(Array.isArray(promoRes) ? promoRes : [])
+    setPricingLoaded(true)
+  }
+
+  async function savePriceConfig() {
+    if (!priceCfg) return
+    setPriceSaving(true)
+    await fetch('/api/admin/pricing', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...priceCfg, monthly_price: Number(priceCfg.monthly_price), yearly_price: priceCfg.yearly_price ? Number(priceCfg.yearly_price) : null }) })
+    setPriceSaving(false)
+  }
+
+  async function savePromo() {
+    setPromoSaving(true)
+    const body = { name: promoForm.name, badge_text: promoForm.badge_text, description: promoForm.description || null, promo_price: Number(promoForm.promo_price), promo_price_yearly: promoForm.promo_price_yearly ? Number(promoForm.promo_price_yearly) : null, valid_from: promoForm.valid_from || null, valid_until: promoForm.valid_until || null, stripe_price_id: promoForm.stripe_price_id || null, stripe_price_id_yearly: promoForm.stripe_price_id_yearly || null, is_active: promoForm.is_active }
+    if (promoEditing) {
+      await fetch(`/api/admin/promotions?id=${promoEditing}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      setPromotions(ps => ps.map(p => p.id === promoEditing ? { ...p, ...body } : p))
+    } else {
+      const res = await fetch('/api/admin/promotions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const created = await res.json()
+      setPromotions(ps => [created, ...ps])
+    }
+    setPromoEditing(null)
+    setPromoForm({ name: '', badge_text: '', description: '', promo_price: '', promo_price_yearly: '', valid_from: '', valid_until: '', stripe_price_id: '', stripe_price_id_yearly: '', is_active: false })
+    setPromoSaving(false)
+  }
+
+  async function togglePromoActive(id: string, active: boolean) {
+    await fetch(`/api/admin/promotions?id=${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ is_active: active }) })
+    setPromotions(ps => ps.map(p => p.id === id ? { ...p, is_active: active } : p))
+  }
+
+  async function deletePromo(id: string) {
+    await fetch(`/api/admin/promotions?id=${id}`, { method: 'DELETE' })
+    setPromotions(ps => ps.filter(p => p.id !== id))
+  }
+
+  function editPromo(p: typeof promotions[number]) {
+    setPromoEditing(p.id)
+    setPromoForm({ name: p.name, badge_text: p.badge_text, description: p.description ?? '', promo_price: String(p.promo_price), promo_price_yearly: p.promo_price_yearly ? String(p.promo_price_yearly) : '', valid_from: p.valid_from ? p.valid_from.slice(0, 10) : '', valid_until: p.valid_until ? p.valid_until.slice(0, 10) : '', stripe_price_id: p.stripe_price_id ?? '', stripe_price_id_yearly: p.stripe_price_id_yearly ?? '', is_active: p.is_active })
+  }
 
   // ── Content Library state ───────────────────────────────────────────────────
   const [entries, setEntries] = useState<ContentLibraryEntry[]>(initialEntries)
@@ -784,12 +842,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['synonyms', 'Canvas-Synonyme', synonyms.length],
           ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
           ['policy_templates', 'Policy Templates', policyTemplates.length],
+          ['pricing', 'Preise & Aktionen', promotions.filter(p => p.is_active).length],
         ] as [Tab, string, number][]).map(([id, label, count]) => (
           <button
             key={id}
             role="tab"
             aria-selected={tab === id}
-            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms() }}
+            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms(); if (id === 'pricing') loadPricing() }}
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
@@ -2227,6 +2286,176 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ─── Preise & Aktionen tab ────────────────────────────────────────────── */}
+      {tab === 'pricing' && (
+        <div className="space-y-8 py-6">
+
+          {/* Preiskonfiguration */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-1">Preiskonfiguration (Pro)</h2>
+            <p className="text-xs text-slate-500 mb-5">Änderungen hier steuern die Anzeige im UpgradeModal. Stripe-Preise manuell synchron halten.</p>
+            {priceCfg && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-600">Monatspreis (€)</span>
+                  <input type="number" min="1" step="0.01" value={priceCfg.monthly_price}
+                    onChange={e => setPriceCfg(c => c ? { ...c, monthly_price: Number(e.target.value) } : c)}
+                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-600">Jahrespreis (€)</span>
+                  <input type="number" min="1" step="0.01" value={priceCfg.yearly_price ?? ''}
+                    onChange={e => setPriceCfg(c => c ? { ...c, yearly_price: e.target.value ? Number(e.target.value) : null } : c)}
+                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-600">Stripe Price-ID (monatlich)</span>
+                  <input type="text" value={priceCfg.stripe_price_id ?? ''}
+                    onChange={e => setPriceCfg(c => c ? { ...c, stripe_price_id: e.target.value || null } : c)}
+                    placeholder="price_..."
+                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-600">Stripe Price-ID (jährlich)</span>
+                  <input type="text" value={priceCfg.stripe_price_id_yearly ?? ''}
+                    onChange={e => setPriceCfg(c => c ? { ...c, stripe_price_id_yearly: e.target.value || null } : c)}
+                    placeholder="price_..."
+                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                </label>
+              </div>
+            )}
+            <button onClick={savePriceConfig} disabled={priceSaving || !priceCfg}
+              className="mt-4 px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50">
+              {priceSaving ? 'Wird gespeichert…' : 'Preise speichern'}
+            </button>
+          </div>
+
+          {/* Aktionen */}
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Aktionen</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Aktive Aktion zeigt Badge + Aktionspreis im UpgradeModal.</p>
+              </div>
+              {promoEditing === null && (
+                <button onClick={() => setPromoEditing('')}
+                  className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover">
+                  + Neue Aktion
+                </button>
+              )}
+            </div>
+
+            {/* Formular */}
+            {promoEditing !== null && (
+              <div className="border border-slate-200 rounded-xl p-4 mb-6 bg-slate-50 space-y-3">
+                <p className="text-xs font-semibold text-slate-700">{promoEditing ? 'Aktion bearbeiten' : 'Neue Aktion anlegen'}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Name (intern)</span>
+                    <input value={promoForm.name} onChange={e => setPromoForm(f => ({ ...f, name: e.target.value }))} placeholder="z.B. Launch-Aktion Juli"
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Badge-Text (sichtbar)</span>
+                    <input value={promoForm.badge_text} onChange={e => setPromoForm(f => ({ ...f, badge_text: e.target.value }))} placeholder="z.B. Launch-Angebot"
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block sm:col-span-2">
+                    <span className="text-xs text-slate-600">Beschreibung (optional, 1 Zeile im Modal)</span>
+                    <input value={promoForm.description} onChange={e => setPromoForm(f => ({ ...f, description: e.target.value }))} placeholder="z.B. Nur diese Woche: 40% günstiger"
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Aktionspreis monatlich (€)</span>
+                    <input type="number" min="0" step="0.01" value={promoForm.promo_price} onChange={e => setPromoForm(f => ({ ...f, promo_price: e.target.value }))}
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Aktionspreis jährlich (€, optional)</span>
+                    <input type="number" min="0" step="0.01" value={promoForm.promo_price_yearly} onChange={e => setPromoForm(f => ({ ...f, promo_price_yearly: e.target.value }))}
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Gültig ab (optional)</span>
+                    <input type="date" value={promoForm.valid_from} onChange={e => setPromoForm(f => ({ ...f, valid_from: e.target.value }))}
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Gültig bis (optional)</span>
+                    <input type="date" value={promoForm.valid_until} onChange={e => setPromoForm(f => ({ ...f, valid_until: e.target.value }))}
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Stripe Price-ID monatlich (optional)</span>
+                    <input value={promoForm.stripe_price_id} onChange={e => setPromoForm(f => ({ ...f, stripe_price_id: e.target.value }))} placeholder="price_..."
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs text-slate-600">Stripe Price-ID jährlich (optional)</span>
+                    <input value={promoForm.stripe_price_id_yearly} onChange={e => setPromoForm(f => ({ ...f, stripe_price_id_yearly: e.target.value }))} placeholder="price_..."
+                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={promoForm.is_active} onChange={e => setPromoForm(f => ({ ...f, is_active: e.target.checked }))}
+                    className="rounded border-slate-300" />
+                  Sofort aktiv schalten
+                </label>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={savePromo} disabled={promoSaving || !promoForm.name || !promoForm.badge_text || !promoForm.promo_price}
+                    className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50">
+                    {promoSaving ? 'Wird gespeichert…' : 'Speichern'}
+                  </button>
+                  <button onClick={() => { setPromoEditing(null); setPromoForm({ name: '', badge_text: '', description: '', promo_price: '', promo_price_yearly: '', valid_from: '', valid_until: '', stripe_price_id: '', stripe_price_id_yearly: '', is_active: false }) }}
+                    className="px-4 py-2 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Aktionsliste */}
+            <div className="space-y-3">
+              {promotions.length === 0 && <p className="text-sm text-slate-400">Noch keine Aktionen angelegt.</p>}
+              {promotions.map(p => (
+                <div key={p.id} className={cn('border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3', p.is_active ? 'border-amber-200 bg-amber-50' : 'border-slate-200')}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-slate-900">{p.name}</span>
+                      <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border', p.is_active ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')}>
+                        {p.is_active ? '✦ Aktiv' : '○ Inaktiv'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">Badge: &ldquo;{p.badge_text}&rdquo; · Aktionspreis: €{p.promo_price}/Monat{p.promo_price_yearly ? ` · €${p.promo_price_yearly}/Jahr` : ''}</p>
+                    {(p.valid_from || p.valid_until) && (
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {p.valid_from ? `ab ${new Date(p.valid_from).toLocaleDateString('de-DE')}` : ''}
+                        {p.valid_from && p.valid_until ? ' · ' : ''}
+                        {p.valid_until ? `bis ${new Date(p.valid_until).toLocaleDateString('de-DE')}` : ''}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button onClick={() => togglePromoActive(p.id, !p.is_active)}
+                      className={cn('px-2.5 py-1 text-[10px] font-medium border rounded-lg', p.is_active ? 'border-amber-300 text-amber-800 hover:bg-amber-100' : 'border-slate-200 text-slate-500 hover:bg-slate-50')}>
+                      {p.is_active ? 'Deaktivieren' : 'Aktivieren'}
+                    </button>
+                    <button onClick={() => editPromo(p)}
+                      className="px-2.5 py-1 text-[10px] font-medium bg-primary text-white rounded-lg hover:bg-primary-hover">
+                      Bearbeiten
+                    </button>
+                    <button onClick={() => deletePromo(p.id)}
+                      className="px-2.5 py-1 text-[10px] font-medium border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
+                      Löschen
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
