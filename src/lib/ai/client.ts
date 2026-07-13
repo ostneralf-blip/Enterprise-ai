@@ -23,11 +23,6 @@ const MODEL_IDS = {
 // Typo-Fix: ALLOW_NON_EU_AI_FALLBACK (früher: ALLOW_NON_EU_AI_FALLACK)
 const ALLOW_FALLBACK = process.env.ALLOW_NON_EU_AI_FALLBACK === 'true'
 
-// Produktions-Guard: Fallback auf Anthropic Direct darf in Produktion nie aktiv sein
-if (ALLOW_FALLBACK && process.env.VERCEL_ENV === 'production') {
-  throw new Error('[ai/client] ALLOW_NON_EU_AI_FALLBACK=true ist in VERCEL_ENV=production verboten — Env-Var entfernen!')
-}
-
 let _bedrockClient: BedrockRuntimeClient | null = null
 let _startupLogged = false
 
@@ -164,8 +159,12 @@ export async function callLLM<T>(
     }
     console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
 
+    // Produktions-Guard: Fallback darf in production nie greifen — nur zur Laufzeit prüfen (nicht Build-Zeit)
+    if (ALLOW_FALLBACK && process.env.VERCEL_ENV === 'production') {
+      Sentry.captureMessage('ALLOW_NON_EU_AI_FALLBACK=true in production — Env-Var entfernen!', { level: 'fatal', tags: { region: REGION, model: modelId } })
+      return noData('bedrock', errorCode)
+    }
     // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
-    // HINWEIS: Produktions-Guard deaktiviert für Testphase — vor Go-Live wieder aktivieren
     if (!ALLOW_FALLBACK) { console.warn('[ai/client] Kein Fallback: ALLOW_NON_EU_AI_FALLBACK nicht gesetzt'); return noData('bedrock', errorCode) }
     if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt in Env-Vars'); return noData('bedrock', errorCode) }
     console.info('[ai/client] Anthropic-Direktfallback wird versucht...')
