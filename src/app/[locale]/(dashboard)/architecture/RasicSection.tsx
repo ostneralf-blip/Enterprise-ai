@@ -1,9 +1,15 @@
 'use client'
+import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { pick } from '@/lib/utils/locale-data'
 import type { RasicMatrix, RasicPhase, RasicValue, CatalogComponent } from '@/types'
 import type { EamValidationResult } from '@/config/architecture-rules'
+
+export interface ValidationOverride {
+  reason: string
+  accepted_at: string
+}
 
 // ─── AI PANEL ────────────────────────────────────────────────────────────────
 interface AIPanelCardProps {
@@ -203,59 +209,157 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate }: RasicMatr
 
 interface EamValidationBannerProps {
   results: EamValidationResult[]
+  overrides?: Record<string, ValidationOverride>
+  onOverride?: (ruleId: string, override: ValidationOverride | null) => void
 }
 
-export function EamValidationBanner({ results }: EamValidationBannerProps) {
+export function EamValidationBanner({ results, overrides = {}, onOverride }: EamValidationBannerProps) {
   const t = useTranslations('modules')
   const locale = useLocale()
-  const allPassed = results.every(r => r.passed)
-  const failed = results.filter(r => !r.passed)
+  const [dialogOpen, setDialogOpen] = useState<string | null>(null)
+  const [reasonInput, setReasonInput] = useState('')
+
+  const openViolations = results.filter(r => !r.passed && !overrides[r.ruleId])
+  const acceptedCount = results.filter(r => !r.passed && overrides[r.ruleId]).length
+  const allPassed = openViolations.length === 0
+
+  const statusColor = openViolations.length > 0
+    ? 'border-l-red-500'
+    : acceptedCount > 0
+      ? 'border-l-amber-500'
+      : 'border-l-emerald-500'
+
+  const headerIcon = openViolations.length > 0 ? '✕' : acceptedCount > 0 ? '⚠' : '✓'
+  const headerColorClass = openViolations.length > 0
+    ? 'text-red-700'
+    : acceptedCount > 0
+      ? 'text-amber-700'
+      : 'text-emerald-700'
+
+  const headerStatus = openViolations.length > 0
+    ? t('architecture.eamStatusInvalid', { count: openViolations.length })
+    : acceptedCount > 0
+      ? t('architecture.eamStatusOverrides', { count: acceptedCount })
+      : t('architecture.eamBannerAllPassed')
+
+  const handleConfirm = (ruleId: string) => {
+    if (!reasonInput.trim()) return
+    onOverride?.(ruleId, { reason: reasonInput.trim(), accepted_at: new Date().toISOString() })
+    setDialogOpen(null)
+    setReasonInput('')
+  }
 
   return (
-    <div className={cn(
-      'rounded-2xl border p-4 sm:p-5',
-      allPassed ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-300'
-    )}>
-      <div className="flex items-center gap-2 mb-2">
-        <span className={allPassed ? 'text-emerald-600' : 'text-amber-600'} aria-hidden="true">
-          {allPassed ? '✓' : '⚠'}
-        </span>
-        <h3 className={cn('text-sm font-semibold', allPassed ? 'text-emerald-900' : 'text-amber-900')}>
+    <div className={cn('bg-white border border-slate-200 border-l-[3px] rounded-2xl p-4 sm:p-5 space-y-3', statusColor)}>
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <span className={cn('text-base shrink-0', headerColorClass)} aria-hidden="true">{headerIcon}</span>
+        <h3 className={cn('text-sm font-semibold', headerColorClass)}>
           {t('architecture.eamBannerTitle')}
           {' — '}
-          {allPassed ? t('architecture.eamBannerAllPassed') : t('architecture.eamBannerFailed')}
+          {headerStatus}
         </h3>
       </div>
-      {failed.length > 0 && (
-        <ul className="space-y-1.5 mt-2">
-          {failed.map(r => (
-            <li key={r.ruleId} className="flex items-start gap-2 text-xs text-amber-800">
-              <span className="shrink-0 mt-0.5" aria-hidden="true">·</span>
-              <span className="min-w-0">
-                {pick(r.message, locale)}
-                {' '}
-                <button
-                  type="button"
-                  onClick={() => document.getElementById(r.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="underline font-medium hover:text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-600 rounded"
-                >
-                  {t('architecture.eamJumpLink')}
-                </button>
-              </span>
+
+      {/* Regel-Liste */}
+      <ul className="space-y-2">
+        {results.map(r => {
+          const override = overrides[r.ruleId]
+          const isOpen = dialogOpen === r.ruleId
+
+          if (r.passed) {
+            return (
+              <li key={r.ruleId} className="flex items-center gap-2 text-xs text-emerald-700">
+                <span className="shrink-0 w-4 text-center" aria-hidden="true">✓</span>
+                <span className="min-w-0">{pick(r.message, locale)}</span>
+              </li>
+            )
+          }
+
+          if (override) {
+            return (
+              <li key={r.ruleId} className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-amber-700">
+                  <span className="shrink-0 w-4 text-center" aria-hidden="true">⚠</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="font-semibold">{t('architecture.eamAcceptedLabel')}</span>
+                    {' — '}
+                    {pick(r.message, locale)}
+                  </span>
+                  {onOverride && (
+                    <button
+                      type="button"
+                      onClick={() => onOverride(r.ruleId, null)}
+                      className="shrink-0 text-[10px] font-medium text-amber-600 hover:text-amber-800 underline focus:outline-none focus:ring-1 focus:ring-amber-500 rounded"
+                    >
+                      {t('architecture.eamRevokeButton')}
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400 pl-6 italic">{override.reason}</p>
+              </li>
+            )
+          }
+
+          return (
+            <li key={r.ruleId} className="space-y-2">
+              <div className="flex items-center gap-2 text-xs text-red-700">
+                <span className="shrink-0 w-4 text-center" aria-hidden="true">✕</span>
+                <span className="min-w-0 flex-1">{pick(r.message, locale)}</span>
+                <div className="flex gap-1.5 shrink-0">
+                  {onOverride && !isOpen && (
+                    <button
+                      type="button"
+                      onClick={() => { setDialogOpen(r.ruleId); setReasonInput('') }}
+                      className="text-[10px] font-semibold px-2 py-1 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
+                    >
+                      {t('architecture.eamAcceptButton')}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById(r.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="text-[10px] font-semibold px-2 py-1 bg-primary text-white rounded-lg hover:bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  >
+                    {t('architecture.eamFixButton')}
+                  </button>
+                </div>
+              </div>
+
+              {isOpen && (
+                <div className="ml-6 bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+                  <p className="text-[10px] font-semibold text-slate-700">{t('architecture.eamWaiverTitle')}</p>
+                  <textarea
+                    value={reasonInput}
+                    onChange={e => setReasonInput(e.target.value.slice(0, 200))}
+                    placeholder={t('architecture.eamWaiverPlaceholder')}
+                    rows={2}
+                    className="w-full text-xs border border-slate-300 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  />
+                  <p className="text-[10px] text-slate-400 text-right">{reasonInput.length}/200</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleConfirm(r.ruleId)}
+                      disabled={!reasonInput.trim()}
+                      className="px-3 py-1.5 text-[10px] font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    >
+                      {t('architecture.eamWaiverConfirm')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setDialogOpen(null); setReasonInput('') }}
+                      className="px-3 py-1.5 text-[10px] font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    >
+                      {t('architecture.eamWaiverCancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
-          ))}
-        </ul>
-      )}
-      {allPassed && (
-        <ul className="space-y-1 mt-1">
-          {results.map(r => (
-            <li key={r.ruleId} className="flex items-center gap-2 text-xs text-emerald-700">
-              <span aria-hidden="true">✓</span>
-              <span>{pick(r.message, locale)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+          )
+        })}
+      </ul>
     </div>
   )
 }

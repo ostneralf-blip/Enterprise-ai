@@ -11,7 +11,7 @@ import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scal
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
-import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, AIPanelCard } from './RasicSection'
+import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
@@ -327,7 +327,7 @@ function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
 }
 
 function NarrativeCard({
-  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error,
+  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error, loading,
 }: {
   narrative: { summary?: string } | null
   aiModel: string | null
@@ -338,6 +338,7 @@ function NarrativeCard({
   onAnalyze: () => Promise<void>
   usage: { remaining: number; used: number; limit: number; exceeded: boolean } | null
   error: string | null
+  loading?: boolean
 }) {
   const t = useTranslations('modules')
   const audienceLabel: Record<ResultAudience, string> = {
@@ -354,8 +355,11 @@ function NarrativeCard({
           <h3 className="font-serif text-sm font-semibold text-slate-900 whitespace-nowrap">{t('architecture.narrativeTitle')}</h3>
           {hasSummary && (
             <>
-              <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color:var(--color-ai)] text-white whitespace-nowrap">
-                {t('architecture.narrativeGeneratedChip')}
+              <span className={cn(
+                'text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded whitespace-nowrap',
+                loading ? 'bg-purple-200 text-purple-600 animate-pulse' : 'bg-[color:var(--color-ai)] text-white'
+              )}>
+                {loading ? t('architecture.narrativeLoading') : t('architecture.narrativeGeneratedChip')}
               </span>
               <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
                 {audienceLabel[audience]}
@@ -372,12 +376,12 @@ function NarrativeCard({
         <p className="text-xs text-slate-400 italic">{t('architecture.narrativePlaceholder')}</p>
       )}
       {hasSummary && (
-        <p className="text-sm text-slate-700 leading-relaxed">{narrative!.summary}</p>
+        <p className={cn('text-sm text-slate-700 leading-relaxed', loading && 'opacity-60')}>{narrative!.summary}</p>
       )}
       {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
       {hasSummary && aiModel && (
         <p className="text-[10px] font-mono text-slate-400 mt-3 pt-2 border-t border-purple-100">
-          {aiModel}{generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
+          {t('architecture.narrativeProvenance')}: {aiModel}{generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
         </p>
       )}
     </div>
@@ -721,6 +725,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [aiModel, setAiModel] = useState<string | null>(null)
+  const [narrativeLoading, setNarrativeLoading] = useState(false)
+  const [validationOverrides, setValidationOverrides] = useState<Record<string, ValidationOverride>>({})
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
@@ -855,6 +861,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const handleAINarrative = async (audienceOverride?: ResultAudience) => {
     if (!savedId) return
     setAiNarrativeError(null)
+    setNarrativeLoading(true)
     const effectiveNames = activeComponentNames.size > 0
       ? activeComponentNames
       : new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
@@ -882,9 +889,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       error?: string
     }
     if (json.usage) setAiUsageArch(json.usage)
-    if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); return }
+    if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
     if (json.result) { setAiNarrative(json.result); setAiGeneratedAt(new Date().toISOString()); setNarrativeLocale(locale) }
     if (json.ai_model) setAiModel(json.ai_model as string)
+    setNarrativeLoading(false)
   }
 
   const handleSave = async () => {
@@ -982,11 +990,49 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
   if (view === 'result' && result) {
     const patternReasons = selectPatternReason(answers)
+    const canvasEnrichment = canvasContext?.canvas.ai_enrichment as { use_case_type?: string; confidence?: number; additional_compliance_flags?: string[] } | null | undefined
+    const rejected = result.rejected_suggestions ?? []
+    const handleAccept = (name: string) => {
+      const comp = recComponents.find(c => c.name === name)
+      if (!comp || !comp.architecture_layer) return
+      setCatalogRecs(prev => {
+        if (!prev) return prev
+        const layers = prev.layers.map(lr =>
+          lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+            ? { ...lr, componentNames: [...lr.componentNames, name] }
+            : lr
+        )
+        return { ...prev, layers }
+      })
+      setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+    }
+    const handleReject = (name: string) => {
+      setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
+    }
+    const handleAcceptAll = () => {
+      const suggestions = aiNarrative?.component_suggestions ?? []
+      const rejSet = new Set(result.rejected_suggestions ?? [])
+      suggestions.filter(n => !rejSet.has(n)).forEach(name => {
+        const comp = recComponents.find(c => c.name === name)
+        if (!comp || !comp.architecture_layer) return
+        setCatalogRecs(prev => {
+          if (!prev) return prev
+          const layers = prev.layers.map(lr =>
+            lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+              ? { ...lr, componentNames: [...lr.componentNames, name] }
+              : lr
+          )
+          return { ...prev, layers }
+        })
+      })
+      setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
+    }
     return (
       <div
-        className="max-w-2xl space-y-5"
+        className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start"
         data-presentation={presentationTemplate !== 'book' ? presentationTemplate : undefined}
       >
+      <div className="space-y-5 min-w-0 max-w-2xl">
         {/* Sticky Sichten + Detailtiefe + Präsentation Bar */}
         <ResultBar
           audience={resultAudience}
@@ -1024,6 +1070,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           onAnalyze={handleAINarrative}
           usage={aiUsageArch}
           error={aiNarrativeError}
+          loading={narrativeLoading}
         />
 
         {/* Exec: KPI-Kennzahlenstreifen */}
@@ -1188,52 +1235,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           )
         })()}
 
-        {/* KI-Panel — nur wenn Narrative vorhanden oder Usage bekannt */}
-        {(aiNarrative || aiUsageArch) && resultAudience !== 'exec' && (() => {
-          const rejected = result.rejected_suggestions ?? []
-          const handleAccept = (name: string) => {
-            const comp = recComponents.find(c => c.name === name)
-            if (!comp || !comp.architecture_layer) return
-            setCatalogRecs(prev => {
-              if (!prev) return prev
-              const layers = prev.layers.map(lr =>
-                lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
-                  ? { ...lr, componentNames: [...lr.componentNames, name] }
-                  : lr
-              )
-              return { ...prev, layers }
-            })
-            setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
-          }
-          const handleReject = (name: string) => {
-            setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
-          }
-          const localeMismatch = aiNarrative && narrativeLocale && narrativeLocale !== locale
-          return (
-            <>
-              {localeMismatch && (
-                <div className="flex items-center justify-between gap-3 px-3 py-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
-                  <span>{locale === 'de' ? '⚠ Analyse wurde auf Englisch gespeichert.' : '⚠ Analysis was saved in German.'}</span>
-                  <button
-                    onClick={() => handleAINarrative()}
-                    className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-900"
-                  >
-                    {locale === 'de' ? 'Auf Deutsch neu generieren' : 'Re-generate in English'}
-                  </button>
-                </div>
-              )}
-              <AIPanelCard
-                narrative={aiNarrative}
-                usage={aiUsageArch}
-                aiModel={aiModel}
-                catalogComponents={recComponents}
-                rejectedSuggestions={rejected}
-                onAccept={handleAccept}
-                onReject={handleReject}
-              />
-            </>
-          )
-        })()}
+        {/* Locale-Mismatch-Warnung */}
+        {aiNarrative && narrativeLocale && narrativeLocale !== locale && (
+          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+            <span>{locale === 'de' ? '⚠ Analyse wurde auf Englisch gespeichert.' : '⚠ Analysis was saved in German.'}</span>
+            <button
+              onClick={() => void handleAINarrative()}
+              className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-600 rounded"
+            >
+              {locale === 'de' ? 'Auf Deutsch neu generieren' : 'Re-generate in English'}
+            </button>
+          </div>
+        )}
 
         {/* RASIC-Matrix + EAM-Validierung — nicht in Exec-Sicht */}
         {resultAudience !== 'exec' && (() => {
@@ -1243,7 +1256,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const eamResults = runEamValidation(rasic ?? undefined, activeComps, answers.compliance)
           return (
             <>
-              <EamValidationBanner results={eamResults} />
+              <EamValidationBanner
+                results={eamResults}
+                overrides={validationOverrides}
+                onOverride={(ruleId, override) => {
+                  setValidationOverrides(prev => {
+                    if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                    return { ...prev, [ruleId]: override }
+                  })
+                }}
+              />
               {rasic && (
                 <RasicMatrixCard
                   rasic={rasic}
@@ -1396,6 +1418,29 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <ComponentDetailModal comp={selectedComp} onClose={() => setSelectedComp(null)} />
         )}
       </div>
+
+      {/* Rechte Spalte: KI-Analyse-Panel (sticky auf Desktop) */}
+      {resultAudience !== 'exec' && (
+        <div className="lg:sticky lg:top-[74px] hidden lg:block">
+          <AIPanel
+            narrative={aiNarrative}
+            usage={aiUsageArch}
+            aiModel={aiModel}
+            generatedAt={aiGeneratedAt}
+            tier={tier}
+            catalogComponents={recComponents}
+            rejectedSuggestions={rejected}
+            canvasEnrichment={canvasEnrichment}
+            onAccept={handleAccept}
+            onReject={handleReject}
+            onAcceptAll={handleAcceptAll}
+            onScrollToFirst={() => document.querySelector('[data-ai-suggestion]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            onReanalyze={handleAINarrative}
+            loading={narrativeLoading}
+          />
+        </div>
+      )}
+    </div>
     )
   }
 
@@ -1422,11 +1467,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const handleRejectAI = (name: string) => {
       setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
     }
-    const complianceHint = answers.compliance === 'strict'
+    const pickerCompliance = answers.compliance === 'strict'
       ? (locale === 'de' ? 'EU AI Act + DSGVO: EU-Hosting Pflicht' : 'EU AI Act + GDPR: EU hosting required')
       : answers.compliance === 'moderate'
       ? (locale === 'de' ? 'Begrenzte DSGVO-Anforderungen prüfen' : 'Check limited GDPR requirements')
       : null
+    const pickerEnrichment = {
+      use_case_type: answers.usecase ?? undefined,
+      additional_compliance_flags: pickerCompliance ? [pickerCompliance] : undefined,
+    }
     return (
       <div className="grid gap-6 lg:grid-cols-[1fr_300px] max-w-4xl">
         <ComponentSelectionStep
@@ -1443,10 +1492,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             usage={aiUsageArch}
             aiModel={aiModel}
             generatedAt={aiGeneratedAt}
+            tier={tier}
             catalogComponents={recComponents}
             rejectedSuggestions={rejected}
-            useCaseType={answers.usecase ?? null}
-            complianceHint={complianceHint}
+            canvasEnrichment={pickerEnrichment}
             onAccept={handleAcceptAI}
             onReject={handleRejectAI}
           />
