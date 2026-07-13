@@ -34,6 +34,18 @@ export interface ContentLibraryEntry {
   updated_at: string
 }
 
+// ─── RASIC ───────────────────────────────────────────────────────────────────
+export type RasicValue = 'R' | 'A' | 'S' | 'I' | 'C' | ''
+export type RasicPhase = 'konzeption' | 'daten' | 'build' | 'freigabe' | 'betrieb'
+export interface RasicEntry {
+  role: string
+  assignments: Partial<Record<RasicPhase, RasicValue>>
+}
+export interface RasicMatrix {
+  phases: RasicPhase[]
+  entries: RasicEntry[]
+}
+
 // ─── CATALOG ─────────────────────────────────────────────────────────────────
 export type DsgvoStatus  = 'compliant' | 'conditional' | 'non_compliant'
 export type EuAiActRisk  = 'minimal' | 'limited' | 'high' | 'prohibited'

@@ -11,6 +11,7 @@ export const FEATURE_TIERS = {
   deep_assessment:     'pro',
   compliance_full:     'pro',
   architecture_wizard: 'pro',
+  presentation_templates: 'pro',
   team_sharing:        'enterprise',
   sso:                 'enterprise',
   audit_trail:         'enterprise',

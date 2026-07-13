@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
-import { WIZARD_STEPS, generateArchitecture, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
-import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
+import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
-import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym } from '@/types'
+import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
+import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, AIPanelCard } from './RasicSection'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
@@ -331,11 +332,17 @@ function ResultBar({
   level,
   onAudience,
   onLevel,
+  tier,
+  presentationTemplate,
+  onPresentation,
 }: {
   audience: ResultAudience
   level: 1 | 2 | 3
   onAudience: (a: ResultAudience) => void
   onLevel: (l: 1 | 2 | 3) => void
+  tier: string
+  presentationTemplate: 'book' | 'board' | 'blueprint'
+  onPresentation: (t: 'book' | 'board' | 'blueprint') => void
 }) {
   const t = useTranslations('modules')
   const views: ResultAudience[] = ['exec', 'architect', 'compliance']
@@ -381,6 +388,32 @@ function ResultBar({
             ))}
           </div>
         </div>
+      )}
+      {/* Präsentationsmodus */}
+      {tier !== 'free' ? (
+        <div className="flex items-center gap-1.5 ml-auto">
+          {(['book', 'board', 'blueprint'] as const).map(tmpl => (
+            <button
+              key={tmpl}
+              onClick={() => onPresentation(tmpl)}
+              className={cn(
+                'px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring',
+                presentationTemplate === tmpl ? 'bg-primary text-white border-primary' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+              )}
+            >
+              {tmpl === 'book' ? '◻ ' : tmpl === 'board' ? '⬛ ' : '⬡ '}
+              {t(`architecture.presentationTemplate${tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}` as Parameters<typeof t>[0])}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <button
+          className="ml-auto px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
+          title={t('architecture.presentationModeButton')}
+          disabled
+        >
+          ⬡ {t('architecture.presentationModeButton')} 🔒
+        </button>
       )}
     </div>
   )
@@ -448,6 +481,7 @@ function CatalogRecommendationsCard({
   rolesCatalog = [],
   level = 1,
   complianceMode = false,
+  aiSuggested = new Set(),
 }: {
   recs: CatalogRecommendations
   components: CatalogComponent[]
@@ -455,6 +489,7 @@ function CatalogRecommendationsCard({
   rolesCatalog?: RoleCatalogEntry[]
   level?: 1 | 2 | 3
   complianceMode?: boolean
+  aiSuggested?: Set<string>
 }) {
   const t = useTranslations('modules')
   const tc = useTranslations('common')
@@ -499,6 +534,9 @@ function CatalogRecommendationsCard({
                       )}
                     >
                       <span className="inline-flex items-center gap-1.5">
+                        {aiSuggested.has(name) && (
+                          <span className="text-[color:var(--color-ai)] text-[10px]" aria-label="KI-Vorschlag" title="KI-Vorschlag">◆</span>
+                        )}
                         <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
                         {comp.dsgvo_status && (
                           <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
@@ -598,15 +636,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [savedId, setSavedId] = useState<string | null>(null)
   const [dsgvoConfirmed, setDsgvoConfirmed] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [aiNarrative, setAiNarrative] = useState<{ key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null>(null)
+  const [aiNarrative, setAiNarrative] = useState<{ key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
+  const [aiModel, setAiModel] = useState<string | null>(null)
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
+  const [rasic, setRasic] = useState<RasicMatrix | null>(null)
+  const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
 
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
@@ -618,18 +659,27 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAnswers(prev => ({ ...prev, [step.id]: optionId }))
   }
 
-  function applyRecs(wizardAnswers: WizardAnswers, loadedCatalog?: CatalogComponent[]) {
+  function applyRecs(wizardAnswers: WizardAnswers, loadedCatalog?: CatalogComponent[], savedRasic?: RasicMatrix | null) {
     const catalog = loadedCatalog ?? recComponents
+    let recs: CatalogRecommendations
     if (catalog.length > 0) {
-      setCatalogRecs(recommendFromCatalog(wizardAnswers, catalog))
+      recs = recommendFromCatalog(wizardAnswers, catalog)
+      setCatalogRecs(recs)
     } else {
-      setCatalogRecs(recommendFromWizard(wizardAnswers))
+      recs = recommendFromWizard(wizardAnswers)
+      setCatalogRecs(recs)
     }
     setJouleUseCases(recommendJouleUseCases(
       wizardAnswers,
       assessmentContext?.archetype ?? null,
       canvasCtx?.wizard_prefill?.industry ?? null
     ))
+    // Generate RASIC from roleNames — use saved version if available
+    if (savedRasic !== undefined) {
+      setRasic(savedRasic ?? null)
+    } else {
+      setRasic(generateRasic(recs.roleNames, rolesCatalog, wizardAnswers.compliance))
+    }
     if (!catalogFetched.current) {
       catalogFetched.current = true
       fetch('/api/catalog/components')
@@ -684,6 +734,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setJouleUseCases([])
     setCanvasCtx(null)
     setShowCanvasBanner(false)
+    setRasic(null)
+    setAiModel(null)
     setView('wizard')
   }
 
@@ -694,8 +746,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSavedId(arch.id)
     setAiNarrative(arch.ai_narrative ?? null)
     setAiUsageArch(null)
+    setAiModel(null)
     setView('result')
-    applyRecs(arch.wizard_data)
+    applyRecs(arch.wizard_data, undefined, arch.result.rasic ?? null)
   }
 
   const handleAINarrative = async () => {
@@ -720,13 +773,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       }),
     })
     const json = await res.json() as {
-      result?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] }
+      result?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] }
       usage?: { remaining: number; used: number; limit: number; exceeded: boolean }
+      ai_model?: string
       error?: string
     }
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); return }
     if (json.result) setAiNarrative(json.result)
+    if (json.ai_model) setAiModel(json.ai_model as string)
   }
 
   const handleSave = async () => {
@@ -817,9 +872,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
   if (view === 'result' && result) {
     return (
-      <div className="max-w-2xl space-y-5">
-        {/* Sticky Sichten + Detailtiefe Bar */}
-        <ResultBar audience={resultAudience} level={resultLevel} onAudience={setResultAudience} onLevel={setResultLevel} />
+      <div
+        className="max-w-2xl space-y-5"
+        data-presentation={presentationTemplate !== 'book' ? presentationTemplate : undefined}
+      >
+        {/* Sticky Sichten + Detailtiefe + Präsentation Bar */}
+        <ResultBar
+          audience={resultAudience}
+          level={resultLevel}
+          onAudience={setResultAudience}
+          onLevel={setResultLevel}
+          tier={tier}
+          presentationTemplate={presentationTemplate}
+          onPresentation={setPresentationTemplate}
+        />
 
         <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
 
@@ -882,6 +948,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               rolesCatalog={rolesCatalog}
               level={resultLevel}
               complianceMode={resultAudience === 'compliance'}
+              aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
             />
             {recComponents.length > 0 && (() => {
               const latest = recComponents.reduce((a, b) => a.updated_at > b.updated_at ? a : b)
@@ -939,6 +1006,64 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 </div>
               </div>
             </div>
+          )
+        })()}
+
+        {/* KI-Panel — nur wenn Narrative vorhanden oder Usage bekannt */}
+        {(aiNarrative || aiUsageArch) && resultAudience !== 'exec' && (() => {
+          const rejected = result.rejected_suggestions ?? []
+          const handleAccept = (name: string) => {
+            const comp = recComponents.find(c => c.name === name)
+            if (!comp || !comp.architecture_layer) return
+            setCatalogRecs(prev => {
+              if (!prev) return prev
+              const layers = prev.layers.map(lr =>
+                lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+                  ? { ...lr, componentNames: [...lr.componentNames, name] }
+                  : lr
+              )
+              return { ...prev, layers }
+            })
+            setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+          }
+          const handleReject = (name: string) => {
+            setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
+          }
+          return (
+            <AIPanelCard
+              narrative={aiNarrative}
+              usage={aiUsageArch}
+              aiModel={aiModel}
+              catalogComponents={recComponents}
+              rejectedSuggestions={rejected}
+              onAccept={handleAccept}
+              onReject={handleReject}
+            />
+          )
+        })()}
+
+        {/* RASIC-Matrix + EAM-Validierung — nicht in Exec-Sicht */}
+        {resultAudience !== 'exec' && (() => {
+          const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const activeComps = recComponents.filter(c => activeNames.has(c.name))
+          const eamResults = runEamValidation(rasic ?? undefined, activeComps, answers.compliance)
+          return (
+            <>
+              <EamValidationBanner results={eamResults} />
+              {rasic && (
+                <RasicMatrixCard
+                  rasic={rasic}
+                  readOnly={resultAudience === 'compliance'}
+                  onUpdate={updated => {
+                    setRasic(updated)
+                    setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                  }}
+                />
+              )}
+              {resultAudience === 'compliance' && (
+                <ComplianceControlTable activeComponents={activeComps} rasic={rasic ?? undefined} />
+              )}
+            </>
           )
         })()}
 

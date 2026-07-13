@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireFeature } from '@/lib/utils/tier-check'
 import { renderPdf } from '@/lib/pdf/generate'
 import {
   renderAssessmentPdf,
@@ -19,6 +20,7 @@ const querySchema = z.object({
   module: z.enum(['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture', 'executive_summary']),
   entityId: z.string().uuid().optional(),
   locale: z.enum(['de', 'en']).optional(),
+  template: z.enum(['book', 'board', 'blueprint']).optional(),
 })
 
 export const maxDuration = 30
@@ -61,7 +63,13 @@ export async function GET(req: Request) {
       )
     }
 
-    const { module, entityId } = parsed.data
+    const { module, entityId, template } = parsed.data
+
+    // Presentation-Templates sind Pro-Feature — server-seitig prüfen
+    if (template && template !== 'book') {
+      const gate = await requireFeature('presentation_templates')
+      if (gate instanceof NextResponse) return gate
+    }
     const company = profileData?.company ?? undefined
     let doc: ReactElement
     let filename: string

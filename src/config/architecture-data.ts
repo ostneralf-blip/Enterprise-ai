@@ -1,4 +1,5 @@
 import type { LocaleString } from '@/lib/utils/locale-data'
+import type { RasicMatrix, RasicPhase, RasicValue } from '@/types'
 
 export type InfraOption = 'cloud' | 'hybrid' | 'onprem' | 'multicloud'
 export type DataOption = 'centralized' | 'distributed' | 'silos' | 'to_build'
@@ -207,6 +208,50 @@ export interface ArchitectureResult {
   layers: ArchitectureLayer[]
   keyDecisions: { de: string; en: string }[]
   nextSteps: { de: string; en: string }[]
+  rasic?: RasicMatrix
+  rejected_suggestions?: string[]
+}
+
+const RASIC_PHASES: RasicPhase[] = ['konzeption', 'daten', 'build', 'freigabe', 'betrieb']
+
+// Base assignments per role category (A is determined separately per phase)
+const RASIC_CATEGORY_BASE: Record<string, Partial<Record<RasicPhase, RasicValue>>> = {
+  strategic:   { konzeption: 'R', daten: 'I', build: 'I', freigabe: 'R', betrieb: 'I' },
+  technical:   { konzeption: 'C', daten: 'R', build: 'R', freigabe: 'C', betrieb: 'R' },
+  governance:  { konzeption: 'C', daten: 'C', build: 'I', freigabe: 'C', betrieb: 'C' },
+  operational: { konzeption: 'I', daten: 'S', build: 'S', freigabe: 'S', betrieb: 'S' },
+}
+
+export function generateRasic(
+  roleNames: string[],
+  rolesCatalog: Array<{ role_name: string; role_category?: string | null }>,
+  compliance?: string
+): RasicMatrix {
+  const catMap = Object.fromEntries(rolesCatalog.map(r => [r.role_name, r.role_category ?? 'operational']))
+
+  const strategic = roleNames.filter(r => catMap[r] === 'strategic')
+  const technical  = roleNames.filter(r => catMap[r] === 'technical')
+  const dpm = roleNames.find(r => r.toLowerCase().includes('privacy') || r.toLowerCase().includes('datenschutz'))
+
+  // Exactly one A per phase — deterministic selection
+  const phaseA: Record<RasicPhase, string> = {
+    konzeption: strategic[0] ?? roleNames[0] ?? '',
+    daten:      compliance === 'strict' && dpm ? dpm : (dpm ?? strategic[0] ?? roleNames[0] ?? ''),
+    build:      technical[0] ?? roleNames[0] ?? '',
+    freigabe:   strategic[0] ?? roleNames[0] ?? '',
+    betrieb:    technical[1] ?? technical[0] ?? roleNames[0] ?? '',
+  }
+
+  const entries = roleNames.map(role => {
+    const category = catMap[role] ?? 'operational'
+    const base = { ...(RASIC_CATEGORY_BASE[category] ?? RASIC_CATEGORY_BASE.operational) } as Record<RasicPhase, RasicValue>
+    for (const phase of RASIC_PHASES) {
+      if (phaseA[phase] === role) base[phase] = 'A'
+    }
+    return { role, assignments: base }
+  })
+
+  return { phases: RASIC_PHASES, entries }
 }
 
 const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {

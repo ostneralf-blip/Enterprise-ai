@@ -21,6 +21,10 @@
   /* Ivory-Content-Hintergrund */
   --color-ivory: #FCFCFA;
 
+  /* AI-Semantik-Token (WCAG AA: #6D28D9 auf #FFF = 7,1:1 ✓) */
+  --color-ai:      #6D28D9;
+  --color-ai-soft: #F5F3FF;
+
   /* Serifenschrift (Lora via next/font/google, geladen in layout.tsx) */
   --font-serif: var(--font-lora);
 }
@@ -33,6 +37,8 @@
   --color-primary-border: #BFDBFE;
   --color-primary-ring:   #3B82F6;
   --color-ivory:          #FCFCFA;
+  --color-ai:             #6D28D9;
+  --color-ai-soft:        #F5F3FF;
 }
 
 /* ── Theme: teal ── */
@@ -43,6 +49,8 @@
   --color-primary-border: #99F6E4;
   --color-primary-ring:   #14B8A6;
   --color-ivory:          #FCFCFA;
+  --color-ai:             #6D28D9;
+  --color-ai-soft:        #F5F3FF;
 }
 
 /* ── Theme: indigo ── */
@@ -53,6 +61,8 @@
   --color-primary-border: #C7D2FE;
   --color-primary-ring:   #6366F1;
   --color-ivory:          #FCFCFA;
+  --color-ai:             #7C3AED;
+  --color-ai-soft:        #EDE9FE;
 }
 
 /* ── Theme: dark ── */
@@ -65,6 +75,53 @@
   --color-ivory:          #0F172A;
   --background:           #0F172A;
   --foreground:           #F1F5F9;
+  --color-ai:             #A78BFA;
+  --color-ai-soft:        #2D1B69;
+}
+
+/* ── Präsentationsmodus: Boardroom ── */
+[data-presentation="board"] {
+  --color-primary:        #B8860B;
+  --color-primary-hover:  #D4A017;
+  --color-primary-soft:   rgba(184,134,11,0.12);
+  --color-primary-border: rgba(184,134,11,0.4);
+  --color-primary-ring:   #D4A017;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background-color: #141428;
+  color: #E8E8F0;
+
+  & .bg-white { background-color: #1E1E38; }
+  & .bg-slate-50 { background-color: #252542; }
+  & .border-slate-200, & .border-slate-100 { border-color: #3A3A60; }
+  & .text-slate-900, & .text-slate-800 { color: #F0F0F8; }
+  & .text-slate-700, & .text-slate-600 { color: #C8C8E0; }
+  & .text-slate-500, & .text-slate-400 { color: #8080A8; }
+  & h2, & h3 { font-family: var(--font-serif); }
+}
+
+/* ── Präsentationsmodus: Blueprint ── */
+[data-presentation="blueprint"] {
+  --color-primary:        #00B4D8;
+  --color-primary-hover:  #0096C7;
+  --color-primary-soft:   rgba(0,180,216,0.08);
+  --color-primary-border: rgba(0,180,216,0.3);
+  --color-primary-ring:   #00B4D8;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background-color: #050D1A;
+  background-image:
+    linear-gradient(rgba(0,180,216,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,180,216,.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #CAF0F8;
+
+  & .bg-white { background-color: #0A1628; }
+  & .bg-slate-50 { background-color: #0D1F36; }
+  & .border-slate-200, & .border-slate-100 { border-color: #023E8A; }
+  & .text-slate-900, & .text-slate-800 { color: #E0F4FF; }
+  & .text-slate-700, & .text-slate-600 { color: #90D5F0; font-family: var(--font-mono); }
+  & .text-slate-500, & .text-slate-400 { color: #4A90A4; font-family: var(--font-mono); }
 }
 
 body {

@@ -70,14 +70,13 @@ Architecture facts (pre-validated, structured data — not user free text):
 Generate 3-5 key decisions and 3-5 next steps. Each must have both German (de) and English (en) versions.
 Keep each item concise (max 200 chars per language). Be specific to the exact components and context above.
 
+Also suggest up to 3 additional component names (exact catalog names, no descriptions) that are NOT already in the selected list but would strengthen this architecture. Only suggest real, widely-known tools/platforms. If none, omit the field.
+
 Return this exact JSON structure:
 {
-  "key_decisions": [
-    {"de": "...", "en": "..."}
-  ],
-  "next_steps": [
-    {"de": "...", "en": "..."}
-  ]
+  "key_decisions": [{"de": "...", "en": "..."}],
+  "next_steps": [{"de": "...", "en": "..."}],
+  "component_suggestions": ["ComponentName1", "ComponentName2"]
 }`
 
   const ok = await incrementAIUsage(userId, tier)
@@ -106,5 +105,5 @@ Return this exact JSON structure:
     .eq('user_id', userId)
 
   const updatedUsage = await getAIUsageStatus(userId, tier)
-  return NextResponse.json({ result, usage: updatedUsage })
+  return NextResponse.json({ result, usage: updatedUsage, ai_model: aiModel })
 }

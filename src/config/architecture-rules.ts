@@ -1,5 +1,5 @@
 import type { WizardAnswers } from './architecture-data'
-import type { ArchLayer, CatalogComponent } from '@/types'
+import type { ArchLayer, CatalogComponent, RasicMatrix, RasicPhase } from '@/types'
 import { SEED_JOULE_USE_CASES, type JouleUseCase } from './catalog-seed'
 
 export type { JouleUseCase }
@@ -354,6 +354,78 @@ export function generateDynamicNextSteps(components: CatalogComponent[]): { de: 
   return steps
 }
 
+// ─── EAM VALIDATION ──────────────────────────────────────────────────────────
+export interface EamValidationResult {
+  ruleId: string
+  passed: boolean
+  message: { de: string; en: string }
+  anchor: string
+}
+
+const CROSS_CUTTING_KEYWORDS = ['monitor', 'gateway', 'hitl', 'audit', 'grafana', 'evidently', 'kong', 'observ']
+
+export function validateRasicAccountability(rasic: RasicMatrix | undefined): EamValidationResult {
+  const ruleId = 'r1'; const anchor = 'rasic-matrix'
+  if (!rasic) return { ruleId, anchor, passed: false, message: { de: 'RASIC-Matrix nicht generiert', en: 'RASIC matrix not generated' } }
+
+  const violations: RasicPhase[] = []
+  for (const phase of rasic.phases as RasicPhase[]) {
+    const count = rasic.entries.filter(e => e.assignments[phase] === 'A').length
+    if (count !== 1) violations.push(phase)
+  }
+  return {
+    ruleId, anchor, passed: violations.length === 0,
+    message: violations.length === 0
+      ? { de: 'Genau eine Verantwortung (A) pro Phase', en: 'Exactly one accountable (A) per phase' }
+      : { de: `Fehlende/doppelte Verantwortung (A) in: ${violations.join(', ')}`, en: `Missing or duplicate accountable (A) in: ${violations.join(', ')}` },
+  }
+}
+
+export function validateCrossControls(activeComponents: CatalogComponent[]): EamValidationResult {
+  const ruleId = 'r3'; const anchor = 'catalog-recs'
+  const riskComps = activeComponents.filter(c => c.eu_ai_act_risk === 'high' || c.eu_ai_act_risk === 'limited' || c.dsgvo_status === 'conditional')
+  if (riskComps.length === 0) return { ruleId, anchor, passed: true, message: { de: 'Keine Risikokomponenten aktiv', en: 'No risk-rated components active' } }
+
+  const hasCrossControl = activeComponents.some(c =>
+    CROSS_CUTTING_KEYWORDS.some(kw => c.name.toLowerCase().includes(kw) || (c.tags ?? []).some(t => t.toLowerCase().includes(kw)))
+  )
+  return {
+    ruleId, anchor, passed: hasCrossControl,
+    message: hasCrossControl
+      ? { de: 'Querschnittskontrollen vorhanden', en: 'Cross-cutting controls present' }
+      : { de: 'Keine Querschnittskontrolle (Monitoring/Gateway/HITL) für Hochrisiko-Komponenten', en: 'No cross-cutting control (Monitoring/Gateway/HITL) for high-risk components' },
+  }
+}
+
+export function validateEuHosting(activeComponents: CatalogComponent[], compliance?: string): EamValidationResult {
+  const ruleId = 'r4'; const anchor = 'catalog-recs'
+  if (compliance !== 'strict') return { ruleId, anchor, passed: true, message: { de: 'Kein strikter Compliance-Modus aktiv', en: 'Strict compliance mode not active' } }
+
+  const nonEU = activeComponents.filter(c =>
+    c.cloud_provider && !['sap', 'independent'].includes(c.cloud_provider) &&
+    !(c.hosting ?? []).some(h => h.toLowerCase().includes('eu'))
+  )
+  return {
+    ruleId, anchor, passed: nonEU.length === 0,
+    message: nonEU.length === 0
+      ? { de: 'Alle Komponenten EU-konform', en: 'All components EU-compliant' }
+      : { de: `Nicht-EU-Verarbeitung bei striktem Modus: ${nonEU.map(c => c.name).join(', ')}`, en: `Non-EU processing in strict mode: ${nonEU.map(c => c.name).join(', ')}` },
+  }
+}
+
+export function runEamValidation(
+  rasic: RasicMatrix | undefined,
+  activeComponents: CatalogComponent[],
+  compliance?: string
+): EamValidationResult[] {
+  return [
+    validateRasicAccountability(rasic),
+    validateCrossControls(activeComponents),
+    validateEuHosting(activeComponents, compliance),
+  ]
+}
+
+// ─── CROSS-MODULE DECISIONS ───────────────────────────────────────────────────
 interface CrossModuleContext {
   assessment?: { archetype: string | null; total_score: number; dim_scores: Record<string, number> } | null
   canvas?: { canvas: { title: string }; useCase: { name: string; quadrant?: string } } | null
