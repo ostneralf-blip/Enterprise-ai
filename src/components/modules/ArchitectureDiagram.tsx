@@ -382,7 +382,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
     ...recs,
     layers: recs.layers.map(lr => {
       const extras = extraByLayer.get(lr.layer) ?? []
-      return extras.length > 0 ? { ...lr, componentNames: [...lr.componentNames, ...extras] } : lr
+      return extras.length > 0 ? { ...lr, componentNames: [...new Set([...lr.componentNames, ...extras])] } : lr
     }),
   }
 

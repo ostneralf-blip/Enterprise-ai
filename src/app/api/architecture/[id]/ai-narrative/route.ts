@@ -94,10 +94,14 @@ Return this exact JSON structure:
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
 
-  const { data: result, meta } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
+  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
 
   if (!result) {
-    return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministische Bausteine bleiben aktiv', code: 'AI_FAILED' }, { status: 503 })
+    return NextResponse.json({
+      error: 'KI-Analyse fehlgeschlagen — deterministische Bausteine bleiben aktiv',
+      code: 'AI_FAILED',
+      bedrock_error: errorCode ?? 'PARSE_OR_EMPTY',
+    }, { status: 503 })
   }
 
   const aiModel = meta.provider === 'cache'

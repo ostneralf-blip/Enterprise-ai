@@ -52,6 +52,7 @@ export interface LLMMeta {
 export interface LLMResult<T> {
   data: T | null
   meta: LLMMeta
+  errorCode?: string
 }
 
 interface CallLLMOptions {
@@ -110,8 +111,8 @@ export async function callLLM<T>(
     messages: [{ role: 'user', content: userPrompt }],
   })
 
-  const noData = (provider: LLMMeta['provider']): LLMResult<T> =>
-    ({ data: null, meta: { provider, modelId, latencyMs: Date.now() - t0, region: REGION } })
+  const noData = (provider: LLMMeta['provider'], errorCode?: string): LLMResult<T> =>
+    ({ data: null, meta: { provider, modelId, latencyMs: Date.now() - t0, region: REGION }, errorCode })
 
   // Bedrock-Versuch (primär)
   try {
@@ -153,7 +154,7 @@ export async function callLLM<T>(
     console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
 
     // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
-    if (!ALLOW_FALLBACK || !process.env.ANTHROPIC_API_KEY) return noData('bedrock')
+    if (!ALLOW_FALLBACK || !process.env.ANTHROPIC_API_KEY) return noData('bedrock', errorCode)
 
     // Sicherheits-Guard: Fallback in Produktion verbieten
     if (process.env.VERCEL_ENV === 'production') {

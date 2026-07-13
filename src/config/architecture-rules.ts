@@ -200,13 +200,13 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   return {
     layers: ([
-      { layer: 'data'        as ArchLayer, componentNames: data,        componentReasons: {} },
-      { layer: 'model'       as ArchLayer, componentNames: model,       componentReasons: {} },
-      { layer: 'mlops'       as ArchLayer, componentNames: mlops,       componentReasons: {} },
-      { layer: 'serving'     as ArchLayer, componentNames: serving,     componentReasons: {} },
-      { layer: 'governance'  as ArchLayer, componentNames: governance,  componentReasons: {} },
-      { layer: 'security'    as ArchLayer, componentNames: security,    componentReasons: {} },
-      { layer: 'application' as ArchLayer, componentNames: application, componentReasons: {} },
+      { layer: 'data'        as ArchLayer, componentNames: [...new Set(data)],        componentReasons: {} },
+      { layer: 'model'       as ArchLayer, componentNames: [...new Set(model)],       componentReasons: {} },
+      { layer: 'mlops'       as ArchLayer, componentNames: [...new Set(mlops)],       componentReasons: {} },
+      { layer: 'serving'     as ArchLayer, componentNames: [...new Set(serving)],     componentReasons: {} },
+      { layer: 'governance'  as ArchLayer, componentNames: [...new Set(governance)],  componentReasons: {} },
+      { layer: 'security'    as ArchLayer, componentNames: [...new Set(security)],    componentReasons: {} },
+      { layer: 'application' as ArchLayer, componentNames: [...new Set(application)], componentReasons: {} },
     ] as LayerRecommendation[]).filter(l => l.componentNames.length > 0),
     roleNames: [...new Set(roles)],
   }
