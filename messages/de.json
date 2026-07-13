@@ -623,6 +623,8 @@
       "selectionHint": "{checked} von {total} ausgewählt",
       "selectionConfirm": "Architektur generieren",
       "loadingCatalog": "Katalog wird geladen…",
+      "conflictShowAlts": "Alternative anzeigen",
+      "conflictRemove": "entfernen",
       "viewExec": "Executive",
       "viewArchitect": "Architektur",
       "viewCompliance": "Compliance",

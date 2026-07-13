@@ -48,6 +48,31 @@ export function findConflicts(
   return conflicts
 }
 
+export function explainConflict(
+  aName: string,
+  bName: string,
+  byName: Record<string, CatalogComponent>
+): { de: string; en: string } {
+  const compA = byName[aName]
+  const compB = byName[bName]
+  if (compA?.cloud_provider === 'sap' && compB?.cloud_provider !== 'sap') {
+    return {
+      de: `${aName} (SAP) und ${bName} sind nicht gemeinsam einsetzbar. Empfehlung: ${bName} entfernen — SAP-Landschaft hat Priorität.`,
+      en: `${aName} (SAP) and ${bName} cannot be used together. Recommendation: remove ${bName} — SAP landscape takes priority.`,
+    }
+  }
+  if (compB?.cloud_provider === 'sap' && compA?.cloud_provider !== 'sap') {
+    return {
+      de: `${bName} (SAP) und ${aName} sind nicht gemeinsam einsetzbar. Empfehlung: ${aName} entfernen — SAP-Landschaft hat Priorität.`,
+      en: `${bName} (SAP) and ${aName} cannot be used together. Recommendation: remove ${aName} — SAP landscape takes priority.`,
+    }
+  }
+  return {
+    de: `${aName} und ${bName} sind inkompatibel und können nicht gleichzeitig eingesetzt werden.`,
+    en: `${aName} and ${bName} are incompatible and cannot be used at the same time.`,
+  }
+}
+
 export function findSuggestions(
   checked: Set<string>,
   byName: Record<string, CatalogComponent>

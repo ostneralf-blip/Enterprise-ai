@@ -1,10 +1,11 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { pick } from '@/lib/utils/locale-data'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
+import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 
 const COLLAPSE_KEY = 'arch_selection_collapsed_v1'
 
@@ -83,6 +84,33 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
   const checkedCount = [...map.values()].filter(v => v.checked).length
   const totalCount = map.size
 
+  const byNameRecord = Object.fromEntries(byName.entries())
+  const checkedSet = new Set([...map].filter(([, v]) => v.checked).map(([k]) => k))
+  const conflicts = findConflicts(checkedSet, byNameRecord)
+  const [showAltFor, setShowAltFor] = useState<Set<string>>(new Set())
+
+  // Fire arch_conflict_shown once per unique conflict set
+  const lastConflictKeys = useRef<string>('')
+  useEffect(() => {
+    if (conflicts.length === 0) return
+    const key = conflicts.map(c => `${c.a}||${c.b}`).sort().join(';')
+    if (key === lastConflictKeys.current) return
+    lastConflictKeys.current = key
+    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+      .posthog?.capture('arch_conflict_shown', { count: conflicts.length })
+  }, [conflicts])
+
+  const resolveConflict = (remove: string, add?: string) => {
+    setMap(prev => {
+      const next = new Map(prev)
+      next.set(remove, { checked: false, source: next.get(remove)?.source ?? 'manual' })
+      if (add) next.set(add, { checked: true, source: 'manual' })
+      return next
+    })
+    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+      .posthog?.capture('arch_conflict_resolved', { removed: remove, added: add ?? null })
+  }
+
   const handleConfirm = () => {
     onConfirm(new Set([...map].filter(([, v]) => v.checked).map(([k]) => k)))
   }
@@ -102,8 +130,11 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
           const layerChecked = allNames.filter(n => map.get(n)?.checked).length
           const isCollapsed = collapsed.has(lr.layer)
 
+          const layerConflicts = conflicts.filter(c => ruleNames.includes(c.a) || ruleNames.includes(c.b))
+
           return (
-            <div key={lr.layer} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+            <div key={lr.layer}>
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
               <button
                 type="button"
                 onClick={() => toggleCollapse(lr.layer)}
@@ -169,6 +200,46 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
                   })}
                 </div>
               )}
+            </div>
+            {/* Konflikt-Banner für diesen Layer */}
+            {layerConflicts.map(conflict => {
+              const pairKey = `${conflict.a}||${conflict.b}`
+              const explanation = explainConflict(conflict.a, conflict.b, byNameRecord)
+              const isShowingAlts = showAltFor.has(pairKey)
+              return (
+                <div key={pairKey} className="mt-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-amber-600 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-amber-800 font-medium">{pick(explanation, locale)}</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <button type="button" onClick={() => {
+                          const next = new Set(showAltFor)
+                          if (next.has(pairKey)) next.delete(pairKey); else next.add(pairKey)
+                          setShowAltFor(next)
+                        }} className="text-[10px] font-semibold text-amber-700 underline hover:opacity-70 focus:outline-none">
+                          {t('architecture.conflictShowAlts')}
+                        </button>
+                        <button type="button" onClick={() => resolveConflict(conflict.b)}
+                          className="text-[10px] font-semibold text-amber-700 underline hover:opacity-70 focus:outline-none">
+                          {conflict.b} {t('architecture.conflictRemove')}
+                        </button>
+                      </div>
+                      {isShowingAlts && conflict.alternatives.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {conflict.alternatives.map(alt => (
+                            <button key={alt} type="button" onClick={() => resolveConflict(conflict.b, alt)}
+                              className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-800 hover:bg-amber-100 focus:outline-none">
+                              + {alt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
             </div>
           )
         })}
