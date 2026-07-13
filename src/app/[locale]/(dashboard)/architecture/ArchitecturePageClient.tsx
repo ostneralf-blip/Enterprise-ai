@@ -40,7 +40,8 @@ interface SavedArchitecture {
   wizard_data: WizardAnswers
   result: ArchitectureResult
   updated_at: string
-  ai_narrative?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null
+  ai_narrative?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null
+  narrative_locale?: string | null
 }
 
 interface AssessmentContext {
@@ -745,6 +746,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
+  const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [aiModel, setAiModel] = useState<string | null>(null)
@@ -864,6 +866,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSaved(true)
     setSavedId(arch.id)
     setAiNarrative(arch.ai_narrative ?? null)
+    setNarrativeLocale(arch.narrative_locale ?? null)
     setAiUsageArch(null)
     setAiModel(null)
     setView('result')
@@ -901,7 +904,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     }
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); return }
-    if (json.result) { setAiNarrative(json.result); setAiGeneratedAt(new Date().toISOString()) }
+    if (json.result) { setAiNarrative(json.result); setAiGeneratedAt(new Date().toISOString()); setNarrativeLocale(locale) }
     if (json.ai_model) setAiModel(json.ai_model as string)
   }
 
@@ -1212,16 +1215,30 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const handleReject = (name: string) => {
             setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
           }
+          const localeMismatch = aiNarrative && narrativeLocale && narrativeLocale !== locale
           return (
-            <AIPanelCard
-              narrative={aiNarrative}
-              usage={aiUsageArch}
-              aiModel={aiModel}
-              catalogComponents={recComponents}
-              rejectedSuggestions={rejected}
-              onAccept={handleAccept}
-              onReject={handleReject}
-            />
+            <>
+              {localeMismatch && (
+                <div className="flex items-center justify-between gap-3 px-3 py-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                  <span>{locale === 'de' ? '⚠ Analyse wurde auf Englisch gespeichert.' : '⚠ Analysis was saved in German.'}</span>
+                  <button
+                    onClick={() => handleAINarrative()}
+                    className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-900"
+                  >
+                    {locale === 'de' ? 'Auf Deutsch neu generieren' : 'Re-generate in English'}
+                  </button>
+                </div>
+              )}
+              <AIPanelCard
+                narrative={aiNarrative}
+                usage={aiUsageArch}
+                aiModel={aiModel}
+                catalogComponents={recComponents}
+                rejectedSuggestions={rejected}
+                onAccept={handleAccept}
+                onReject={handleReject}
+              />
+            </>
           )
         })()}
 

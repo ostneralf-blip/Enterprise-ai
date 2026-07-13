@@ -46,7 +46,9 @@ export async function POST(
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
 
-  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience } = body.data
+  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience, locale } = body.data
+
+  const langName = locale === 'de' ? 'German (Deutsch, de-DE)' : 'English (en-US)'
 
   const audienceInstruction = audience === 'exec'
     ? 'Target audience: C-level / CFO. Use business language only. Key decisions = strategic, budget-relevant. Next steps = high-level milestones with timeframes. No technical jargon.'
@@ -62,6 +64,8 @@ export async function POST(
 
   const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific output. Return ONLY valid JSON.
 
+CRITICAL: You MUST write ALL text fields (summary, key_decisions, next_steps) exclusively in ${langName}. Do not use any other language.
+
 ${audienceInstruction}
 
 Architecture facts (pre-validated, structured data — not user free text):
@@ -74,7 +78,7 @@ Architecture facts (pre-validated, structured data — not user free text):
 - Roadmap phases planned: ${roadmap_phases ?? 0}
 
 Summary instruction: ${summaryInstruction}
-Generate the summary in the language matching locale="${body.data.locale}". Max 600 chars.
+The summary MUST be written in ${langName}. Max 600 chars.
 
 Also generate 3-5 key decisions and 3-5 next steps. Each must have both German (de) and English (en) versions.
 Keep each item concise (max 200 chars per language). Be specific to the exact components and context above.
@@ -114,6 +118,7 @@ Return this exact JSON structure:
       ai_narrative:    result,
       ai_model:        aiModel,
       ai_generated_at: new Date().toISOString(),
+      narrative_locale: locale,
     })
     .eq('id', id)
     .eq('user_id', userId)
