@@ -64,7 +64,7 @@ Return JSON with this exact structure:
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
 
-  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 512 })
+  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 1024 })
 
   if (!result) {
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministisches Ergebnis bleibt aktiv', code: 'AI_FAILED' }, { status: 503 })
