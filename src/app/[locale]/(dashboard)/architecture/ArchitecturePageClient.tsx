@@ -93,16 +93,39 @@ interface Props {
 }
 
 
-interface ContextBannerProps {
-  assessmentContext: AssessmentContext | null | undefined
-  governanceContext: GovernanceContext | null | undefined
-  compliancePreset?: string
-  roadmapContext?: RoadmapContext | null
+const TAG_COLORS: Record<DetectedTag['type'], string> = {
+  score:      'bg-emerald-50 text-emerald-700 border-emerald-200',
+  industry:   'bg-slate-100 text-slate-700 border-slate-200',
+  usecase:    'bg-primary-soft text-primary-hover border-primary-border',
+  platform:   'bg-violet-50 text-violet-700 border-violet-200',
+  compliance: 'bg-amber-50 text-amber-700 border-amber-200',
 }
 
-function ContextBanner({ assessmentContext, governanceContext, compliancePreset, roadmapContext }: ContextBannerProps) {
+interface UnifiedContextBannerProps {
+  assessmentContext?: AssessmentContext | null
+  governanceContext?: GovernanceContext | null
+  compliancePreset?: string | null
+  roadmapContext?: RoadmapContext | null
+  canvasContext?: CanvasContext | null
+  canvasTitle?: string | null
+  useCaseName?: string | null
+  onDismiss?: () => void
+  wizardTargetId?: string
+}
+
+function UnifiedContextBanner({
+  assessmentContext, governanceContext, compliancePreset, roadmapContext,
+  canvasContext, canvasTitle, onDismiss, wizardTargetId,
+}: UnifiedContextBannerProps) {
   const t = useTranslations('modules')
-  if (!assessmentContext && !governanceContext && !compliancePreset && !roadmapContext) return null
+  const [collapsed, setCollapsed] = useState(false)
+
+  const hasModuleContext = !!(assessmentContext || governanceContext || compliancePreset || roadmapContext)
+  const hasCanvas = !!(canvasContext && canvasTitle)
+  if (!hasModuleContext && !hasCanvas) return null
+
+  const filledCount = canvasContext ? Object.keys(canvasContext.wizard_prefill).length : 0
+
   const governanceLabel: Record<string, string> = {
     approve:    t('architecture.governanceApprove'),
     improve:    t('architecture.governanceImprove'),
@@ -115,103 +138,103 @@ function ContextBanner({ assessmentContext, governanceContext, compliancePreset,
     low:       t('architecture.complianceLow'),
     undefined: t('architecture.complianceUndefined'),
   }
-  return (
-    <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5 text-xs text-primary space-y-1.5">
-      <p className="font-semibold text-primary">{t('architecture.contextTitle')}</p>
-      {assessmentContext?.archetype && (
-        <p>
-          <span className="font-medium">{t('architecture.contextMaturity')}</span>{' '}
-          {ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype}
-          {' '}(Score: {assessmentContext.total_score})
-        </p>
-      )}
-      {governanceContext?.result && (
-        <p>
-          <span className="font-medium">{t('architecture.contextGovernance')}</span>{' '}
-          {governanceContext.use_case_name && <span>{governanceContext.use_case_name} — </span>}
-          <span className={cn('px-1.5 py-0.5 rounded font-medium', GOVERNANCE_COLORS[governanceContext.result] ?? 'text-slate-700 bg-slate-100')}>
-            {governanceLabel[governanceContext.result] ?? governanceContext.result}
-          </span>
-        </p>
-      )}
-      {compliancePreset && (
-        <p>
-          <span className="font-medium">{t('architecture.contextCompliance')}</span>{' '}
-          {complianceLabel[compliancePreset] ?? compliancePreset}
-        </p>
-      )}
-      {roadmapContext && (
-        <p>
-          <span className="font-medium">{t('architecture.roadmapLabel')}</span>{' '}
-          {roadmapContext.title}
-          {roadmapContext.phasesCount > 0 && ` · ${t('architecture.phasesLabel', { count: roadmapContext.phasesCount })}`}
-        </p>
-      )}
-    </div>
-  )
-}
 
-const TAG_COLORS: Record<DetectedTag['type'], string> = {
-  score:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-  industry:   'bg-slate-100 text-slate-700 border-slate-200',
-  usecase:    'bg-primary-soft text-primary-hover border-primary-border',
-  platform:   'bg-violet-50 text-violet-700 border-violet-200',
-  compliance: 'bg-amber-50 text-amber-700 border-amber-200',
-}
-
-function CanvasContextBanner({
-  canvasTitle,
-  useCaseName,
-  context,
-  onDismiss,
-}: {
-  canvasTitle: string
-  useCaseName: string
-  context: CanvasContext
-  onDismiss: () => void
-}) {
-  const t = useTranslations('modules')
-  const [collapsed, setCollapsed] = useState(false)
-  const filledCount = Object.keys(context.wizard_prefill).length
   return (
-    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-emerald-700 font-semibold text-xs shrink-0">◧ {t('architecture.canvasContextLabel')}</span>
-          <span className="text-xs text-emerald-600 truncate">{canvasTitle} · {useCaseName}</span>
+    <div className="bg-primary-soft border border-primary-border rounded-xl p-3.5 mb-5">
+      <div className="flex items-start gap-3">
+        {/* ◈ icon dot */}
+        <div className="w-[34px] h-[34px] rounded-[10px] bg-primary flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
+          <span className="text-white text-sm font-bold">◈</span>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={() => setCollapsed(v => !v)}
-            aria-label={collapsed ? t('architecture.expandAriaLabel') : t('architecture.collapseAriaLabel')}
-            className="text-xs text-emerald-700 hover:text-emerald-900 p-1"
-          >
-            {collapsed ? '▾' : '▴'}
-          </button>
-          <button
-            onClick={onDismiss}
-            aria-label={t('architecture.bannerCloseAriaLabel')}
-            className="text-xs text-emerald-600 hover:text-emerald-900 p-1"
-          >✕</button>
+        <div className="min-w-0 flex-1">
+          {/* Header line */}
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-primary min-w-0 truncate">
+              {hasCanvas
+                ? t('architecture.contextDetectedCanvas', { title: canvasTitle!, count: filledCount })
+                : t('architecture.contextDetectedGeneral')}
+            </p>
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setCollapsed(v => !v)}
+                aria-label={collapsed ? t('architecture.expandAriaLabel') : t('architecture.collapseAriaLabel')}
+                className="p-1 text-xs text-primary hover:opacity-70 focus:outline-none"
+              >
+                {collapsed ? '▾' : '▴'}
+              </button>
+              {onDismiss && (
+                <button
+                  type="button"
+                  onClick={onDismiss}
+                  aria-label={t('architecture.bannerCloseAriaLabel')}
+                  className="p-1 text-xs text-primary hover:opacity-70 focus:outline-none"
+                >✕</button>
+              )}
+            </div>
+          </div>
+
+          {!collapsed && (
+            <div className="mt-2 space-y-2">
+              {/* Canvas tags */}
+              {hasCanvas && canvasContext!.detected_tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {canvasContext!.detected_tags.map(tag => (
+                    <span key={tag.label} className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full border', TAG_COLORS[tag.type])}>
+                      {tag.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Module context chips */}
+              {hasModuleContext && (
+                <div className="flex flex-wrap gap-1.5">
+                  {assessmentContext?.archetype && (
+                    <span
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                      title={`Score: ${assessmentContext.total_score}`}
+                    >
+                      {ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype}
+                    </span>
+                  )}
+                  {governanceContext?.result && (
+                    <span className={cn(
+                      'text-[10px] font-medium px-2 py-0.5 rounded-full border border-transparent',
+                      GOVERNANCE_COLORS[governanceContext.result] ?? 'text-slate-700 bg-slate-100 border-slate-200'
+                    )}>
+                      {governanceLabel[governanceContext.result] ?? governanceContext.result}
+                    </span>
+                  )}
+                  {compliancePreset && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      {complianceLabel[compliancePreset] ?? compliancePreset}
+                    </span>
+                  )}
+                  {roadmapContext && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                      title={roadmapContext.phasesCount > 0 ? t('architecture.phasesLabel', { count: roadmapContext.phasesCount }) : undefined}>
+                      {roadmapContext.title}
+                    </span>
+                  )}
+                </div>
+              )}
+              {/* Wizard prüfen */}
+              {wizardTargetId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    document.getElementById(wizardTargetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('arch_context_review_clicked', { filled_count: filledCount })
+                  }}
+                  className="text-[10px] font-semibold text-primary underline hover:opacity-70 focus:outline-none"
+                >
+                  {t('architecture.wizardPruefenButton')}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
-      {!collapsed && (
-        <>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {context.detected_tags.map(tag => (
-              <span
-                key={tag.label}
-                className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full border', TAG_COLORS[tag.type])}
-              >
-                {tag.label}
-              </span>
-            ))}
-          </div>
-          <p className="text-[10px] text-emerald-600 mt-1.5">
-            {t('architecture.prefillHint', { count: filledCount })}
-          </p>
-        </>
-      )}
     </div>
   )
 }
@@ -336,6 +359,8 @@ function ResultBar({
   tier,
   presentationTemplate,
   onPresentation,
+  savedId,
+  locale,
 }: {
   audience: ResultAudience
   level: 1 | 2 | 3
@@ -344,6 +369,8 @@ function ResultBar({
   tier: string
   presentationTemplate: 'book' | 'board' | 'blueprint'
   onPresentation: (t: 'book' | 'board' | 'blueprint') => void
+  savedId: string | null
+  locale: string
 }) {
   const t = useTranslations('modules')
   const views: ResultAudience[] = ['exec', 'architect', 'compliance']
@@ -352,8 +379,10 @@ function ResultBar({
     architect:  t('architecture.viewArchitect'),
     compliance: t('architecture.viewCompliance'),
   }
+  const execDisabled = audience === 'exec'
   return (
     <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
+      {/* SICHT */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
         <div className="flex border border-slate-200 rounded-lg overflow-hidden">
@@ -371,29 +400,36 @@ function ResultBar({
           ))}
         </div>
       </div>
-      {audience !== 'exec' && (
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.levelLabel')}</span>
-          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
-            {([1, 2, 3] as const).map(l => (
-              <button
-                key={l}
-                onClick={() => onLevel(l)}
-                className={cn(
-                  'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
-                  level === l ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
-                )}
-              >
-                L{l}
-              </button>
-            ))}
-          </div>
+      {/* TIEFE — immer sichtbar, in exec-Modus disabled */}
+      <div className="flex items-center gap-2">
+        <span className={cn('text-[10px] font-bold uppercase tracking-widest whitespace-nowrap', execDisabled ? 'text-slate-300' : 'text-slate-400')}>
+          {t('architecture.levelLabel')}
+        </span>
+        <div className={cn('flex border rounded-lg overflow-hidden', execDisabled ? 'border-slate-100' : 'border-slate-200')}>
+          {([1, 2, 3] as const).map(l => (
+            <button
+              key={l}
+              onClick={() => !execDisabled && onLevel(l)}
+              disabled={execDisabled}
+              title={execDisabled ? t('architecture.execLevelDisabledTooltip') : undefined}
+              className={cn(
+                'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none',
+                execDisabled
+                  ? 'text-slate-300 cursor-not-allowed bg-slate-50'
+                  : level === l
+                    ? 'bg-primary text-white focus:ring-2 focus:ring-inset focus:ring-primary-ring'
+                    : 'text-slate-600 hover:bg-slate-50 focus:ring-2 focus:ring-inset focus:ring-primary-ring'
+              )}
+            >
+              L{l}
+            </button>
+          ))}
         </div>
-      )}
-      {/* Präsentationsmodus */}
-      {tier !== 'free' ? (
-        <div className="flex items-center gap-1.5 ml-auto">
-          {(['book', 'board', 'blueprint'] as const).map(tmpl => (
+      </div>
+      {/* Präsentationsmodus + PDF */}
+      <div className="flex items-center gap-1.5 ml-auto">
+        {tier !== 'free' ? (
+          (['book', 'board', 'blueprint'] as const).map(tmpl => (
             <button
               key={tmpl}
               onClick={() => onPresentation(tmpl)}
@@ -405,17 +441,26 @@ function ResultBar({
               {tmpl === 'book' ? '◻ ' : tmpl === 'board' ? '⬛ ' : '⬡ '}
               {t(`architecture.presentationTemplate${tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}` as Parameters<typeof t>[0])}
             </button>
-          ))}
-        </div>
-      ) : (
-        <button
-          className="ml-auto px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
-          title={t('architecture.presentationModeButton')}
-          disabled
-        >
-          ⬡ {t('architecture.presentationModeButton')} 🔒
-        </button>
-      )}
+          ))
+        ) : (
+          <button
+            className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
+            title={t('architecture.presentationModeButton')}
+            disabled
+          >
+            ⬡ {t('architecture.presentationModeButton')} 🔒
+          </button>
+        )}
+        {savedId && (
+          <a
+            href={`/api/export/pdf?module=architecture&entityId=${savedId}&locale=${locale}&template=${presentationTemplate}&audience=${audience}&level=${level}`}
+            download
+            className="px-3 py-1.5 bg-primary text-white text-[10px] font-semibold rounded-lg whitespace-nowrap hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring"
+          >
+            {t('architecture.pdfButtonLabel')}
+          </a>
+        )}
+      </div>
     </div>
   )
 }
@@ -826,7 +871,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   if (view === 'list') {
     return (
       <div className="max-w-2xl space-y-5">
-        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
+        <UnifiedContextBanner
+          assessmentContext={assessmentContext}
+          governanceContext={governanceContext}
+          compliancePreset={compliancePreset}
+          roadmapContext={roadmapContext}
+        />
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-slate-900">{t('architecture.savedTitle', { count: architectures.length })}</h2>
           <button
@@ -892,9 +942,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           tier={tier}
           presentationTemplate={presentationTemplate}
           onPresentation={setPresentationTemplate}
+          savedId={savedId}
+          locale={locale}
         />
 
-        <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
+        <UnifiedContextBanner
+          assessmentContext={assessmentContext}
+          governanceContext={governanceContext}
+          compliancePreset={compliancePreset}
+          roadmapContext={roadmapContext}
+        />
 
         {/* Exec: KPI-Kennzahlenstreifen */}
         {resultAudience === 'exec' && (
@@ -1265,15 +1322,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   // Wizard view
   return (
     <div className="max-w-2xl">
-      <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} roadmapContext={roadmapContext} />
-      {showCanvasBanner && canvasCtx && canvasContext && (
-        <CanvasContextBanner
-          canvasTitle={canvasContext.canvas.title}
-          useCaseName={canvasContext.useCase.name}
-          context={canvasCtx}
-          onDismiss={() => setShowCanvasBanner(false)}
-        />
-      )}
+      <UnifiedContextBanner
+        assessmentContext={assessmentContext}
+        governanceContext={governanceContext}
+        roadmapContext={roadmapContext}
+        canvasContext={showCanvasBanner && canvasCtx ? canvasCtx : null}
+        canvasTitle={canvasContext?.canvas.title}
+        useCaseName={canvasContext?.useCase.name}
+        onDismiss={showCanvasBanner && canvasCtx ? () => setShowCanvasBanner(false) : undefined}
+        wizardTargetId="wizard-question"
+      />
 
       {/* Progress */}
       <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={t('architecture.stepProgress', { step: currentStep + 1, total: totalSteps })}>
@@ -1287,7 +1345,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       </div>
 
       {/* Question card */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
+      <div id="wizard-question" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">{t('architecture.stepLabel', { step: step.step })}</p>
         <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(step.question, locale)}</h2>
         <p className="text-sm text-slate-500 mb-5">{pick(step.context, locale)}</p>
