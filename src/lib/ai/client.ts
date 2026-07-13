@@ -178,7 +178,7 @@ export async function callLLM<T>(
         system: opts.systemPrompt ?? 'You are a precise JSON-only API. Respond ONLY with valid JSON.',
         messages: [{ role: 'user', content: userPrompt }],
       }),
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: AbortSignal.timeout(60_000),
     })
     if (!res.ok) {
       const errBody = await res.text().catch(() => '(unlesbar)')
