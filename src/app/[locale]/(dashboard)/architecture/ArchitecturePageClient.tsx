@@ -9,6 +9,7 @@ import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
@@ -730,6 +731,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
+  const [resultShowAltFor, setResultShowAltFor] = useState<Set<string>>(new Set())
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
@@ -1160,6 +1162,75 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               initialChecked={activeComponentNames.size > 0 ? activeComponentNames : new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))}
               onCheckedChange={setActiveComponentNames}
             />
+            {(() => {
+              const fallbackNames = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
+              const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
+              const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
+              const conflicts = findConflicts(effectiveNames, byName)
+              if (conflicts.length === 0) return null
+              return (
+                <div className="mt-3 space-y-2">
+                  {conflicts.map(({ a, b, alternatives }) => {
+                    const key = [a, b].sort().join('|')
+                    const showAlts = resultShowAltFor.has(key)
+                    const explanation = explainConflict(a, b, byName)
+                    return (
+                      <div key={key} className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-amber-800">{locale === 'de' ? explanation.de : explanation.en}</p>
+                          {alternatives.length > 0 && (
+                            <button
+                              onClick={() => setResultShowAltFor(prev => {
+                                const next = new Set(prev)
+                                showAlts ? next.delete(key) : next.add(key)
+                                return next
+                              })}
+                              className="shrink-0 text-xs text-amber-700 underline whitespace-nowrap"
+                            >
+                              {t('architecture.conflictShowAlts')}
+                            </button>
+                          )}
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {[a, b].map(name => (
+                            <button
+                              key={name}
+                              onClick={() => {
+                                const next = new Set(effectiveNames)
+                                next.delete(name)
+                                setActiveComponentNames(next)
+                              }}
+                              className="text-xs text-red-600 underline"
+                            >
+                              {name} {t('architecture.conflictRemove')}
+                            </button>
+                          ))}
+                        </div>
+                        {showAlts && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {alternatives.map(alt => (
+                              <button
+                                key={alt}
+                                onClick={() => {
+                                  const next = new Set(effectiveNames)
+                                  next.delete(a)
+                                  next.add(alt)
+                                  setActiveComponentNames(next)
+                                  setResultShowAltFor(prev => { const n = new Set(prev); n.delete(key); return n })
+                                }}
+                                className="text-xs rounded border border-slate-300 bg-white px-2 py-0.5 hover:bg-slate-50"
+                              >
+                                {alt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
           </div>
         )}
 
