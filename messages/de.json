@@ -222,7 +222,7 @@
     "badge": "KI-gestützt",
     "badgeGenerated": "KI-generiert",
     "usageRemaining": "{remaining} von {limit} KI-Analysen heute verbleibend",
-    "usageExceeded": "Tages-Limit erreicht ({limit}/Tag) — deterministisches Ergebnis aktiv",
+    "usageExceeded": "Tages-Limit erreicht ({used}/{limit}) — deterministisches Ergebnis aktiv",
     "failed": "KI-Analyse nicht verfügbar — klassisches Ergebnis wird angezeigt",
     "proRequired": "KI-Analyse verfügbar ab Pro",
     "confirmApply": "KI-Vorschläge übernehmen?",
@@ -519,7 +519,7 @@
     "architecture": {
       "title": "Architektur-Generator",
       "subtitle": "AI-Architektur definieren",
-      "desc": "5-Schritt-Wizard · Herstellerneutrale Referenzarchitektur · Schlüssel-Entscheidungen",
+      "desc": "Geführter Wizard · Herstellerneutrale Referenzarchitektur · RASIC & Compliance",
       "summaryDesc": "Herstellerneutrale Enterprise AI Reference Architecture generieren",
       "bannerCloseAriaLabel": "Banner schließen",
       "improveLabel": "Verbesserung nötig",

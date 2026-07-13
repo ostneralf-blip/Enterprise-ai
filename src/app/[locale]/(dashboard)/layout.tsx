@@ -27,10 +27,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <MobileNavProvider>
       <PaperNoise />
       {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt */}
-      <div className="flex h-[100dvh] overflow-hidden bg-ivory">
+      <div className="flex h-[100dvh] [overflow:clip] bg-ivory">
         <BfcacheGuard />
         <Sidebar profile={profile} />
-        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+        <div className="flex flex-col flex-1 [overflow:clip] min-w-0">
           {/* 3px Cover-Blau Deckenlinie — Buch-Branding */}
           <div className="h-[3px] bg-primary shrink-0" aria-hidden="true" />
           <TopBar profile={profile} />

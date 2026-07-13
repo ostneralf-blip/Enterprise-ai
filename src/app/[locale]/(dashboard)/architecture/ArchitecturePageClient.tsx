@@ -443,7 +443,7 @@ function ResultBar({
   }
   const execDisabled = audience === 'exec'
   return (
-    <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
+    <div className="sticky top-0 z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
       {/* SICHT */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
@@ -912,10 +912,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (!result) return
     setSaving(true)
     try {
+      const dateStr = new Date().toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+      const title = `${result.pattern} — ${dateStr}`
       const res = await fetch('/api/architecture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wizard_data: answers, result }),
+        body: JSON.stringify({ title, wizard_data: answers, result }),
       })
       if (res.ok) {
         const { data } = await res.json()

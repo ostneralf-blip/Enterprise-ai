@@ -9,6 +9,25 @@ const APP_LAYERS  = new Set(['application'])
 const DATA_LAYERS = new Set(['data', 'model', 'mlops', 'serving'])
 const CROSS_LAYERS = new Set(['governance', 'security'])
 
+const CATEGORY_LABEL: Record<string, string> = {
+  data_platform:   'Data Platform',  DATA_PLATFORM:   'Data Platform',
+  ml_platform:     'ML Platform',    ML_PLATFORM:     'ML Platform',
+  llm:             'LLM / Foundation Model', LLM: 'LLM / Foundation Model',
+  mlops:           'MLOps',          MLOPS:           'MLOps',
+  monitoring:      'Monitoring',     MONITORING:      'Monitoring',
+  governance:      'AI Governance',  GOVERNANCE:      'AI Governance',
+  security:        'Security & IAM', SECURITY:        'Security & IAM',
+  integration:     'Integration',    INTEGRATION:     'Integration',
+  serving:         'Model Serving',  SERVING:         'Model Serving',
+  vector_store:    'Vector Store',   VECTOR_STORE:    'Vector Store',
+  embedding:       'Embedding',      EMBEDDING:       'Embedding',
+  orchestration:   'Orchestration',  ORCHESTRATION:   'Orchestration',
+}
+
+function humanCategory(raw: string): string {
+  return CATEGORY_LABEL[raw] ?? raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 function Badge({ label, variant }: { label: string; variant: 'eu' | 'sap' | 'warn' | 'ai' | 'ok' }) {
   return (
     <span className={cn(
@@ -58,7 +77,7 @@ function CompNode({
       <p className="text-[12.5px] font-semibold text-slate-900 leading-tight">{name}</p>
       {comp?.vendor && (
         <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold mt-0.5 leading-tight">
-          {comp.vendor}{comp.category ? ` · ${comp.category}` : ''}
+          {comp.vendor}{comp.category ? ` · ${humanCategory(comp.category)}` : ''}
         </p>
       )}
       {versionLine && (

@@ -69,7 +69,7 @@ export function AIAnalysisButton({ tier, onAnalyze, usage, className, size = 'md
       {usage && (
         <p className={cn('text-[11px]', exceeded ? 'text-amber-600' : 'text-slate-400')}>
           {exceeded
-            ? t('usageExceeded', { limit: usage.limit })
+            ? t('usageExceeded', { used: usage.used, limit: usage.limit })
             : t('usageRemaining', { remaining: usage.remaining, limit: usage.limit })}
         </p>
       )}

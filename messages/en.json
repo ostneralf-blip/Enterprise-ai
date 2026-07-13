@@ -223,7 +223,7 @@
     "badge": "AI-powered",
     "badgeGenerated": "AI-generated",
     "usageRemaining": "{remaining} of {limit} AI analyses remaining today",
-    "usageExceeded": "Daily limit reached ({limit}/day) — deterministic result active",
+    "usageExceeded": "Daily limit reached ({used}/{limit}) — deterministic result active",
     "failed": "AI analysis unavailable — showing classic result",
     "proRequired": "AI analysis available from Pro",
     "confirmApply": "Apply AI suggestions?",
@@ -520,7 +520,7 @@
     "architecture": {
       "title": "Architecture Generator",
       "subtitle": "Define AI architecture",
-      "desc": "5-step wizard · vendor-neutral reference architecture · key decisions",
+      "desc": "Guided wizard · vendor-neutral reference architecture · RASIC & Compliance",
       "summaryDesc": "Generate vendor-neutral Enterprise AI reference architecture",
       "bannerCloseAriaLabel": "Close banner",
       "improveLabel": "Improvement needed",
