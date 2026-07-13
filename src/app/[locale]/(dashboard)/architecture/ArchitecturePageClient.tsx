@@ -642,6 +642,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [aiModel, setAiModel] = useState<string | null>(null)
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
+  const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
@@ -669,6 +670,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       recs = recommendFromWizard(wizardAnswers)
       setCatalogRecs(recs)
     }
+    setActiveComponentNames(new Set(recs.layers.flatMap(lr => lr.componentNames)))
     setJouleUseCases(recommendJouleUseCases(
       wizardAnswers,
       assessmentContext?.archetype ?? null,
@@ -695,11 +697,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               lr.componentNames.some(n => loaded.find(c => c.name === n)?.cloud_provider === 'sap')
             )
             if (!hasSAPLayer) {
-              setCatalogRecs(recommendFromWizard(wizardAnswers))
+              const fallbackRecs = recommendFromWizard(wizardAnswers)
+              setCatalogRecs(fallbackRecs)
+              setActiveComponentNames(new Set(fallbackRecs.layers.flatMap(lr => lr.componentNames)))
             }
             // hasSAPLayer=true → Phase-1-Recs bleiben unverändert (kein setCatalogRecs)
           } else {
             setCatalogRecs(catalogResult)
+            setActiveComponentNames(new Set(catalogResult.layers.flatMap(lr => lr.componentNames)))
           }
           if (canvasContext) {
             setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded, synonyms))
@@ -731,6 +736,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSaved(false)
     setSavedId(null)
     setCatalogRecs(null)
+    setActiveComponentNames(new Set())
     setJouleUseCases([])
     setCanvasCtx(null)
     setShowCanvasBanner(false)
@@ -880,7 +886,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <ResultBar
           audience={resultAudience}
           level={resultLevel}
-          onAudience={setResultAudience}
+          onAudience={a => { setResultAudience(a); if (a === 'exec') setResultLevel(1) }}
           onLevel={setResultLevel}
           tier={tier}
           presentationTemplate={presentationTemplate}
@@ -927,15 +933,25 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
         )}
 
-        {/* Architecture diagram — nicht in Exec-Sicht */}
+        {/* Komponenten-Auswahl + EAM-Architektur-Diagramm — nicht in Exec-Sicht */}
         {resultAudience !== 'exec' && catalogRecs && (
-          <ArchitectureDiagram
-            recs={catalogRecs}
-            components={recComponents}
-            tier={tier}
-            pattern={result?.pattern}
-            archetype={assessmentContext?.archetype ? (ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype) : undefined}
-          />
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-semibold text-slate-900">{t('architecture.componentPickerTitle')}</h3>
+              <span className="text-xs text-slate-400">{t('architecture.componentPickerHint')}</span>
+            </div>
+            <ArchitectureDiagram
+              key={catalogRecs.layers.map(l => l.layer).join('|')}
+              recs={catalogRecs}
+              components={recComponents}
+              tier={tier}
+              pattern={result?.pattern}
+              archetype={assessmentContext?.archetype ? (ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype) : undefined}
+              level={resultLevel}
+              initialChecked={activeComponentNames.size > 0 ? activeComponentNames : new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))}
+              onCheckedChange={setActiveComponentNames}
+            />
+          </div>
         )}
 
         {/* Catalog recommendations */}
@@ -967,8 +983,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* DSGVO-Warnung bei bedingter Konformität — nur Komponenten die im Diagramm aktiv sind */}
         {(() => {
-          const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional' && activeNames.has(c.name))
+          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
+          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional' && effectiveNames.has(c.name))
           if (conditionalComps.length === 0) return null
           return (
             <div role="alert" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5">
@@ -1044,8 +1061,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* RASIC-Matrix + EAM-Validierung — nicht in Exec-Sicht */}
         {resultAudience !== 'exec' && (() => {
-          const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const activeComps = recComponents.filter(c => activeNames.has(c.name))
+          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
+          const activeComps = recComponents.filter(c => effectiveNames.has(c.name))
           const eamResults = runEamValidation(rasic ?? undefined, activeComps, answers.compliance)
           return (
             <>
@@ -1074,8 +1092,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Key decisions + Next steps */}
         {(() => {
-          const recNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const activeComponents = recComponents.filter(c => recNames.has(c.name))
+          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+          const effectiveNamesKd = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
+          const activeComponents = recComponents.filter(c => effectiveNamesKd.has(c.name))
           const dynamicDecisions = generateDynamicKeyDecisions(activeComponents)
           const dynamicSteps = generateDynamicNextSteps(activeComponents)
           const crossDecisions = generateCrossModuleDecisions({

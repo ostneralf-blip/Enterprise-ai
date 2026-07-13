@@ -629,6 +629,8 @@
       "execRecommendTitle": "Executive Recommendation",
       "complianceHighlightHint": "Components without compliance relevance are dimmed.",
       "l2VersionInfo": "Version",
+      "componentPickerTitle": "Component Selection",
+      "componentPickerHint": "Deselect components to remove them from the architecture — conflicts and suggestions are detected automatically.",
       "rasicTitle": "Responsibilities (RASIC)",
       "rasicHint": "Click a cell to cycle its value (R → A → S → I → C → empty). Changes are saved with the result.",
       "rasicPhaseKonzeption": "Conception",

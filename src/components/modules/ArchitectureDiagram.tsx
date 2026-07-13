@@ -36,6 +36,9 @@ export interface ArchitectureDiagramProps {
   tier?: string
   pattern?: string
   archetype?: string
+  level?: 1 | 2 | 3
+  initialChecked?: Set<string>
+  onCheckedChange?: (checked: Set<string>) => void
 }
 
 interface DetailPanelProps {
@@ -92,6 +95,7 @@ function ComponentButton({
   isConflicting,
   isSuggested,
   locked,
+  level = 1,
   onCheck,
   onFocus,
 }: {
@@ -102,6 +106,7 @@ function ComponentButton({
   isConflicting: boolean
   isSuggested: boolean
   locked: boolean
+  level?: 1 | 2 | 3
   onCheck: () => void
   onFocus: () => void
 }) {
@@ -109,9 +114,16 @@ function ComponentButton({
   if (locked) {
     return <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
   }
+  const versionLine = level >= 2
+    ? (comp?.version_info?.release ?? comp?.version_info?.model_id ?? comp?.version_info?.notes
+        ?? (comp?.hosting.length ? comp.hosting.slice(0, 2).join(' · ') : null))
+    : null
+  const descLine = level >= 3 ? (comp?.description ?? null) : null
+  const hasMeta = !!versionLine || !!descLine
   return (
     <div className={cn(
-      'inline-flex items-center rounded-lg border text-xs font-medium transition-all',
+      'rounded-lg border text-xs font-medium transition-all',
+      hasMeta ? 'flex flex-col' : 'inline-flex items-center',
       isChecked
         ? 'border-primary-ring bg-primary-soft text-primary shadow-sm'
         : isConflicting
@@ -127,26 +139,38 @@ function ComponentButton({
       undefined
     }
     >
-      <label className="flex items-center gap-1 pl-2 pr-1 py-1.5 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={isChecked}
-          onChange={onCheck}
-          aria-label={t('selectAriaLabel', { name })}
-          className="w-3 h-3 rounded accent-blue-500 cursor-pointer flex-shrink-0"
-        />
-      </label>
-      <button
-        onClick={onFocus}
-        aria-pressed={isFocused}
-        className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring focus-visible:rounded"
-      >
-        {name}
-      </button>
-      {comp?.dsgvo_status && (
-        <span className={cn('px-1 py-0.5 mr-1.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
-          {DSGVO_LABEL[comp.dsgvo_status]}
-        </span>
+      <div className="inline-flex items-center">
+        <label className="flex items-center gap-1 pl-2 pr-1 py-1.5 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={onCheck}
+            aria-label={t('selectAriaLabel', { name })}
+            className="w-3 h-3 rounded accent-blue-500 cursor-pointer flex-shrink-0"
+          />
+        </label>
+        <button
+          onClick={onFocus}
+          aria-pressed={isFocused}
+          className="pr-2.5 py-1.5 min-w-0 truncate max-w-[140px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring focus-visible:rounded"
+        >
+          {name}
+        </button>
+        {comp?.dsgvo_status && (
+          <span className={cn('px-1 py-0.5 mr-1.5 rounded text-[9px] font-semibold border flex-shrink-0', DSGVO_BADGE[comp.dsgvo_status] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+            {DSGVO_LABEL[comp.dsgvo_status]}
+          </span>
+        )}
+      </div>
+      {versionLine && (
+        <p className="text-[10px] text-slate-400 px-2 pb-1.5 leading-tight truncate max-w-[200px]">
+          {versionLine}
+        </p>
+      )}
+      {descLine && (
+        <p className="text-[10px] text-slate-500 px-2 pb-1.5 pt-0.5 leading-tight line-clamp-2 border-t border-slate-100 max-w-[200px]">
+          {descLine}
+        </p>
       )}
     </div>
   )
@@ -160,6 +184,7 @@ function SwimlaneTable({
   focused,
   conflictingNames,
   suggestedNames,
+  level = 1,
   onCheck,
   onFocus,
 }: {
@@ -170,6 +195,7 @@ function SwimlaneTable({
   focused: string | null
   conflictingNames: Set<string>
   suggestedNames: Set<string>
+  level?: 1 | 2 | 3
   onCheck: (name: string) => void
   onFocus: (name: string) => void
 }) {
@@ -211,6 +237,7 @@ function SwimlaneTable({
                             isConflicting={conflictingNames.has(name)}
                             isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
+                            level={level}
                             onCheck={() => onCheck(name)}
                             onFocus={() => onFocus(name)}
                           />
@@ -253,6 +280,7 @@ function SwimlaneTable({
                             isConflicting={conflictingNames.has(name)}
                             isSuggested={suggestedNames.has(name) && !checked.has(name)}
                             locked={false}
+                            level={level}
                             onCheck={() => onCheck(name)}
                             onFocus={() => onFocus(name)}
                           />
@@ -288,11 +316,11 @@ function FullscreenModal({ children, onClose }: { children: React.ReactNode; onC
   )
 }
 
-export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, archetype }: ArchitectureDiagramProps) {
+export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, archetype, level = 1, initialChecked, onCheckedChange }: ArchitectureDiagramProps) {
   const t = useTranslations('modules.architecture')
   const locked  = tier === 'free'
   const byName  = Object.fromEntries(components.map(c => [c.name, c]))
-  const [checked, setChecked]       = useState<Set<string>>(new Set())
+  const [checked, setChecked]       = useState<Set<string>>(initialChecked ?? new Set())
   const [focused, setFocused]       = useState<string | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
 
@@ -304,6 +332,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
       const next = new Set(prev)
       if (next.has(name)) next.delete(name)
       else next.add(name)
+      onCheckedChange?.(next)
       return next
     })
   }
@@ -409,6 +438,7 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
             focused={focused}
             conflictingNames={wouldConflictIfChecked}
             suggestedNames={suggestedNames}
+            level={level}
             onCheck={handleCheck}
             onFocus={handleFocus}
           />

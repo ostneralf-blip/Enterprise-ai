@@ -628,6 +628,8 @@
       "execRecommendTitle": "Empfehlung für die Entscheidung",
       "complianceHighlightHint": "Komponenten ohne Compliance-Relevanz werden abgeblendet.",
       "l2VersionInfo": "Version",
+      "componentPickerTitle": "Komponenten-Auswahl",
+      "componentPickerHint": "Wähle Komponenten ab um sie aus der Architektur zu entfernen — Konflikte und Vorschläge werden automatisch erkannt.",
       "rasicTitle": "Verantwortlichkeiten (RASIC)",
       "rasicHint": "Klicke auf eine Zelle, um den Wert zu ändern (R → A → S → I → C → leer). Änderungen werden mit dem Ergebnis gespeichert.",
       "rasicPhaseKonzeption": "Konzeption",
