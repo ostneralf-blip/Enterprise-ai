@@ -113,13 +113,14 @@ interface UnifiedContextBannerProps {
   canvasContext?: CanvasContext | null
   canvasTitle?: string | null
   useCaseName?: string | null
+  filledWizardFields?: number
   onDismiss?: () => void
   wizardTargetId?: string
 }
 
 function UnifiedContextBanner({
   assessmentContext, governanceContext, compliancePreset, roadmapContext,
-  canvasContext, canvasTitle, onDismiss, wizardTargetId,
+  canvasContext, canvasTitle, filledWizardFields, onDismiss, wizardTargetId,
 }: UnifiedContextBannerProps) {
   const t = useTranslations('modules')
   const [collapsed, setCollapsed] = useState(false)
@@ -128,7 +129,7 @@ function UnifiedContextBanner({
   const hasCanvas = !!(canvasContext && canvasTitle)
   if (!hasModuleContext && !hasCanvas) return null
 
-  const filledCount = canvasContext ? Object.keys(canvasContext.wizard_prefill).length : 0
+  const filledCount = filledWizardFields ?? (canvasContext ? Object.keys(canvasContext.wizard_prefill).length : 0)
 
   const governanceLabel: Record<string, string> = {
     approve:    t('architecture.governanceApprove'),
@@ -282,36 +283,6 @@ function CostIndicationCard({ patternId, companySize, locale }: {
       <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
         {pick(base.note, locale)} {t('architecture.costDisclaimer')}
       </p>
-    </div>
-  )
-}
-
-function PatternReasonSection({ answers, locale }: { answers: WizardAnswers; locale: string }) {
-  const t = useTranslations('modules')
-  const [open, setOpen] = useState(false)
-  const reasons = selectPatternReason(answers)
-  if (reasons.length === 0) return null
-  return (
-    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 rounded"
-        aria-expanded={open}
-      >
-        <span className="text-xs font-semibold text-slate-700 flex-1">{t('architecture.patternReasonTitle')}</span>
-        <span className="text-slate-400 text-[10px]" aria-hidden="true">{open ? '▲' : '▼'}</span>
-      </button>
-      {open && (
-        <ul className="mt-2.5 space-y-1.5">
-          {reasons.map((r, i) => (
-            <li key={i} className="flex gap-2 text-xs text-slate-600">
-              <span className="flex-shrink-0 text-primary font-medium">✓</span>
-              <span className="min-w-0">{pick(r, locale)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }
@@ -1010,6 +981,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   }
 
   if (view === 'result' && result) {
+    const patternReasons = selectPatternReason(answers)
     return (
       <div
         className="max-w-2xl space-y-5"
@@ -1037,6 +1009,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           governanceContext={governanceContext}
           compliancePreset={compliancePreset}
           roadmapContext={roadmapContext}
+          canvasContext={canvasCtx}
+          canvasTitle={canvasContext?.canvas.title}
         />
 
         {/* KI-Einordnung Narrativ-Karte */}
@@ -1071,7 +1045,21 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               {t('architecture.patternBadge')}
             </span>
           </div>
-          <h2 className={cn('text-base sm:text-lg font-semibold mb-1', result.color.title)}>{result.pattern}</h2>
+          <div className="flex items-center gap-1.5 mb-1">
+            <h2 className={cn('text-base sm:text-lg font-semibold min-w-0', result.color.title)}>{result.pattern}</h2>
+            {patternReasons.length > 0 && (
+              <InfoHint title={t('architecture.patternWhyTitle')} side="bottom">
+                <ul className="space-y-1">
+                  {patternReasons.map((r, i) => (
+                    <li key={i} className="flex gap-1.5">
+                      <span className="text-primary font-medium flex-shrink-0">✓</span>
+                      <span className="min-w-0">{pick(r, locale)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </InfoHint>
+            )}
+          </div>
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
 
@@ -1100,11 +1088,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Exec: Empfehlungskarte (statt Detail-Sections) */}
         {resultAudience === 'exec' && (
           <ExecRecommendationCard result={result} />
-        )}
-
-        {/* Warum dieses Muster? — nicht in Exec-Sicht */}
-        {resultAudience !== 'exec' && (
-          <PatternReasonSection answers={answers} locale={locale} />
         )}
 
         {/* Kosten-Indikator — nicht in Exec-Sicht (dort im KPI-Strip) */}

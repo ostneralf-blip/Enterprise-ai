@@ -607,6 +607,7 @@
       "costMonths": "months",
       "costDisclaimer": "Indicative values — depends on company size and project scope.",
       "patternReasonTitle": "Why is this pattern recommended?",
+      "patternWhyTitle": "Why this pattern?",
       "teamHintTitle": "Recommended Project Team",
       "teamClickHint": "Click a role for details, responsibilities and RACI mapping.",
       "viewLabel": "View",
