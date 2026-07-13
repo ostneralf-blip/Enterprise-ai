@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
@@ -759,6 +759,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
+
+  // Scroll main back to top when entering result view — prevents sticky bar from
+  // being immediately stuck because main retained scroll position from wizard steps
+  useEffect(() => {
+    if (view === 'result') {
+      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
+    }
+  }, [view])
 
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
