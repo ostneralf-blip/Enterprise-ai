@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de" data-template="buch">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architektur-Generator V2 — integriert ins Buch-Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ Semantische Tokens — entsprechen dem bestehenden Buch-Theme ═══ */
+:root{
+  --primary:#1D4ED8; --primary-soft:#EFF4FF; --primary-border:#BFDBFE;
+  --ink:#0F172A; --slate:#475569; --muted:#94A3B8;
+  --paper:#FBFAF7; --card:#FFFFFF; --line:#E7E4DC;
+  --ok:#059669; --warn:#D97706; --risk:#DC2626; --ai:#7C3AED; --ai-soft:#F3EFFF;
+  --serif:'Lora',Georgia,serif; --sans:'Public Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+/* Präsentationsmodus-Templates = ZUSATZFUNKTION, überschreiben nur Tokens */
+[data-template="board"]{--paper:#101828;--card:#182234;--line:#26324A;--ink:#F4F1E8;--slate:#B9C2D4;--muted:#6E7A93;--primary:#E8C468;--primary-soft:#2A2E1F;--primary-border:#4A4222;--ai:#C9A9FF;--ai-soft:#241B36}
+[data-template="blueprint"]{--paper:#0B1E3A;--card:#10294D;--line:#1E3E6E;--ink:#E6F0FF;--slate:#9FB8DC;--muted:#5B7AA6;--primary:#4CC3FF;--primary-soft:#0E3356;--primary-border:#1E5A8C;--ai:#9FD4FF;--ai-soft:#12315C}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--paper);color:var(--slate);font-size:14px;line-height:1.55;transition:background .4s,color .4s}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px 90px}
+.topline{height:3px;background:var(--primary)}
+.pagehead{padding:30px 0 6px}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--primary);font-weight:700;text-transform:uppercase}
+h1{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink);margin-top:4px}
+.pagedesc{font-size:13.5px;color:var(--muted);margin-top:4px;max-width:640px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sec{margin-top:26px}
+h2.s{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.s-sub{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.chip{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:2.5px 9px;border-radius:99px;vertical-align:2px;margin-left:8px}
+.chip.ai{background:var(--ai-soft);color:var(--ai)}
+.chip.pro{background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)}
+.chip.new{background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ok)}
+.ctx{display:flex;gap:14px;align-items:center;background:var(--primary-soft);border:1px solid var(--primary-border);border-radius:14px;padding:13px 16px;margin-top:18px}
+.ctx .dot{width:34px;height:34px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+[data-template="board"] .ctx .dot{color:#1a1608}
+.ctx b{color:var(--ink)}
+.ctx .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.ttag{font-size:10.5px;font-weight:600;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--slate)}
+.pick{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.layer-block{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.layer-h{display:flex;justify-content:space-between;align-items:center;background:var(--paper);padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.layer-h .cnt{font-family:var(--mono);font-weight:500;letter-spacing:0;text-transform:none}
+.comp-row{display:flex;align-items:center;gap:11px;padding:10px 14px;border-top:1px solid var(--line);transition:.15s}
+.comp-row:hover{background:var(--paper)}
+.cb{width:17px;height:17px;border:1.5px solid var(--muted);border-radius:5px;flex:0 0 auto;position:relative;cursor:pointer}
+.comp-row.sel .cb{background:var(--primary);border-color:var(--primary)}
+.comp-row.sel .cb::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800}
+[data-template="board"] .comp-row.sel .cb::after{color:#1a1608}
+.comp-row .nm{font-weight:600;color:var(--ink);font-size:13px}
+.comp-row .why{font-size:11px;color:var(--muted)}
+.comp-row .spacer{flex:1}
+.mini{font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:5px;text-transform:uppercase}
+.m-eu{background:color-mix(in srgb,var(--ok) 13%,transparent);color:var(--ok)}
+.m-sap{background:var(--primary-soft);color:var(--primary)}
+.m-ai{background:var(--ai-soft);color:var(--ai)}
+.m-warn{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.comp-row.ai-sug{background:linear-gradient(90deg,var(--ai-soft),transparent 60%)}
+.conflict{display:flex;gap:10px;align-items:flex-start;background:color-mix(in srgb,var(--warn) 8%,transparent);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:10px;padding:10px 13px;font-size:12px;margin-top:10px}
+.conflict b{color:var(--warn)}
+.ai-panel{border:1px solid color-mix(in srgb,var(--ai) 30%,var(--line));border-radius:14px;background:var(--card);padding:16px;height:fit-content;position:sticky;top:74px}
+.ai-panel h3{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600;display:flex;align-items:center;gap:7px}
+.ai-panel h3 .spark{color:var(--ai)}
+.usage{display:flex;align-items:center;gap:8px;margin:10px 0 12px}
+.usage .bar{flex:1;height:5px;border-radius:99px;background:var(--line);overflow:hidden}
+.usage .bar i{display:block;height:100%;width:30%;background:var(--ai);border-radius:99px}
+.usage span{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.ai-item{border-top:1px dashed var(--line);padding:9px 0;font-size:12.5px}
+.ai-item b{color:var(--ink)}
+.ai-item .src{font-size:10.5px;color:var(--ai);font-weight:600}
+.ai-actions{display:flex;gap:7px;margin-top:6px}
+.ai-btn{font-size:11px;font-weight:700;border-radius:7px;padding:4px 10px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--slate)}
+.ai-btn.yes{background:var(--ai);border-color:var(--ai);color:#fff}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+[data-template="board"] .btn.primary{color:#1a1608}
+.btn.ghost-ai{border-color:color-mix(in srgb,var(--ai) 40%,transparent);color:var(--ai);background:var(--ai-soft)}
+.resultbar{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:11px 0;display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:30px}
+.ctl-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.tabs{display:flex;gap:0}
+.tabs button{border:0;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--muted);padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:.18s}
+.tabs button.on{color:var(--primary);border-bottom-color:var(--primary)}
+.lvl{display:flex}
+.lvl button{width:40px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:var(--mono);font-size:11px;padding:6px 0;cursor:pointer}
+.lvl button:first-child{border-radius:8px 0 0 8px}.lvl button:last-child{border-radius:0 8px 8px 0}
+.lvl button.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+[data-template="board"] .lvl button.on{color:#1a1608}
+.spacer{flex:1}
+.present{display:flex;align-items:center;gap:8px}
+.present .seg{display:none;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:2px;gap:2px}
+.present.unlocked .seg{display:flex}
+.present.unlocked > .btn.ghost-pro{display:none}
+.present .seg button{border:0;background:transparent;color:var(--slate);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:7px;cursor:pointer}
+.present .seg button.on{background:var(--primary);color:#fff}
+[data-template="board"] .present .seg button.on{color:#1a1608}
+.btn.ghost-pro{border-color:var(--primary-border);color:var(--primary);background:var(--primary-soft)}
+.narrative{border-left:3px solid var(--ai);background:var(--card);border-radius:0 14px 14px 0;padding:16px 18px;margin-top:16px}
+.narrative .nh{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink)}
+.narrative p{font-size:13px;margin-top:7px;line-height:1.65}
+.narrative .prov{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px}
+.canvas{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px}
+.band{display:grid;grid-template-columns:140px 1fr;border:1px solid var(--line);border-radius:11px;margin-bottom:10px;overflow:hidden}
+.band:last-child{margin-bottom:0}
+.band-label{background:var(--primary-soft);border-right:1px solid var(--line);padding:12px 11px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.band-label b{font-family:var(--serif);font-size:13px;color:var(--ink);font-weight:600}
+.band-label span{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.band.motivation{border-style:dashed}
+.band.motivation .band-label{background:transparent}
+.band-body{padding:11px;display:flex;flex-wrap:wrap;gap:9px}
+.node{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:145px;transition:.16s;position:relative}
+.node:hover{border-color:var(--primary);transform:translateY(-1px)}
+.node .n-name{font-weight:700;font-size:12.5px;color:var(--ink)}
+.node .n-vendor{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.node .n-ver{font-family:var(--mono);font-size:10px;color:var(--primary);margin-top:4px;display:block}
+.node .n-ops{font-size:10px;color:var(--muted);margin-top:3px;border-top:1px dashed var(--line);padding-top:3px}
+.node.from-ai::before{content:"◆ KI";position:absolute;top:-7px;right:8px;font-size:8.5px;font-weight:800;color:var(--ai);background:var(--card);padding:0 4px;letter-spacing:.05em}
+.node.cap{background:var(--primary-soft);border-color:var(--primary-border)}
+.node.cap .n-name{font-family:var(--serif);font-size:13.5px}
+.badges{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.role-chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line);border-radius:99px;padding:5px 12px 5px 6px;font-size:11.5px;font-weight:600;color:var(--ink);height:fit-content}
+.role-chip .ini{width:20px;height:20px;border-radius:99px;background:var(--primary);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+[data-template="board"] .role-chip .ini{color:#1a1608}
+.rasic-wrap{overflow-x:auto;margin-top:16px}
+table.rasic{border-collapse:collapse;width:100%;min-width:700px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.rasic th{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:700;text-align:left;padding:10px 12px;border-bottom:2px solid var(--line);background:var(--paper)}
+.rasic th.ph{text-align:center}
+.rasic td{padding:8px 12px;border-bottom:1px solid var(--line);font-size:12.5px}
+.rasic tr:last-child td{border-bottom:0}
+.rasic td.role{font-weight:700;color:var(--ink);white-space:nowrap}
+.rasic td.role span{display:block;font-size:10px;color:var(--muted);font-weight:500}
+.rasic td.c{text-align:center}
+.ra{display:inline-flex;width:24px;height:24px;border-radius:7px;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;font-family:var(--mono)}
+.ra-R{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
+.ra-A{background:var(--ink);color:var(--paper)}
+.ra-S{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.ra-I{background:color-mix(in srgb,var(--muted) 17%,transparent);color:var(--slate)}
+.ra-C{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:var(--muted)}
+.legend b{color:var(--ink)}
+.valid{display:flex;gap:8px;align-items:center;font-size:12px;margin-top:12px;color:var(--ok);font-weight:600}
+.valid .vbox{border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);background:color-mix(in srgb,var(--ok) 7%,transparent);border-radius:9px;padding:7px 12px;display:flex;gap:14px;flex-wrap:wrap}
+.note{font-size:11.5px;color:var(--muted);font-style:italic;font-family:var(--serif);margin-top:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--primary)}
+.kpi .k-lab{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.kpi .k-val{font-family:var(--serif);font-size:23px;color:var(--ink);margin-top:4px;font-weight:600}
+.kpi .k-val .unit{font-size:13px;color:var(--muted)}
+.kpi .k-sub{font-size:11px;color:var(--muted)}
+.ampel{display:inline-block;width:9px;height:9px;border-radius:99px;margin-right:5px}
+.a-ok{background:var(--ok)}.a-warn{background:var(--warn)}
+[data-lvl] .l2,[data-lvl] .l3{display:none}
+[data-lvl="2"] .l2{display:block}
+[data-lvl="3"] .l2,[data-lvl="3"] .l3{display:block}
+body:not([data-view="exec"]) .exec-only{display:none}
+[data-view="exec"] .not-exec{display:none}
+[data-view="compliance"] .node{opacity:.4}
+[data-view="compliance"] .node.has-comp{opacity:1;border-color:var(--primary)}
+.reveal{animation:up .5s cubic-bezier(.2,.7,.3,1) both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:920px){.pick{grid-template-columns:1fr}.ai-panel{position:static}.kpis{grid-template-columns:1fr 1fr}.band{grid-template-columns:1fr}.band-label{border-right:0;border-bottom:1px solid var(--line);flex-direction:row;align-items:center;gap:8px}}
+</style>
+</head>
+<body data-view="architect" data-lvl="1">
+<div class="topline"></div>
+<div class="wrap">
+
+<div class="pagehead">
+  <div class="eyebrow">Enterprise-AI.biz · Architektur</div>
+  <h1>Architektur-Generator</h1>
+  <div class="pagedesc">Aus Wizard-Antworten, Canvas-Kontext und Komponenten-Katalog entsteht eine EAM-konforme Ziel-Architektur — mit Rollen, Verantwortlichkeiten und Compliance-Nachweisen.</div>
+</div>
+
+<div class="ctx reveal">
+  <div class="dot">◈</div>
+  <div style="flex:1">
+    <b>Kontext erkannt:</b> Canvas „Intelligente Rechnungsprüfung" · 6 von 8 Wizard-Feldern vorausgefüllt
+    <div class="tags"><span class="ttag">SAP</span><span class="ttag">ERP</span><span class="ttag">OCR / Vision</span><span class="ttag">DSGVO Strict</span><span class="ttag">Score 8.2</span></div>
+  </div>
+  <button class="btn">Wizard prüfen</button>
+</div>
+
+<section class="sec reveal">
+  <h2 class="s">Komponenten-Auswahl<span class="chip new">Schritt 5 von 5</span></h2>
+  <div class="s-sub">Regelbasierte Empfehlungen aus dem Katalog — die KI ergänzt Vorschläge aus Ihrem Canvas-Kontext. Jede Übernahme bleibt Ihre Entscheidung.</div>
+  <div class="pick">
+    <div>
+      <div class="layer-block">
+        <div class="layer-h"><span>Applikation</span><span class="cnt">3 / 4 gewählt</span></div>
+        <div class="comp-row sel"><span class="cb"></span><div><div class="nm">SAP Joule</div><div class="why">Passt zu: SAP-Landschaft, Conversational</div></div><span class="spacer"></span><span class="mini m-sap">SAP</span><span class="mini m-eu">EU</span></div>
+        <div class="comp-row sel"><span class="cb"></span><div><div class="nm">SAP Build Process Automation</div><div class="why">Workflow · No-Code</div></div><span class="spacer"></span><span class="mini m-sap">SAP</span></div>
+        <div class="comp-row sel ai-sug"><span class="cb"></span><div><div class="nm">Doc-Extraction-Service (Eigenbau)</div><div class="why">KI-Vorschlag aus Canvas: „OCR + Belegprüfung"</div></div><span class="spacer"></span><span class="mini m-ai">◆ KI</span><span class="mini m-eu">EU</span></div>
+        <div class="comp-row"><span class="cb"></span><div><div class="nm">Microsoft Copilot Studio</div><div class="why">Alternative zu Joule</div></div><span class="spacer"></span><span class="mini m-warn">Konflikt</span></div>
+      </div>
+      <div class="layer-block">
+        <div class="layer-h"><span>Daten & Modell</span><span class="cnt">3 / 5 gewählt</span></div>
+        <div class="comp-row sel"><span class="cb"></span><div><div class="nm">AWS Bedrock <span style="font-family:var(--mono);font-size:10px;color:var(--primary)">eu-west-1</span></div><div class="why">EU-Datenresidenz vertraglich</div></div><span class="spacer"></span><span class="mini m-eu">EU</span></div>
+        <div class="comp-row sel"><span class="cb"></span><div><div class="nm">SAP Datasphere</div><div class="why">Kreditorenstamm liegt bereits hier</div></div><span class="spacer"></span><span class="mini m-sap">SAP</span><span class="mini m-eu">EU</span></div>
+        <div class="comp-row sel ai-sug"><span class="cb"></span><div><div class="nm">HANA Cloud Vector Engine</div><div class="why">KI-Vorschlag: Ähnlichkeitssuche auf 45 k Belegen</div></div><span class="spacer"></span><span class="mini m-ai">◆ KI</span><span class="mini m-sap">SAP</span></div>
+      </div>
+      <div class="conflict"><span>⚠</span><div><b>Konflikt erkannt:</b> SAP Joule und Microsoft Copilot Studio adressieren dieselbe Fähigkeit (Conversational Copilot). Empfehlung bei SAP-zentrischem Fokus: Joule behalten. <u>Alternative anzeigen</u></div></div>
+    </div>
+
+    <aside class="ai-panel">
+      <h3><span class="spark">◆</span> KI-Analyse<span class="chip pro">Pro</span></h3>
+      <div class="usage"><div class="bar"><i></i></div><span>3 / 10 heute</span></div>
+      <div class="ai-item"><b>Use-Case-Typ:</b> Document AI / Vision<div class="src">Konfidenz 0.91 · aus Canvas</div></div>
+      <div class="ai-item"><b>2 Komponenten-Vorschläge</b> über Regelwerk hinaus<div class="ai-actions"><button class="ai-btn yes">Beide übernehmen</button><button class="ai-btn">Einzeln prüfen</button></div></div>
+      <div class="ai-item"><b>Compliance-Hinweis:</b> Kreditorendaten → DSGVO-Flag gesetzt, EU-Hosting als Muss-Kriterium aktiv</div>
+      <div class="ai-item" style="border-bottom:0"><div class="src" style="font-family:var(--mono);font-size:9.5px">claude-haiku-4-5 · Bedrock eu-west-1 · 12.07. 14:32</div></div>
+      <button class="btn ghost-ai" style="width:100%;margin-top:10px">◆ Neu analysieren</button>
+    </aside>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+    <button class="btn">Zurück</button>
+    <button class="btn primary">Architektur generieren →</button>
+  </div>
+</section>
+
+<div class="resultbar reveal">
+  <div>
+    <span class="ctl-label">Sicht</span>
+    <div class="tabs" id="viewTabs" style="display:inline-flex;margin-left:8px">
+      <button data-v="exec">Executive</button>
+      <button data-v="architect" class="on">Architektur</button>
+      <button data-v="compliance">Compliance</button>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="ctl-label">Tiefe</span>
+    <div class="lvl" id="lvlSeg"><button data-l="1" class="on">L1</button><button data-l="2">L2</button><button data-l="3">L3</button></div>
+  </div>
+  <span class="spacer"></span>
+  <div class="present" id="present">
+    <button class="btn ghost-pro" id="unlockBtn">⬡ Präsentationsmodus<span class="chip pro" style="margin-left:6px">Extra</span></button>
+    <div class="seg" id="tplSeg">
+      <button data-t="buch" class="on">Buch</button><button data-t="board">Boardroom</button><button data-t="blueprint">Blueprint</button>
+    </div>
+  </div>
+  <button class="btn primary">PDF (aktive Sicht)</button>
+</div>
+
+<section class="exec-only reveal">
+  <div class="kpis">
+    <div class="kpi"><div class="k-lab">Investition J1</div><div class="k-val">180–240<span class="unit"> T€</span></div><div class="k-sub">Lizenzen · Integration · Enablement</div></div>
+    <div class="kpi"><div class="k-lab">Laufend</div><div class="k-val">6,5<span class="unit"> T€/M</span></div><div class="k-sub">davon Inferenz ~1,2 T€</div></div>
+    <div class="kpi"><div class="k-lab">Payback</div><div class="k-val">14<span class="unit"> Mon.</span></div><div class="k-sub">2,1 FTE-Äquivalent p. a.</div></div>
+    <div class="kpi"><div class="k-lab">Risiko</div><div class="k-val" style="font-size:14px;line-height:1.8"><span class="ampel a-ok"></span>DSGVO konform<br><span class="ampel a-warn"></span>AI Act limited</div></div>
+  </div>
+</section>
+
+<div class="narrative reveal">
+  <div class="nh"><span style="color:var(--ai)">◆</span> KI-Einordnung<span class="chip ai">generiert</span></div>
+  <p id="narrText">Die Architektur folgt einem SAP-zentrischen Hybrid-Muster: Joule als Nutzer-Frontend im Standard, ein schlanker Eigenbau nur dort, wo der Standard keine Belegextraktion abdeckt. Der kritische Pfad ist die Datenqualität im Kreditorenstamm — nicht die Modellwahl. Für die Vorstandsvorlage: 80 % der Architektur läuft auf bereits lizenzierten Verträgen.</p>
+  <div class="prov">Provenienz: claude-sonnet-4-6 · AWS Bedrock eu-west-1 · Cache-Hit: nein · 12.07.2026</div>
+</div>
+
+<section class="sec reveal">
+  <h2 class="s">Architektur-Landkarte<span class="chip new">EAM-valide</span></h2>
+  <div class="s-sub" id="viewHint">Vollständige Sicht mit allen Ebenen — Detailtiefe über L1–L3 steuerbar.</div>
+  <div class="canvas">
+    <div class="band motivation not-exec">
+      <div class="band-label"><b>Motivation</b><span>Treiber · Vorgaben</span></div>
+      <div class="band-body">
+        <div class="node cap has-comp"><div class="n-name">⚖ EU AI Act — Limited Risk</div><div class="badges"><span class="mini m-warn">Art. 50 Transparenz</span></div><span class="n-ver l2">Watchlist aktiv · nächste Frist 02.08.2026</span></div>
+        <div class="node cap has-comp"><div class="n-name">🛡 DSGVO — Kreditorendaten</div><div class="badges"><span class="mini m-eu">EU-Hosting Muss</span></div><span class="n-ver l2">Art. 6 (1) f · DSFA nicht erforderlich</span></div>
+        <div class="node cap"><div class="n-name">◎ Ziel: Durchlaufzeit −70 %</div></div>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-label"><b>Business</b><span>Capability · Rollen</span></div>
+      <div class="band-body">
+        <div class="node cap"><div class="n-name">Rechnungsprüfung E2E</div><div class="n-vendor">P2P-Prozess</div></div>
+        <span class="role-chip"><span class="ini">AP</span>AI Product Owner</span>
+        <span class="role-chip"><span class="ini">BC</span>Business AI Champion</span>
+        <span class="role-chip"><span class="ini">DP</span>Data Privacy Manager</span>
+        <span class="role-chip"><span class="ini">SA</span>SAP AI Architect</span>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-label"><b>Applikation</b><span>AI-Dienste</span></div>
+      <div class="band-body">
+        <div class="node has-comp"><div class="n-name">SAP Joule</div><div class="n-vendor">Conversational</div><span class="n-ver l2">Szenario „Invoice Status" · Joule Studio</span><div class="n-ops l3">SSO: IAS · Rollout via Boosters · Owner: SAP AI Architect</div><div class="badges"><span class="mini m-sap">SAP</span><span class="mini m-eu">EU</span></div></div>
+        <div class="node from-ai has-comp"><div class="n-name">Doc-Extraction-Service</div><div class="n-vendor">Eigenbau · BTP CAP</div><span class="n-ver l2">claude-sonnet-4-6 · Fallback haiku-4-5</span><div class="n-ops l3">Timeout 15 s · 10 Calls/Tag/User · Owner: ML Engineer</div><div class="badges"><span class="mini m-eu">EU</span><span class="mini m-warn">Prompt-Log</span></div></div>
+        <div class="node"><div class="n-name">SAP S/4HANA</div><div class="n-vendor">FI/MM Core</div><span class="n-ver l2">2023 FPS02 · Clean Core L2</span><div class="n-ops l3">API-only Integration</div><div class="badges"><span class="mini m-sap">Core</span></div></div>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-label"><b>Daten & Technik</b><span>Plattform · Modelle</span></div>
+      <div class="band-body">
+        <div class="node has-comp"><div class="n-name">AWS Bedrock</div><div class="n-vendor">Serving · eu-west-1</div><span class="n-ver l2">eu.anthropic.claude-sonnet-4-6 · Inference Profile</span><div class="n-ops l3">Residency vertraglich EU · on-demand</div><div class="badges"><span class="mini m-eu">EU</span></div></div>
+        <div class="node"><div class="n-name">SAP Datasphere</div><div class="n-vendor">Kreditorenstamm</div><span class="n-ver l2">Space FIN_PROD · RT-Replikation</span><div class="badges"><span class="mini m-sap">SAP</span></div></div>
+        <div class="node from-ai"><div class="n-name">HANA Cloud Vector Engine</div><div class="n-vendor">Ähnlichkeitssuche</div><span class="n-ver l2">Embeddings 768 dim · 45 k Belege</span><div class="n-ops l3">Reindex nightly</div><div class="badges"><span class="mini m-sap">SAP</span></div></div>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-label"><b>Querschnitt</b><span>Governance · Ops</span></div>
+      <div class="band-body">
+        <div class="node has-comp"><div class="n-name">AI-Gateway & Prompt-Log</div><div class="n-vendor">Audit · Kosten</div><span class="n-ver l2">Provenienz je Call · 90 Tage</span><div class="n-ops l3">Alarm: Nicht-EU-Pfad → Error</div></div>
+        <div class="node has-comp"><div class="n-name">Human-in-the-Loop</div><div class="n-vendor">Freigabe > 10 T€</div><div class="n-ops l3">Vier-Augen ab Konfidenz &lt; 0,8 · A: Leitung FiBu</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="valid"><div class="vbox"><span>✓ Jede Komponente hat Owner</span><span>✓ Jedes Risiko hat Kontrolle</span><span>✓ Kein Nicht-EU-Pfad</span><span>✓ Genau 1 A je RASIC-Phase</span></div></div>
+</section>
+
+<section class="sec not-exec reveal">
+  <h2 class="s">Verantwortlichkeiten (RASIC)</h2>
+  <div class="s-sub">Aus dem Rollenkatalog generiert, editierbar, versioniert. Regeln aus dem Governance-Check fließen ein.</div>
+  <div class="rasic-wrap">
+    <table class="rasic">
+      <thead><tr><th>Rolle</th><th class="ph">Konzeption</th><th class="ph">Daten</th><th class="ph">Build</th><th class="ph">Freigabe</th><th class="ph">Betrieb</th></tr></thead>
+      <tbody>
+        <tr><td class="role">AI Product Owner<span>Fachbereich</span></td><td class="c"><span class="ra ra-A">A</span></td><td class="c"><span class="ra ra-I">I</span></td><td class="c"><span class="ra ra-A">A</span></td><td class="c"><span class="ra ra-A">A</span></td><td class="c"><span class="ra ra-I">I</span></td></tr>
+        <tr><td class="role">Business AI Champion<span>FiBu</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-C">C</span></td><td class="c"><span class="ra ra-S">S</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-R">R</span></td></tr>
+        <tr><td class="role">SAP AI Architect<span>IT / EA</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-S">S</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-S">S</span></td><td class="c"><span class="ra ra-C">C</span></td></tr>
+        <tr><td class="role">Data Engineer<span>IT / Daten</span></td><td class="c"><span class="ra ra-C">C</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-S">S</span></td><td class="c"><span class="ra ra-S">S</span></td></tr>
+        <tr><td class="role">ML Engineer<span>AI-Team</span></td><td class="c"><span class="ra ra-I">I</span></td><td class="c"><span class="ra ra-S">S</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-R">R</span></td><td class="c"><span class="ra ra-A">A</span></td></tr>
+        <tr><td class="role">Data Privacy Manager<span>DSB</span></td><td class="c"><span class="ra ra-C">C</span></td><td class="c"><span class="ra ra-A">A</span></td><td class="c"><span class="ra ra-I">I</span></td><td class="c"><span class="ra ra-C">C</span></td><td class="c"><span class="ra ra-I">I</span></td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span><b>R</b> Responsible</span><span><b>A</b> Accountable (genau 1×/Phase)</span><span><b>S</b> Support</span><span><b>I</b> Informed</span><span><b>C</b> Consulted</span></div>
+  </div>
+</section>
+
+<section class="sec exec-only reveal">
+  <h2 class="s">Empfehlung für die Entscheidung</h2>
+  <div class="card" style="border-left:3px solid var(--primary)">
+    <p style="font-family:var(--serif);font-size:15px;color:var(--ink);line-height:1.7">80 % der Architektur läuft auf bestehenden SAP-Verträgen; einziger Neubau ist der Extraktionsdienst mit EU-gehostetem KI-Modell. <b>Empfehlung: Freigabe als Pilot mit 3-Monats-Gate</b> — Abbruchkriterium: Auto-Durchwink-Quote unter 40 %. Verantwortungen und Kontrollen sind vollständig zugeordnet (Anhang: RASIC, Compliance-Nachweise, technisches Detail L3).</p>
+  </div>
+</section>
+
+<p class="note reveal">Design-Hinweise: Alle Farben über bestehende semantische Tokens (--primary, --primary-soft, …) — funktioniert automatisch in allen 4 App-Themes. KI-Elemente konsistent mit ◆-Marker und violettem Akzent-Token (neu: --ai). Der Präsentationsmodus (Boardroom/Blueprint) ist reines Token-Overlay und als Zusatzfunktion (Pro/Enterprise) gedacht — die App selbst bleibt immer im gewählten Nutzer-Theme.</p>
+
+</div>
+<script>
+const body=document.body;
+const hints={exec:'Reduziert auf Entscheidungsrelevanz — Kosten, Nutzen, Risiko, Empfehlung.',architect:'Vollständige Sicht mit allen Ebenen — Detailtiefe über L1–L3 steuerbar.',compliance:'Compliance-relevante Bausteine hervorgehoben, Rest abgeblendet.'};
+const narr={exec:'Für die Vorstandsvorlage: 80 % der Architektur läuft auf bereits lizenzierten Verträgen. Der einzige Neubau ist bewusst klein gehalten und EU-gehostet. Entscheidungsbedarf: Pilot-Freigabe mit 3-Monats-Gate.',architect:'Die Architektur folgt einem SAP-zentrischen Hybrid-Muster: Joule als Frontend im Standard, ein schlanker Eigenbau nur dort, wo der Standard keine Belegextraktion abdeckt. Kritischer Pfad ist die Datenqualität im Kreditorenstamm — nicht die Modellwahl.',compliance:'Alle personenbezogenen Datenflüsse verbleiben in EU-Regionen (Frankfurt/Irland, vertraglich). Zwei offene Nachweise vor Go-Live: AVV-Prüfung AWS, Betriebsvereinbarung Joule. Transparenzpflicht nach Art. 50 ist im Frontend verankert.'};
+document.querySelectorAll('#viewTabs button').forEach(b=>b.onclick=()=>{
+  body.dataset.view=b.dataset.v;
+  document.querySelectorAll('#viewTabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('viewHint').textContent=hints[b.dataset.v];
+  document.getElementById('narrText').textContent=narr[b.dataset.v];
+  if(b.dataset.v==='exec')setLvl(1);
+});
+function setLvl(l){body.dataset.lvl=l;document.querySelectorAll('#lvlSeg button').forEach(x=>x.classList.toggle('on',x.dataset.l==l));}
+document.querySelectorAll('#lvlSeg button').forEach(b=>b.onclick=()=>setLvl(b.dataset.l));
+document.getElementById('unlockBtn').onclick=()=>{document.getElementById('present').classList.add('unlocked');};
+document.querySelectorAll('#tplSeg button').forEach(b=>b.onclick=()=>{
+  document.documentElement.dataset.template=b.dataset.t;
+  document.querySelectorAll('#tplSeg button').forEach(x=>x.classList.toggle('on',x===b));
+});
+</script>
+</body>
+</html>
