@@ -434,6 +434,27 @@ export function validateEuHosting(activeComponents: CatalogComponent[], complian
   }
 }
 
+export function validateComponentOwners(
+  rasic: RasicMatrix | undefined,
+  activeComponents: CatalogComponent[]
+): EamValidationResult {
+  const ruleId = 'r2'; const anchor = 'rasic-matrix'
+  if (!rasic || activeComponents.length === 0) {
+    return { ruleId, anchor, passed: true, message: { de: 'Keine Komponenten aktiv', en: 'No active components' } }
+  }
+  const hasBuildOwner = rasic.entries.some(e => e.assignments['build'] === 'R' || e.assignments['build'] === 'A')
+  const hasBetriebOwner = rasic.entries.some(e => e.assignments['betrieb'] === 'R' || e.assignments['betrieb'] === 'A')
+  const passed = hasBuildOwner && hasBetriebOwner
+  const missingDe = [!hasBuildOwner && 'Build', !hasBetriebOwner && 'Betrieb'].filter(Boolean).join(', ')
+  const missingEn = [!hasBuildOwner && 'Build', !hasBetriebOwner && 'Operations'].filter(Boolean).join(', ')
+  return {
+    ruleId, anchor, passed,
+    message: passed
+      ? { de: `${activeComponents.length} Komponente(n) — Build & Betrieb mit Eigentümer belegt`, en: `${activeComponents.length} component(s) — Build & Operations have owners` }
+      : { de: `Fehlende Eigentümer (R/A) in: ${missingDe}`, en: `Missing owners (R/A) in: ${missingEn}` },
+  }
+}
+
 export function runEamValidation(
   rasic: RasicMatrix | undefined,
   activeComponents: CatalogComponent[],
@@ -441,6 +462,7 @@ export function runEamValidation(
 ): EamValidationResult[] {
   return [
     validateRasicAccountability(rasic),
+    validateComponentOwners(rasic, activeComponents),
     validateCrossControls(activeComponents),
     validateEuHosting(activeComponents, compliance),
   ]
