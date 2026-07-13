@@ -12,6 +12,7 @@ import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, AIPanelCard } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
+import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
@@ -313,7 +314,7 @@ function PatternReasonSection({ answers, locale }: { answers: WizardAnswers; loc
 }
 
 type ResultAudience = 'exec' | 'architect' | 'compliance'
-type View = 'list' | 'wizard' | 'result'
+type View = 'list' | 'wizard' | 'component-picker' | 'result'
 
 function KpiCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
@@ -822,9 +823,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const handleNext = () => {
     if (isLastStep) {
       setResult(generateArchitecture(answers))
-      setView('result')
       setSaved(false)
       applyRecs(answers)
+      setView('component-picker')
     } else {
       setCurrentStep(s => s + 1)
     }
@@ -832,6 +833,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
   const handleBack = () => {
     if (currentStep > 0) setCurrentStep(s => s - 1)
+  }
+
+  const handleConfirmSelection = (selected: Set<string>) => {
+    setActiveComponentNames(selected)
+    setView('result')
   }
 
   const handleNewWizard = () => {
@@ -1377,6 +1383,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         )}
       </div>
     )
+  }
+
+  // Component-Picker view
+  if (view === 'component-picker' && catalogRecs) {
+    return (
+      <ComponentSelectionStep
+        catalogRecs={catalogRecs}
+        components={recComponents}
+        aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
+        onBack={() => setView('wizard')}
+        onConfirm={handleConfirmSelection}
+        locale={locale}
+      />
+    )
+  }
+  if (view === 'component-picker') {
+    return <div className="max-w-2xl py-12 text-center text-sm text-slate-400">{t('architecture.loadingCatalog')}</div>
   }
 
   // Wizard view

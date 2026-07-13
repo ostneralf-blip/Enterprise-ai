@@ -7,6 +7,7 @@ export type { JouleUseCase }
 export interface LayerRecommendation {
   layer: ArchLayer
   componentNames: string[]
+  componentReasons: Record<string, { de: string; en: string }>
 }
 
 export interface CatalogRecommendations {
@@ -199,13 +200,13 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 
   return {
     layers: ([
-      { layer: 'data'        as ArchLayer, componentNames: data },
-      { layer: 'model'       as ArchLayer, componentNames: model },
-      { layer: 'mlops'       as ArchLayer, componentNames: mlops },
-      { layer: 'serving'     as ArchLayer, componentNames: serving },
-      { layer: 'governance'  as ArchLayer, componentNames: governance },
-      { layer: 'security'    as ArchLayer, componentNames: security },
-      { layer: 'application' as ArchLayer, componentNames: application },
+      { layer: 'data'        as ArchLayer, componentNames: data,        componentReasons: {} },
+      { layer: 'model'       as ArchLayer, componentNames: model,       componentReasons: {} },
+      { layer: 'mlops'       as ArchLayer, componentNames: mlops,       componentReasons: {} },
+      { layer: 'serving'     as ArchLayer, componentNames: serving,     componentReasons: {} },
+      { layer: 'governance'  as ArchLayer, componentNames: governance,  componentReasons: {} },
+      { layer: 'security'    as ArchLayer, componentNames: security,    componentReasons: {} },
+      { layer: 'application' as ArchLayer, componentNames: application, componentReasons: {} },
     ] as LayerRecommendation[]).filter(l => l.componentNames.length > 0),
     roleNames: [...new Set(roles)],
   }
@@ -214,6 +215,21 @@ export function recommendFromWizard(answers: WizardAnswers): CatalogRecommendati
 const ARCH_LAYERS_ORDERED: ArchLayer[] = [
   'data', 'model', 'mlops', 'serving', 'governance', 'security', 'application',
 ]
+
+function reasonForComponent(comp: CatalogComponent, answers: WizardAnswers): { de: string; en: string } {
+  const de: string[] = []
+  const en: string[] = []
+  const providerMap: Record<string, string> = { sap_btp: 'sap', azure: 'azure', aws: 'aws', gcp: 'gcp' }
+  if (answers.cloud_provider_hint && comp.cloud_provider === (providerMap[answers.cloud_provider_hint] ?? answers.cloud_provider_hint)) {
+    de.push(`${comp.cloud_provider?.toUpperCase()}-nativ`); en.push(`${comp.cloud_provider?.toUpperCase()} native`)
+  }
+  if (comp.cloud_provider === 'sap' && isSAP(answers)) { de.push('SAP-Landschaft'); en.push('SAP landscape') }
+  if (answers.usecase && comp.use_case_types.includes(answers.usecase)) { de.push('Use-Case-Treffer'); en.push('Use case match') }
+  if (answers.compliance === 'strict' && comp.hosting.some(h => ['eu', 'onprem'].includes(h))) { de.push('EU-Hosting Pflicht'); en.push('EU hosting required') }
+  if (answers.infra === 'onprem' && comp.infra_types.includes('onprem')) { de.push('On-Premise'); en.push('On-premise') }
+  if (answers.sap_landscape && answers.sap_landscape !== 'none' && comp.sap_compatible) { de.push('SAP-kompatibel'); en.push('SAP compatible') }
+  return { de: de.length > 0 ? de.join(' · ') : 'Regelbasierte Empfehlung', en: en.length > 0 ? en.join(' · ') : 'Rule-based recommendation' }
+}
 
 export function scoreComponentAgainstAnswers(
   component: CatalogComponent,
@@ -288,7 +304,12 @@ export function recommendFromCatalog(
       componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name)
     }
 
-    return { layer, componentNames }
+    const componentReasons: Record<string, { de: string; en: string }> = {}
+    for (const name of componentNames) {
+      const comp = byName.get(name)
+      if (comp) componentReasons[name] = reasonForComponent(comp, answers)
+    }
+    return { layer, componentNames, componentReasons }
   }).filter(l => l.componentNames.length > 0)
 
   const roles: string[] = [
