@@ -4,6 +4,8 @@ import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { ArchitectureNarrativeSchema } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
+import { trackServer } from '@/lib/posthog/server'
+import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 
 const BodySchema = z.object({
@@ -93,20 +95,29 @@ Return this exact JSON structure:
   "component_suggestions": ["ComponentName1", "ComponentName2"]
 }`
 
-  const ok = await incrementAIUsage(userId, tier)
-  if (!ok) {
-    return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
-  }
-
   const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
 
+  // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
   if (!result) {
+    void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'architecture', success: false, cached: false, latency_ms: meta.latencyMs })
     return NextResponse.json({
       error: 'KI-Analyse fehlgeschlagen — deterministische Bausteine bleiben aktiv',
       code: 'AI_FAILED',
       bedrock_error: errorCode ?? 'PARSE_OR_EMPTY',
     }, { status: 503 })
   }
+
+  // Non-EU-Fallback in Produktion → sofortiger Sentry-Alarm
+  if (meta.provider === 'direct' && process.env.VERCEL_ENV === 'production') {
+    Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'architecture', model: meta.modelId } })
+  }
+
+  const ok = await incrementAIUsage(userId, tier)
+  if (!ok) {
+    return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
+  }
+
+  void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'architecture', success: true, cached: meta.provider === 'cache', latency_ms: meta.latencyMs, audience })
 
   const aiModel = meta.provider === 'cache'
     ? `${meta.modelId} (cached)`

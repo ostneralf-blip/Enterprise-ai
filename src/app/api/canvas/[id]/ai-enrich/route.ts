@@ -4,6 +4,8 @@ import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { CanvasAIEnrichmentSchema } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
+import { trackServer } from '@/lib/posthog/server'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(
   _req: NextRequest,
@@ -59,16 +61,25 @@ Return JSON with this exact structure:
   "confidence": 0.85
 }`
 
+  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 1024 })
+
+  // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
+  if (!result) {
+    void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'canvas', success: false, cached: false, latency_ms: meta.latencyMs })
+    return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministisches Ergebnis bleibt aktiv', code: 'AI_FAILED' }, { status: 503 })
+  }
+
+  // Non-EU-Fallback in Produktion → sofortiger Sentry-Alarm
+  if (meta.provider === 'direct' && process.env.VERCEL_ENV === 'production') {
+    Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'canvas', model: meta.modelId } })
+  }
+
   const ok = await incrementAIUsage(userId, tier)
   if (!ok) {
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
   }
 
-  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 1024 })
-
-  if (!result) {
-    return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen — deterministisches Ergebnis bleibt aktiv', code: 'AI_FAILED' }, { status: 503 })
-  }
+  void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'canvas', success: true, cached: meta.provider === 'cache', latency_ms: meta.latencyMs })
 
   const aiModel = meta.provider === 'cache'
     ? `${meta.modelId} (cached)`
