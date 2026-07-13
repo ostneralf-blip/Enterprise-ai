@@ -18,6 +18,9 @@ import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
+import { mergeCanvasContexts } from '@/lib/utils/merge-canvas-contexts'
+import { CanvasScopeStep } from './CanvasScopeStep'
+import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
 
 const NOW = Date.now()
 
@@ -289,7 +292,7 @@ function CostIndicationCard({ patternId, companySize, locale }: {
 }
 
 type ResultAudience = 'exec' | 'architect' | 'compliance'
-type View = 'list' | 'wizard' | 'component-picker' | 'result'
+type View = 'list' | 'canvas-scope' | 'wizard' | 'component-picker' | 'result'
 
 function KpiCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
@@ -714,6 +717,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     return extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [], synonyms)
   })
   const [showCanvasBanner, setShowCanvasBanner] = useState(!!canvasContext)
+  const [selectedCanvasIds, setSelectedCanvasIds] = useState<string[]>(canvasContext ? [canvasContext.canvas.id] : [])
   const [result, setResult] = useState<ArchitectureResult | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -816,7 +820,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       setResult(generateArchitecture(answers))
       setSaved(false)
       applyRecs(answers)
-      setView('component-picker')
+      setView('result') // #163: Komponenten-Auswahl-Schritt entfernt — Auto-Selektion, Anpassung via TechnicalArchitectureOptimisation
     } else {
       setCurrentStep(s => s + 1)
     }
@@ -842,8 +846,31 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setJouleUseCases([])
     setCanvasCtx(null)
     setShowCanvasBanner(false)
+    setSelectedCanvasIds([])
     setRasic(null)
     setAiModel(null)
+    // Canvas-Scope-Schritt zeigen (wird übersprungen wenn keine Canvases vorhanden)
+    setView('canvas-scope')
+  }
+
+  const handleCanvasScopeConfirm = (canvasIds: string[], canvases: import('@/types').Canvas[]) => {
+    setSelectedCanvasIds(canvasIds)
+    if (canvases.length > 0) {
+      const contexts = canvases.map(cv => {
+        const minimalUseCase: import('@/types').UseCase = {
+          id: cv.id, portfolio_id: '', name: cv.title, domain: null,
+          description: cv.data.problem?.slice(0, 200) ?? '',
+          scores: {}, weighted_score: 0,
+          quadrant: ((cv.ai_enrichment as Record<string, unknown> | null)?.suggested_quadrant as import('@/types').UseCase['quadrant']) ?? 'quick_win',
+          canvas_id: cv.id, governance_result: null, created_at: cv.created_at, updated_at: cv.updated_at,
+        }
+        return extractCanvasContext(cv, minimalUseCase, recComponents, synonyms)
+      })
+      const merged = mergeCanvasContexts(contexts)
+      setAnswers(prev => ({ ...prev, ...merged.prefill }))
+      setCanvasCtx(contexts[0] ?? null)
+      setShowCanvasBanner(true)
+    }
     setView('wizard')
   }
 
@@ -986,6 +1013,19 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             ))}
           </ul>
         )}
+      </div>
+    )
+  }
+
+  if (view === 'canvas-scope') {
+    return (
+      <div className="max-w-xl">
+        <CanvasScopeStep
+          initialCanvasId={canvasContext?.canvas.id ?? null}
+          locale={locale}
+          onConfirm={handleCanvasScopeConfirm}
+          onSkip={() => setView('wizard')}
+        />
       </div>
     )
   }
@@ -1419,6 +1459,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             </div>
           )
         })()}
+
+        {/* Technical Architecture Optimisation — nur Architektur-Sicht, nur wenn Katalog geladen */}
+        {resultAudience === 'architect' && catalogRecs && (
+          <TechnicalArchitectureOptimisation
+            catalogRecs={catalogRecs}
+            recComponents={recComponents}
+            activeComponentNames={activeComponentNames}
+            onCheckedChange={setActiveComponentNames}
+            aiSuggestions={aiNarrative?.component_suggestions ?? []}
+            locale={locale}
+          />
+        )}
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-3">
