@@ -154,13 +154,8 @@ export async function callLLM<T>(
     console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
 
     // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
+    // HINWEIS: Produktions-Guard deaktiviert für Testphase — vor Go-Live wieder aktivieren
     if (!ALLOW_FALLBACK || !process.env.ANTHROPIC_API_KEY) return noData('bedrock', errorCode)
-
-    // Sicherheits-Guard: Fallback in Produktion verbieten
-    if (process.env.VERCEL_ENV === 'production') {
-      Sentry.captureMessage('ALLOW_NON_EU_AI_FALLBACK in production — sofort deaktivieren!', 'error')
-      return noData('bedrock')
-    }
   }
 
   // Direct-Fallback (nur lokal/staging)
