@@ -163,7 +163,7 @@ export async function callLLM<T>(
   // Direct-Fallback (nur lokal/staging)
   try {
     const directModel = model === 'sonnet'
-      ? (process.env.ANTHROPIC_MODEL_SONNET ?? 'claude-sonnet-4-6-20250514')
+      ? (process.env.ANTHROPIC_MODEL_SONNET ?? 'claude-sonnet-4-6')
       : (process.env.ANTHROPIC_MODEL_HAIKU  ?? 'claude-haiku-4-5-20251001')
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
