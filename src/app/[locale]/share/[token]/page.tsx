@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import type { ArchitectureResult } from '@/config/architecture-data'
+import type { CanvasData, GovernanceVerdict } from '@/types'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { formatDate } from '@/lib/utils/format'
 import type { Locale } from '@/i18n/routing'
@@ -52,6 +53,51 @@ async function getShareData(token: string): Promise<ShareData> {
     return { ok: true, module: 'assessment', entity: session, link }
   }
 
+  if (link.module === 'governance') {
+    const { data: session } = await admin
+      .from('governance_sessions')
+      .select('use_case_name, result, created_at')
+      .eq('id', link.entity_id)
+      .maybeSingle()
+    if (!session) return { ok: false, reason: 'entity_not_found' }
+    return { ok: true, module: 'governance', entity: session, link }
+  }
+
+  if (link.module === 'roadmap') {
+    const { data: roadmap } = await admin
+      .from('roadmaps')
+      .select('title, archetype, phases, updated_at')
+      .eq('id', link.entity_id)
+      .maybeSingle()
+    if (!roadmap) return { ok: false, reason: 'entity_not_found' }
+    return { ok: true, module: 'roadmap', entity: roadmap, link }
+  }
+
+  if (link.module === 'canvas') {
+    const { data: canvas } = await admin
+      .from('canvases')
+      .select('title, data, updated_at')
+      .eq('id', link.entity_id)
+      .maybeSingle()
+    if (!canvas) return { ok: false, reason: 'entity_not_found' }
+    return { ok: true, module: 'canvas', entity: canvas, link }
+  }
+
+  if (link.module === 'usecase') {
+    const { data: portfolio } = await admin
+      .from('uc_portfolios')
+      .select('name, updated_at')
+      .eq('id', link.entity_id)
+      .maybeSingle()
+    if (!portfolio) return { ok: false, reason: 'entity_not_found' }
+    const { data: useCases } = await admin
+      .from('use_cases')
+      .select('name, domain, weighted_score, quadrant')
+      .eq('portfolio_id', link.entity_id)
+      .order('weighted_score', { ascending: false })
+    return { ok: true, module: 'usecase', entity: { ...portfolio, use_cases: useCases ?? [] }, link }
+  }
+
   // Modul existiert in DB aber hat kein Rendering — API-Bug oder Alt-Daten
   Sentry.captureMessage(`share_module_unsupported: ${link.module}`, { level: 'warning', extra: { token: token.slice(0, 8) } })
   return { ok: false, reason: 'module_unsupported' }
@@ -92,6 +138,35 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
         {share.module === 'assessment' && (
           <AssessmentShareView
             entity={share.entity as { archetype: string; total_score: number; created_at: string }}
+            t={t}
+            locale={locale}
+          />
+        )}
+
+        {share.module === 'governance' && (
+          <GovernanceShareView
+            entity={share.entity as { use_case_name: string | null; result: GovernanceVerdict; created_at: string }}
+            t={t}
+            locale={locale}
+          />
+        )}
+        {share.module === 'roadmap' && (
+          <RoadmapShareView
+            entity={share.entity as { title: string | null; archetype: string; phases: unknown[]; updated_at: string }}
+            t={t}
+            locale={locale}
+          />
+        )}
+        {share.module === 'canvas' && (
+          <CanvasShareView
+            entity={share.entity as { title: string; data: CanvasData; updated_at: string }}
+            t={t}
+            locale={locale}
+          />
+        )}
+        {share.module === 'usecase' && (
+          <UseCaseShareView
+            entity={share.entity as { name: string; updated_at: string; use_cases: Array<{ name: string; domain: string | null; weighted_score: number; quadrant: string }> }}
             t={t}
             locale={locale}
           />
@@ -215,6 +290,207 @@ function AssessmentShareView({
         <p className="text-sm text-slate-500 mt-3">{t('maturityScore')}</p>
         <p className="text-4xl font-bold text-primary mt-1">{entity.total_score.toFixed(2)}</p>
         <p className="text-xs text-slate-400 mt-1">{t('outOf50')}</p>
+      </div>
+    </>
+  )
+}
+
+// ─── GOVERNANCE ──────────────────────────────────────────────────────────────
+
+const VERDICT_COLORS: Record<GovernanceVerdict, { bg: string; text: string; border: string }> = {
+  approve:    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  improve:    { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200' },
+  stop_risk:  { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200' },
+  stop_dsgvo: { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200' },
+}
+
+function verdictLabel(verdict: GovernanceVerdict, t: ShareT): string {
+  if (verdict === 'approve') return t('verdictApprove')
+  if (verdict === 'improve') return t('verdictImprove')
+  if (verdict === 'stop_risk') return t('verdictStopRisk')
+  return t('verdictStopDsgvo')
+}
+
+function GovernanceShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { use_case_name: string | null; result: GovernanceVerdict; created_at: string }
+  t: ShareT
+  locale: Locale
+}) {
+  const colors = VERDICT_COLORS[entity.result] ?? VERDICT_COLORS.improve
+  return (
+    <>
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">{entity.use_case_name ?? t('governanceModule')}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t('governanceModule')} · {formatDate(entity.created_at, locale)}</p>
+      </div>
+      <div className={cn('rounded-2xl border p-6 text-center', colors.bg, colors.border)}>
+        <p className="text-xs text-slate-500 mb-2">{t('governanceVerdict')}</p>
+        <p className={cn('text-2xl font-bold', colors.text)}>{verdictLabel(entity.result, t)}</p>
+      </div>
+    </>
+  )
+}
+
+// ─── ROADMAP ─────────────────────────────────────────────────────────────────
+
+type SavedPhase = {
+  phase: string
+  title: { de: string; en: string }
+  duration: { de: string; en: string }
+  focus: { de: string; en: string }
+  kpis: Array<{ de: string; en: string }>
+  budget: string
+}
+
+function RoadmapShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { title: string | null; archetype: string; phases: unknown[]; updated_at: string }
+  t: ShareT
+  locale: Locale
+}) {
+  const phases = entity.phases as SavedPhase[]
+  return (
+    <>
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">{entity.title ?? t('roadmapModule')}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">
+          {t('roadmapModule')} · {ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype} · {formatDate(entity.updated_at, locale)}
+        </p>
+      </div>
+      <div className="space-y-4">
+        {phases.map((phase, i) => (
+          <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h2 className="text-sm font-semibold text-slate-900 min-w-0">{pick(phase.title, locale)}</h2>
+              <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{pick(phase.duration, locale)}</span>
+            </div>
+            <p className="text-xs text-slate-500 mb-3">{pick(phase.focus, locale)}</p>
+            {phase.kpis.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-slate-700 mb-1.5">{t('roadmapKpis')}</p>
+                <ul className="space-y-1">
+                  {phase.kpis.map((kpi, j) => (
+                    <li key={j} className="text-xs text-slate-600 flex gap-1.5">
+                      <span className="text-slate-300 flex-shrink-0">·</span>
+                      <span className="min-w-0">{pick(kpi, locale)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-3">{t('roadmapBudget')}: {phase.budget}</p>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── CANVAS ──────────────────────────────────────────────────────────────────
+
+function CanvasShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { title: string; data: CanvasData; updated_at: string }
+  t: ShareT
+  locale: Locale
+}) {
+  const { data } = entity
+  const fields: Array<[string, string]> = [
+    [t('canvasProblem'),      data.problem],
+    [t('canvasSolution'),     data.solution],
+    [t('canvasDataSources'),  data.data_sources],
+    [t('canvasStakeholders'), data.stakeholders],
+    [t('canvasKpis'),         data.kpis],
+    [t('canvasRisks'),        data.risks],
+    [t('canvasArchitecture'), data.architecture],
+    [t('canvasNextSteps'),    data.next_steps],
+  ]
+  return (
+    <>
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">{entity.title}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t('canvasModule')} · {formatDate(entity.updated_at, locale)}</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {fields.filter(([, v]) => v).map(([label, value]) => (
+          <div key={label} className="bg-white border border-slate-200 rounded-2xl p-4">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{label}</p>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap">{value}</p>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─── USE CASE SCORING ────────────────────────────────────────────────────────
+
+const QUADRANT_STYLES: Record<string, { bg: string; text: string }> = {
+  quick_win:         { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  strategic_bet:     { bg: 'bg-sky-100',     text: 'text-sky-700' },
+  low_hanging_fruit: { bg: 'bg-amber-100',   text: 'text-amber-700' },
+  avoid:             { bg: 'bg-red-100',      text: 'text-red-700' },
+}
+
+function quadrantLabel(quadrant: string, t: ShareT): string {
+  if (quadrant === 'quick_win') return t('quadrantQuickWin')
+  if (quadrant === 'strategic_bet') return t('quadrantStrategicBet')
+  if (quadrant === 'low_hanging_fruit') return t('quadrantLowHanging')
+  if (quadrant === 'avoid') return t('quadrantAvoid')
+  return quadrant
+}
+
+type UCSummary = { name: string; domain: string | null; weighted_score: number; quadrant: string }
+
+function UseCaseShareView({
+  entity,
+  t,
+  locale,
+}: {
+  entity: { name: string; updated_at: string; use_cases: UCSummary[] }
+  t: ShareT
+  locale: Locale
+}) {
+  return (
+    <>
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">{entity.name}</h1>
+        <p className="text-xs text-slate-400 mt-0.5">{t('usecaseModule')} · {formatDate(entity.updated_at, locale)}</p>
+      </div>
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        {entity.use_cases.length === 0 ? (
+          <p className="p-6 text-sm text-slate-400 text-center">—</p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {entity.use_cases.map((uc, i) => {
+              const qStyle = QUADRANT_STYLES[uc.quadrant] ?? { bg: 'bg-slate-100', text: 'text-slate-600' }
+              return (
+                <li key={i} className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{uc.name}</p>
+                    {uc.domain && <p className="text-xs text-slate-400">{uc.domain}</p>}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap', qStyle.bg, qStyle.text)}>
+                      {quadrantLabel(uc.quadrant, t)}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-700 tabular-nums">{uc.weighted_score.toFixed(1)}</span>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </>
   )

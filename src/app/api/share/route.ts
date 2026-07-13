@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 // Nur Module, für die die Share-Seite ein Rendering hat.
 // Weitere Module → eigenes Issue nach Priorität Roadmap > Canvas > Governance > Compliance > UseCase
-const SHARING_MODULES = ['architecture', 'assessment'] as const
+const SHARING_MODULES = ['architecture', 'assessment', 'governance', 'roadmap', 'canvas', 'usecase'] as const
 
 const CreateShareSchema = z.object({
   module: z.enum(SHARING_MODULES),
