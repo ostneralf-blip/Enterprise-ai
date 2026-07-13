@@ -54,7 +54,13 @@ export async function POST(
     ? 'Target audience: Compliance / Audit / DPO. Focus on data flows, EU AI Act obligations, GDPR controls, risk mitigations, and audit evidence. Key decisions = regulatory commitments. Next steps = compliance actions.'
     : 'Target audience: Enterprise Architect / IT Lead. Full technical depth. Be specific about integration points, model choices, infrastructure decisions, and operational requirements.'
 
-  const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific key decisions and next steps. Return ONLY valid JSON.
+  const summaryInstruction = audience === 'exec'
+    ? 'Write a 2-3 sentence executive summary in plain business language: what this AI architecture delivers, the key business value, and the most critical risk. No technical terms.'
+    : audience === 'compliance'
+    ? 'Write a 2-3 sentence compliance summary: which EU AI Act / GDPR obligations apply, which components require special attention, and what the immediate compliance action is.'
+    : 'Write a 2-3 sentence technical summary: the overall architecture pattern, the most important integration decision, and the primary operational challenge.'
+
+  const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific output. Return ONLY valid JSON.
 
 ${audienceInstruction}
 
@@ -67,13 +73,17 @@ Architecture facts (pre-validated, structured data — not user free text):
 - Governance result: ${governance_result ?? 'not specified'}
 - Roadmap phases planned: ${roadmap_phases ?? 0}
 
-Generate 3-5 key decisions and 3-5 next steps. Each must have both German (de) and English (en) versions.
+Summary instruction: ${summaryInstruction}
+Generate the summary in the language matching locale="${body.data.locale}". Max 600 chars.
+
+Also generate 3-5 key decisions and 3-5 next steps. Each must have both German (de) and English (en) versions.
 Keep each item concise (max 200 chars per language). Be specific to the exact components and context above.
 
 Also suggest up to 3 additional component names (exact catalog names, no descriptions) that are NOT already in the selected list but would strengthen this architecture. Only suggest real, widely-known tools/platforms. If none, omit the field.
 
 Return this exact JSON structure:
 {
+  "summary": "...",
   "key_decisions": [{"de": "...", "en": "..."}],
   "next_steps": [{"de": "...", "en": "..."}],
   "component_suggestions": ["ComponentName1", "ComponentName2"]

@@ -37,7 +37,7 @@ interface SavedArchitecture {
   wizard_data: WizardAnswers
   result: ArchitectureResult
   updated_at: string
-  ai_narrative?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null
+  ai_narrative?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[] } | null
 }
 
 interface AssessmentContext {
@@ -347,6 +347,64 @@ function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
     <div className="bg-white border border-slate-200 rounded-2xl p-5 [border-left-width:4px] border-l-primary">
       <h3 className="text-sm font-semibold text-slate-900 mb-2">{t('architecture.execRecommendTitle')}</h3>
       <p className="text-sm text-slate-700 leading-relaxed">{result.summary}</p>
+    </div>
+  )
+}
+
+function NarrativeCard({
+  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error,
+}: {
+  narrative: { summary?: string } | null
+  aiModel: string | null
+  generatedAt: string | null
+  audience: ResultAudience
+  tier: string
+  savedId: string | null
+  onAnalyze: () => Promise<void>
+  usage: { remaining: number; used: number; limit: number; exceeded: boolean } | null
+  error: string | null
+}) {
+  const t = useTranslations('modules')
+  const audienceLabel: Record<ResultAudience, string> = {
+    exec:       t('architecture.viewExec'),
+    architect:  t('architecture.viewArchitect'),
+    compliance: t('architecture.viewCompliance'),
+  }
+  const hasSummary = !!narrative?.summary
+  return (
+    <div className="border-l-[3px] border-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] rounded-r-2xl p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <span className="text-[color:var(--color-ai)] font-black text-sm shrink-0" aria-hidden="true">◆</span>
+          <h3 className="font-serif text-sm font-semibold text-slate-900 whitespace-nowrap">{t('architecture.narrativeTitle')}</h3>
+          {hasSummary && (
+            <>
+              <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color:var(--color-ai)] text-white whitespace-nowrap">
+                {t('architecture.narrativeGeneratedChip')}
+              </span>
+              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
+                {audienceLabel[audience]}
+              </span>
+            </>
+          )}
+        </div>
+        <AIAnalysisButton tier={tier} onAnalyze={onAnalyze} usage={usage} size="sm" />
+      </div>
+      {!hasSummary && !savedId && tier !== 'free' && (
+        <p className="text-xs text-slate-500 mb-1">{t('architecture.narrativeSaveFirst')}</p>
+      )}
+      {!hasSummary && (
+        <p className="text-xs text-slate-400 italic">{t('architecture.narrativePlaceholder')}</p>
+      )}
+      {hasSummary && (
+        <p className="text-sm text-slate-700 leading-relaxed">{narrative!.summary}</p>
+      )}
+      {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+      {hasSummary && aiModel && (
+        <p className="text-[10px] font-mono text-slate-400 mt-3 pt-2 border-t border-purple-100">
+          {aiModel}{generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
+        </p>
+      )}
     </div>
   )
 }
@@ -682,7 +740,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [savedId, setSavedId] = useState<string | null>(null)
   const [dsgvoConfirmed, setDsgvoConfirmed] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [aiNarrative, setAiNarrative] = useState<{ key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
+  const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
+  const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [aiModel, setAiModel] = useState<string | null>(null)
@@ -803,7 +862,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     applyRecs(arch.wizard_data, undefined, arch.result.rasic ?? null)
   }
 
-  const handleAINarrative = async () => {
+  const handleAINarrative = async (audienceOverride?: ResultAudience) => {
     if (!savedId) return
     setAiNarrativeError(null)
     const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
@@ -821,18 +880,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         governance_result: governanceContext?.result ?? undefined,
         roadmap_phases: roadmapContext?.phasesCount ?? 0,
         locale,
-        audience: resultAudience,
+        audience: audienceOverride ?? resultAudience,
       }),
     })
     const json = await res.json() as {
-      result?: { key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] }
+      result?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] }
       usage?: { remaining: number; used: number; limit: number; exceeded: boolean }
       ai_model?: string
       error?: string
     }
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); return }
-    if (json.result) setAiNarrative(json.result)
+    if (json.result) { setAiNarrative(json.result); setAiGeneratedAt(new Date().toISOString()) }
     if (json.ai_model) setAiModel(json.ai_model as string)
   }
 
@@ -937,7 +996,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <ResultBar
           audience={resultAudience}
           level={resultLevel}
-          onAudience={a => { setResultAudience(a); if (a === 'exec') setResultLevel(1) }}
+          onAudience={a => {
+            setResultAudience(a)
+            if (a === 'exec') setResultLevel(1)
+            if (savedId && aiNarrative) void handleAINarrative(a)
+          }}
           onLevel={setResultLevel}
           tier={tier}
           presentationTemplate={presentationTemplate}
@@ -951,6 +1014,19 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           governanceContext={governanceContext}
           compliancePreset={compliancePreset}
           roadmapContext={roadmapContext}
+        />
+
+        {/* KI-Einordnung Narrativ-Karte */}
+        <NarrativeCard
+          narrative={aiNarrative}
+          aiModel={aiModel}
+          generatedAt={aiGeneratedAt}
+          audience={resultAudience}
+          tier={tier}
+          savedId={savedId}
+          onAnalyze={handleAINarrative}
+          usage={aiUsageArch}
+          error={aiNarrativeError}
         />
 
         {/* Exec: KPI-Kennzahlenstreifen */}
@@ -1199,25 +1275,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           return (
             <div className="space-y-4">
               <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
-                    {aiNarrative && <AIBadge />}
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <AIAnalysisButton
-                      tier={tier}
-                      onAnalyze={handleAINarrative}
-                      usage={aiUsageArch}
-                      size="sm"
-                    />
-                    {!savedId && tier !== 'free' && (
-                      <p className="text-[11px] text-slate-400">Erst speichern, dann KI aktivieren</p>
-                    )}
-                    {aiNarrativeError && (
-                      <p className="text-[11px] text-red-500">{aiNarrativeError}</p>
-                    )}
-                  </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
+                  {aiNarrative && <AIBadge />}
                 </div>
                 <ul className="space-y-2.5" role="list">
                   {allDecisions.map((decision, i) => (

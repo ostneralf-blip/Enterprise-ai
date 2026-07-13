@@ -20,6 +20,7 @@ export type CanvasAIEnrichment = z.infer<typeof CanvasAIEnrichmentSchema>
 
 // Architektur AI-Narrative: LLM generiert kontextspezifische Begründungs-Prosa + Komponenten-Vorschläge
 export const ArchitectureNarrativeSchema = z.object({
+  summary: z.string().max(600).optional(),
   key_decisions: z.array(BilingualItemSchema).max(6),
   next_steps: z.array(BilingualItemSchema).max(6),
   component_suggestions: z.array(z.string().max(100)).max(5).optional(),
