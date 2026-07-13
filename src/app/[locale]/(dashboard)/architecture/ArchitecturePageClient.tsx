@@ -435,95 +435,146 @@ function ResultBar({
   locale: string
 }) {
   const t = useTranslations('modules')
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+  // Measured once on mount and on resize — used for position: fixed placement
+  const metricsRef = useRef<{ top: number; left: number; width: number } | null>(null)
+  const barHeightRef = useRef(48)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const measure = () => {
+      const main = sentinel.closest('main') as HTMLElement | null
+      if (!main) return
+      const r = main.getBoundingClientRect()
+      const cs = getComputedStyle(main)
+      const pl = parseFloat(cs.paddingLeft)
+      const pr = parseFloat(cs.paddingRight)
+      metricsRef.current = { top: r.top, left: r.left + pl, width: r.width - pl - pr }
+    }
+
+    measure()
+    window.addEventListener('resize', measure)
+
+    // Switch to fixed positioning the moment the sentinel leaves the viewport top
+    const obs = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting && barRef.current) {
+        barHeightRef.current = barRef.current.offsetHeight
+      }
+      setStuck(!entry.isIntersecting)
+    }, { threshold: 0 })
+
+    obs.observe(sentinel)
+    return () => { obs.disconnect(); window.removeEventListener('resize', measure) }
+  }, [])
+
+  const m = metricsRef.current
+  const execDisabled = audience === 'exec'
   const views: ResultAudience[] = ['exec', 'architect', 'compliance']
   const viewLabels: Record<ResultAudience, string> = {
     exec:       t('architecture.viewExec'),
     architect:  t('architecture.viewArchitect'),
     compliance: t('architecture.viewCompliance'),
   }
-  const execDisabled = audience === 'exec'
+
   return (
-    <div className="sticky top-0 z-40 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
-      {/* SICHT */}
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
-        <div className="flex border border-slate-200 rounded-lg overflow-hidden">
-          {views.map(v => (
+    <>
+      {/* Sentinel: sits at the bar's natural position; when it leaves the viewport the bar becomes fixed */}
+      <div ref={sentinelRef} className="h-0" aria-hidden />
+      {/* Placeholder keeps the layout stable while the bar is fixed */}
+      {stuck && <div style={{ height: barHeightRef.current }} aria-hidden />}
+      <div
+        ref={barRef}
+        className={cn(
+          'z-40 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2',
+          !stuck && '-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8',
+        )}
+        style={stuck && m ? { position: 'fixed', top: m.top, left: m.left, width: m.width, zIndex: 40 } : undefined}
+      >
+        {/* SICHT */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
+          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+            {views.map(v => (
+              <button
+                key={v}
+                onClick={() => onAudience(v)}
+                className={cn(
+                  'px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
+                  audience === v ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                {viewLabels[v]}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* TIEFE — immer sichtbar, in exec-Modus disabled */}
+        <div className="flex items-center gap-2">
+          <span className={cn('text-[10px] font-bold uppercase tracking-widest whitespace-nowrap', execDisabled ? 'text-slate-300' : 'text-slate-400')}>
+            {t('architecture.levelLabel')}
+          </span>
+          <div className={cn('flex border rounded-lg overflow-hidden', execDisabled ? 'border-slate-100' : 'border-slate-200')}>
+            {([1, 2, 3] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => !execDisabled && onLevel(l)}
+                disabled={execDisabled}
+                title={execDisabled ? t('architecture.execLevelDisabledTooltip') : undefined}
+                className={cn(
+                  'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none',
+                  execDisabled
+                    ? 'text-slate-300 cursor-not-allowed bg-slate-50'
+                    : level === l
+                      ? 'bg-primary text-white focus:ring-2 focus:ring-inset focus:ring-primary-ring'
+                      : 'text-slate-600 hover:bg-slate-50 focus:ring-2 focus:ring-inset focus:ring-primary-ring'
+                )}
+              >
+                L{l}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Präsentationsmodus + PDF */}
+        <div className="flex items-center gap-1.5 ml-auto">
+          {tier !== 'free' ? (
+            (['book', 'board', 'blueprint'] as const).map(tmpl => (
+              <button
+                key={tmpl}
+                onClick={() => onPresentation(tmpl)}
+                className={cn(
+                  'px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring',
+                  presentationTemplate === tmpl ? 'bg-primary text-white border-primary' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                )}
+              >
+                {tmpl === 'book' ? '◻ ' : tmpl === 'board' ? '⬛ ' : '⬡ '}
+                {t(`architecture.presentationTemplate${tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}` as Parameters<typeof t>[0])}
+              </button>
+            ))
+          ) : (
             <button
-              key={v}
-              onClick={() => onAudience(v)}
-              className={cn(
-                'px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
-                audience === v ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
-              )}
+              className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
+              title={t('architecture.presentationModeButton')}
+              disabled
             >
-              {viewLabels[v]}
+              ⬡ {t('architecture.presentationModeButton')} 🔒
             </button>
-          ))}
+          )}
+          {savedId && tier !== 'free' && (
+            <a
+              href={`/api/export/pdf?module=architecture&entityId=${savedId}&locale=${locale}&template=${presentationTemplate}&audience=${audience}&level=${level}`}
+              download
+              className="px-3 py-1.5 bg-primary text-white text-[10px] font-semibold rounded-lg whitespace-nowrap hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring"
+            >
+              {t('architecture.pdfButtonLabel')}
+            </a>
+          )}
         </div>
       </div>
-      {/* TIEFE — immer sichtbar, in exec-Modus disabled */}
-      <div className="flex items-center gap-2">
-        <span className={cn('text-[10px] font-bold uppercase tracking-widest whitespace-nowrap', execDisabled ? 'text-slate-300' : 'text-slate-400')}>
-          {t('architecture.levelLabel')}
-        </span>
-        <div className={cn('flex border rounded-lg overflow-hidden', execDisabled ? 'border-slate-100' : 'border-slate-200')}>
-          {([1, 2, 3] as const).map(l => (
-            <button
-              key={l}
-              onClick={() => !execDisabled && onLevel(l)}
-              disabled={execDisabled}
-              title={execDisabled ? t('architecture.execLevelDisabledTooltip') : undefined}
-              className={cn(
-                'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none',
-                execDisabled
-                  ? 'text-slate-300 cursor-not-allowed bg-slate-50'
-                  : level === l
-                    ? 'bg-primary text-white focus:ring-2 focus:ring-inset focus:ring-primary-ring'
-                    : 'text-slate-600 hover:bg-slate-50 focus:ring-2 focus:ring-inset focus:ring-primary-ring'
-              )}
-            >
-              L{l}
-            </button>
-          ))}
-        </div>
-      </div>
-      {/* Präsentationsmodus + PDF */}
-      <div className="flex items-center gap-1.5 ml-auto">
-        {tier !== 'free' ? (
-          (['book', 'board', 'blueprint'] as const).map(tmpl => (
-            <button
-              key={tmpl}
-              onClick={() => onPresentation(tmpl)}
-              className={cn(
-                'px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring',
-                presentationTemplate === tmpl ? 'bg-primary text-white border-primary' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-              )}
-            >
-              {tmpl === 'book' ? '◻ ' : tmpl === 'board' ? '⬛ ' : '⬡ '}
-              {t(`architecture.presentationTemplate${tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}` as Parameters<typeof t>[0])}
-            </button>
-          ))
-        ) : (
-          <button
-            className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
-            title={t('architecture.presentationModeButton')}
-            disabled
-          >
-            ⬡ {t('architecture.presentationModeButton')} 🔒
-          </button>
-        )}
-        {savedId && tier !== 'free' && (
-          <a
-            href={`/api/export/pdf?module=architecture&entityId=${savedId}&locale=${locale}&template=${presentationTemplate}&audience=${audience}&level=${level}`}
-            download
-            className="px-3 py-1.5 bg-primary text-white text-[10px] font-semibold rounded-lg whitespace-nowrap hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring"
-          >
-            {t('architecture.pdfButtonLabel')}
-          </a>
-        )}
-      </div>
-    </div>
+    </>
   )
 }
 
