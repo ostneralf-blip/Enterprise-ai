@@ -180,16 +180,27 @@ export async function callLLM<T>(
       }),
       signal: AbortSignal.timeout(timeoutMs),
     })
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '(unlesbar)')
+      console.error('[ai/client] Anthropic HTTP-Fehler:', res.status, errBody.slice(0, 300))
+      return noData('direct', `HTTP_${res.status}`)
+    }
     const json     = await res.json()
     const content  = json?.content?.[0]?.text ?? ''
     const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return noData('direct')
-
+    if (!jsonMatch) {
+      console.error('[ai/client] Anthropic: kein JSON in Antwort gefunden', content.slice(0, 200))
+      return noData('direct', 'NO_JSON')
+    }
     const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
-    if (!parsed.success) return noData('direct')
-
+    if (!parsed.success) {
+      console.error('[ai/client] Anthropic: Zod-Parse fehlgeschlagen', parsed.error.issues)
+      return noData('direct', 'ZOD_PARSE')
+    }
+    console.info('[ai/client] Anthropic-Fallback erfolgreich', { model: directModel, ms: Date.now() - t0 })
     return { data: parsed.data, meta: { provider: 'direct', modelId: directModel, latencyMs: Date.now() - t0, region: 'us' } }
-  } catch {
-    return noData('direct')
+  } catch (err) {
+    console.error('[ai/client] Anthropic-Fallback Exception:', err)
+    return noData('direct', 'EXCEPTION')
   }
 }
