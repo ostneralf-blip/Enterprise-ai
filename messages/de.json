@@ -681,6 +681,8 @@
       "aiPanelTitle": "KI-Analyse",
       "aiPanelUsage": "Analysen heute",
       "aiPanelProvenance": "Modell",
+      "aiPanelReanalyze": "Neu analysieren",
+      "aiPanelUseCaseType": "Use-Case-Typ",
       "aiPanelSuggestionsTitle": "KI-Vorschläge",
       "aiPanelSuggestionsHint": "Nicht vorausgewählt — du entscheidest.",
       "aiPanelAccept": "Übernehmen",

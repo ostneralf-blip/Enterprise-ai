@@ -13,6 +13,7 @@ import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, Rasic
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, AIPanelCard } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
+import { AIPanel } from './AIPanel'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
@@ -1386,20 +1387,59 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   }
 
   // Component-Picker view
-  if (view === 'component-picker' && catalogRecs) {
-    return (
-      <ComponentSelectionStep
-        catalogRecs={catalogRecs}
-        components={recComponents}
-        aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
-        onBack={() => setView('wizard')}
-        onConfirm={handleConfirmSelection}
-        locale={locale}
-      />
-    )
-  }
   if (view === 'component-picker') {
-    return <div className="max-w-2xl py-12 text-center text-sm text-slate-400">{t('architecture.loadingCatalog')}</div>
+    if (!catalogRecs) {
+      return <div className="max-w-2xl py-12 text-center text-sm text-slate-400">{t('architecture.loadingCatalog')}</div>
+    }
+    const rejected = result?.rejected_suggestions ?? []
+    const handleAcceptAI = (name: string) => {
+      const comp = recComponents.find(c => c.name === name)
+      if (!comp || !comp.architecture_layer) return
+      setCatalogRecs(prev => {
+        if (!prev) return prev
+        const layers = prev.layers.map(lr =>
+          lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+            ? { ...lr, componentNames: [...lr.componentNames, name] }
+            : lr
+        )
+        return { ...prev, layers }
+      })
+      setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+    }
+    const handleRejectAI = (name: string) => {
+      setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
+    }
+    const complianceHint = answers.compliance === 'strict'
+      ? (locale === 'de' ? 'EU AI Act + DSGVO: EU-Hosting Pflicht' : 'EU AI Act + GDPR: EU hosting required')
+      : answers.compliance === 'moderate'
+      ? (locale === 'de' ? 'Begrenzte DSGVO-Anforderungen prüfen' : 'Check limited GDPR requirements')
+      : null
+    return (
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px] max-w-4xl">
+        <ComponentSelectionStep
+          catalogRecs={catalogRecs}
+          components={recComponents}
+          aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
+          onBack={() => setView('wizard')}
+          onConfirm={handleConfirmSelection}
+          locale={locale}
+        />
+        {(aiNarrative || aiUsageArch) && (
+          <AIPanel
+            narrative={aiNarrative}
+            usage={aiUsageArch}
+            aiModel={aiModel}
+            generatedAt={aiGeneratedAt}
+            catalogComponents={recComponents}
+            rejectedSuggestions={rejected}
+            useCaseType={answers.usecase ?? null}
+            complianceHint={complianceHint}
+            onAccept={handleAcceptAI}
+            onReject={handleRejectAI}
+          />
+        )}
+      </div>
+    )
   }
 
   // Wizard view

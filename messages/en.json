@@ -682,6 +682,8 @@
       "aiPanelTitle": "AI Analysis",
       "aiPanelUsage": "Analyses today",
       "aiPanelProvenance": "Model",
+      "aiPanelReanalyze": "Re-analyze",
+      "aiPanelUseCaseType": "Use case type",
       "aiPanelSuggestionsTitle": "AI Suggestions",
       "aiPanelSuggestionsHint": "Not pre-selected — you decide.",
       "aiPanelAccept": "Accept",
