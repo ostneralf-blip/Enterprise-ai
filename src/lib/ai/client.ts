@@ -155,7 +155,9 @@ export async function callLLM<T>(
 
     // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
     // HINWEIS: Produktions-Guard deaktiviert für Testphase — vor Go-Live wieder aktivieren
-    if (!ALLOW_FALLBACK || !process.env.ANTHROPIC_API_KEY) return noData('bedrock', errorCode)
+    if (!ALLOW_FALLBACK) { console.warn('[ai/client] Kein Fallback: ALLOW_NON_EU_AI_FALLBACK nicht gesetzt'); return noData('bedrock', errorCode) }
+    if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt in Env-Vars'); return noData('bedrock', errorCode) }
+    console.info('[ai/client] Anthropic-Direktfallback wird versucht...')
   }
 
   // Direct-Fallback (nur lokal/staging)
