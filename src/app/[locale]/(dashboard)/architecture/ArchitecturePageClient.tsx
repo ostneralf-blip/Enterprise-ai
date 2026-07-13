@@ -627,7 +627,7 @@ function CatalogRecommendationsCard({
               {layerLabelT[lr.layer] ?? LAYER_LABEL[lr.layer] ?? lr.layer}
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {lr.componentNames.map(name => {
+              {[...new Set(lr.componentNames)].map(name => {
                 const comp = byName[name]
                 if (comp) {
                   const isComplianceRelevant = comp.dsgvo_status === 'conditional' || comp.eu_ai_act_risk === 'high' || comp.eu_ai_act_risk === 'limited'

@@ -227,7 +227,7 @@ function SwimlaneTable({
                   <div className="flex flex-wrap gap-2">
                     {locked
                       ? lr.componentNames.map((_, i) => <div key={i} className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />)
-                      : lr.componentNames.map(name => (
+                      : [...new Set(lr.componentNames)].map(name => (
                           <ComponentButton
                             key={name}
                             name={name}
@@ -270,7 +270,7 @@ function SwimlaneTable({
                   <div className="flex flex-wrap gap-1.5">
                     {locked
                       ? lr.componentNames.map((_, i) => <div key={i} className="h-6 w-20 rounded bg-slate-100 animate-pulse" />)
-                      : lr.componentNames.map(name => (
+                      : [...new Set(lr.componentNames)].map(name => (
                           <ComponentButton
                             key={name}
                             name={name}

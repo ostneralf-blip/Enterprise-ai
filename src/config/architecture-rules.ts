@@ -296,12 +296,12 @@ export function recommendFromCatalog(
     if (sapPrimary) {
       const sapRelevant = relevant.filter(x => byName.get(x.name)?.cloud_provider === 'sap')
       if (sapRelevant.length > 0) {
-        componentNames = sapRelevant.slice(0, 4).map(x => x.name)
+        componentNames = [...new Set(sapRelevant.slice(0, 4).map(x => x.name))]
       } else {
-        componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name)
+        componentNames = [...new Set((relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name))]
       }
     } else {
-      componentNames = (relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name)
+      componentNames = [...new Set((relevant.length >= 2 ? relevant : scored.slice(0, 2)).slice(0, 4).map(x => x.name))]
     }
 
     const componentReasons: Record<string, { de: string; en: string }> = {}

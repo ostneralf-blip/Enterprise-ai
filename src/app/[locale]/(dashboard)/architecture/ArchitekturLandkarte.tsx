@@ -127,7 +127,7 @@ export function ArchitekturLandkarte({
   const byName = Object.fromEntries(components.map(c => [c.name, c]))
 
   const layerComps = (keys: Set<string>) =>
-    catalogRecs.layers.filter(lr => keys.has(lr.layer)).flatMap(lr => lr.componentNames)
+    [...new Set(catalogRecs.layers.filter(lr => keys.has(lr.layer)).flatMap(lr => lr.componentNames))]
 
   const appComps   = layerComps(APP_LAYERS)
   const dataComps  = layerComps(DATA_LAYERS)
