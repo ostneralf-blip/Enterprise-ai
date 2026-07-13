@@ -11,6 +11,7 @@ import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, gene
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, AIPanelCard } from './RasicSection'
+import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/lib/canvas-context'
 
@@ -917,6 +918,28 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <h2 className={cn('text-base sm:text-lg font-semibold mb-1', result.color.title)}>{result.pattern}</h2>
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
+
+        {/* EAM-Architektur-Landkarte — alle Sichten */}
+        {catalogRecs && (() => {
+          const fallbackNamesLk = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
+          const effectiveNamesLk = activeComponentNames.size > 0 ? activeComponentNames : fallbackNamesLk
+          const eamActiveComps = recComponents.filter(c => effectiveNamesLk.has(c.name))
+          const eamOk = runEamValidation(rasic ?? undefined, eamActiveComps, answers.compliance).every(r => r.passed)
+          return (
+            <ArchitekturLandkarte
+              catalogRecs={catalogRecs}
+              components={recComponents}
+              activeNames={effectiveNamesLk}
+              aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
+              complianceMode={resultAudience === 'compliance'}
+              execMode={resultAudience === 'exec'}
+              level={resultLevel}
+              answers={answers}
+              useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
+              eamValid={eamOk}
+            />
+          )
+        })()}
 
         {/* Exec: Empfehlungskarte (statt Detail-Sections) */}
         {resultAudience === 'exec' && (
