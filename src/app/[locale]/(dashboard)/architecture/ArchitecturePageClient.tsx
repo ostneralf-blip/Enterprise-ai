@@ -512,7 +512,7 @@ function ResultBar({
             ⬡ {t('architecture.presentationModeButton')} 🔒
           </button>
         )}
-        {savedId && (
+        {savedId && tier !== 'free' && (
           <a
             href={`/api/export/pdf?module=architecture&entityId=${savedId}&locale=${locale}&template=${presentationTemplate}&audience=${audience}&level=${level}`}
             download
@@ -642,7 +642,7 @@ function CatalogRecommendationsCard({
                     >
                       <span className="inline-flex items-center gap-1.5">
                         {aiSuggested.has(name) && (
-                          <span className="text-[color:var(--color-ai)] text-[10px]" aria-label="KI-Vorschlag" title="KI-Vorschlag">◆</span>
+                          <span className="text-[color:var(--color-ai)] text-[10px]" aria-label={t('architecture.aiSuggestionBadge')} title={t('architecture.aiSuggestionBadge')}>◆</span>
                         )}
                         <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
                         {comp.dsgvo_status && (
@@ -873,8 +873,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const handleAINarrative = async (audienceOverride?: ResultAudience) => {
     if (!savedId) return
     setAiNarrativeError(null)
-    const activeNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-    const components = recComponents.filter(c => activeNames.has(c.name)).map(c => c.name)
+    const effectiveNames = activeComponentNames.size > 0
+      ? activeComponentNames
+      : new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+    const components = recComponents.filter(c => effectiveNames.has(c.name)).map(c => c.name)
     const roles = rolesCatalog.map(r => r.role_name).slice(0, 10)
     const res = await fetch(`/api/architecture/${savedId}/ai-narrative`, {
       method: 'POST',

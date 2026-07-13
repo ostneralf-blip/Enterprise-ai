@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export const BilingualItemSchema = z.object({
-  de: z.string().min(1).max(500),
-  en: z.string().min(1).max(500),
+  de: z.string().min(1).max(2000),
+  en: z.string().min(1).max(2000),
 })
 
 // Canvas AI-Enrichment: LLM klassifiziert Use-Case-Typ, Branche und Infra-Hinweise
@@ -19,11 +19,12 @@ export const CanvasAIEnrichmentSchema = z.object({
 export type CanvasAIEnrichment = z.infer<typeof CanvasAIEnrichmentSchema>
 
 // Architektur AI-Narrative: LLM generiert kontextspezifische Begründungs-Prosa + Komponenten-Vorschläge
+// Limits großzügig gesetzt — strikte max() führen zu Zod-Fehlern wenn LLM leicht überschießt
 export const ArchitectureNarrativeSchema = z.object({
-  summary: z.string().max(600).optional(),
-  key_decisions: z.array(BilingualItemSchema).max(6),
-  next_steps: z.array(BilingualItemSchema).max(6),
-  component_suggestions: z.array(z.string().max(100)).max(5).optional(),
+  summary: z.string().max(2000).optional(),
+  key_decisions: z.array(BilingualItemSchema).max(10),
+  next_steps: z.array(BilingualItemSchema).max(10),
+  component_suggestions: z.array(z.string().max(200)).max(8).optional(),
 })
 
 export type ArchitectureNarrative = z.infer<typeof ArchitectureNarrativeSchema>

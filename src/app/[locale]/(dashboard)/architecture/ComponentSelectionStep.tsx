@@ -120,7 +120,7 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
 
       <div className="space-y-3">
         {catalogRecs.layers.map(lr => {
-          const ruleNames = lr.componentNames
+          const ruleNames = [...new Set(lr.componentNames)]
           const aiNames = [...aiSuggested].filter(n => byName.has(n) && !ruleNames.includes(n))
           const allNames = [...ruleNames, ...aiNames]
           const layerChecked = allNames.filter(n => map.get(n)?.checked).length
