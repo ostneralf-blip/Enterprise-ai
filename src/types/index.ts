@@ -65,6 +65,7 @@ export interface CatalogComponent {
   aliases: string[]
   source: string
   is_active: boolean
+  version_info?: { release?: string; model_id?: string; notes?: string } | null
   created_at: string
   updated_at: string
 }

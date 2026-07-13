@@ -15,6 +15,7 @@ const BodySchema = z.object({
   governance_result: z.string().max(50).optional(),
   roadmap_phases:    z.number().int().min(0).max(10).optional(),
   locale:            z.enum(['de', 'en']).default('de'),
+  audience:          z.enum(['exec', 'architect', 'compliance']).default('architect'),
 })
 
 export async function POST(
@@ -45,9 +46,17 @@ export async function POST(
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
 
-  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases } = body.data
+  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience } = body.data
+
+  const audienceInstruction = audience === 'exec'
+    ? 'Target audience: C-level / CFO. Use business language only. Key decisions = strategic, budget-relevant. Next steps = high-level milestones with timeframes. No technical jargon.'
+    : audience === 'compliance'
+    ? 'Target audience: Compliance / Audit / DPO. Focus on data flows, EU AI Act obligations, GDPR controls, risk mitigations, and audit evidence. Key decisions = regulatory commitments. Next steps = compliance actions.'
+    : 'Target audience: Enterprise Architect / IT Lead. Full technical depth. Be specific about integration points, model choices, infrastructure decisions, and operational requirements.'
 
   const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific key decisions and next steps. Return ONLY valid JSON.
+
+${audienceInstruction}
 
 Architecture facts (pre-validated, structured data — not user free text):
 - Selected components: ${components.join(', ')}

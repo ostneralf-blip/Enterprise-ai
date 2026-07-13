@@ -287,7 +287,104 @@ function PatternReasonSection({ answers, locale }: { answers: WizardAnswers; loc
   )
 }
 
+type ResultAudience = 'exec' | 'architect' | 'compliance'
 type View = 'list' | 'wizard' | 'result'
+
+function KpiCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
+  return (
+    <div className="relative bg-white border border-slate-200 rounded-2xl p-4 overflow-hidden">
+      <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl', accent ? 'bg-amber-400' : 'bg-primary')} />
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">{label}</p>
+      <p className="text-base font-semibold text-slate-900 mt-1.5 pl-2">{value}</p>
+      {sub && <p className="text-xs text-slate-400 mt-0.5 pl-2">{sub}</p>}
+    </div>
+  )
+}
+
+function ExecKpiStrip({ result, answers }: { result: ArchitectureResult; answers: WizardAnswers }) {
+  const t = useTranslations('modules')
+  const base = COST_ESTIMATES[result.patternId as PatternId]
+  const est = scaleCostEstimate(base, answers.company_size)
+  const fmt = (v: number) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1).replace('.0', '')}M€` : `${Math.round(v / 1_000)}k€`
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <KpiCard label={t('architecture.kpiInvestment')} value={`${fmt(est.setup.min)}–${fmt(est.setup.max)}`} sub={t('architecture.kpiInvestmentSub')} />
+      <KpiCard label={t('architecture.kpiMonthly')} value={`${fmt(est.monthly.min)}–${fmt(est.monthly.max)}`} sub={t('architecture.kpiMonthlySub')} />
+      <KpiCard label={t('architecture.kpiTimeline')} value={`${est.durationMonths.min}–${est.durationMonths.max}`} sub={t('architecture.kpiTimelineSub')} />
+      <KpiCard label={t('architecture.kpiRisk')} value={answers.compliance === 'strict' ? t('architecture.kpiRiskStrict') : t('architecture.kpiRiskModerate')} accent />
+    </div>
+  )
+}
+
+function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
+  const t = useTranslations('modules')
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 [border-left-width:4px] border-l-primary">
+      <h3 className="text-sm font-semibold text-slate-900 mb-2">{t('architecture.execRecommendTitle')}</h3>
+      <p className="text-sm text-slate-700 leading-relaxed">{result.summary}</p>
+    </div>
+  )
+}
+
+function ResultBar({
+  audience,
+  level,
+  onAudience,
+  onLevel,
+}: {
+  audience: ResultAudience
+  level: 1 | 2 | 3
+  onAudience: (a: ResultAudience) => void
+  onLevel: (l: 1 | 2 | 3) => void
+}) {
+  const t = useTranslations('modules')
+  const views: ResultAudience[] = ['exec', 'architect', 'compliance']
+  const viewLabels: Record<ResultAudience, string> = {
+    exec:       t('architecture.viewExec'),
+    architect:  t('architecture.viewArchitect'),
+    compliance: t('architecture.viewCompliance'),
+  }
+  return (
+    <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white/95 backdrop-blur border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
+        <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+          {views.map(v => (
+            <button
+              key={v}
+              onClick={() => onAudience(v)}
+              className={cn(
+                'px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
+                audience === v ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
+              )}
+            >
+              {viewLabels[v]}
+            </button>
+          ))}
+        </div>
+      </div>
+      {audience !== 'exec' && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.levelLabel')}</span>
+          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+            {([1, 2, 3] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => onLevel(l)}
+                className={cn(
+                  'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
+                  level === l ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
+                )}
+              >
+                L{l}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const DSGVO_BADGE: Record<string, string> = {
   compliant:     'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -349,11 +446,15 @@ function CatalogRecommendationsCard({
   components,
   onSelectComp,
   rolesCatalog = [],
+  level = 1,
+  complianceMode = false,
 }: {
   recs: CatalogRecommendations
   components: CatalogComponent[]
   onSelectComp: (comp: CatalogComponent) => void
   rolesCatalog?: RoleCatalogEntry[]
+  level?: 1 | 2 | 3
+  complianceMode?: boolean
 }) {
   const t = useTranslations('modules')
   const tc = useTranslations('common')
@@ -387,16 +488,27 @@ function CatalogRecommendationsCard({
               {lr.componentNames.map(name => {
                 const comp = byName[name]
                 if (comp) {
+                  const isComplianceRelevant = comp.dsgvo_status === 'conditional' || comp.eu_ai_act_risk === 'high' || comp.eu_ai_act_risk === 'limited'
                   return (
                     <button
                       key={name}
                       onClick={() => onSelectComp(comp)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-primary-border hover:bg-primary-soft transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+                      className={cn(
+                        'inline-flex flex-col items-start gap-0.5 px-2.5 py-1 bg-slate-50 border rounded-lg text-xs text-slate-700 hover:border-primary-border hover:bg-primary-soft transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
+                        complianceMode && isComplianceRelevant ? 'border-amber-400' : complianceMode ? 'border-slate-200 opacity-40' : 'border-slate-200'
+                      )}
                     >
-                      <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
-                      {comp.dsgvo_status && (
-                        <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
-                          {DSGVO_LABEL[comp.dsgvo_status]}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="font-medium min-w-0 truncate max-w-[120px]">{name}</span>
+                        {comp.dsgvo_status && (
+                          <span className={cn('px-1 py-0.5 rounded text-[10px] font-medium border', DSGVO_BADGE[comp.dsgvo_status])}>
+                            {DSGVO_LABEL[comp.dsgvo_status]}
+                          </span>
+                        )}
+                      </span>
+                      {level >= 2 && comp.version_info && (
+                        <span className="text-[10px] text-slate-400 truncate max-w-[140px]">
+                          {comp.version_info.release ?? comp.version_info.model_id ?? comp.version_info.notes}
                         </span>
                       )}
                     </button>
@@ -493,6 +605,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
+  const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
+  const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
 
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
@@ -602,6 +716,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         governance_result: governanceContext?.result ?? undefined,
         roadmap_phases: roadmapContext?.phasesCount ?? 0,
         locale,
+        audience: resultAudience,
       }),
     })
     const json = await res.json() as {
@@ -703,7 +818,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   if (view === 'result' && result) {
     return (
       <div className="max-w-2xl space-y-5">
+        {/* Sticky Sichten + Detailtiefe Bar */}
+        <ResultBar audience={resultAudience} level={resultLevel} onAudience={setResultAudience} onLevel={setResultLevel} />
+
         <ContextBanner assessmentContext={assessmentContext} governanceContext={governanceContext} compliancePreset={compliancePreset} roadmapContext={roadmapContext} />
+
+        {/* Exec: KPI-Kennzahlenstreifen */}
+        {resultAudience === 'exec' && (
+          <ExecKpiStrip result={result} answers={answers} />
+        )}
+
+        {/* Compliance: Hinweis-Banner */}
+        {resultAudience === 'compliance' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-800 leading-relaxed">
+            {t('architecture.complianceHighlightHint')}
+          </div>
+        )}
 
         {/* Pattern card */}
         <div className={cn('rounded-2xl border p-5 sm:p-6', result.color.bg, result.color.border)}>
@@ -716,14 +846,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
 
-        {/* Warum dieses Muster? */}
-        <PatternReasonSection answers={answers} locale={locale} />
+        {/* Exec: Empfehlungskarte (statt Detail-Sections) */}
+        {resultAudience === 'exec' && (
+          <ExecRecommendationCard result={result} />
+        )}
 
-        {/* Kosten-Indikator */}
-        <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
+        {/* Warum dieses Muster? — nicht in Exec-Sicht */}
+        {resultAudience !== 'exec' && (
+          <PatternReasonSection answers={answers} locale={locale} />
+        )}
 
-        {/* Architecture diagram */}
-        {catalogRecs && (
+        {/* Kosten-Indikator — nicht in Exec-Sicht (dort im KPI-Strip) */}
+        {resultAudience !== 'exec' && (
+          <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
+        )}
+
+        {/* Architecture diagram — nicht in Exec-Sicht */}
+        {resultAudience !== 'exec' && catalogRecs && (
           <ArchitectureDiagram
             recs={catalogRecs}
             components={recComponents}
@@ -736,7 +875,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         {/* Catalog recommendations */}
         {catalogRecs && (
           <>
-            <CatalogRecommendationsCard recs={catalogRecs} components={recComponents} onSelectComp={setSelectedComp} rolesCatalog={rolesCatalog} />
+            <CatalogRecommendationsCard
+              recs={catalogRecs}
+              components={recComponents}
+              onSelectComp={setSelectedComp}
+              rolesCatalog={rolesCatalog}
+              level={resultLevel}
+              complianceMode={resultAudience === 'compliance'}
+            />
             {recComponents.length > 0 && (() => {
               const latest = recComponents.reduce((a, b) => a.updated_at > b.updated_at ? a : b)
               const days = Math.floor((NOW - new Date(latest.updated_at).getTime()) / 86_400_000)
@@ -796,8 +942,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           )
         })()}
 
-        {/* SAP Joule use cases */}
-        <JouleUseCasesCard useCases={jouleUseCases} />
+        {/* SAP Joule use cases — nicht in Exec-Sicht */}
+        {resultAudience !== 'exec' && (
+          <JouleUseCasesCard useCases={jouleUseCases} />
+        )}
 
         {/* Key decisions + Next steps */}
         {(() => {
