@@ -935,7 +935,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Komponenten-Auswahl + EAM-Architektur-Diagramm — nicht in Exec-Sicht */}
         {resultAudience !== 'exec' && catalogRecs && (
-          <div>
+          <div id="catalog-recs">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-sm font-semibold text-slate-900">{t('architecture.componentPickerTitle')}</h3>
               <span className="text-xs text-slate-400">{t('architecture.componentPickerHint')}</span>

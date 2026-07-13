@@ -234,12 +234,13 @@ export function EamValidationBanner({ results }: EamValidationBannerProps) {
               <span className="min-w-0">
                 {pick(r.message, locale)}
                 {' '}
-                <a
-                  href={`#${r.anchor}`}
+                <button
+                  type="button"
+                  onClick={() => document.getElementById(r.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   className="underline font-medium hover:text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-600 rounded"
                 >
                   {t('architecture.eamJumpLink')}
-                </a>
+                </button>
               </span>
             </li>
           ))}
