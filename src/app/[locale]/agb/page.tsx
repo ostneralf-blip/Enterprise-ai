@@ -1,7 +1,14 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Allgemeine Geschäftsbedingungen' }
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Allgemeine Geschäftsbedingungen',
+    alternates: { canonical: `${BASE}/agb` },
+  }
+}
 
 export default function AgbPage() {
   return (

@@ -1,7 +1,14 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Impressum' }
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: 'Impressum',
+    alternates: { canonical: `${BASE}/impressum` },
+  }
+}
 
 export default function ImpressumPage() {
   return (

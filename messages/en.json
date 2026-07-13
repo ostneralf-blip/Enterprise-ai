@@ -182,7 +182,7 @@
     "pathStepAriaDone": "Step {step}: {title} (completed)",
     "pathStepAriaCurrent": "Step {step}: {title} (currently recommended)",
     "pathStepAria": "Step {step}: {title}",
-    "pathNextLabel": "Next step · {step} of {total}",
+    "pathNextLabel": "Next step",
     "pathAllDoneTitle": "AI Navigator path complete!",
     "pathAllDoneDesc": "All modules completed — compile your results into a PDF.",
     "tileDone": "✓ Completed — View result",

@@ -151,7 +151,7 @@ export default async function DashboardPage() {
         <div className="mb-5 bg-red-50 border border-red-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-red-800">Zahlung fehlgeschlagen</p>
-            <p className="text-xs text-red-700 mt-0.5">Deine letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisiere deine Zahlungsmethode, um deinen Pro-Zugang zu behalten.</p>
+            <p className="text-xs text-red-700 mt-0.5">Ihre letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihren Pro-Zugang zu behalten.</p>
           </div>
           <a href="/einstellungen" className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors whitespace-nowrap">
             Zahlungsmethode aktualisieren
@@ -222,9 +222,9 @@ export default async function DashboardPage() {
               <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
               <div className="mt-3 text-center">
                 <span className="font-serif text-2xl font-semibold text-slate-900">
-                  {Number(latestAssessment.total_score).toFixed(2)}
+                  {new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(latestAssessment.total_score))}
                 </span>
-                <span className="text-slate-400 text-sm"> / 5.0</span>
+                <span className="text-slate-400 text-sm"> / 5</span>
               </div>
               {archetypeInfo && (
                 <div className="mt-2 flex justify-center">

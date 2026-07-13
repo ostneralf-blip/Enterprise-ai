@@ -39,7 +39,7 @@ export const GOVERNANCE_GATES: Gate[] = [
     id: 'risk_class',
     step: 1,
     question: {
-      de: 'Wie klassifizierst du dein AI-System nach dem EU AI Act?',
+      de: 'Wie klassifizieren Sie Ihr AI-System nach dem EU AI Act?',
       en: 'How do you classify your AI system under the EU AI Act?',
     },
     context: {

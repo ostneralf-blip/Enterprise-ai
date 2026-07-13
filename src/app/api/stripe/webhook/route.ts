@@ -35,13 +35,13 @@ async function sendPaymentFailedEmail(userEmail: string) {
       body: JSON.stringify({
         from:    'AI Navigator <noreply@enterprise-ai.biz>',
         to:      [userEmail],
-        subject: 'Deine Zahlung konnte nicht verarbeitet werden',
+        subject: 'Ihre Zahlung konnte nicht verarbeitet werden',
         text: [
           'Hallo,',
           '',
-          'leider ist die Zahlung für dein AI Navigator Pro-Abonnement fehlgeschlagen.',
+          'leider ist die Zahlung für Ihr AI Navigator Pro-Abonnement fehlgeschlagen.',
           '',
-          'Bitte aktualisiere deine Zahlungsmethode im Kundenportal, um deinen Pro-Zugang zu erhalten:',
+          'Bitte aktualisieren Sie Ihre Zahlungsmethode im Kundenportal, um Ihren Pro-Zugang zu erhalten:',
           'https://enterprise-ai.biz/einstellungen',
           '',
           'Dein AI Navigator Team',
