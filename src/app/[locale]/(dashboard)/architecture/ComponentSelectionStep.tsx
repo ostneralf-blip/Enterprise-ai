@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { pick } from '@/lib/utils/locale-data'
@@ -21,17 +21,6 @@ interface Props {
   locale: string
 }
 
-function initMap(catalogRecs: CatalogRecommendations, aiSuggested: Set<string>): SelectionMap {
-  const m: SelectionMap = new Map()
-  for (const lr of catalogRecs.layers) {
-    for (const name of lr.componentNames) m.set(name, { checked: true, source: 'rule' })
-  }
-  for (const name of aiSuggested) {
-    if (!m.has(name)) m.set(name, { checked: false, source: 'ai' })
-  }
-  return m
-}
-
 function readCollapsed(): Set<string> {
   try {
     const stored = localStorage.getItem(COLLAPSE_KEY)
@@ -42,21 +31,32 @@ function readCollapsed(): Set<string> {
 export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, onBack, onConfirm, locale }: Props) {
   const t = useTranslations('modules')
   const byName = new Map(components.map(c => [c.name, c]))
-  const [map, setMap] = useState<SelectionMap>(() => initMap(catalogRecs, aiSuggested))
+  // userOverrides: explicit user toggles (boolean) — map is derived via useMemo
+  const [userOverrides, setUserOverrides] = useState<Map<string, boolean>>(new Map())
   const [collapsed, setCollapsed] = useState<Set<string>>(readCollapsed)
 
-  // Merge new catalog entries when catalogRecs updates (async load), preserving user changes
-  useEffect(() => {
-    setMap(prev => {
-      const next = new Map(prev)
-      for (const lr of catalogRecs.layers) {
-        for (const name of lr.componentNames) {
-          if (!next.has(name)) next.set(name, { checked: true, source: 'rule' })
-        }
+  // Derive full selection map from catalog recs + AI suggestions + user overrides.
+  // This avoids calling setState inside useEffect when catalogRecs updates asynchronously.
+  const map = useMemo<SelectionMap>(() => {
+    const m: SelectionMap = new Map()
+    for (const lr of catalogRecs.layers) {
+      for (const name of lr.componentNames) {
+        const override = userOverrides.get(name)
+        m.set(name, { checked: override ?? true, source: 'rule' })
       }
-      return next
-    })
-  }, [catalogRecs])
+    }
+    for (const name of aiSuggested) {
+      if (!m.has(name)) {
+        const override = userOverrides.get(name)
+        m.set(name, { checked: override ?? false, source: 'ai' })
+      }
+    }
+    // Manually added components (e.g., conflict resolution alternatives not in catalog/AI)
+    for (const [name, checked] of userOverrides) {
+      if (!m.has(name) && checked) m.set(name, { checked: true, source: 'manual' })
+    }
+    return m
+  }, [catalogRecs, aiSuggested, userOverrides])
 
   const toggleCollapse = (layer: string) => {
     setCollapsed(prev => {
@@ -70,15 +70,11 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
   }
 
   const toggleComponent = (name: string) => {
-    setMap(prev => {
-      const next = new Map(prev)
-      const cur = next.get(name)
-      const newChecked = !(cur?.checked ?? false)
-      next.set(name, { checked: newChecked, source: cur?.source ?? 'manual' })
-      ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
-        .posthog?.capture('arch_component_toggled', { component: name, checked: newChecked, source: cur?.source ?? 'manual' })
-      return next
-    })
+    const cur = map.get(name)
+    const newChecked = !(cur?.checked ?? false)
+    setUserOverrides(prev => { const next = new Map(prev); next.set(name, newChecked); return next })
+    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+      .posthog?.capture('arch_component_toggled', { component: name, checked: newChecked, source: cur?.source ?? 'manual' })
   }
 
   const checkedCount = [...map.values()].filter(v => v.checked).length
@@ -101,10 +97,10 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
   }, [conflicts])
 
   const resolveConflict = (remove: string, add?: string) => {
-    setMap(prev => {
+    setUserOverrides(prev => {
       const next = new Map(prev)
-      next.set(remove, { checked: false, source: next.get(remove)?.source ?? 'manual' })
-      if (add) next.set(add, { checked: true, source: 'manual' })
+      next.set(remove, false)
+      if (add) next.set(add, true)
       return next
     })
     ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })

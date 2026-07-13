@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState, useRef } from 'react'
@@ -1373,9 +1374,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             <p className="text-sm font-semibold text-primary">{t('architecture.nextStepCanvasTitle')}</p>
             <p className="text-xs text-primary-hover mt-0.5">{t('architecture.nextStepCanvasDesc')}</p>
           </div>
-          <a href="/canvas" className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
+          <Link href={`/${locale}/canvas`} className="whitespace-nowrap px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary transition-colors text-center flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {t('architecture.openCanvas')}
-          </a>
+          </Link>
         </div>
 
         {/* Component detail modal */}
