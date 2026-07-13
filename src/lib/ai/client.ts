@@ -12,13 +12,21 @@ import { createAdminClient } from '@/lib/supabase/server'
 const REGION          = process.env.BEDROCK_REGION ?? 'eu-west-1'
 const DEFAULT_TIMEOUT = parseInt(process.env.BEDROCK_TIMEOUT_MS ?? '15000', 10)
 
+// EU Inference Profile IDs — Format: eu.anthropic.<model>-v1:0
+// WICHTIG: Vor Go-Live gegen AWS Console (eu-west-1 → Model catalog → Inference profiles) verifizieren
+// und als BEDROCK_MODEL_HAIKU / BEDROCK_MODEL_SONNET in Vercel Env-Vars setzen.
 const MODEL_IDS = {
-  haiku:  process.env.BEDROCK_MODEL_HAIKU  ?? 'anthropic.claude-haiku-4-5-20251001',
-  sonnet: process.env.BEDROCK_MODEL_SONNET ?? 'anthropic.claude-sonnet-4-6-20250514',
+  haiku:  process.env.BEDROCK_MODEL_HAIKU  ?? 'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
+  sonnet: process.env.BEDROCK_MODEL_SONNET ?? 'eu.anthropic.claude-sonnet-4-6-20250514-v1:0',
 } as const
 
 // Typo-Fix: ALLOW_NON_EU_AI_FALLBACK (früher: ALLOW_NON_EU_AI_FALLACK)
 const ALLOW_FALLBACK = process.env.ALLOW_NON_EU_AI_FALLBACK === 'true'
+
+// Produktions-Guard: Fallback auf Anthropic Direct darf in Produktion nie aktiv sein
+if (ALLOW_FALLBACK && process.env.VERCEL_ENV === 'production') {
+  throw new Error('[ai/client] ALLOW_NON_EU_AI_FALLBACK=true ist in VERCEL_ENV=production verboten — Env-Var entfernen!')
+}
 
 let _bedrockClient: BedrockRuntimeClient | null = null
 let _startupLogged = false
@@ -151,6 +159,9 @@ export async function callLLM<T>(
   } catch (err) {
     const errorCode = classifyBedrockError(err)
     Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': errorCode, region: REGION } })
+    if (errorCode === 'ValidationException') {
+      console.error('[ai/client] ValidationException — wahrscheinlich falsche Model-ID. Env-Var BEDROCK_MODEL_HAIKU/SONNET prüfen. Aktuell:', modelId)
+    }
     console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
 
     // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
