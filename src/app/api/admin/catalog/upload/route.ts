@@ -295,10 +295,10 @@ export async function POST(request: Request) {
     )
   }
 
-  // Deduplicate by name+vendor — last occurrence wins; prevents PG "cannot affect row a second time"
+  // Deduplicate by lower(trim(name)) — entspricht dem DB-Unique-Index auf name_key
   const dedupMap = new Map<string, typeof valid[0]>()
   for (const row of valid) {
-    dedupMap.set(`${row.name}||${row.vendor ?? ''}`, row)
+    dedupMap.set(row.name.toLowerCase().trim(), row)
   }
   const deduped = Array.from(dedupMap.values())
 
@@ -314,7 +314,7 @@ export async function POST(request: Request) {
     .from('component_catalog')
     .upsert(
       deduped.map(r => ({ ...r, source: 'manual', is_active: true })),
-      { onConflict: 'name,vendor', ignoreDuplicates: false }
+      { onConflict: 'name_key', ignoreDuplicates: false }
     )
     .select('id')
 

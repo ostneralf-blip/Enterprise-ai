@@ -20,6 +20,7 @@ interface Props {
   rejectedSuggestions: string[]
   canvasEnrichment?: CanvasEnrichment | null
   acceptedSuggestions?: string[]
+  activeComponentNames?: Set<string>
   onAccept: (name: string) => void
   onReject: (name: string) => void
   onAcceptAll?: () => void
@@ -30,7 +31,7 @@ interface Props {
 
 export function AIPanel({
   narrative, usage, aiModel, generatedAt, tier,
-  catalogComponents, rejectedSuggestions, acceptedSuggestions, canvasEnrichment,
+  catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze,
   loading = false,
 }: Props) {
@@ -40,7 +41,11 @@ export function AIPanel({
   const byName = new Map(catalogComponents.map(c => [c.name, c]))
   const rejected = new Set(rejectedSuggestions)
   const accepted = new Set(acceptedSuggestions ?? [])
-  const suggestions = (narrative?.component_suggestions ?? []).filter(n => byName.has(n) && !rejected.has(n))
+  // Aktive Komponenten case-insensitiv — nie etwas vorschlagen, was bereits in der Architektur ist
+  const activeNormalized = new Set([...(activeComponentNames ?? [])].map(n => n.toLowerCase().trim()))
+  const suggestions = (narrative?.component_suggestions ?? []).filter(n =>
+    byName.has(n) && !rejected.has(n) && !activeNormalized.has(n.toLowerCase().trim())
+  )
   const openSuggestions = suggestions.filter(n => !accepted.has(n))
 
   const complianceHint = canvasEnrichment?.additional_compliance_flags?.[0] ?? null

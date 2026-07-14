@@ -7,6 +7,7 @@ import {
   syncOpenAI, syncAnthropic, syncGemini, syncMistral, syncGitHub, syncOpenML,
   syncLangChainHub, syncPinecone, syncDigitalOcean, syncVultr, syncPyPI, syncWeaviate,
 } from '@/lib/catalog/sync-adapters'
+import { upsertComponents } from '@/lib/catalog/upsert'
 
 const BodySchema = z.object({
   sourceId: z.string().uuid(),
@@ -156,27 +157,24 @@ export async function POST(request: Request) {
     })
   }
 
-  // Komponenten einspielen
+  // Komponenten einspielen — sync-Modus: ignoreDuplicates=true, kuratierte Einträge bleiben erhalten
   let upsertCount = 0
   if (syncResult.components.length > 0) {
-    const { data: upserted, error: upsertErr } = await supabase
-      .from('component_catalog')
-      .upsert(syncResult.components, { onConflict: 'name,vendor', ignoreDuplicates: false })
-      .select('id')
+    const upsertResult = await upsertComponents(syncResult.components, 'sync')
 
-    if (upsertErr) {
+    if (upsertResult.error) {
       await supabase
         .from('catalog_sources')
         .update({
           sync_status:     'error',
-          last_sync_error: upsertErr.message,
+          last_sync_error: upsertResult.error,
           last_synced_at:  new Date().toISOString(),
         })
         .eq('id', source.id)
 
-      return NextResponse.json({ error: upsertErr.message }, { status: 500 })
+      return NextResponse.json({ error: upsertResult.error }, { status: 500 })
     }
-    upsertCount = upserted?.length ?? 0
+    upsertCount = upsertResult.upserted
   }
 
   await supabase

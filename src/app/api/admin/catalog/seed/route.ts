@@ -15,9 +15,9 @@ export async function POST() {
   // Fetch current catalog as backup before overwriting
   const { data: backupData } = await supabase.from('component_catalog').select('*')
 
-  // Deduplicate seed data by name+vendor (safety guard against duplicate seed entries)
+  // Deduplicate seed data by lower(trim(name)) — entspricht dem DB-Unique-Index auf name_key
   const compMap = new Map<string, typeof SEED_COMPONENTS[0]>()
-  for (const c of SEED_COMPONENTS) compMap.set(`${c.name}||${c.vendor ?? ''}`, c)
+  for (const c of SEED_COMPONENTS) compMap.set(c.name.toLowerCase().trim(), c)
   const dedupedComponents = Array.from(compMap.values())
 
   const roleMap = new Map<string, typeof SEED_ROLES[0]>()
@@ -35,7 +35,7 @@ export async function POST() {
           source: 'manual',
           is_active: true,
         })),
-        { onConflict: 'name,vendor', ignoreDuplicates: false }
+        { onConflict: 'name_key', ignoreDuplicates: false }
       )
       .select('id'),
     supabase

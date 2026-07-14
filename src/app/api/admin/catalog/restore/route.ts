@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     .from('component_catalog')
     .upsert(
       (logEntry.snapshot as Record<string, unknown>[]).map(c => ({ ...c, source: 'manual', is_active: true })),
-      { onConflict: 'name,vendor', ignoreDuplicates: false }
+      { onConflict: 'name_key', ignoreDuplicates: false }
     )
     .select('id')
 
