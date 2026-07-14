@@ -1070,7 +1070,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
               .posthog?.capture('arch_view_switched', { audience: a })
             if (a === 'exec') setResultLevel(1)
-            if (savedId && aiNarrative) void handleAINarrative(a)
           }}
           onLevel={setResultLevel}
           tier={tier}
