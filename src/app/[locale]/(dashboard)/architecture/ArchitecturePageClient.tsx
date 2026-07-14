@@ -973,27 +973,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const rejected = result.rejected_suggestions ?? []
     const handleAccept = (name: string) => {
       const comp = recComponents.find(c => c.name === name)
-      if (!comp || !comp.architecture_layer) return
-      setCatalogRecs(prev => {
-        if (!prev) return prev
-        const layers = prev.layers.map(lr =>
-          lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
-            ? { ...lr, componentNames: [...lr.componentNames, name] }
-            : lr
-        )
-        return { ...prev, layers }
-      })
-      setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
-    }
-    const handleReject = (name: string) => {
-      setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
-    }
-    const handleAcceptAll = () => {
-      const suggestions = aiNarrative?.component_suggestions ?? []
-      const rejSet = new Set(result.rejected_suggestions ?? [])
-      suggestions.filter(n => !rejSet.has(n)).forEach(name => {
-        const comp = recComponents.find(c => c.name === name)
-        if (!comp || !comp.architecture_layer) return
+      if (comp?.architecture_layer) {
         setCatalogRecs(prev => {
           if (!prev) return prev
           const layers = prev.layers.map(lr =>
@@ -1003,7 +983,35 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           )
           return { ...prev, layers }
         })
+      }
+      setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
+      setAiAccepted(prev => prev.includes(name) ? prev : [...prev, name])
+      setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+    }
+    const handleReject = (name: string) => {
+      setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
+    }
+    const handleAcceptAll = () => {
+      const suggestions = aiNarrative?.component_suggestions ?? []
+      const rejSet = new Set(result.rejected_suggestions ?? [])
+      const toAccept: string[] = []
+      suggestions.filter(n => !rejSet.has(n) && !aiAccepted.includes(n)).forEach(name => {
+        const comp = recComponents.find(c => c.name === name)
+        if (comp?.architecture_layer) {
+          setCatalogRecs(prev => {
+            if (!prev) return prev
+            const layers = prev.layers.map(lr =>
+              lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+                ? { ...lr, componentNames: [...lr.componentNames, name] }
+                : lr
+            )
+            return { ...prev, layers }
+          })
+        }
+        setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
+        toAccept.push(name)
       })
+      if (toAccept.length > 0) setAiAccepted(prev => [...prev, ...toAccept.filter(n => !prev.includes(n))])
       setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
     }
     // EAM-Berechnungen — VOR dem return-Statement
@@ -1518,10 +1526,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             catalogComponents={recComponents}
             rejectedSuggestions={rejected}
             canvasEnrichment={canvasEnrichment}
+            acceptedSuggestions={aiAccepted}
             onAccept={handleAccept}
             onReject={handleReject}
             onAcceptAll={handleAcceptAll}
-            onScrollToFirst={() => document.querySelector('[data-ai-suggestion]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            onScrollToFirst={() => {
+              const el = document.querySelector<HTMLElement>('[data-ai-row]')
+              if (!el) return
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              el.style.outline = '2px solid var(--color-ai)'
+              setTimeout(() => { el.style.outline = '' }, 2000)
+            }}
             onReanalyze={handleAINarrative}
             loading={narrativeLoading}
           />
