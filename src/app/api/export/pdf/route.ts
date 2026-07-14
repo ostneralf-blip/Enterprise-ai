@@ -155,14 +155,26 @@ export async function GET(req: Request) {
         .from('architectures')
         .select('title, result')
         .eq('user_id', userId)
+      type RawArchResult = {
+        pattern: string; description?: string; componentSources?: Record<string, 'rule' | 'ai' | 'manual'>
+        layers: Array<{ name: string; role: string; components: string[]; examples?: string }>
+        nextSteps?: Array<string | { de: string; en: string }>
+      }
       const { data: archData } = entityId
-        ? await query.eq('id', entityId).single() as { data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[]; examples?: string }>; nextSteps?: string[] } } | null }
-        : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[]; examples?: string }>; nextSteps?: string[] } } | null }
+        ? await query.eq('id', entityId).single() as { data: { title: string; result: RawArchResult } | null }
+        : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; result: RawArchResult } | null }
 
       if (!archData) return NextResponse.json({ error: 'Keine Architektur gefunden' }, { status: 404 })
+      const rawResult = archData.result
       doc = renderArchitecturePdf({
         title: archData.title,
-        result: archData.result,
+        result: {
+          ...rawResult,
+          layers: (rawResult.layers ?? []).map(l => ({ ...l, components: l.components ?? [] })),
+          nextSteps: (rawResult.nextSteps ?? []).map(s =>
+            typeof s === 'string' ? s : (locale === 'en' ? s.en : s.de)
+          ),
+        },
         companyName: company,
         template: template as 'book' | 'board' | 'blueprint' | undefined,
       }, locale)
