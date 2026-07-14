@@ -76,7 +76,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [pricingLoaded, setPricingLoaded] = useState(false)
 
   // ─── App-Settings State ──────────────────────────────────────────────────
-  const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number } | null>(null)
+  const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number; ai_direct_fallback: 0 | 1 } | null>(null)
   const [appSettingsSaving, setAppSettingsSaving] = useState(false)
   const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
 
@@ -2519,6 +2519,34 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 />
               </label>
             )}
+          </div>
+
+          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-base font-semibold text-amber-900">KI Direct-API Fallback</h2>
+                  {appSettings?.ai_direct_fallback === 1 && (
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-400 text-white whitespace-nowrap">Aktiv (Nicht-EU)</span>
+                  )}
+                </div>
+                <p className="text-xs text-amber-700">Direct API = keine vertragliche EU-Datenresidenz. Nur als temporärer Fallback aktivieren, solange Bedrock nicht verfügbar ist.</p>
+              </div>
+              {appSettings && (
+                <button
+                  type="button"
+                  onClick={() => setAppSettings(s => s ? { ...s, ai_direct_fallback: s.ai_direct_fallback === 1 ? 0 : 1 } : s)}
+                  className={cn(
+                    'shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap',
+                    appSettings.ai_direct_fallback === 1
+                      ? 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  )}
+                >
+                  {appSettings.ai_direct_fallback === 1 ? 'Deaktivieren' : 'Aktivieren'}
+                </button>
+              )}
+            </div>
           </div>
 
           <button

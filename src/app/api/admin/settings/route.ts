@@ -3,7 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { invalidateSettingsCache } from '@/lib/app-settings'
 import { z } from 'zod'
 
-const ALLOWED_KEYS = ['ai_limit_free', 'ai_limit_pro', 'ai_limit_enterprise', 'stripe_grace_period_days'] as const
+const ALLOWED_KEYS = ['ai_limit_free', 'ai_limit_pro', 'ai_limit_enterprise', 'stripe_grace_period_days', 'ai_direct_fallback'] as const
 type SettingKey = typeof ALLOWED_KEYS[number]
 
 export interface AppSettingsData {
@@ -11,6 +11,7 @@ export interface AppSettingsData {
   ai_limit_pro: number
   ai_limit_enterprise: number
   stripe_grace_period_days: number
+  ai_direct_fallback: 0 | 1
 }
 
 const PatchSchema = z.object({
@@ -18,6 +19,7 @@ const PatchSchema = z.object({
   ai_limit_pro:             z.number().int().min(0).max(1000).optional(),
   ai_limit_enterprise:      z.number().int().min(0).max(1000).optional(),
   stripe_grace_period_days: z.number().int().min(0).max(90).optional(),
+  ai_direct_fallback:       z.union([z.literal(0), z.literal(1)]).optional(),
 })
 
 async function requireAdmin() {
@@ -36,11 +38,11 @@ export async function GET() {
   const supabase = await createAdminClient()
   const { data } = await supabase.from('app_settings').select('key, value').in('key', ALLOWED_KEYS)
 
-  const defaults: AppSettingsData = { ai_limit_free: 1, ai_limit_pro: 10, ai_limit_enterprise: 50, stripe_grace_period_days: 7 }
+  const defaults: AppSettingsData = { ai_limit_free: 1, ai_limit_pro: 10, ai_limit_enterprise: 50, stripe_grace_period_days: 7, ai_direct_fallback: 0 }
   const result = { ...defaults }
   for (const row of data ?? []) {
     const k = row.key as SettingKey
-    if (ALLOWED_KEYS.includes(k)) result[k] = Number(row.value)
+    if (ALLOWED_KEYS.includes(k)) (result as Record<string, number>)[k] = Number(row.value)
   }
   return NextResponse.json(result)
 }
@@ -58,6 +60,10 @@ export async function PATCH(req: Request) {
     value: JSON.stringify(value),
     updated_at: new Date().toISOString(),
   }))
+
+  if (body.data.ai_direct_fallback === 1) {
+    updates.push({ key: 'ai_direct_fallback_enabled_at', value: String(Math.floor(Date.now() / 1000)), updated_at: new Date().toISOString() })
+  }
 
   const { error } = await supabase.from('app_settings').upsert(updates, { onConflict: 'key' })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

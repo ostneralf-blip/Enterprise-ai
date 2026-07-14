@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 import { createHash } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getFallbackEnabled, getFallbackEnabledAt } from '@/lib/app-settings'
 
 // Alle Infra-Parameter über Env-Vars konfigurierbar — Änderung ohne Deploy
 const REGION          = process.env.BEDROCK_REGION ?? 'eu-west-1'
@@ -159,14 +160,28 @@ export async function callLLM<T>(
     }
     console.error('[ai/client] Bedrock-Fehler:', errorCode, err)
 
-    // Produktions-Guard: Fallback darf in production nie greifen — nur zur Laufzeit prüfen (nicht Build-Zeit)
-    if (ALLOW_FALLBACK && process.env.VERCEL_ENV === 'production') {
-      Sentry.captureMessage('ALLOW_NON_EU_AI_FALLBACK=true in production — Env-Var entfernen!', { level: 'fatal', tags: { region: REGION, model: modelId } })
+    // Fallback aktiv wenn env-Flag ODER Admin-Toggle gesetzt
+    const dbFallback = await getFallbackEnabled()
+    const shouldFallback = ALLOW_FALLBACK || dbFallback
+    if (!shouldFallback) {
+      console.warn('[ai/client] Kein Fallback: weder ALLOW_NON_EU_AI_FALLBACK noch Admin-Toggle aktiv')
       return noData('bedrock', errorCode)
     }
-    // Direkter Anthropic-Fallback — nur wenn explizit via ALLOW_NON_EU_AI_FALLBACK aktiviert
-    if (!ALLOW_FALLBACK) { console.warn('[ai/client] Kein Fallback: ALLOW_NON_EU_AI_FALLBACK nicht gesetzt'); return noData('bedrock', errorCode) }
-    if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt in Env-Vars'); return noData('bedrock', errorCode) }
+    if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt'); return noData('bedrock', errorCode) }
+    // Info-Log in Production (kein Hard-Block mehr — Admin hat bewusst aktiviert)
+    if (process.env.VERCEL_ENV === 'production') {
+      Sentry.captureMessage('AI Direct Fallback aktiv in Production', {
+        level: 'info',
+        tags: { source: dbFallback ? 'admin_toggle' : 'env', model: modelId, region: REGION },
+      })
+      const enabledAt = await getFallbackEnabledAt()
+      if (enabledAt && (Date.now() - enabledAt.getTime()) > 14 * 24 * 60 * 60 * 1000) {
+        Sentry.captureMessage('AI Fallback seit >14 Tagen aktiv — zurückschalten sobald Bedrock verfügbar', {
+          level: 'warning',
+          tags: { days_active: String(Math.round((Date.now() - enabledAt.getTime()) / 86400000)) },
+        })
+      }
+    }
     console.info('[ai/client] Anthropic-Direktfallback wird versucht...')
   }
 
