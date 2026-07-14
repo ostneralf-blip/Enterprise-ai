@@ -9,6 +9,7 @@ import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
@@ -709,10 +710,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   // PostHog: eam_validation — fires whenever EAM validation recomputes in result view
   useEffect(() => {
     if (view !== 'result' || !result || resultAudience === 'exec') return
-    const eamFallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-    const eamEffectiveNames = activeComponentNames.size > 0 ? activeComponentNames : eamFallbackNames
-    const activeCompsForEam = recComponents.filter(c => eamEffectiveNames.has(c.name))
-    const eamRes = runEamValidation(rasic ?? undefined, activeCompsForEam, answers.compliance)
+    const phStats = getSelectionStats({
+      activeComponentNames,
+      fallbackNames: catalogRecs?.layers.flatMap(lr => lr.componentNames),
+      components: recComponents,
+    })
+    const eamRes = runEamValidation(rasic ?? undefined, phStats.activeComponents, answers.compliance, phStats.activeCount)
     ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
       .posthog?.capture('eam_validation', {
         passed_count: eamRes.filter(r => r.passed).length,
@@ -730,8 +733,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAnswers(prev => ({ ...prev, [step.id]: optionId }))
   }
 
-  function applyRecs(wizardAnswers: WizardAnswers, loadedCatalog?: CatalogComponent[], savedRasic?: RasicMatrix | null) {
+  function applyRecs(wizardAnswers: WizardAnswers, loadedCatalog?: CatalogComponent[], savedRasic?: RasicMatrix | null, savedSelection?: string[]) {
     const catalog = loadedCatalog ?? recComponents
+    // #182 Lazy-Migration: gespeicherte Auswahl gewinnt gegen frisch berechnete
+    // Empfehlungen; Alt-Datensätze ohne selectedComponents fallen auf die Empfehlung zurück.
+    const applySelection = (recNames: Set<string>) =>
+      setActiveComponentNames(savedSelection && savedSelection.length > 0 ? new Set(savedSelection) : recNames)
     let recs: CatalogRecommendations
     if (catalog.length > 0) {
       recs = recommendFromCatalog(wizardAnswers, catalog)
@@ -740,7 +747,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       recs = recommendFromWizard(wizardAnswers)
       setCatalogRecs(recs)
     }
-    setActiveComponentNames(new Set(recs.layers.flatMap(lr => lr.componentNames)))
+    applySelection(new Set(recs.layers.flatMap(lr => lr.componentNames)))
     setJouleUseCases(recommendJouleUseCases(
       wizardAnswers,
       assessmentContext?.archetype ?? null,
@@ -769,12 +776,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             if (!hasSAPLayer) {
               const fallbackRecs = recommendFromWizard(wizardAnswers)
               setCatalogRecs(fallbackRecs)
-              setActiveComponentNames(new Set(fallbackRecs.layers.flatMap(lr => lr.componentNames)))
+              applySelection(new Set(fallbackRecs.layers.flatMap(lr => lr.componentNames)))
             }
             // hasSAPLayer=true → Phase-1-Recs bleiben unverändert (kein setCatalogRecs)
           } else {
             setCatalogRecs(catalogResult)
-            setActiveComponentNames(new Set(catalogResult.layers.flatMap(lr => lr.componentNames)))
+            applySelection(new Set(catalogResult.layers.flatMap(lr => lr.componentNames)))
           }
           if (canvasContext) {
             setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded, synonyms))
@@ -854,20 +861,25 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAiUsageArch(null)
     setAiModel(null)
     setView('result')
-    applyRecs(arch.wizard_data, undefined, arch.result.rasic ?? null)
-    const saved = arch.result as unknown as { componentOwners?: Record<string, string>; componentOpsNotes?: Record<string, string> }
+    const saved = arch.result as unknown as { componentOwners?: Record<string, string>; componentOpsNotes?: Record<string, string>; selectedComponents?: string[] }
+    // #182 Lazy-Migration: fehlt rasic im Alt-Datensatz, wird er in applyRecs
+    // regeneriert statt „nicht generiert" zu melden (undefined ⇒ generateRasic);
+    // fehlende selectedComponents fallen auf die Empfehlungen zurück.
+    applyRecs(arch.wizard_data, undefined, arch.result.rasic, saved.selectedComponents)
     setComponentOwners(saved.componentOwners ?? {})
     setComponentOpsNotes(saved.componentOpsNotes ?? {})
+    setComponentSources(arch.result.componentSources ?? {})
   }
 
   const handleAINarrative = async (audienceOverride?: ResultAudience) => {
     if (!savedId) return
     setAiNarrativeError(null)
     setNarrativeLoading(true)
-    const effectiveNames = activeComponentNames.size > 0
-      ? activeComponentNames
-      : new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-    const components = recComponents.filter(c => effectiveNames.has(c.name)).map(c => c.name)
+    const components = getSelectionStats({
+      activeComponentNames,
+      fallbackNames: catalogRecs?.layers.flatMap(lr => lr.componentNames),
+      components: recComponents,
+    }).activeComponents.map(c => c.name)
     const roles = rolesCatalog.map(r => r.role_name).slice(0, 10)
     const res = await fetch(`/api/architecture/${savedId}/ai-narrative`, {
       method: 'POST',
@@ -912,7 +924,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const res = await fetch('/api/architecture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, componentSources, componentOwners, componentOpsNotes } }),
+        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, rasic: rasic ?? result.rasic, selectedComponents: [...activeComponentNames], componentSources, componentOwners, componentOpsNotes } }),
       })
       if (res.ok) {
         const { data } = await res.json()
@@ -1056,18 +1068,23 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       if (toAccept.length > 0) setAiAccepted(prev => [...prev, ...toAccept.filter(n => !prev.includes(n))])
       setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
     }
-    // EAM-Berechnungen — VOR dem return-Statement
-    const eamFallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-    const eamEffectiveNames = activeComponentNames.size > 0 ? activeComponentNames : eamFallbackNames
-    const activeCompsForEam = recComponents.filter(c => eamEffectiveNames.has(c.name))
+    // Gate D (#182): EINE Selektor-Instanz für den gesamten Ergebnis-Screen —
+    // Validierung, Workbench, Panel, Landkarte und DSGVO-Warnung lesen dieselbe Quelle.
+    const selStats = getSelectionStats({
+      activeComponentNames,
+      fallbackNames: catalogRecs?.layers.flatMap(lr => lr.componentNames),
+      components: recComponents,
+      aiSuggestions: aiNarrative?.component_suggestions,
+      rejectedSuggestions: result.rejected_suggestions,
+      acceptedSuggestions: aiAccepted,
+    })
+    const activeCompsForEam = selStats.activeComponents
     const eamResults = resultAudience !== 'exec'
-      ? runEamValidation(rasic ?? undefined, activeCompsForEam, answers.compliance)
+      ? runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount)
       : []
 
     // Key Decisions + Next Steps — VOR dem return-Statement (für DnD-Mapping)
-    const kpFallback = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-    const kpEffective = activeComponentNames.size > 0 ? activeComponentNames : kpFallback
-    const kpComponents = recComponents.filter(c => kpEffective.has(c.name))
+    const kpComponents = selStats.activeComponents
     const kpDecisions = generateDynamicKeyDecisions(kpComponents)
     const kpSteps = generateDynamicNextSteps(kpComponents)
     const kpCrossDecisions = generateCrossModuleDecisions({
@@ -1154,9 +1171,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* DSGVO-Warnung bei bedingter Konformität — nur Komponenten die im Diagramm aktiv sind */}
         {(() => {
-          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
-          const conditionalComps = recComponents.filter(c => c.dsgvo_status === 'conditional' && effectiveNames.has(c.name))
+          const conditionalComps = selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')
           if (conditionalComps.length === 0) return null
           return (
             <div role="alert" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5">
@@ -1267,9 +1282,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                 }
                 if (sectionId === 'eam') {
                   if (resultAudience === 'exec' && catalogRecs) {
-                    const fallbackNamesLk = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
-                    const effectiveNamesLk = activeComponentNames.size > 0 ? activeComponentNames : fallbackNamesLk
-                    const eamOk = runEamValidation(rasic ?? undefined, recComponents.filter(c => effectiveNamesLk.has(c.name)), answers.compliance).every(r => r.passed)
+                    const effectiveNamesLk = selStats.effectiveNames
+                    const eamOk = runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount).every(r => r.passed)
                     return (
                       <SortableSection key="eam" id="eam">
                         <div className="space-y-4">
@@ -1295,10 +1309,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       <SortableSection key="eam" id="eam">
                         <EamMap
                           result={result}
-                          activeComponents={recComponents.filter(c => activeComponentNames.size > 0
-                            ? activeComponentNames.has(c.name)
-                            : (catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? []).includes(c.name)
-                          )}
+                          activeComponents={selStats.activeComponents}
                           componentSources={componentSources}
                           eamResults={eamResults}
                           roleNames={catalogRecs?.roleNames ?? []}
@@ -1420,6 +1431,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             onOpsNotesChange={(name, notes) => setComponentOpsNotes(prev => ({ ...prev, [name]: notes }))}
             roleNames={catalogRecs?.roleNames ?? []}
             forceOpenTab={workbenchForceTab}
+            rejectedSuggestions={result.rejected_suggestions ?? []}
+            acceptedSuggestions={aiAccepted}
           />
         )}
 
