@@ -95,7 +95,8 @@ Return this exact JSON structure:
   "component_suggestions": ["ComponentName1", "ComponentName2"]
 }`
 
-  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'sonnet', maxTokens: 1024 })
+  // haiku: Bedrock EU-Profil verifiziert (claude-haiku-4-5). Sonnet-Profil ausstehend (#148).
+  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'haiku', maxTokens: 1024 })
 
   // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
   if (!result) {
