@@ -386,7 +386,7 @@ export interface EamValidationResult {
 const CROSS_CUTTING_KEYWORDS = ['monitor', 'gateway', 'hitl', 'audit', 'grafana', 'evidently', 'kong', 'observ']
 
 export function validateRasicAccountability(rasic: RasicMatrix | undefined): EamValidationResult {
-  const ruleId = 'r1'; const anchor = 'rasic-matrix'
+  const ruleId = 'r1'; const anchor = 'rasic'
   if (!rasic) return { ruleId, anchor, passed: false, message: { de: 'RASIC-Matrix nicht generiert', en: 'RASIC matrix not generated' } }
 
   const violations: RasicPhase[] = []
@@ -438,7 +438,7 @@ export function validateComponentOwners(
   rasic: RasicMatrix | undefined,
   activeComponents: CatalogComponent[]
 ): EamValidationResult {
-  const ruleId = 'r2'; const anchor = 'rasic-matrix'
+  const ruleId = 'r2'; const anchor = 'rasic'
   if (!rasic || activeComponents.length === 0) {
     return { ruleId, anchor, passed: true, message: { de: 'Keine Komponenten aktiv', en: 'No active components' } }
   }

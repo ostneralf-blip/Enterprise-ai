@@ -1539,16 +1539,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const rejected = result?.rejected_suggestions ?? []
     const handleAcceptAI = (name: string) => {
       const comp = recComponents.find(c => c.name === name)
-      if (!comp || !comp.architecture_layer) return
-      setCatalogRecs(prev => {
-        if (!prev) return prev
-        const layers = prev.layers.map(lr =>
-          lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
-            ? { ...lr, componentNames: [...lr.componentNames, name] }
-            : lr
-        )
-        return { ...prev, layers }
-      })
+      // Add to layer only when architecture_layer is known — visual feedback always fires
+      if (comp?.architecture_layer) {
+        setCatalogRecs(prev => {
+          if (!prev) return prev
+          const layers = prev.layers.map(lr =>
+            lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+              ? { ...lr, componentNames: [...lr.componentNames, name] }
+              : lr
+          )
+          return { ...prev, layers }
+        })
+      }
       setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
       setAiAccepted(prev => prev.includes(name) ? prev : [...prev, name])
       setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
@@ -1560,16 +1562,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const toAccept: string[] = []
       suggestions.filter(n => !rejSet.has(n) && !acceptedSet.has(n)).forEach(name => {
         const comp = recComponents.find(c => c.name === name)
-        if (!comp || !comp.architecture_layer) return
-        setCatalogRecs(prev => {
-          if (!prev) return prev
-          const layers = prev.layers.map(lr =>
-            lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
-              ? { ...lr, componentNames: [...lr.componentNames, name] }
-              : lr
-          )
-          return { ...prev, layers }
-        })
+        if (comp?.architecture_layer) {
+          setCatalogRecs(prev => {
+            if (!prev) return prev
+            const layers = prev.layers.map(lr =>
+              lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+                ? { ...lr, componentNames: [...lr.componentNames, name] }
+                : lr
+            )
+            return { ...prev, layers }
+          })
+        }
         setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
         toAccept.push(name)
       })
