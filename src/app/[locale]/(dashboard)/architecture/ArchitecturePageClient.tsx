@@ -605,6 +605,10 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
   )
 }
 
+const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'joule', 'rasic', 'decisions'] as const
+type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
+const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
+
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
@@ -662,9 +666,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [componentOpsNotes, setComponentOpsNotes] = useState<Record<string, string>>({})
   const [workbenchForceTab, setWorkbenchForceTab] = useState<'komponenten' | null>(null)
 
-  const DEFAULT_RESULT_SECTIONS = ['joule', 'decisions', 'rasic'] as const
-  type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
-  const [resultSectionOrder, setResultSectionOrder] = useState<ResultSectionId[]>([...DEFAULT_RESULT_SECTIONS])
+  const [resultSectionOrder, setResultSectionOrder] = useState<ResultSectionId[]>(() => {
+    if (typeof window === 'undefined') return [...DEFAULT_RESULT_SECTIONS]
+    try {
+      const stored = localStorage.getItem(SECTION_ORDER_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as string[]
+        const valid = parsed.filter((id): id is ResultSectionId =>
+          (DEFAULT_RESULT_SECTIONS as readonly string[]).includes(id)
+        )
+        if (valid.length === DEFAULT_RESULT_SECTIONS.length) return valid
+      }
+    } catch {}
+    return [...DEFAULT_RESULT_SECTIONS]
+  })
   const dndSensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -677,6 +692,10 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
     }
   }, [view])
+
+  useEffect(() => {
+    localStorage.setItem(SECTION_ORDER_KEY, JSON.stringify(resultSectionOrder))
+  }, [resultSectionOrder])
 
   // PostHog: eam_validation — fires whenever EAM validation recomputes in result view
   useEffect(() => {
@@ -1124,78 +1143,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </div>
         )}
 
-        {/* Pattern card */}
-        <div className={cn('rounded-2xl border p-5 sm:p-6', result.color.bg, result.color.border)}>
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', result.color.badge)}>
-              {t('architecture.patternBadge')}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <h2 className={cn('text-base sm:text-lg font-semibold min-w-0', result.color.title)}>{result.pattern}</h2>
-            {patternReasons.length > 0 && (
-              <InfoHint title={t('architecture.patternWhyTitle')} side="bottom">
-                <ul className="space-y-1">
-                  {patternReasons.map((r, i) => (
-                    <li key={i} className="flex gap-1.5">
-                      <span className="text-primary font-medium flex-shrink-0">✓</span>
-                      <span className="min-w-0">{pick(r, locale)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </InfoHint>
-            )}
-          </div>
-          <p className="text-sm text-slate-600">{result.summary}</p>
-        </div>
-
-        {/* Bereich 1 — Architecture Map: Exec zeigt ArchitekturLandkarte, alle anderen EamMap (#179) */}
-        {resultAudience === 'exec' && catalogRecs && (() => {
-          const fallbackNamesLk = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
-          const effectiveNamesLk = activeComponentNames.size > 0 ? activeComponentNames : fallbackNamesLk
-          const eamOk = runEamValidation(rasic ?? undefined, recComponents.filter(c => effectiveNamesLk.has(c.name)), answers.compliance).every(r => r.passed)
-          return (
-            <ArchitekturLandkarte
-              catalogRecs={catalogRecs}
-              components={recComponents}
-              activeNames={effectiveNamesLk}
-              aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
-              complianceMode={false}
-              execMode={true}
-              level={resultLevel}
-              answers={answers}
-              useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
-              eamValid={eamOk}
-            />
-          )
-        })()}
-
-        {resultAudience !== 'exec' && (
-          <EamMap
-            result={result}
-            activeComponents={recComponents.filter(c => activeComponentNames.size > 0
-              ? activeComponentNames.has(c.name)
-              : (catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? []).includes(c.name)
-            )}
-            componentSources={componentSources}
-            eamResults={eamResults}
-            roleNames={catalogRecs?.roleNames ?? []}
-            detailLevel={resultLevel}
-            locale={locale}
-          />
-        )}
-
-        {/* Exec: Empfehlungskarte */}
-        {resultAudience === 'exec' && (
-          <ExecRecommendationCard result={result} />
-        )}
-
-        {/* Kosten-Indikator direkt nach Karte/Einordnung (#166) */}
-        {resultAudience !== 'exec' && (
-          <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
-        )}
-
-
         {/* DSGVO-Warnung bei bedingter Konformität — nur Komponenten die im Diagramm aktiv sind */}
         {(() => {
           const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
@@ -1254,7 +1201,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </div>
         )}
 
-        {/* Drag&Drop Sektionen — Reihenfolge änderbar (Joule, Key Decisions, RASIC) */}
+        {/* Drag&Drop Sektionen — vollständig umsortierbar (#166): Pattern, EAM-Karte, Kosten, Joule, RASIC, Key Decisions */}
         <DndContext
           sensors={dndSensors}
           collisionDetection={closestCenter}
@@ -1272,6 +1219,88 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <SortableContext items={resultSectionOrder} strategy={verticalListSortingStrategy}>
             <div className="space-y-6 md:pl-6">
               {resultSectionOrder.map(sectionId => {
+                if (sectionId === 'cost') {
+                  if (resultAudience === 'exec') return null
+                  return (
+                    <SortableSection key="cost" id="cost">
+                      <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
+                    </SortableSection>
+                  )
+                }
+                if (sectionId === 'pattern') {
+                  return (
+                    <SortableSection key="pattern" id="pattern">
+                      <div className={cn('rounded-2xl border p-5 sm:p-6', result.color.bg, result.color.border)}>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className={cn('text-xs font-semibold px-2.5 py-0.5 rounded-full', result.color.badge)}>
+                            {t('architecture.patternBadge')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <h2 className={cn('text-base sm:text-lg font-semibold min-w-0', result.color.title)}>{result.pattern}</h2>
+                          {patternReasons.length > 0 && (
+                            <InfoHint title={t('architecture.patternWhyTitle')} side="bottom">
+                              <ul className="space-y-1">
+                                {patternReasons.map((r, i) => (
+                                  <li key={i} className="flex gap-1.5">
+                                    <span className="text-primary font-medium flex-shrink-0">✓</span>
+                                    <span className="min-w-0">{pick(r, locale)}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </InfoHint>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600">{result.summary}</p>
+                      </div>
+                    </SortableSection>
+                  )
+                }
+                if (sectionId === 'eam') {
+                  if (resultAudience === 'exec' && catalogRecs) {
+                    const fallbackNamesLk = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
+                    const effectiveNamesLk = activeComponentNames.size > 0 ? activeComponentNames : fallbackNamesLk
+                    const eamOk = runEamValidation(rasic ?? undefined, recComponents.filter(c => effectiveNamesLk.has(c.name)), answers.compliance).every(r => r.passed)
+                    return (
+                      <SortableSection key="eam" id="eam">
+                        <div className="space-y-4">
+                          <ArchitekturLandkarte
+                            catalogRecs={catalogRecs}
+                            components={recComponents}
+                            activeNames={effectiveNamesLk}
+                            aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
+                            complianceMode={false}
+                            execMode={true}
+                            level={resultLevel}
+                            answers={answers}
+                            useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
+                            eamValid={eamOk}
+                          />
+                          <ExecRecommendationCard result={result} />
+                        </div>
+                      </SortableSection>
+                    )
+                  }
+                  if (resultAudience !== 'exec') {
+                    return (
+                      <SortableSection key="eam" id="eam">
+                        <EamMap
+                          result={result}
+                          activeComponents={recComponents.filter(c => activeComponentNames.size > 0
+                            ? activeComponentNames.has(c.name)
+                            : (catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? []).includes(c.name)
+                          )}
+                          componentSources={componentSources}
+                          eamResults={eamResults}
+                          roleNames={catalogRecs?.roleNames ?? []}
+                          detailLevel={resultLevel}
+                          locale={locale}
+                        />
+                      </SortableSection>
+                    )
+                  }
+                  return null
+                }
                 if (sectionId === 'joule') {
                   return resultAudience !== 'exec' ? (
                     <SortableSection key="joule" id="joule">
@@ -1353,6 +1382,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             </div>
           </SortableContext>
         </DndContext>
+        <div className="flex justify-end">
+          <button
+            onClick={() => setResultSectionOrder([...DEFAULT_RESULT_SECTIONS])}
+            className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+          >
+            {t('architecture.resetSectionOrder')}
+          </button>
+        </div>
 
         {/* Bereich 2 — Technical Architecture Workbench (#179): 3 Tabs, nur Architektur-Sicht */}
         {resultAudience === 'architect' && catalogRecs && (

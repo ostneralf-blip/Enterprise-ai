@@ -765,7 +765,8 @@
       "presentationTemplateBoard": "Boardroom",
       "presentationTemplateBlueprint": "Blueprint",
       "presentationFullscreen": "Vollbild",
-      "presentationExit": "Beenden"
+      "presentationExit": "Beenden",
+      "resetSectionOrder": "Reihenfolge zurücksetzen"
     },
     "roadmap": {
       "title": "Roadmap-Generator",
