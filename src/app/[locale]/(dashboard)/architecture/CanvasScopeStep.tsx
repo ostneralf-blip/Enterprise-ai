@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function CanvasScopeStep({ initialCanvasId, locale, onConfirm, onSkip }: Props) {
-  const t = useTranslations('architecture')
+  const t = useTranslations('modules.architecture')
   const [canvases, setCanvases] = useState<Canvas[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())

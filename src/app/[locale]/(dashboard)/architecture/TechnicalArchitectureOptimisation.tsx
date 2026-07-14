@@ -25,7 +25,7 @@ export function TechnicalArchitectureOptimisation({
   aiSuggestions = [],
   locale,
 }: Props) {
-  const t = useTranslations('architecture')
+  const t = useTranslations('modules.architecture')
 
   const [open, setOpen] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -43,6 +43,16 @@ export function TechnicalArchitectureOptimisation({
   const openSuggestions = aiSuggestions.filter(s => !effective.has(s))
 
   const hasIssues = conflicts.length > 0 || openSuggestions.length > 0
+
+  const layerLabel = (layer: string): string => ({
+    data: t('layerData'),
+    model: t('layerModel'),
+    serving: t('layerServing'),
+    mlops: t('layerMlops'),
+    application: t('layerApplication'),
+    governance: t('layerGovernance'),
+    security: t('layerSecurity'),
+  } as Record<string, string>)[layer] ?? layer
 
   const toggle = (name: string, checked: boolean) => {
     const next = new Set(effective)
@@ -91,7 +101,7 @@ export function TechnicalArchitectureOptimisation({
             return (
               <div key={layer.layer} className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{layer.layer}</span>
+                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{layerLabel(layer.layer)}</span>
                   <span className="text-xs text-slate-400">
                     {t('techOptLayerCount', { selected: selectedInLayer, total: layerComps.length })}
                   </span>
