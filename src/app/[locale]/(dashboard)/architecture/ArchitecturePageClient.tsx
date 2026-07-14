@@ -22,6 +22,7 @@ import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/li
 import { mergeCanvasContexts } from '@/lib/utils/merge-canvas-contexts'
 import { CanvasScopeStep } from './CanvasScopeStep'
 import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
+import { ArchitectureWorkbench } from './ArchitectureWorkbench'
 import {
   DndContext,
   closestCenter,
@@ -1143,20 +1144,19 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           <p className="text-sm text-slate-600">{result.summary}</p>
         </div>
 
-        {/* EAM-Architektur-Landkarte — alle Sichten */}
-        {catalogRecs && (() => {
+        {/* Bereich 1 — Architecture Map: Exec zeigt ArchitekturLandkarte, alle anderen EamMap (#179) */}
+        {resultAudience === 'exec' && catalogRecs && (() => {
           const fallbackNamesLk = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
           const effectiveNamesLk = activeComponentNames.size > 0 ? activeComponentNames : fallbackNamesLk
-          const eamActiveComps = recComponents.filter(c => effectiveNamesLk.has(c.name))
-          const eamOk = runEamValidation(rasic ?? undefined, eamActiveComps, answers.compliance).every(r => r.passed)
+          const eamOk = runEamValidation(rasic ?? undefined, recComponents.filter(c => effectiveNamesLk.has(c.name)), answers.compliance).every(r => r.passed)
           return (
             <ArchitekturLandkarte
               catalogRecs={catalogRecs}
               components={recComponents}
               activeNames={effectiveNamesLk}
               aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
-              complianceMode={resultAudience === 'compliance'}
-              execMode={resultAudience === 'exec'}
+              complianceMode={false}
+              execMode={true}
               level={resultLevel}
               answers={answers}
               useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
@@ -1165,7 +1165,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           )
         })()}
 
-        {/* EAM-Landkarte (5-Band ArchiMate) — Architekt- und Compliance-Sicht */}
         {resultAudience !== 'exec' && (
           <EamMap
             result={result}
@@ -1181,104 +1180,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           />
         )}
 
-        {/* Exec: Empfehlungskarte (statt Detail-Sections) */}
+        {/* Exec: Empfehlungskarte */}
         {resultAudience === 'exec' && (
           <ExecRecommendationCard result={result} />
         )}
 
-        {/* Kosten-Indikator — nicht in Exec-Sicht (dort im KPI-Strip) */}
+        {/* Kosten-Indikator direkt nach Karte/Einordnung (#166) */}
         {resultAudience !== 'exec' && (
           <CostIndicationCard patternId={result.patternId} companySize={answers.company_size} locale={locale} />
-        )}
-
-        {/* Komponenten-Auswahl + EAM-Architektur-Diagramm — nicht in Exec-Sicht */}
-        {resultAudience !== 'exec' && catalogRecs && (
-          <div id="catalog-recs">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-sm font-semibold text-slate-900">{t('architecture.componentPickerTitle')}</h3>
-              <span className="text-xs text-slate-400">{t('architecture.componentPickerHint')}</span>
-            </div>
-            <ArchitectureDiagram
-              key={catalogRecs.layers.map(l => l.layer).join('|')}
-              recs={catalogRecs}
-              components={recComponents}
-              tier={tier}
-              pattern={result?.pattern}
-              archetype={assessmentContext?.archetype ? (ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype) : undefined}
-              level={resultLevel}
-              initialChecked={activeComponentNames.size > 0 ? activeComponentNames : new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))}
-              onCheckedChange={setActiveComponentNames}
-            />
-            {(() => {
-              const fallbackNames = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
-              const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
-              const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
-              const conflicts = findConflicts(effectiveNames, byName)
-              if (conflicts.length === 0) return null
-              return (
-                <div className="mt-3 space-y-2">
-                  {conflicts.map(({ a, b, alternatives }) => {
-                    const key = [a, b].sort().join('|')
-                    const showAlts = resultShowAltFor.has(key)
-                    const explanation = explainConflict(a, b, byName)
-                    return (
-                      <div key={key} className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-amber-800">{locale === 'de' ? explanation.de : explanation.en}</p>
-                          {alternatives.length > 0 && (
-                            <button
-                              onClick={() => setResultShowAltFor(prev => {
-                                const next = new Set(prev)
-                                showAlts ? next.delete(key) : next.add(key)
-                                return next
-                              })}
-                              className="shrink-0 text-xs text-amber-700 underline whitespace-nowrap"
-                            >
-                              {t('architecture.conflictShowAlts')}
-                            </button>
-                          )}
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {[a, b].map(name => (
-                            <button
-                              key={name}
-                              onClick={() => {
-                                const next = new Set(effectiveNames)
-                                next.delete(name)
-                                setActiveComponentNames(next)
-                              }}
-                              className="text-xs text-red-600 underline"
-                            >
-                              {name} {t('architecture.conflictRemove')}
-                            </button>
-                          ))}
-                        </div>
-                        {showAlts && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {alternatives.map(alt => (
-                              <button
-                                key={alt}
-                                onClick={() => {
-                                  const next = new Set(effectiveNames)
-                                  next.delete(a)
-                                  next.add(alt)
-                                  setActiveComponentNames(next)
-                                  setResultShowAltFor(prev => { const n = new Set(prev); n.delete(key); return n })
-                                }}
-                                className="text-xs rounded border border-slate-300 bg-white px-2 py-0.5 hover:bg-slate-50"
-                              >
-                                {alt}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })()}
-          </div>
         )}
 
 
@@ -1439,14 +1348,19 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </SortableContext>
         </DndContext>
 
-        {/* Technical Architecture Optimisation — nur Architektur-Sicht, nur wenn Katalog geladen */}
+        {/* Bereich 2 — Technical Architecture Workbench (#179): 3 Tabs, nur Architektur-Sicht */}
         {resultAudience === 'architect' && catalogRecs && (
-          <TechnicalArchitectureOptimisation
+          <ArchitectureWorkbench
             catalogRecs={catalogRecs}
             recComponents={recComponents}
             activeComponentNames={activeComponentNames}
             onCheckedChange={setActiveComponentNames}
             aiSuggestions={aiNarrative?.component_suggestions ?? []}
+            componentSources={componentSources}
+            aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
+            level={resultLevel}
+            answers={answers}
+            useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
             locale={locale}
           />
         )}
@@ -1631,21 +1545,25 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           locale={locale}
         />
         {(aiNarrative || aiUsageArch) && (
-          <AIPanel
-            narrative={aiNarrative}
-            usage={aiUsageArch}
-            aiModel={aiModel}
-            generatedAt={aiGeneratedAt}
-            tier={tier}
-            catalogComponents={recComponents}
-            rejectedSuggestions={rejected}
-            acceptedSuggestions={aiAccepted}
-            canvasEnrichment={pickerEnrichment}
-            onAccept={handleAcceptAI}
-            onReject={handleRejectAI}
-            onAcceptAll={handleAcceptAllAI}
-            onScrollToFirst={handleScrollToFirstAI}
-          />
+          <div className="lg:sticky lg:top-[74px]">
+            <AIPanel
+              narrative={aiNarrative}
+              usage={aiUsageArch}
+              aiModel={aiModel}
+              generatedAt={aiGeneratedAt}
+              tier={tier}
+              catalogComponents={recComponents}
+              rejectedSuggestions={rejected}
+              acceptedSuggestions={aiAccepted}
+              canvasEnrichment={pickerEnrichment}
+              onAccept={handleAcceptAI}
+              onReject={handleRejectAI}
+              onAcceptAll={handleAcceptAllAI}
+              onScrollToFirst={handleScrollToFirstAI}
+              onReanalyze={handleAINarrative}
+              loading={narrativeLoading}
+            />
+          </div>
         )}
       </div>
     )

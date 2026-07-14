@@ -1,0 +1,195 @@
+'use client'
+import { useState } from 'react'
+import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
+import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
+import { ArchitekturLandkarte } from './ArchitekturLandkarte'
+import type { CatalogComponent } from '@/types'
+import type { CatalogRecommendations } from '@/config/architecture-rules'
+import type { WizardAnswers } from '@/config/architecture-data'
+import { findConflicts } from '@/lib/utils/catalog-compatibility'
+
+type Tab = 'komponenten' | 'diagramm' | 'katalog'
+const LS_OPEN = 'arch_workbench_open_v1'
+const LS_TAB  = 'arch_workbench_tab_v1'
+
+interface Props {
+  catalogRecs: CatalogRecommendations
+  recComponents: CatalogComponent[]
+  activeComponentNames: Set<string>
+  onCheckedChange: (next: Set<string>) => void
+  aiSuggestions: string[]
+  componentSources: Record<string, 'rule' | 'ai' | 'manual'>
+  aiSuggested: Set<string>
+  level: 1 | 2 | 3
+  answers: WizardAnswers
+  useCaseName: string | null
+  locale: string
+}
+
+export function ArchitectureWorkbench({
+  catalogRecs, recComponents, activeComponentNames, onCheckedChange,
+  aiSuggestions, componentSources, aiSuggested, level, answers, useCaseName, locale,
+}: Props) {
+  const t = useTranslations('modules.architecture')
+  const [open, setOpen] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem(LS_OPEN) === 'true'
+  })
+  const [tab, setTab] = useState<Tab>(() => {
+    if (typeof window === 'undefined') return 'komponenten'
+    return (localStorage.getItem(LS_TAB) as Tab | null) ?? 'komponenten'
+  })
+  const [search, setSearch] = useState('')
+
+  const fallback = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
+  const effective = activeComponentNames.size > 0 ? activeComponentNames : fallback
+  const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
+  const conflicts = findConflicts(effective, byName)
+  const openSuggestions = aiSuggestions.filter(s => !effective.has(s))
+  const hasBadge = openSuggestions.length > 0 || conflicts.length > 0
+
+  const handleToggle = () => {
+    setOpen(v => {
+      const next = !v
+      localStorage.setItem(LS_OPEN, String(next))
+      if (next) (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('workbench_opened')
+      return next
+    })
+  }
+
+  const handleTab = (t: Tab) => {
+    setTab(t)
+    localStorage.setItem(LS_TAB, t)
+    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('workbench_tab', { tab: t })
+  }
+
+  const filtered = search.trim()
+    ? recComponents.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        (c.vendor ?? '').toLowerCase().includes(search.toLowerCase())
+      )
+    : recComponents
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: 'komponenten', label: t('workbenchTabKomponenten') },
+    { id: 'diagramm',    label: t('workbenchTabDiagramm') },
+    { id: 'katalog',     label: t('workbenchTabKatalog') },
+  ]
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">{t('workbenchTitle')}</span>
+          <span className="text-xs text-slate-400 truncate">
+            {effective.size} {t('workbenchSummaryComponents')}
+            {openSuggestions.length > 0 && ` · ${openSuggestions.length} ${t('workbenchSummarySuggestions')}`}
+            {conflicts.length > 0 && ` · ${conflicts.length} ${t('workbenchSummaryConflicts')}`}
+          </span>
+          {hasBadge && (
+            <span className="shrink-0 text-[10px] font-bold text-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] px-1.5 py-0.5 rounded">◆</span>
+          )}
+        </div>
+        <svg className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <>
+          <div className="border-t border-slate-100 px-4 sm:px-6 flex gap-0">
+            {TABS.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => handleTab(id)}
+                className={cn(
+                  'px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
+                  tab === id ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="border-t border-slate-200 p-4 sm:p-6">
+            {tab === 'komponenten' && (
+              <TechnicalArchitectureOptimisation
+                catalogRecs={catalogRecs}
+                recComponents={recComponents}
+                activeComponentNames={activeComponentNames}
+                onCheckedChange={onCheckedChange}
+                aiSuggestions={aiSuggestions}
+                locale={locale}
+                embedded
+              />
+            )}
+
+            {tab === 'diagramm' && (
+              <ArchitekturLandkarte
+                catalogRecs={catalogRecs}
+                components={recComponents}
+                activeNames={effective}
+                aiSuggested={aiSuggested}
+                complianceMode={false}
+                execMode={false}
+                level={level}
+                answers={answers}
+                useCaseName={useCaseName}
+                eamValid={true}
+              />
+            )}
+
+            {tab === 'katalog' && (
+              <div className="space-y-3">
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder={t('workbenchCatalogSearch')}
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                />
+                <div className="divide-y divide-slate-100 max-h-[480px] overflow-y-auto">
+                  {filtered.map(comp => (
+                    <div key={comp.name} className="py-3 flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-slate-900">{comp.name}</span>
+                          {effective.has(comp.name) && (
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">{t('workbenchCatalogActive')}</span>
+                          )}
+                          {componentSources[comp.name] === 'ai' && (
+                            <span className="text-[10px] font-bold text-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] px-1.5 py-0.5 rounded">◆ KI</span>
+                          )}
+                        </div>
+                        {comp.vendor && <p className="text-xs text-slate-400 mt-0.5">{comp.vendor}</p>}
+                        {comp.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{comp.description}</p>}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const next = new Set(effective)
+                          effective.has(comp.name) ? next.delete(comp.name) : next.add(comp.name)
+                          onCheckedChange(next)
+                        }}
+                        className="shrink-0 text-xs px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
+                      >
+                        {effective.has(comp.name) ? t('workbenchCatalogRemove') : t('workbenchCatalogAdd')}
+                      </button>
+                    </div>
+                  ))}
+                  {filtered.length === 0 && (
+                    <p className="py-6 text-center text-sm text-slate-400">{t('workbenchCatalogEmpty')}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

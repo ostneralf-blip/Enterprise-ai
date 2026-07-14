@@ -15,6 +15,7 @@ interface Props {
   onCheckedChange: (next: Set<string>) => void
   aiSuggestions?: string[]
   locale: string
+  embedded?: boolean
 }
 
 export function TechnicalArchitectureOptimisation({
@@ -24,6 +25,7 @@ export function TechnicalArchitectureOptimisation({
   onCheckedChange,
   aiSuggestions = [],
   locale,
+  embedded = false,
 }: Props) {
   const t = useTranslations('modules.architecture')
 
@@ -60,40 +62,8 @@ export function TechnicalArchitectureOptimisation({
     onCheckedChange(next)
   }
 
-  return (
-    <section className="rounded-xl border border-slate-200 bg-white">
-      {/* Header / summary row */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{t('techOptTitle')}</span>
-          {hasIssues && (
-            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-              {conflicts.length > 0 && `${conflicts.length} ⚠`}
-              {openSuggestions.length > 0 && ` · ${openSuggestions.length} ◆`}
-            </span>
-          )}
-          <span className="truncate text-xs text-slate-400 min-w-0">
-            {hasIssues
-              ? t('techOptSummary', { components: effective.size, suggestions: openSuggestions.length, conflicts: conflicts.length })
-              : t('techOptSummaryClean', { components: effective.size })
-            }
-          </span>
-        </div>
-        <svg
-          className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {/* Expanded content */}
-      {open && (
-        <div className="border-t border-slate-100 px-4 py-4 space-y-4">
+  const content = (
+        <div className={cn('space-y-4', !embedded && 'border-t border-slate-100 px-4 py-4')}>
           {/* Layer blocks */}
           {catalogRecs.layers.map(layer => {
             const layerComps = layer.componentNames.map(n => byName[n]).filter(Boolean)
@@ -173,7 +143,40 @@ export function TechnicalArchitectureOptimisation({
             </div>
           )}
         </div>
-      )}
+  )
+
+  if (embedded) return content
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white">
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{t('techOptTitle')}</span>
+          {hasIssues && (
+            <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              {conflicts.length > 0 && `${conflicts.length} ⚠`}
+              {openSuggestions.length > 0 && ` · ${openSuggestions.length} ◆`}
+            </span>
+          )}
+          <span className="truncate text-xs text-slate-400 min-w-0">
+            {hasIssues
+              ? t('techOptSummary', { components: effective.size, suggestions: openSuggestions.length, conflicts: conflicts.length })
+              : t('techOptSummaryClean', { components: effective.size })
+            }
+          </span>
+        </div>
+        <svg
+          className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && content}
     </section>
   )
 }
