@@ -114,7 +114,9 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
                   </td>
                 ))}
                 <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">
-                  {uc.weighted_score?.toFixed(2)}
+                  {uc.weighted_score != null
+                    ? Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(uc.weighted_score)
+                    : '—'}
                 </td>
                 <td className="px-4 py-3">{quadrantBadge(uc.quadrant, locale)}</td>
                 <td className="px-4 py-3">

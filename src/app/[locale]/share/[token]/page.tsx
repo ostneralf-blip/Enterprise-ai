@@ -288,7 +288,7 @@ function AssessmentShareView({
         <p className="text-xs text-slate-500 mb-1">{t('archetype')}</p>
         <p className="text-2xl font-bold text-slate-900">{ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype}</p>
         <p className="text-sm text-slate-500 mt-3">{t('maturityScore')}</p>
-        <p className="text-4xl font-bold text-primary mt-1">{entity.total_score.toFixed(2)}</p>
+        <p className="text-4xl font-bold text-primary mt-1">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(entity.total_score)}</p>
         <p className="text-xs text-slate-400 mt-1">{t('outOf50')}</p>
       </div>
     </>
@@ -484,7 +484,7 @@ function UseCaseShareView({
                     <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap', qStyle.bg, qStyle.text)}>
                       {quadrantLabel(uc.quadrant, t)}
                     </span>
-                    <span className="text-sm font-semibold text-slate-700 tabular-nums">{uc.weighted_score.toFixed(1)}</span>
+                    <span className="text-sm font-semibold text-slate-700 tabular-nums">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(uc.weighted_score)}</span>
                   </div>
                 </li>
               )

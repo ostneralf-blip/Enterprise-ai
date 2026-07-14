@@ -1,3 +1,6 @@
+'use client'
+
+import { useLocale } from 'next-intl'
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
 
 interface RadarChartProps {
@@ -33,6 +36,7 @@ function tip(idx: number, total: number, scale = 1) {
 }
 
 export function RadarChart({ dimScores }: RadarChartProps) {
+  const locale = useLocale()
   const dims = ASSESSMENT_DIMENSIONS
   const n = dims.length
 
@@ -42,7 +46,7 @@ export function RadarChart({ dimScores }: RadarChartProps) {
     .join(' ') + ' Z'
 
   const ariaLabel = dims
-    .map(d => `${SHORT[d.id] ?? d.id} ${(dimScores[d.id] ?? 0).toFixed(1)} von 5`)
+    .map(d => `${SHORT[d.id] ?? d.id} ${Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(dimScores[d.id] ?? 0)} / 5`)
     .join(', ')
 
   return (

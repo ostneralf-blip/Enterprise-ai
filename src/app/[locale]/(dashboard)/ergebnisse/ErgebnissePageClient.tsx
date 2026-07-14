@@ -253,7 +253,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
-                    <span className="text-xs font-bold text-slate-900 shrink-0">{Number(a.total_score).toFixed(1)}/5.0</span>
+                    <span className="text-xs font-bold text-slate-900 shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a.total_score))}/5</span>
                     <span className="text-xs text-slate-400 shrink-0">{fmt(a.created_at)}</span>
                   </div>
                   {!compareMode && (
@@ -270,7 +270,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                       {Object.entries(a.dim_scores ?? {}).map(([dim, score]) => (
                         <div key={dim} className="text-xs flex justify-between">
                           <span className="text-slate-500">{DIM_LABELS[dim] ?? dim}</span>
-                          <span className="font-semibold text-slate-800">{Number(score).toFixed(1)}</span>
+                          <span className="font-semibold text-slate-800">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(score))}</span>
                         </div>
                       ))}
                     </div>
@@ -295,11 +295,11 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                 <div className="grid grid-cols-3 text-xs">
                   <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('dimensionCol')}</div>
                   <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
-                    {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Number(a1.total_score).toFixed(1)}
+                    {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a1.total_score))}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.created_at)}</div>
                   </div>
                   <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
-                    {ARCHETYPES[a2.archetype] ?? a2.archetype} — {Number(a2.total_score).toFixed(1)}
+                    {ARCHETYPES[a2.archetype] ?? a2.archetype} — {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a2.total_score))}
                     <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.created_at)}</div>
                   </div>
                   {dims.map(dim => {
@@ -309,11 +309,11 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     return (
                       <>
                         <div key={`${dim}-label`} className="px-4 py-2 text-slate-500 border-t border-slate-100">{DIM_LABELS[dim] ?? dim}</div>
-                        <div key={`${dim}-s1`} className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{s1.toFixed(1)}</div>
+                        <div key={`${dim}-s1`} className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(s1)}</div>
                         <div key={`${dim}-s2`} className={cn('px-4 py-2 font-semibold border-t border-slate-100 border-l flex items-center gap-1',
                           diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-red-600' : 'text-slate-800')}>
-                          {s2.toFixed(1)}
-                          {diff !== 0 && <span className="text-[10px]">{diff > 0 ? '▲' : '▼'}{Math.abs(diff).toFixed(1)}</span>}
+                          {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(s2)}
+                          {diff !== 0 && <span className="text-[10px]">{diff > 0 ? '▲' : '▼'}{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.abs(diff))}</span>}
                         </div>
                       </>
                     )

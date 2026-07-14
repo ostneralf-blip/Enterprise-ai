@@ -223,7 +223,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   <span className="text-slate-400 text-xs flex-shrink-0">#{i + 1}</span>
                   <span className="font-medium text-slate-900 truncate max-w-[120px]">{uc.name}</span>
                   {uc.weighted_score != null && (
-                    <span className="text-xs text-slate-500 flex-shrink-0">{Number(uc.weighted_score).toFixed(1)}</span>
+                    <span className="text-xs text-slate-500 flex-shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(uc.weighted_score))}</span>
                   )}
                   {qMeta && (
                     <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
