@@ -225,7 +225,7 @@ function ArchitectureShareView({
               <p className="text-xs text-slate-500 mb-2">{layer.role}</p>
               <div className="flex flex-wrap gap-1.5">
                 {layer.components.map((comp, j) => (
-                  <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{comp}</span>
+                  <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{(result.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</span>
                 ))}
               </div>
             </div>

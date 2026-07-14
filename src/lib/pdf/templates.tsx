@@ -1022,7 +1022,7 @@ export function renderCompliancePdf(data: CompliancePdfData, locale = 'de'): Rea
 
 // ─── ARCHITECTURE ────────────────────────────────────────────────────────────
 interface ArchitectureLayer { name: string; role: string; components: string[]; examples?: string }
-interface ArchitectureResultData { pattern: string; description?: string; layers: ArchitectureLayer[]; nextSteps?: string[] }
+interface ArchitectureResultData { pattern: string; description?: string; layers: ArchitectureLayer[]; nextSteps?: string[]; componentSources?: Record<string, 'rule' | 'ai' | 'manual'> }
 interface ArchitecturePdfData { title: string; result: ArchitectureResultData; companyName?: string }
 
 const ARCHITECTURE_RECS: Rec3[] = [
@@ -1074,7 +1074,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'):
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {layer.components.map((comp, ci) => (
                 <View key={ci} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 3, marginBottom: 3 }}>
-                  <Text style={{ fontSize: 9, color: C.brand }}>{comp}</Text>
+                  <Text style={{ fontSize: 9, color: C.brand }}>{(data.result?.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</Text>
                 </View>
               ))}
             </View>
