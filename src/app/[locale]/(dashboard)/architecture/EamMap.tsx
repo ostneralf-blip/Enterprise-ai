@@ -150,7 +150,11 @@ export function EamMap({
           {FILTERS.map(f => (
             <button
               key={f.id}
-              onClick={() => setMapFilter(f.id)}
+              onClick={() => {
+                setMapFilter(f.id)
+                ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+                  .posthog?.capture('map_filter', { value: f.id })
+              }}
               className={cn(
                 'text-[10px] px-2.5 py-0.5 rounded-full border font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-primary-ring whitespace-nowrap',
                 mapFilter === f.id
