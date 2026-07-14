@@ -775,6 +775,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
+  const [componentSources, setComponentSources] = useState<Record<string, 'rule' | 'ai' | 'manual'>>({})
   const [resultShowAltFor, setResultShowAltFor] = useState<Set<string>>(new Set())
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
@@ -878,8 +879,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (currentStep > 0) setCurrentStep(s => s - 1)
   }
 
-  const handleConfirmSelection = (selected: Set<string>) => {
+  const handleConfirmSelection = (selected: Set<string>, sources: Record<string, 'rule' | 'ai' | 'manual'>) => {
     setActiveComponentNames(selected)
+    setComponentSources(sources)
     setView('result')
   }
 

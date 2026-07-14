@@ -17,7 +17,7 @@ interface Props {
   components: CatalogComponent[]
   aiSuggested: Set<string>
   onBack: () => void
-  onConfirm: (selected: Set<string>) => void
+  onConfirm: (selected: Set<string>, sources: Record<string, 'rule' | 'ai' | 'manual'>) => void
   locale: string
 }
 
@@ -108,7 +108,12 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
   }
 
   const handleConfirm = () => {
-    onConfirm(new Set([...map].filter(([, v]) => v.checked).map(([k]) => k)))
+    const selected = new Set([...map].filter(([, v]) => v.checked).map(([k]) => k))
+    const sources: Record<string, 'rule' | 'ai' | 'manual'> = {}
+    for (const [name, entry] of map) {
+      if (entry.checked) sources[name] = entry.source
+    }
+    onConfirm(selected, sources)
   }
 
   return (
@@ -127,6 +132,7 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
           const isCollapsed = collapsed.has(lr.layer)
 
           const layerConflicts = conflicts.filter(c => ruleNames.includes(c.a) || ruleNames.includes(c.b))
+          const conflictedNames = new Set(layerConflicts.flatMap(c => [c.a, c.b]))
 
           return (
             <div key={lr.layer}>
@@ -134,6 +140,8 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
               <button
                 type="button"
                 onClick={() => toggleCollapse(lr.layer)}
+                aria-expanded={!isCollapsed}
+                aria-controls={`layer-${lr.layer}`}
                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors focus:outline-none"
               >
                 <div className="flex items-center gap-2">
@@ -149,7 +157,7 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
               </button>
 
               {!isCollapsed && (
-                <div className="divide-y divide-slate-100 border-t border-slate-100">
+                <div id={`layer-${lr.layer}`} className="divide-y divide-slate-100 border-t border-slate-100">
                   {ruleNames.map(name => {
                     const comp = byName.get(name)
                     const entry = map.get(name)
@@ -171,6 +179,9 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
                             )}
                             {comp?.dsgvo_status === 'non_compliant' && (
                               <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-50 text-red-700">DSGVO ✗</span>
+                            )}
+                            {conflictedNames.has(name) && (
+                              <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-50 text-red-700">Konflikt ⚠</span>
                             )}
                           </div>
                           {reason && <p className="text-[11px] text-slate-400 mt-0.5">{pick(reason, locale)}</p>}
