@@ -660,6 +660,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [aiAccepted, setAiAccepted] = useState<string[]>([])
   const [componentOwners, setComponentOwners] = useState<Record<string, string>>({})
   const [componentOpsNotes, setComponentOpsNotes] = useState<Record<string, string>>({})
+  const [workbenchForceTab, setWorkbenchForceTab] = useState<'komponenten' | null>(null)
 
   const DEFAULT_RESULT_SECTIONS = ['joule', 'decisions', 'rasic'] as const
   type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
@@ -1372,6 +1373,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             onOwnerChange={(name, role) => setComponentOwners(prev => ({ ...prev, [name]: role }))}
             onOpsNotesChange={(name, notes) => setComponentOpsNotes(prev => ({ ...prev, [name]: notes }))}
             roleNames={catalogRecs?.roleNames ?? []}
+            forceOpenTab={workbenchForceTab}
           />
         )}
 
@@ -1462,11 +1464,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             onReject={handleReject}
             onAcceptAll={handleAcceptAll}
             onScrollToFirst={() => {
-              const el = document.querySelector<HTMLElement>('[data-ai-row]')
-              if (!el) return
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-              el.style.outline = '2px solid var(--color-ai)'
-              setTimeout(() => { el.style.outline = '' }, 2000)
+              setWorkbenchForceTab('komponenten')
+              setTimeout(() => {
+                const wb = document.getElementById('architecture-workbench')
+                if (wb) wb.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                setWorkbenchForceTab(null)
+              }, 250)
             }}
             onReanalyze={handleAINarrative}
             loading={narrativeLoading}

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
@@ -30,12 +30,14 @@ interface Props {
   onOwnerChange: (name: string, role: string) => void
   onOpsNotesChange: (name: string, notes: string) => void
   roleNames: string[]
+  forceOpenTab?: 'komponenten' | 'diagramm' | 'katalog' | null
 }
 
 export function ArchitectureWorkbench({
   catalogRecs, recComponents, activeComponentNames, onCheckedChange,
   aiSuggestions, componentSources, aiSuggested, level, answers, useCaseName, locale,
   componentOwners, componentOpsNotes, onOwnerChange, onOpsNotesChange, roleNames,
+  forceOpenTab,
 }: Props) {
   const t = useTranslations('modules.architecture')
   const [open, setOpen] = useState(() => {
@@ -47,6 +49,14 @@ export function ArchitectureWorkbench({
     return (localStorage.getItem(LS_TAB) as Tab | null) ?? 'komponenten'
   })
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    if (!forceOpenTab) return
+    setOpen(true)
+    setTab(forceOpenTab)
+    localStorage.setItem(LS_OPEN, 'true')
+    localStorage.setItem(LS_TAB, forceOpenTab)
+  }, [forceOpenTab])
 
   const fallback = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
   const effective = activeComponentNames.size > 0 ? activeComponentNames : fallback
@@ -84,7 +94,7 @@ export function ArchitectureWorkbench({
   ]
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+    <div id="architecture-workbench" className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
       <button
         onClick={handleToggle}
         className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
@@ -94,8 +104,8 @@ export function ArchitectureWorkbench({
           <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">{t('workbenchTitle')}</span>
           <span className="text-xs text-slate-400 truncate">
             {effective.size} {t('workbenchSummaryComponents')}
-            {openSuggestions.length > 0 && ` · ${openSuggestions.length} ${t('workbenchSummarySuggestions')}`}
-            {conflicts.length > 0 && ` · ${conflicts.length} ${t('workbenchSummaryConflicts')}`}
+            {openSuggestions.length > 0 && ` · ${t('workbenchSummarySuggestions', { count: openSuggestions.length })}`}
+            {conflicts.length > 0 && ` · ${t('workbenchSummaryConflicts', { count: conflicts.length })}`}
           </span>
           {hasBadge && (
             <span className="shrink-0 text-[10px] font-bold text-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] px-1.5 py-0.5 rounded">◆</span>

@@ -41,6 +41,7 @@ export function AIPanel({
   const rejected = new Set(rejectedSuggestions)
   const accepted = new Set(acceptedSuggestions ?? [])
   const suggestions = (narrative?.component_suggestions ?? []).filter(n => byName.has(n) && !rejected.has(n))
+  const openSuggestions = suggestions.filter(n => !accepted.has(n))
 
   const complianceHint = canvasEnrichment?.additional_compliance_flags?.[0] ?? null
 
@@ -108,28 +109,30 @@ export function AIPanel({
           <>
             <div className="flex items-center justify-between gap-2 mb-2">
               <p className="text-xs font-semibold text-slate-700">
-                {t('architecture.aiPanelSuggestionsCount', { count: suggestions.length })}
+                {t('architecture.aiPanelSuggestionsCount', { count: openSuggestions.length })}
               </p>
-              <div className="flex gap-1.5 shrink-0">
-                {onAcceptAll && (
-                  <button
-                    type="button"
-                    onClick={() => { onAcceptAll(); (window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('ai_suggestions_accepted_all') }}
-                    className="px-2 py-1 text-[10px] font-semibold bg-[color:var(--color-ai)] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  >
-                    {t('architecture.aiPanelAcceptAll')}
-                  </button>
-                )}
-                {onScrollToFirst && (
-                  <button
-                    type="button"
-                    onClick={onScrollToFirst}
-                    className="px-2 py-1 text-[10px] font-semibold border border-purple-200 text-[color:var(--color-ai)] rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  >
-                    {t('architecture.aiPanelSingleCheck')}
-                  </button>
-                )}
-              </div>
+              {openSuggestions.length > 0 && (
+                <div className="flex gap-1.5 shrink-0">
+                  {onAcceptAll && (
+                    <button
+                      type="button"
+                      onClick={() => { onAcceptAll(); (window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('ai_suggestions_accepted_all') }}
+                      className="px-2 py-1 text-[10px] font-semibold bg-[color:var(--color-ai)] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    >
+                      {t('architecture.aiPanelAcceptAll')}
+                    </button>
+                  )}
+                  {onScrollToFirst && (
+                    <button
+                      type="button"
+                      onClick={onScrollToFirst}
+                      className="px-2 py-1 text-[10px] font-semibold border border-purple-200 text-[color:var(--color-ai)] rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    >
+                      {t('architecture.aiPanelSingleCheck')}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             <p className="text-[10px] text-slate-400 mb-2">{t('architecture.aiPanelSuggestionsHint')}</p>
             <ul className="space-y-1.5">
