@@ -14,6 +14,7 @@ import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
+import { EamMap } from './EamMap'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
 import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
@@ -1256,6 +1257,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             />
           )
         })()}
+
+        {/* EAM-Landkarte (5-Band ArchiMate) — Architekt- und Compliance-Sicht */}
+        {resultAudience !== 'exec' && (
+          <EamMap
+            result={result}
+            activeComponents={recComponents.filter(c => activeComponentNames.size > 0
+              ? activeComponentNames.has(c.name)
+              : (catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? []).includes(c.name)
+            )}
+            componentSources={componentSources}
+            eamResults={eamResults}
+            roleNames={catalogRecs?.roleNames ?? []}
+            detailLevel={resultLevel}
+            locale={locale}
+          />
+        )}
 
         {/* Exec: Empfehlungskarte (statt Detail-Sections) */}
         {resultAudience === 'exec' && (
