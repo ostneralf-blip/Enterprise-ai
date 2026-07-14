@@ -753,7 +753,10 @@
       "canvasKpisLabel": "Ihre KPIs (Canvas)",
       "kpisPrefix": "KPIs:",
       "fromCanvas": "Aus Ihrem Canvas",
-      "problemLabel": "Problem:"
+      "problemLabel": "Problem:",
+      "archDecisionsTitle": "Key Decisions aus der Architektur",
+      "archDecisionDismiss": "Entfernen",
+      "archDecisionsAllDismissed": "Alle Entscheidungen ausgeblendet."
     },
     "versions": {
       "panelButtonPro": "Versionen (Pro)",

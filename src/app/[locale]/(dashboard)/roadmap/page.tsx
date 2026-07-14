@@ -16,7 +16,7 @@ export default async function RoadmapPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: latestResult }, { data: profileData }, { data: topUseCases }, { data: latestRoadmap }] = await Promise.all([
+  const [{ data: latestResult }, { data: profileData }, { data: topUseCases }, { data: latestRoadmap }, { data: latestArch }] = await Promise.all([
     supabase
       .from('assessment_sessions')
       .select('archetype')
@@ -43,10 +43,18 @@ export default async function RoadmapPage() {
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle() as unknown as Promise<{ data: { id: string; archetype: string; phases: unknown[] } | null }>,
+    supabase
+      .from('architectures')
+      .select('result')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle() as unknown as Promise<{ data: { result: { keyDecisions?: { de: string; en: string }[] } } | null }>,
   ])
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
   const tier = (profileData?.tier ?? 'free') as Tier
+  const archKeyDecisions = (latestArch?.result?.keyDecisions ?? []) as { de: string; en: string }[]
 
   // Lade den Canvas des Top-Use-Cases, falls verknüpft
   type LinkedCanvas = { id: string; title: string; archetype: string | null; data: Record<string, string> }
@@ -74,6 +82,7 @@ export default async function RoadmapPage() {
         topUseCases={(topUseCases ?? []) as Array<{ id: string; name: string; domain: string | null; weighted_score: number | null; quadrant: string | null; governance_result: import('@/types').GovernanceVerdict | null }>}
         savedRoadmap={latestRoadmap ?? null}
         linkedCanvas={linkedCanvas}
+        archKeyDecisions={archKeyDecisions}
       />
     </div>
   )

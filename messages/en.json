@@ -754,7 +754,10 @@
       "save": "Save Roadmap",
       "saving": "Saving…",
       "saved": "✓ Saved",
-      "exportPdf": "Export PDF"
+      "exportPdf": "Export PDF",
+      "archDecisionsTitle": "Key Decisions from Architecture",
+      "archDecisionDismiss": "Dismiss",
+      "archDecisionsAllDismissed": "All decisions dismissed."
     },
     "versions": {
       "panelButtonPro": "Versions (Pro)",

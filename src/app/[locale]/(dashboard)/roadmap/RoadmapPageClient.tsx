@@ -58,6 +58,7 @@ interface Props {
   topUseCases: TopUseCase[]
   savedRoadmap: SavedRoadmap | null
   linkedCanvas: LinkedCanvas | null
+  archKeyDecisions: { de: string; en: string }[]
 }
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
@@ -76,7 +77,7 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
   return result
 }
 
-export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas }: Props) {
+export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas, archKeyDecisions }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const governanceBadgeLabel: Record<GovernanceVerdict, string> = {
@@ -94,6 +95,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
   const [savedId, setSavedId] = useState<string | null>(savedRoadmap?.id ?? null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(!!savedRoadmap)
+  const [dismissedDecisions, setDismissedDecisions] = useState<Set<string>>(new Set())
 
   const handleArchetypeChange = (a: Archetype) => { setArchetype(a); setSaved(false) }
 
@@ -237,6 +239,36 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* Key Decisions aus Architektur */}
+      {archKeyDecisions.length > 0 && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-blue-900">
+            {t('roadmap.archDecisionsTitle')}
+          </h3>
+          <ul className="space-y-1.5">
+            {archKeyDecisions
+              .filter(d => !dismissedDecisions.has(d.de))
+              .map(d => (
+                <li key={d.de} className="flex items-start gap-2 text-xs text-blue-800">
+                  <span className="shrink-0 mt-0.5" aria-hidden="true">◆</span>
+                  <span className="flex-1 min-w-0">{locale === 'de' ? d.de : d.en}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDismissedDecisions(prev => new Set([...prev, d.de]))}
+                    className="shrink-0 text-blue-400 hover:text-blue-600 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 rounded"
+                    aria-label={t('roadmap.archDecisionDismiss')}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+          </ul>
+          {archKeyDecisions.every(d => dismissedDecisions.has(d.de)) && (
+            <p className="text-xs text-blue-500 italic">{t('roadmap.archDecisionsAllDismissed')}</p>
+          )}
         </div>
       )}
 
