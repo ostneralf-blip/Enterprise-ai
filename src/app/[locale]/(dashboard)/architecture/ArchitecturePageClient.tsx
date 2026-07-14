@@ -1069,6 +1069,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       })
       setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
     }
+    // EAM-Berechnungen — VOR dem return-Statement
+    const eamFallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+    const eamEffectiveNames = activeComponentNames.size > 0 ? activeComponentNames : eamFallbackNames
+    const activeCompsForEam = recComponents.filter(c => eamEffectiveNames.has(c.name))
+    const eamResults = resultAudience !== 'exec'
+      ? runEamValidation(rasic ?? undefined, activeCompsForEam, answers.compliance)
+      : []
     return (
       <div
         className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start"
@@ -1360,39 +1367,34 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         )}
 
         {/* RASIC-Matrix + EAM-Validierung — nicht in Exec-Sicht */}
-        {resultAudience !== 'exec' && (() => {
-          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const effectiveNames = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
-          const activeComps = recComponents.filter(c => effectiveNames.has(c.name))
-          const eamResults = runEamValidation(rasic ?? undefined, activeComps, answers.compliance)
-          return (
-            <>
-              <EamValidationBanner
-                results={eamResults}
-                overrides={validationOverrides}
-                onOverride={(ruleId, override) => {
-                  setValidationOverrides(prev => {
-                    if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
-                    return { ...prev, [ruleId]: override }
-                  })
+        {resultAudience !== 'exec' && (
+          <>
+            <EamValidationBanner
+              key="eam-validation-banner"
+              results={eamResults}
+              overrides={validationOverrides}
+              onOverride={(ruleId, override) => {
+                setValidationOverrides(prev => {
+                  if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                  return { ...prev, [ruleId]: override }
+                })
+              }}
+            />
+            {rasic && (
+              <RasicMatrixCard
+                rasic={rasic}
+                readOnly={resultAudience === 'compliance'}
+                onUpdate={updated => {
+                  setRasic(updated)
+                  setResult(prev => prev ? { ...prev, rasic: updated } : prev)
                 }}
               />
-              {rasic && (
-                <RasicMatrixCard
-                  rasic={rasic}
-                  readOnly={resultAudience === 'compliance'}
-                  onUpdate={updated => {
-                    setRasic(updated)
-                    setResult(prev => prev ? { ...prev, rasic: updated } : prev)
-                  }}
-                />
-              )}
-              {resultAudience === 'compliance' && (
-                <ComplianceControlTable activeComponents={activeComps} rasic={rasic ?? undefined} />
-              )}
-            </>
-          )
-        })()}
+            )}
+            {resultAudience === 'compliance' && (
+              <ComplianceControlTable activeComponents={activeCompsForEam} rasic={rasic ?? undefined} />
+            )}
+          </>
+        )}
 
         {/* SAP Joule use cases — nicht in Exec-Sicht */}
         {resultAudience !== 'exec' && (
