@@ -6,7 +6,7 @@ import { CompliancePageClient } from './CompliancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { getTranslations } from 'next-intl/server'
-import type { Tier } from '@/types'
+import type { Tier, RasicMatrix } from '@/types'
 import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
 
@@ -28,7 +28,14 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: checks }, { data: policyTemplates }] = await Promise.all([
+  const [{ data: latestArch }, { data: checks }, { data: policyTemplates }] = await Promise.all([
+    supabase
+      .from('architectures')
+      .select('result')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     supabase
       .from('compliance_checks')
       .select('regulation, check_type, status, notes, completed_at, updated_at')
@@ -51,6 +58,7 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
       <CompliancePageClient
         initialChecks={(checks ?? []) as CheckRow[]}
         policyTemplates={policyTemplates ?? []}
+        archRasic={((latestArch?.result as Record<string, unknown> | null)?.rasic ?? null) as RasicMatrix | null}
       />
     </div>
   )

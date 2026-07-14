@@ -27,6 +27,8 @@ interface DbPolicyTemplate {
 }
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
+import type { RasicMatrix } from '@/types'
+import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
 
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
 
@@ -39,13 +41,14 @@ const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIE
 interface Props {
   initialChecks: CheckRow[]
   policyTemplates?: DbPolicyTemplate[]
+  archRasic?: RasicMatrix | null
 }
 
 function makeKey(regulation: string, checkType: string) {
   return `${regulation}::${checkType}`
 }
 
-export function CompliancePageClient({ initialChecks, policyTemplates = [] }: Props) {
+export function CompliancePageClient({ initialChecks, policyTemplates = [], archRasic }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [tab, setTab] = useState<Tab>('euaiact')
@@ -693,6 +696,16 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [] }: Pr
           ))}
         </div>
       </div>
+
+      {/* RASIC aus Architektur */}
+      {archRasic && (
+        <div className="mt-6">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">
+            {t('compliance.rasicTitle')}
+          </h2>
+          <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
+        </div>
+      )}
 
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">

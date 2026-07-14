@@ -409,7 +409,8 @@
       "historySession2": "Session 2",
       "historyCollapse": "Collapse",
       "historyExpand": "Show details",
-      "historySelectAriaLabel": "Select {name} for comparison"
+      "historySelectAriaLabel": "Select {name} for comparison",
+      "rasicTitle": "Roles & RASIC (from Architecture)"
     },
     "compliance": {
       "title": "Compliance Center",
@@ -515,7 +516,8 @@
       "regCountFulfilled": "{done}/{total} fulfilled",
       "regCountOpen": "· {count} open",
       "regProgress": "{label} progress",
-      "templatesEmpty": "No policy templates available."
+      "templatesEmpty": "No policy templates available.",
+      "rasicTitle": "Roles & RASIC (from Architecture)"
     },
     "architecture": {
       "title": "Architecture Generator",

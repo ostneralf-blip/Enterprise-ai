@@ -3,7 +3,8 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import type { Tier } from '@/types'
+import type { Tier, RasicMatrix } from '@/types'
+import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
 import {
   GOVERNANCE_GATES,
   calculateVerdict,
@@ -58,7 +59,7 @@ const WEIGHT_DOT: Record<string, string> = {
 }
 
 export function GovernancePageClient({
-  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk,
+  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk, archRasic,
 }: {
   tier: Tier
   sessions: GovernanceSession[]
@@ -66,6 +67,7 @@ export function GovernancePageClient({
   initialUseCaseName?: string
   initialUseCaseId?: string
   complianceRisk?: string | null
+  archRasic?: RasicMatrix | null
 }) {
   const t = useTranslations('modules')
   const locale = useLocale()
@@ -248,6 +250,15 @@ export function GovernancePageClient({
         </div>
 
         <GovernanceHistory sessions={sessions} />
+
+        {archRasic && (
+          <div className="mt-6">
+            <h2 className="text-base font-semibold text-slate-900 mb-3">
+              {t('governance.rasicTitle')}
+            </h2>
+            <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
+          </div>
+        )}
       </div>
     )
   }
@@ -419,6 +430,15 @@ export function GovernancePageClient({
       </div>
 
       <GovernanceHistory sessions={sessions} />
+
+      {archRasic && (
+        <div className="mt-6">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">
+            {t('governance.rasicTitle')}
+          </h2>
+          <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
+        </div>
+      )}
     </div>
   )
 }
