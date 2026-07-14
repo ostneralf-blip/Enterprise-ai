@@ -164,6 +164,7 @@ export async function GET(req: Request) {
         title: archData.title,
         result: archData.result,
         companyName: company,
+        template: template as 'book' | 'board' | 'blueprint' | undefined,
       }, locale)
       filename = 'ai-architektur.pdf'
 

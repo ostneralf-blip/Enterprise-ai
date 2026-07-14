@@ -1023,7 +1023,7 @@ export function renderCompliancePdf(data: CompliancePdfData, locale = 'de'): Rea
 // ─── ARCHITECTURE ────────────────────────────────────────────────────────────
 interface ArchitectureLayer { name: string; role: string; components: string[]; examples?: string }
 interface ArchitectureResultData { pattern: string; description?: string; layers: ArchitectureLayer[]; nextSteps?: string[]; componentSources?: Record<string, 'rule' | 'ai' | 'manual'> }
-interface ArchitecturePdfData { title: string; result: ArchitectureResultData; companyName?: string }
+interface ArchitecturePdfData { title: string; result: ArchitectureResultData; companyName?: string; template?: 'book' | 'board' | 'blueprint' }
 
 const ARCHITECTURE_RECS: Rec3[] = [
   {
@@ -1044,6 +1044,8 @@ const ARCHITECTURE_RECS: Rec3[] = [
 ]
 
 export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'): ReactElement {
+  const brandColor = data.template === 'board' ? '#B8860B' : data.template === 'blueprint' ? '#00B4D8' : C.brand
+  const chipBg     = data.template === 'board' ? '#FFF8E1' : data.template === 'blueprint' ? '#E0F7FF' : '#eff6ff'
   return (
     <Document title={pt('doc_architecture', locale)}>
       {/* Seite 1: Deckblatt */}
@@ -1073,8 +1075,8 @@ export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'):
             <Text style={{ fontSize: 10, color: C.gray, marginTop: 2, marginBottom: 6 }}>{layer.role}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {layer.components.map((comp, ci) => (
-                <View key={ci} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 3, marginBottom: 3 }}>
-                  <Text style={{ fontSize: 9, color: C.brand }}>{(data.result?.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</Text>
+                <View key={ci} style={{ backgroundColor: chipBg, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 3, marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: brandColor }}>{(data.result?.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</Text>
                 </View>
               ))}
             </View>
@@ -1087,7 +1089,7 @@ export function renderArchitecturePdf(data: ArchitecturePdfData, locale = 'de'):
             <Text style={s.h2}>{pt('recommended_next', locale)}</Text>
             {data.result!.nextSteps!.map((step, i) => (
               <View key={i} style={[s.row, { marginBottom: 4, alignItems: 'flex-start' }]}>
-                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.brand, marginRight: 7, marginTop: 3 }} />
+                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: brandColor, marginRight: 7, marginTop: 3 }} />
                 <Text style={{ flex: 1, fontSize: 10 }}>{step}</Text>
               </View>
             ))}

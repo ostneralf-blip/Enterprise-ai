@@ -1058,7 +1058,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           onLevel={setResultLevel}
           tier={tier}
           presentationTemplate={presentationTemplate}
-          onPresentation={setPresentationTemplate}
+          onPresentation={(tmpl) => {
+            setPresentationTemplate(tmpl)
+            ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+              .posthog?.capture('arch_presentation_mode', { template: tmpl, tier })
+          }}
           savedId={savedId}
           locale={locale}
         />
