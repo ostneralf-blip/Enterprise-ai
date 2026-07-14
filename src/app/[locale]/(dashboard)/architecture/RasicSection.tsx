@@ -126,9 +126,10 @@ interface RasicMatrixCardProps {
   rasic: RasicMatrix
   readOnly?: boolean
   onUpdate: (rasic: RasicMatrix) => void
+  componentOwners?: Record<string, string>
 }
 
-export function RasicMatrixCard({ rasic, readOnly = false, onUpdate }: RasicMatrixCardProps) {
+export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOwners }: RasicMatrixCardProps) {
   const t = useTranslations('modules')
   const locale = useLocale()
 
@@ -203,6 +204,23 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate }: RasicMatr
           </tbody>
         </table>
       </div>
+      {(() => {
+        const assigned = Object.entries(componentOwners ?? {}).filter(([, r]) => r)
+        if (assigned.length === 0) return null
+        return (
+          <div className="pt-3 border-t border-slate-100">
+            <p className="text-xs font-medium text-slate-500 mb-2">{t('architecture.rasicComponentOwnerTitle')}</p>
+            <div className="space-y-1">
+              {assigned.map(([name, role]) => (
+                <div key={name} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="text-slate-700 truncate min-w-0">{name}</span>
+                  <span className="shrink-0 rounded bg-primary-soft px-2 py-0.5 text-primary-hover font-medium whitespace-nowrap">{role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

@@ -25,11 +25,17 @@ interface Props {
   answers: WizardAnswers
   useCaseName: string | null
   locale: string
+  componentOwners: Record<string, string>
+  componentOpsNotes: Record<string, string>
+  onOwnerChange: (name: string, role: string) => void
+  onOpsNotesChange: (name: string, notes: string) => void
+  roleNames: string[]
 }
 
 export function ArchitectureWorkbench({
   catalogRecs, recComponents, activeComponentNames, onCheckedChange,
   aiSuggestions, componentSources, aiSuggested, level, answers, useCaseName, locale,
+  componentOwners, componentOpsNotes, onOwnerChange, onOpsNotesChange, roleNames,
 }: Props) {
   const t = useTranslations('modules.architecture')
   const [open, setOpen] = useState(() => {
@@ -119,15 +125,47 @@ export function ArchitectureWorkbench({
 
           <div className="border-t border-slate-200 p-4 sm:p-6">
             {tab === 'komponenten' && (
-              <TechnicalArchitectureOptimisation
-                catalogRecs={catalogRecs}
-                recComponents={recComponents}
-                activeComponentNames={activeComponentNames}
-                onCheckedChange={onCheckedChange}
-                aiSuggestions={aiSuggestions}
-                locale={locale}
-                embedded
-              />
+              <div className="space-y-4">
+                <TechnicalArchitectureOptimisation
+                  catalogRecs={catalogRecs}
+                  recComponents={recComponents}
+                  activeComponentNames={activeComponentNames}
+                  onCheckedChange={onCheckedChange}
+                  aiSuggestions={aiSuggestions}
+                  locale={locale}
+                  embedded
+                />
+                {effective.size > 0 && roleNames.length > 0 && (
+                  <div className="pt-4 border-t border-slate-100 space-y-2">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{t('workbenchOwnerTitle')}</p>
+                    {[...effective].map(name => (
+                      <div key={name} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 space-y-1.5">
+                        <span className="text-xs font-medium text-slate-800">{name}</span>
+                        <div className="flex flex-col sm:flex-row gap-1.5">
+                          <select
+                            value={componentOwners[name] ?? ''}
+                            onChange={e => onOwnerChange(name, e.target.value)}
+                            className="flex-1 min-w-0 text-xs border border-slate-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                          >
+                            <option value="">{t('workbenchOwnerNone')}</option>
+                            {roleNames.map(r => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={componentOpsNotes[name] ?? ''}
+                            onChange={e => onOpsNotesChange(name, e.target.value.slice(0, 120))}
+                            placeholder={t('workbenchOpsNotesPlaceholder')}
+                            maxLength={120}
+                            className="flex-1 min-w-0 text-xs border border-slate-200 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {tab === 'diagramm' && (

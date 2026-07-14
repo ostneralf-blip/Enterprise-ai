@@ -658,6 +658,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
   const [aiAccepted, setAiAccepted] = useState<string[]>([])
+  const [componentOwners, setComponentOwners] = useState<Record<string, string>>({})
+  const [componentOpsNotes, setComponentOpsNotes] = useState<Record<string, string>>({})
 
   const DEFAULT_RESULT_SECTIONS = ['joule', 'decisions', 'rasic'] as const
   type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
@@ -824,6 +826,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setAiModel(null)
     setView('result')
     applyRecs(arch.wizard_data, undefined, arch.result.rasic ?? null)
+    const saved = arch.result as unknown as { componentOwners?: Record<string, string>; componentOpsNotes?: Record<string, string> }
+    setComponentOwners(saved.componentOwners ?? {})
+    setComponentOpsNotes(saved.componentOpsNotes ?? {})
   }
 
   const handleAINarrative = async (audienceOverride?: ResultAudience) => {
@@ -878,7 +883,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const res = await fetch('/api/architecture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, componentSources } }),
+        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, componentSources, componentOwners, componentOpsNotes } }),
       })
       if (res.ok) {
         const { data } = await res.json()
@@ -1332,6 +1337,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               setRasic(updated)
                               setResult(prev => prev ? { ...prev, rasic: updated } : prev)
                             }}
+                            componentOwners={componentOwners}
                           />
                         )}
                         {resultAudience === 'compliance' && (
@@ -1361,6 +1367,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             answers={answers}
             useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
             locale={locale}
+            componentOwners={componentOwners}
+            componentOpsNotes={componentOpsNotes}
+            onOwnerChange={(name, role) => setComponentOwners(prev => ({ ...prev, [name]: role }))}
+            onOpsNotesChange={(name, notes) => setComponentOpsNotes(prev => ({ ...prev, [name]: notes }))}
+            roleNames={catalogRecs?.roleNames ?? []}
           />
         )}
 
