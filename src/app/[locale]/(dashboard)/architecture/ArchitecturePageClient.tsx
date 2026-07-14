@@ -983,7 +983,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const res = await fetch('/api/architecture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, wizard_data: answers, result }),
+        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, componentSources } }),
       })
       if (res.ok) {
         const { data } = await res.json()

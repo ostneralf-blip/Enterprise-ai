@@ -210,6 +210,7 @@ export interface ArchitectureResult {
   nextSteps: { de: string; en: string }[]
   rasic?: RasicMatrix
   rejected_suggestions?: string[]
+  componentSources?: Record<string, 'rule' | 'ai' | 'manual'>
 }
 
 const RASIC_PHASES: RasicPhase[] = ['konzeption', 'daten', 'build', 'freigabe', 'betrieb']
