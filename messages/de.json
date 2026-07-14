@@ -850,7 +850,7 @@
     "resetPathInfo": "Der Dashboard-Pfad zeigt alle Schritte als nicht abgeschlossen an — Ihre gespeicherten Ergebnisse bleiben vollständig erhalten.",
     "resetAtMsg": "✓ Zurückgesetzt am {date}",
     "resetError": "Fehler beim Zurücksetzen.",
-    "wizardResetConfirm": "Geführten Pfad zurücksetzen? Deine bestehenden Ergebnisse bleiben erhalten.",
+    "wizardResetConfirm": "Geführten Pfad zurücksetzen? Ihre bestehenden Ergebnisse bleiben erhalten.",
     "resetting": "Wird zurückgesetzt…",
     "darstellungSection": "Darstellung",
     "themeSavingMsg": "Wird gespeichert…",

@@ -44,7 +44,7 @@ async function sendPaymentFailedEmail(userEmail: string) {
           'Bitte aktualisieren Sie Ihre Zahlungsmethode im Kundenportal, um Ihren Pro-Zugang zu erhalten:',
           'https://enterprise-ai.biz/einstellungen',
           '',
-          'Dein AI Navigator Team',
+          'Ihr AI Navigator Team',
         ].join('\n'),
       }),
     })

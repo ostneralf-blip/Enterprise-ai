@@ -90,7 +90,8 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 6. Feature-Gating immer server-seitig
 7. cn() für alle Tailwind-Klassen
 8. **Bilinguale UI (DE + EN) — PFLICHT ab sofort (seit 09.07.2026):** Jede neue UI-Anforderung muss gleichzeitig auf Deutsch und Englisch umgesetzt werden. Kein hardcodierter String im JSX — ausschließlich `t()`-Aufrufe via `useTranslations()` aus next-intl. Neue Keys immer parallel in `messages/de.json` UND `messages/en.json` eintragen. Bestehende Namespaces: `common`, `nav`, `sidebar`, `auth`, `dashboard`, `modules` (mit Untersektionen je Modul), `ergebnisse`, `settings`, `share`, `summary`, `upgrade`, `feedback`, `guidance`, `errors`.
-9. Max. ~150 Zeilen pro Komponente
+9. **Sie-Form (PFLICHT für alle deutschen Texte):** Alle deutschen UI-Texte, E-Mails und Fehlermeldungen verwenden ausschließlich die formelle Anrede (Sie/Ihr/Ihre). Kein du/dein/deine. Gilt für JSX, i18n-Keys in `messages/de.json`, API-E-Mails und Stripe-Templates.
+10. Max. ~150 Zeilen pro Komponente
 
 ### Tier-System
 - free: Basis-Zugang, Registrierung erforderlich
