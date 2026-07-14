@@ -19,6 +19,7 @@ interface Props {
   catalogComponents: CatalogComponent[]
   rejectedSuggestions: string[]
   canvasEnrichment?: CanvasEnrichment | null
+  acceptedSuggestions?: string[]
   onAccept: (name: string) => void
   onReject: (name: string) => void
   onAcceptAll?: () => void
@@ -29,7 +30,7 @@ interface Props {
 
 export function AIPanel({
   narrative, usage, aiModel, generatedAt, tier,
-  catalogComponents, rejectedSuggestions, canvasEnrichment,
+  catalogComponents, rejectedSuggestions, acceptedSuggestions, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze,
   loading = false,
 }: Props) {
@@ -38,6 +39,7 @@ export function AIPanel({
   const isPro = tier === 'pro' || tier === 'enterprise'
   const byName = new Map(catalogComponents.map(c => [c.name, c]))
   const rejected = new Set(rejectedSuggestions)
+  const accepted = new Set(acceptedSuggestions ?? [])
   const suggestions = (narrative?.component_suggestions ?? []).filter(n => byName.has(n) && !rejected.has(n))
 
   const complianceHint = canvasEnrichment?.additional_compliance_flags?.[0] ?? null
@@ -133,29 +135,34 @@ export function AIPanel({
             <ul className="space-y-1.5">
               {suggestions.map(name => {
                 const comp = byName.get(name)
+                const isAccepted = accepted.has(name)
                 return (
-                  <li key={name} className="flex items-center gap-2 bg-white border border-purple-100 rounded-xl px-3 py-2">
-                    <span className="text-[color:var(--color-ai)] text-[10px] shrink-0" aria-hidden="true">◆</span>
+                  <li key={name} className={cn('flex items-center gap-2 bg-white border rounded-xl px-3 py-2', isAccepted ? 'border-emerald-200 opacity-70' : 'border-purple-100')}>
+                    <span className={cn('text-[10px] shrink-0', isAccepted ? 'text-emerald-600' : 'text-[color:var(--color-ai)]')} aria-hidden="true">{isAccepted ? '✓' : '◆'}</span>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-slate-800 truncate">{name}</p>
                       {comp?.category && <p className="text-[10px] text-slate-400">{comp.category}</p>}
                     </div>
-                    <div className="flex gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => { onAccept(name); (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('ai_suggestion_accepted', { component: name }) }}
-                        className="px-2 py-1 text-[10px] font-semibold bg-[color:var(--color-ai)] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-400"
-                      >
-                        {t('architecture.aiPanelAccept')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { onReject(name); (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('ai_suggestion_rejected', { component: name }) }}
-                        className="px-2 py-1 text-[10px] font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
-                      >
-                        {t('architecture.aiPanelReject')}
-                      </button>
-                    </div>
+                    {isAccepted ? (
+                      <span className="text-[10px] font-semibold text-emerald-600 shrink-0">{t('architecture.aiPanelAccepted')}</span>
+                    ) : (
+                      <div className="flex gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => { onAccept(name); (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('ai_suggestion_accepted', { component: name }) }}
+                          className="px-2 py-1 text-[10px] font-semibold bg-[color:var(--color-ai)] text-white rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        >
+                          {t('architecture.aiPanelAccept')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { onReject(name); (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('ai_suggestion_rejected', { component: name }) }}
+                          className="px-2 py-1 text-[10px] font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                        >
+                          {t('architecture.aiPanelReject')}
+                        </button>
+                      </div>
+                    )}
                   </li>
                 )
               })}

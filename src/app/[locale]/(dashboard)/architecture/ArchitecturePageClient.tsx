@@ -655,6 +655,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
+  const [aiAccepted, setAiAccepted] = useState<string[]>([])
 
   const DEFAULT_RESULT_SECTIONS = ['joule', 'decisions', 'rasic'] as const
   type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
@@ -1548,10 +1549,42 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         )
         return { ...prev, layers }
       })
+      setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
+      setAiAccepted(prev => prev.includes(name) ? prev : [...prev, name])
       setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+    }
+    const handleAcceptAllAI = () => {
+      const suggestions = aiNarrative?.component_suggestions ?? []
+      const rejSet = new Set(rejected)
+      const acceptedSet = new Set(aiAccepted)
+      const toAccept: string[] = []
+      suggestions.filter(n => !rejSet.has(n) && !acceptedSet.has(n)).forEach(name => {
+        const comp = recComponents.find(c => c.name === name)
+        if (!comp || !comp.architecture_layer) return
+        setCatalogRecs(prev => {
+          if (!prev) return prev
+          const layers = prev.layers.map(lr =>
+            lr.layer === comp.architecture_layer && !lr.componentNames.includes(name)
+              ? { ...lr, componentNames: [...lr.componentNames, name] }
+              : lr
+          )
+          return { ...prev, layers }
+        })
+        setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
+        toAccept.push(name)
+      })
+      if (toAccept.length > 0) setAiAccepted(prev => [...prev, ...toAccept.filter(n => !prev.includes(n))])
+      ;(window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('ai_suggestions_accepted_all')
     }
     const handleRejectAI = (name: string) => {
       setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
+    }
+    const handleScrollToFirstAI = () => {
+      const el = document.querySelector<HTMLElement>('[data-ai-row]')
+      if (!el) return
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.style.outline = '2px solid var(--color-ai)'
+      setTimeout(() => { el.style.outline = '' }, 2000)
     }
     const pickerCompliance = answers.compliance === 'strict'
       ? (locale === 'de' ? 'EU AI Act + DSGVO: EU-Hosting Pflicht' : 'EU AI Act + GDPR: EU hosting required')
@@ -1581,9 +1614,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             tier={tier}
             catalogComponents={recComponents}
             rejectedSuggestions={rejected}
+            acceptedSuggestions={aiAccepted}
             canvasEnrichment={pickerEnrichment}
             onAccept={handleAcceptAI}
             onReject={handleRejectAI}
+            onAcceptAll={handleAcceptAllAI}
+            onScrollToFirst={handleScrollToFirstAI}
           />
         )}
       </div>

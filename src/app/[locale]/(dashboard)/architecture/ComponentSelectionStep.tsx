@@ -189,11 +189,11 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
                       </label>
                     )
                   })}
-                  {aiNames.map(name => {
+                  {aiNames.map((name, aiIdx) => {
                     const comp = byName.get(name)
                     const entry = map.get(name)
                     return (
-                      <label key={name} className="flex items-start gap-3 px-4 py-3 cursor-pointer bg-[color:var(--color-ai-soft)] hover:opacity-90 transition-opacity border-l-2 border-[color:var(--color-ai)]">
+                      <label key={name} {...(aiIdx === 0 ? { 'data-ai-row': 'true' } : {})} className="flex items-start gap-3 px-4 py-3 cursor-pointer bg-[color:var(--color-ai-soft)] hover:opacity-90 transition-opacity border-l-2 border-[color:var(--color-ai)]">
                         <input type="checkbox" checked={entry?.checked ?? false} onChange={() => toggleComponent(name)} className="mt-0.5 flex-shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
