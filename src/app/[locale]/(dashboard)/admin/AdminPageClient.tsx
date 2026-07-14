@@ -79,11 +79,16 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number; ai_direct_fallback: 0 | 1 } | null>(null)
   const [appSettingsSaving, setAppSettingsSaving] = useState(false)
   const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
+  const [aiConfig, setAiConfig] = useState<{ hasAnthropicKey: boolean; hasBedrockKeys: boolean; bedrockRegion: string } | null>(null)
 
   async function loadAppSettings() {
     if (appSettingsLoaded) return
-    const data = await fetch('/api/admin/settings').then(r => r.json())
+    const [data, cfg] = await Promise.all([
+      fetch('/api/admin/settings').then(r => r.json()),
+      fetch('/api/admin/ai-config').then(r => r.json()),
+    ])
     setAppSettings(data)
+    setAiConfig(cfg)
     setAppSettingsLoaded(true)
   }
 
@@ -2521,7 +2526,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             )}
           </div>
 
-          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6">
+          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6 space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -2547,6 +2552,27 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 </button>
               )}
             </div>
+            {/* Key-Status — nur nach dem Laden anzeigen */}
+            {aiConfig && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasAnthropicKey ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700 border border-red-200')}>
+                  <span>{aiConfig.hasAnthropicKey ? '✓' : '✗'}</span>
+                  <span>ANTHROPIC_API_KEY {aiConfig.hasAnthropicKey ? 'gesetzt' : 'fehlt'}</span>
+                </div>
+                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasBedrockKeys ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700 border border-red-200')}>
+                  <span>{aiConfig.hasBedrockKeys ? '✓' : '✗'}</span>
+                  <span>AWS Bedrock Keys {aiConfig.hasBedrockKeys ? 'gesetzt' : 'fehlen'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium bg-slate-100 text-slate-600">
+                  <span>Region: {aiConfig.bedrockRegion}</span>
+                </div>
+              </div>
+            )}
+            {appSettings?.ai_direct_fallback === 1 && aiConfig && !aiConfig.hasAnthropicKey && (
+              <p className="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                ⚠ Fallback aktiv, aber ANTHROPIC_API_KEY ist nicht konfiguriert — KI-Analyse schlägt trotz aktivem Toggle fehl (FALLBACK_NO_KEY).
+              </p>
+            )}
           </div>
 
           <button

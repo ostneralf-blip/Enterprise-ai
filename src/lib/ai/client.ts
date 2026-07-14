@@ -167,7 +167,7 @@ export async function callLLM<T>(
       console.warn('[ai/client] Kein Fallback: weder ALLOW_NON_EU_AI_FALLBACK noch Admin-Toggle aktiv')
       return noData('bedrock', errorCode)
     }
-    if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt'); return noData('bedrock', errorCode) }
+    if (!process.env.ANTHROPIC_API_KEY) { console.warn('[ai/client] Kein Fallback: ANTHROPIC_API_KEY fehlt'); return noData('bedrock', 'FALLBACK_NO_KEY') }
     // Info-Log in Production (kein Hard-Block mehr — Admin hat bewusst aktiviert)
     if (process.env.VERCEL_ENV === 'production') {
       Sentry.captureMessage('AI Direct Fallback aktiv in Production', {
