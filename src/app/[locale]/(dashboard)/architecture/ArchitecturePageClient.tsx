@@ -21,6 +21,23 @@ import { extractCanvasContext, type CanvasContext, type DetectedTag } from '@/li
 import { mergeCanvasContexts } from '@/lib/utils/merge-canvas-contexts'
 import { CanvasScopeStep } from './CanvasScopeStep'
 import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const NOW = Date.now()
 
@@ -691,6 +708,29 @@ function CatalogRecommendationsCard({
   )
 }
 
+function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn('relative', isDragging && 'z-10 opacity-75')}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="hidden md:flex absolute -left-5 top-3 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 select-none focus:outline-none"
+        aria-label="Abschnitt verschieben"
+        role="button"
+        tabIndex={0}
+      >
+        ⠿
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
@@ -742,6 +782,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
+
+  const DEFAULT_RESULT_SECTIONS = ['joule', 'decisions', 'rasic'] as const
+  type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
+  const [resultSectionOrder, setResultSectionOrder] = useState<ResultSectionId[]>([...DEFAULT_RESULT_SECTIONS])
+  const dndSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   // Scroll main back to top when entering result view — prevents sticky bar from
   // being immediately stuck because main retained scroll position from wizard steps
@@ -1076,6 +1124,32 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const eamResults = resultAudience !== 'exec'
       ? runEamValidation(rasic ?? undefined, activeCompsForEam, answers.compliance)
       : []
+
+    // Key Decisions + Next Steps — VOR dem return-Statement (für DnD-Mapping)
+    const kpFallback = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+    const kpEffective = activeComponentNames.size > 0 ? activeComponentNames : kpFallback
+    const kpComponents = recComponents.filter(c => kpEffective.has(c.name))
+    const kpDecisions = generateDynamicKeyDecisions(kpComponents)
+    const kpSteps = generateDynamicNextSteps(kpComponents)
+    const kpCrossDecisions = generateCrossModuleDecisions({
+      assessment: assessmentContext,
+      canvas: canvasContext,
+      governance: governanceContext,
+      roadmap: roadmapContext,
+    })
+    const kpCrossSteps = generateCrossModuleNextSteps({
+      assessment: assessmentContext,
+      canvas: canvasContext,
+      governance: governanceContext,
+      roadmap: roadmapContext,
+    })
+    const kpAiDec = aiNarrative?.key_decisions ?? []
+    const kpAiStp = aiNarrative?.next_steps ?? []
+    const kpSeenDe = new Set([...kpAiDec, ...kpCrossDecisions, ...kpDecisions].map(d => d.de))
+    const kpSeenStepDe = new Set([...kpAiStp, ...kpCrossSteps, ...kpSteps].map(s => s.de))
+    const allKeyDecisions = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
+    const allNextSteps = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+
     return (
       <div
         className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start"
@@ -1366,101 +1440,104 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </div>
         )}
 
-        {/* RASIC-Matrix + EAM-Validierung — nicht in Exec-Sicht */}
-        {resultAudience !== 'exec' && (
-          <>
-            <EamValidationBanner
-              key="eam-validation-banner"
-              results={eamResults}
-              overrides={validationOverrides}
-              onOverride={(ruleId, override) => {
-                setValidationOverrides(prev => {
-                  if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
-                  return { ...prev, [ruleId]: override }
-                })
-              }}
-            />
-            {rasic && (
-              <RasicMatrixCard
-                rasic={rasic}
-                readOnly={resultAudience === 'compliance'}
-                onUpdate={updated => {
-                  setRasic(updated)
-                  setResult(prev => prev ? { ...prev, rasic: updated } : prev)
-                }}
-              />
-            )}
-            {resultAudience === 'compliance' && (
-              <ComplianceControlTable activeComponents={activeCompsForEam} rasic={rasic ?? undefined} />
-            )}
-          </>
-        )}
-
-        {/* SAP Joule use cases — nicht in Exec-Sicht */}
-        {resultAudience !== 'exec' && (
-          <JouleUseCasesCard useCases={jouleUseCases} />
-        )}
-
-        {/* Key decisions + Next steps */}
-        {(() => {
-          const fallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
-          const effectiveNamesKd = activeComponentNames.size > 0 ? activeComponentNames : fallbackNames
-          const activeComponents = recComponents.filter(c => effectiveNamesKd.has(c.name))
-          const dynamicDecisions = generateDynamicKeyDecisions(activeComponents)
-          const dynamicSteps = generateDynamicNextSteps(activeComponents)
-          const crossDecisions = generateCrossModuleDecisions({
-            assessment: assessmentContext,
-            canvas: canvasContext,
-            governance: governanceContext,
-            roadmap: roadmapContext,
-          })
-          const crossSteps = generateCrossModuleNextSteps({
-            assessment: assessmentContext,
-            canvas: canvasContext,
-            governance: governanceContext,
-            roadmap: roadmapContext,
-          })
-          // AI-Narrative hat höchste Priorität, dann Cross-Modul, dann dynamisch, dann statisch
-          const aiDec = aiNarrative?.key_decisions ?? []
-          const aiStp = aiNarrative?.next_steps ?? []
-          const seenDecisionDe = new Set([...aiDec, ...crossDecisions, ...dynamicDecisions].map(d => d.de))
-          const seenStepDe = new Set([...aiStp, ...crossSteps, ...dynamicSteps].map(s => s.de))
-          const allDecisions = [...aiDec, ...crossDecisions, ...dynamicDecisions, ...result.keyDecisions.filter(d => !seenDecisionDe.has(d.de))]
-          const allSteps = [...aiStp, ...crossSteps, ...dynamicSteps, ...result.nextSteps.filter(s => !seenStepDe.has(s.de))]
-          return (
-            <div className="space-y-4">
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
-                  {aiNarrative && <AIBadge />}
-                </div>
-                <ul className="space-y-2.5" role="list">
-                  {allDecisions.map((decision, i) => (
-                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
-                        {i + 1}
-                      </span>
-                      <span className="min-w-0">{pick(decision, locale)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.nextSteps')}</h3>
-                <ul className="space-y-2.5" role="list">
-                  {allSteps.map((s, i) => (
-                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
-                        {i + 1}
-                      </span>
-                      <span className="min-w-0">{pick(s, locale)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        {/* Drag&Drop Sektionen — Reihenfolge änderbar (Joule, Key Decisions, RASIC) */}
+        <DndContext
+          sensors={dndSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(event: DragEndEvent) => {
+            const { active, over } = event
+            if (over && active.id !== over.id) {
+              setResultSectionOrder(prev => {
+                const oldIndex = prev.indexOf(active.id as ResultSectionId)
+                const newIndex = prev.indexOf(over.id as ResultSectionId)
+                return arrayMove(prev, oldIndex, newIndex)
+              })
+            }
+          }}
+        >
+          <SortableContext items={resultSectionOrder} strategy={verticalListSortingStrategy}>
+            <div className="space-y-6 md:pl-6">
+              {resultSectionOrder.map(sectionId => {
+                if (sectionId === 'joule') {
+                  return resultAudience !== 'exec' ? (
+                    <SortableSection key="joule" id="joule">
+                      <JouleUseCasesCard useCases={jouleUseCases} />
+                    </SortableSection>
+                  ) : null
+                }
+                if (sectionId === 'decisions') {
+                  return (
+                    <SortableSection key="decisions" id="decisions">
+                      <div className="space-y-4">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
+                            {aiNarrative && <AIBadge />}
+                          </div>
+                          <ul className="space-y-2.5" role="list">
+                            {allKeyDecisions.map((decision, i) => (
+                              <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                                <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                                  {i + 1}
+                                </span>
+                                <span className="min-w-0">{pick(decision, locale)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.nextSteps')}</h3>
+                          <ul className="space-y-2.5" role="list">
+                            {allNextSteps.map((s, i) => (
+                              <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                                <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
+                                  {i + 1}
+                                </span>
+                                <span className="min-w-0">{pick(s, locale)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </SortableSection>
+                  )
+                }
+                if (sectionId === 'rasic') {
+                  return resultAudience !== 'exec' ? (
+                    <SortableSection key="rasic" id="rasic">
+                      <>
+                        <EamValidationBanner
+                          results={eamResults}
+                          overrides={validationOverrides}
+                          onOverride={(ruleId, override) => {
+                            setValidationOverrides(prev => {
+                              if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                              return { ...prev, [ruleId]: override }
+                            })
+                          }}
+                        />
+                        {rasic && (
+                          <RasicMatrixCard
+                            rasic={rasic}
+                            readOnly={resultAudience === 'compliance'}
+                            onUpdate={updated => {
+                              setRasic(updated)
+                              setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                            }}
+                          />
+                        )}
+                        {resultAudience === 'compliance' && (
+                          <ComplianceControlTable activeComponents={activeCompsForEam} rasic={rasic ?? undefined} />
+                        )}
+                      </>
+                    </SortableSection>
+                  ) : null
+                }
+                return null
+              })}
             </div>
-          )
-        })()}
+          </SortableContext>
+        </DndContext>
 
         {/* Technical Architecture Optimisation — nur Architektur-Sicht, nur wenn Katalog geladen */}
         {resultAudience === 'architect' && catalogRecs && (
