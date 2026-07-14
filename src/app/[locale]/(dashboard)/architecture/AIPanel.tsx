@@ -93,6 +93,17 @@ export function AIPanel({
         </div>
       )}
 
+      {/* 2b. Free-Tier Upgrade-Teaser — nach der 1 inkludierten Analyse */}
+      {tier === 'free' && usage?.exceeded && (
+        <div className="bg-white border border-purple-200 rounded-xl px-3 py-3 text-center space-y-1.5">
+          <p className="text-xs font-semibold text-slate-800">{t('architecture.aiPanelFreeTeaserTitle')}</p>
+          <p className="text-[10px] text-slate-500 leading-relaxed">{t('architecture.aiPanelFreeTeaserBody')}</p>
+          <a href="/pricing" className="inline-block text-xs font-semibold text-[color:var(--color-ai)] hover:underline focus:outline-none focus:ring-1 focus:ring-purple-400 rounded">
+            {t('architecture.aiPanelFreeTeaserCta')}
+          </a>
+        </div>
+      )}
+
       {/* 3. Use-Case-Typ mit Konfidenz aus Canvas */}
       {canvasEnrichment?.use_case_type && (
         <div className="bg-white border border-purple-100 rounded-xl px-3 py-2">
@@ -188,12 +199,20 @@ export function AIPanel({
         </div>
       )}
 
-      {/* 6. Provenienz-Zeile */}
+      {/* 6. Provenienz-Zeile mit Cache-Hit-Status */}
       {aiModel && (
-        <p className="text-[10px] font-mono text-slate-400 border-t border-purple-100 pt-2 leading-relaxed">
-          {t('architecture.narrativeProvenance')}: {aiModel}
-          {generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
-        </p>
+        <div className="border-t border-purple-100 pt-2 space-y-0.5">
+          <p className="text-[10px] font-mono text-slate-400 leading-relaxed">
+            {t('architecture.narrativeProvenance')}: {aiModel.replace(' (cached)', '')}
+            {generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
+          </p>
+          <p className="text-[10px] text-slate-400">
+            {t('architecture.narrativeCacheHit')}:{' '}
+            <span className={aiModel.includes('(cached)') ? 'text-green-600 font-medium' : ''}>
+              {aiModel.includes('(cached)') ? t('architecture.narrativeCacheHitYes') : t('architecture.narrativeCacheHitNo')}
+            </span>
+          </p>
+        </div>
       )}
 
       {/* 7. Neu analysieren — volle Breite */}

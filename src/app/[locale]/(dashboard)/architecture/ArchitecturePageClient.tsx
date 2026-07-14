@@ -403,9 +403,18 @@ function NarrativeCard({
       )}
       {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
       {hasSummary && aiModel && (
-        <p className="text-[10px] font-mono text-slate-400 mt-3 pt-2 border-t border-purple-100">
-          {t('architecture.narrativeProvenance')}: {aiModel}{generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
-        </p>
+        <div className="mt-3 pt-2 border-t border-purple-100 space-y-0.5">
+          <p className="text-[10px] font-mono text-slate-400 leading-relaxed">
+            {t('architecture.narrativeProvenance')}: {aiModel.replace(' (cached)', '')}
+            {generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
+          </p>
+          <p className="text-[10px] text-slate-400">
+            {t('architecture.narrativeCacheHit')}:{' '}
+            <span className={aiModel.includes('(cached)') ? 'text-green-600 font-medium' : ''}>
+              {aiModel.includes('(cached)') ? t('architecture.narrativeCacheHitYes') : t('architecture.narrativeCacheHitNo')}
+            </span>
+          </p>
+        </div>
       )}
     </div>
   )
