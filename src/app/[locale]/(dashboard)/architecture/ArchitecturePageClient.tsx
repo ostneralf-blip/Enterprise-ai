@@ -801,6 +801,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     }
   }, [view])
 
+  // PostHog: eam_validation — fires whenever EAM validation recomputes in result view
+  useEffect(() => {
+    if (view !== 'result' || !result || resultAudience === 'exec') return
+    const eamFallbackNames = new Set(catalogRecs?.layers.flatMap(lr => lr.componentNames) ?? [])
+    const eamEffectiveNames = activeComponentNames.size > 0 ? activeComponentNames : eamFallbackNames
+    const activeCompsForEam = recComponents.filter(c => eamEffectiveNames.has(c.name))
+    const eamRes = runEamValidation(rasic ?? undefined, activeCompsForEam, answers.compliance)
+    ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+      .posthog?.capture('eam_validation', {
+        passed_count: eamRes.filter(r => r.passed).length,
+        total_count: eamRes.length,
+      })
+  }, [view, result, resultAudience, rasic, recComponents, activeComponentNames, catalogRecs, answers])
+
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
   const selectedOptionId = answers[step?.id ?? 'infra']
@@ -1165,6 +1179,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           level={resultLevel}
           onAudience={a => {
             setResultAudience(a)
+            ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } })
+              .posthog?.capture('arch_view_switched', { audience: a })
             if (a === 'exec') setResultLevel(1)
             if (savedId && aiNarrative) void handleAINarrative(a)
           }}
