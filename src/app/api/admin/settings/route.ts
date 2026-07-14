@@ -3,7 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { invalidateSettingsCache } from '@/lib/app-settings'
 import { z } from 'zod'
 
-const ALLOWED_KEYS = ['ai_limit_free', 'ai_limit_pro', 'ai_limit_enterprise', 'stripe_grace_period_days', 'ai_direct_fallback'] as const
+const ALLOWED_KEYS = ['ai_limit_free', 'ai_limit_pro', 'ai_limit_enterprise', 'stripe_grace_period_days', 'ai_direct_fallback', 'ai_model_bedrock_haiku', 'ai_model_bedrock_sonnet', 'ai_model_direct_fallback'] as const
 type SettingKey = typeof ALLOWED_KEYS[number]
 
 export interface AppSettingsData {
@@ -12,14 +12,20 @@ export interface AppSettingsData {
   ai_limit_enterprise: number
   stripe_grace_period_days: number
   ai_direct_fallback: 0 | 1
+  ai_model_bedrock_haiku: string
+  ai_model_bedrock_sonnet: string
+  ai_model_direct_fallback: string
 }
 
 const PatchSchema = z.object({
-  ai_limit_free:            z.number().int().min(0).max(1000).optional(),
-  ai_limit_pro:             z.number().int().min(0).max(1000).optional(),
-  ai_limit_enterprise:      z.number().int().min(0).max(1000).optional(),
-  stripe_grace_period_days: z.number().int().min(0).max(90).optional(),
-  ai_direct_fallback:       z.union([z.literal(0), z.literal(1)]).optional(),
+  ai_limit_free:             z.number().int().min(0).max(1000).optional(),
+  ai_limit_pro:              z.number().int().min(0).max(1000).optional(),
+  ai_limit_enterprise:       z.number().int().min(0).max(1000).optional(),
+  stripe_grace_period_days:  z.number().int().min(0).max(90).optional(),
+  ai_direct_fallback:        z.union([z.literal(0), z.literal(1)]).optional(),
+  ai_model_bedrock_haiku:    z.string().min(1).max(200).optional(),
+  ai_model_bedrock_sonnet:   z.string().min(1).max(200).optional(),
+  ai_model_direct_fallback:  z.string().min(1).max(200).optional(),
 })
 
 async function requireAdmin() {
@@ -38,11 +44,23 @@ export async function GET() {
   const supabase = await createAdminClient()
   const { data } = await supabase.from('app_settings').select('key, value').in('key', ALLOWED_KEYS)
 
-  const defaults: AppSettingsData = { ai_limit_free: 1, ai_limit_pro: 10, ai_limit_enterprise: 50, stripe_grace_period_days: 7, ai_direct_fallback: 0 }
-  const result = { ...defaults }
+  const defaults: AppSettingsData = {
+    ai_limit_free: 1, ai_limit_pro: 10, ai_limit_enterprise: 50,
+    stripe_grace_period_days: 7, ai_direct_fallback: 0,
+    ai_model_bedrock_haiku:   'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
+    ai_model_bedrock_sonnet:  'eu.anthropic.claude-sonnet-4-6-20250514-v1:0',
+    ai_model_direct_fallback: 'claude-haiku-4-5-20251001',
+  }
+  const result = { ...defaults } as AppSettingsData
+  const STRING_KEYS = new Set(['ai_model_bedrock_haiku', 'ai_model_bedrock_sonnet', 'ai_model_direct_fallback'])
   for (const row of data ?? []) {
     const k = row.key as SettingKey
-    if (ALLOWED_KEYS.includes(k)) (result as Record<string, number>)[k] = Number(row.value)
+    if (!ALLOWED_KEYS.includes(k)) continue
+    if (STRING_KEYS.has(k)) {
+      (result as unknown as Record<string, string>)[k] = row.value ?? ''
+    } else {
+      (result as unknown as Record<string, number>)[k] = Number(row.value)
+    }
   }
   return NextResponse.json(result)
 }

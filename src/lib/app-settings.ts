@@ -44,4 +44,38 @@ export async function getFallbackEnabledAt(): Promise<Date | null> {
 // Für Admin-Panel: Cache nach Speichern invalidieren
 export function invalidateSettingsCache() {
   _cache.clear()
+  _strCache.clear()
+}
+
+const _strCache = new Map<string, string>()
+
+async function getStringSetting(key: string, fallback: string): Promise<string> {
+  if (_strCache.has(key)) return _strCache.get(key)!
+  try {
+    const supabase = await createAdminClient()
+    const { data } = await supabase.from('app_settings').select('value').eq('key', key).maybeSingle()
+    // value-Spalte ist JSON → JSON.parse liefert den Rohwert (string, number, …)
+    const parsed = data?.value != null ? JSON.parse(data.value) : null
+    const result = typeof parsed === 'string' && parsed.trim() ? parsed.trim() : fallback
+    _strCache.set(key, result)
+    return result
+  } catch {
+    return fallback
+  }
+}
+
+// Priorität: Env-Var > DB-Setting > Code-Default
+export async function getBedrockModelId(model: 'haiku' | 'sonnet'): Promise<string> {
+  if (model === 'haiku') {
+    return process.env.BEDROCK_MODEL_HAIKU
+      ?? await getStringSetting('ai_model_bedrock_haiku', 'eu.anthropic.claude-haiku-4-5-20251001-v1:0')
+  }
+  return process.env.BEDROCK_MODEL_SONNET
+    ?? await getStringSetting('ai_model_bedrock_sonnet', 'eu.anthropic.claude-sonnet-4-6-20250514-v1:0')
+}
+
+export async function getDirectFallbackModelId(model: 'haiku' | 'sonnet'): Promise<string> {
+  const dbModel = await getStringSetting('ai_model_direct_fallback', 'claude-haiku-4-5-20251001')
+  if (model === 'sonnet') return process.env.ANTHROPIC_MODEL_SONNET ?? dbModel
+  return process.env.ANTHROPIC_MODEL_HAIKU ?? dbModel
 }

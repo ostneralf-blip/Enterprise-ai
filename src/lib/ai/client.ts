@@ -7,19 +7,11 @@ import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 import { createHash } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
-import { getFallbackEnabled, getFallbackEnabledAt } from '@/lib/app-settings'
+import { getFallbackEnabled, getFallbackEnabledAt, getBedrockModelId, getDirectFallbackModelId } from '@/lib/app-settings'
 
 // Alle Infra-Parameter über Env-Vars konfigurierbar — Änderung ohne Deploy
 const REGION          = process.env.BEDROCK_REGION ?? 'eu-west-1'
 const DEFAULT_TIMEOUT = parseInt(process.env.BEDROCK_TIMEOUT_MS ?? '15000', 10)
-
-// EU Inference Profile IDs — Format: eu.anthropic.<model>-v1:0
-// WICHTIG: Vor Go-Live gegen AWS Console (eu-west-1 → Model catalog → Inference profiles) verifizieren
-// und als BEDROCK_MODEL_HAIKU / BEDROCK_MODEL_SONNET in Vercel Env-Vars setzen.
-const MODEL_IDS = {
-  haiku:  process.env.BEDROCK_MODEL_HAIKU  ?? 'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
-  sonnet: process.env.BEDROCK_MODEL_SONNET ?? 'eu.anthropic.claude-sonnet-4-6-20250514-v1:0',
-} as const
 
 // Typo-Fix: ALLOW_NON_EU_AI_FALLBACK (früher: ALLOW_NON_EU_AI_FALLACK)
 const ALLOW_FALLBACK = process.env.ALLOW_NON_EU_AI_FALLBACK === 'true'
@@ -39,7 +31,7 @@ function getBedrockClient(): BedrockRuntimeClient {
   }
   if (!_startupLogged) {
     _startupLogged = true
-    console.info('[ai/client] Bedrock konfiguriert:', { region: REGION, haiku: MODEL_IDS.haiku, sonnet: MODEL_IDS.sonnet, fallback: ALLOW_FALLBACK })
+    console.info('[ai/client] Bedrock konfiguriert:', { region: REGION, fallback: ALLOW_FALLBACK })
   }
   return _bedrockClient
 }
@@ -85,7 +77,7 @@ export async function callLLM<T>(
   opts: CallLLMOptions = {},
 ): Promise<LLMResult<T>> {
   const model     = opts.model ?? 'haiku'
-  const modelId   = MODEL_IDS[model]
+  const modelId   = await getBedrockModelId(model)
   const maxTokens = opts.maxTokens ?? 1024
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
   const t0        = Date.now()
@@ -187,9 +179,7 @@ export async function callLLM<T>(
 
   // Direct-Fallback (nur lokal/staging)
   try {
-    const directModel = model === 'sonnet'
-      ? (process.env.ANTHROPIC_MODEL_SONNET ?? 'claude-sonnet-4-6')
-      : (process.env.ANTHROPIC_MODEL_HAIKU  ?? 'claude-haiku-4-5-20251001')
+    const directModel = await getDirectFallbackModelId(model)
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

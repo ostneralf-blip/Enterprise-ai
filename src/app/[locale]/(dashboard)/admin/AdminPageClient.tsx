@@ -76,7 +76,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [pricingLoaded, setPricingLoaded] = useState(false)
 
   // ─── App-Settings State ──────────────────────────────────────────────────
-  const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number; ai_direct_fallback: 0 | 1 } | null>(null)
+  const [appSettings, setAppSettings] = useState<{ ai_limit_free: number; ai_limit_pro: number; ai_limit_enterprise: number; stripe_grace_period_days: number; ai_direct_fallback: 0 | 1; ai_model_bedrock_haiku: string; ai_model_bedrock_sonnet: string; ai_model_direct_fallback: string } | null>(null)
   const [appSettingsSaving, setAppSettingsSaving] = useState(false)
   const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
   const [aiConfig, setAiConfig] = useState<{ hasAnthropicKey: boolean; hasBedrockKeys: boolean; bedrockRegion: string } | null>(null)
@@ -2572,6 +2572,30 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <p className="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 ⚠ Fallback aktiv, aber ANTHROPIC_API_KEY ist nicht konfiguriert — KI-Analyse schlägt trotz aktivem Toggle fehl (FALLBACK_NO_KEY).
               </p>
+            )}
+            {/* Modell-IDs konfigurieren */}
+            {appSettings && (
+              <div className="border-t border-amber-200 pt-3 space-y-2">
+                <p className="text-[11px] font-semibold text-amber-800 uppercase tracking-wide">Modell-IDs (Priorität: Env-Var &gt; DB &gt; Code-Default)</p>
+                <div className="space-y-2">
+                  {([
+                    { key: 'ai_model_bedrock_haiku',   label: 'Bedrock Haiku (EU Inference Profile ID)' },
+                    { key: 'ai_model_bedrock_sonnet',  label: 'Bedrock Sonnet (EU Inference Profile ID)' },
+                    { key: 'ai_model_direct_fallback', label: 'Direct Fallback (Anthropic API Modell-ID)' },
+                  ] as const).map(({ key, label }) => (
+                    <div key={key}>
+                      <label className="block text-[10px] text-amber-700 mb-0.5">{label}</label>
+                      <input
+                        type="text"
+                        value={appSettings[key]}
+                        onChange={e => setAppSettings(s => s ? { ...s, [key]: e.target.value } : s)}
+                        className="w-full text-xs font-mono border border-amber-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        placeholder="z.B. eu.anthropic.claude-haiku-4-5-20251001-v1:0"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
