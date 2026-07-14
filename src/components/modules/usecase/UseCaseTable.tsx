@@ -49,7 +49,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
     : useCases
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-2xl overflow-x-auto">
       {useCases.length > 3 && (
         <div className="px-4 pt-3 pb-2 border-b border-slate-100">
           <input
@@ -62,8 +62,7 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
           />
         </div>
       )}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm" role="table">
+      <table className="w-full text-sm" role="table">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               <th className="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Name</th>
@@ -143,7 +142,6 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
             ))}
           </tbody>
         </table>
-      </div>
     </div>
   )
 }
