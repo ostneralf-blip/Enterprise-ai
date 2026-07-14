@@ -584,6 +584,7 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   return (
     <div
+      id={id}
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn('relative', isDragging && 'z-10 opacity-75')}
@@ -856,7 +857,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     }
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
-    if (json.result) { setAiNarrative(json.result); setAiGeneratedAt(new Date().toISOString()); setNarrativeLocale(locale) }
+    if (json.result) {
+      setAiNarrative(json.result)
+      setAiGeneratedAt(new Date().toISOString())
+      setNarrativeLocale(locale)
+      setAiAccepted([])
+      setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
+    }
     if (json.ai_model) setAiModel(json.ai_model as string)
     setNarrativeLoading(false)
   }
