@@ -1,9 +1,12 @@
 'use client'
+import { useState } from 'react'
 import type { CatalogComponent } from '@/types'
 import type { ArchitectureResult } from '@/config/architecture-data'
 import type { EamValidationResult } from '@/config/architecture-rules'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+
+type MapFilter = 'all' | 'managed' | 'selfhosted'
 
 interface EamMapProps {
   result: ArchitectureResult
@@ -67,6 +70,11 @@ function ComponentCard({
             SAP
           </span>
         )}
+        {comp.hosting.includes('cloud') && (
+          <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-sky-50 text-sky-700">
+            Managed
+          </span>
+        )}
         {comp.hosting.some((h) => h.toLowerCase().includes('eu')) && (
           <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-emerald-50 text-emerald-700">
             EU
@@ -112,18 +120,49 @@ export function EamMap({
   locale,
 }: EamMapProps) {
   const t = useTranslations('modules.architecture')
+  const [mapFilter, setMapFilter] = useState<MapFilter>('all')
 
-  const appComps = activeComponents.filter((c) => c.architecture_layer === 'application')
+  const filterComp = (c: CatalogComponent) => {
+    if (mapFilter === 'managed') return c.hosting.includes('cloud')
+    if (mapFilter === 'selfhosted') return c.hosting.includes('onprem')
+    return true
+  }
+
+  const appComps = activeComponents.filter((c) => c.architecture_layer === 'application').filter(filterComp)
   const dataComps = activeComponents.filter((c) =>
     ['data', 'model', 'serving', 'mlops'].includes(c.architecture_layer ?? ''),
-  )
+  ).filter(filterComp)
   const crossComps = activeComponents.filter((c) =>
     ['governance', 'security'].includes(c.architecture_layer ?? ''),
-  )
+  ).filter(filterComp)
+
+  const FILTERS: { id: MapFilter; label: string }[] = [
+    { id: 'all', label: t('mapFilterAll') },
+    { id: 'managed', label: t('mapFilterManaged') },
+    { id: 'selfhosted', label: t('mapFilterSelfHosted') },
+  ]
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700 mb-2">{t('eamLandkarte')}</h3>
+      <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+        <h3 className="text-sm font-semibold text-slate-700">{t('eamLandkarte')}</h3>
+        <div className="flex items-center gap-1" role="group" aria-label={t('mapFilterAll')}>
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setMapFilter(f.id)}
+              className={cn(
+                'text-[10px] px-2.5 py-0.5 rounded-full border font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-primary-ring whitespace-nowrap',
+                mapFilter === f.id
+                  ? 'bg-slate-800 text-white border-slate-800'
+                  : 'bg-white text-slate-500 border-slate-300 hover:border-slate-400 hover:text-slate-700'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Band 1: Motivation & Vorgaben */}
       <EamBand label={t('eamMotivation')} dashed>
