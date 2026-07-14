@@ -12,6 +12,7 @@ export const FEATURE_TIERS = {
   compliance_full:     'pro',
   architecture_wizard: 'pro',
   presentation_templates: 'pro',
+  billing_portal:      'pro',
   team_sharing:        'enterprise',
   sso:                 'enterprise',
   audit_trail:         'enterprise',

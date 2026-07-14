@@ -43,32 +43,23 @@ export async function GET(req: Request) {
     // getLocale() funktioniert nicht für /api/-Routen (Middleware wird übersprungen).
     // Locale kommt als Query-Param vom Frontend; Fallback auf getLocale() für direkte Aufrufe.
     const locale = parsed.data.locale ?? (await getLocale())
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
-    }
+    const gate = await requireFeature('pdf_export')
+    if (gate instanceof NextResponse) return gate
+    const { userId } = gate
 
+    const supabase = await createClient()
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('tier, company')
-      .eq('id', user.id)
-      .single() as { data: { tier: string; company: string | null } | null }
-
-    const tier = profileData?.tier ?? 'free'
-    if (tier === 'free') {
-      return NextResponse.json(
-        { error: 'PDF-Export ist ein Pro-Feature.', code: 'UPGRADE_REQUIRED' },
-        { status: 403 }
-      )
-    }
+      .select('company')
+      .eq('id', userId)
+      .single() as { data: { company: string | null } | null }
 
     const { module, entityId, template } = parsed.data
 
     // Presentation-Templates sind Pro-Feature — server-seitig prüfen
     if (template && template !== 'book') {
-      const gate = await requireFeature('presentation_templates')
-      if (gate instanceof NextResponse) return gate
+      const tGate = await requireFeature('presentation_templates')
+      if (tGate instanceof NextResponse) return tGate
     }
     const company = profileData?.company ?? undefined
     let doc: ReactElement
@@ -78,7 +69,7 @@ export async function GET(req: Request) {
       const query = supabase
         .from('assessment_sessions')
         .select('total_score, dim_scores, archetype')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       const { data: sessionData } = entityId
         ? await query.eq('id', entityId).single() as { data: { total_score: number; dim_scores: Record<string, number>; archetype: string } | null }
         : await query.order('created_at', { ascending: false }).limit(1).single() as { data: { total_score: number; dim_scores: Record<string, number>; archetype: string } | null }
@@ -96,7 +87,7 @@ export async function GET(req: Request) {
       const query = supabase
         .from('governance_sessions')
         .select('use_case_name, result, protocol')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       const { data: sessionData } = entityId
         ? await query.eq('id', entityId).single() as { data: { use_case_name: string | null; result: string | null; protocol: unknown[] | null } | null }
         : await query.order('created_at', { ascending: false }).limit(1).single() as { data: { use_case_name: string | null; result: string | null; protocol: unknown[] | null } | null }
@@ -114,7 +105,7 @@ export async function GET(req: Request) {
       const query = supabase
         .from('roadmaps')
         .select('title, archetype, phases')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       const { data: roadmapData } = entityId
         ? await query.eq('id', entityId).single() as { data: { title: string; archetype: string | null; phases: unknown[] } | null }
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; archetype: string | null; phases: unknown[] } | null }
@@ -132,7 +123,7 @@ export async function GET(req: Request) {
       const query = supabase
         .from('canvases')
         .select('title, archetype, data')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       const { data: canvasData } = entityId
         ? await query.eq('id', entityId).single() as { data: { title: string; archetype: string | null; data: Record<string, string> } | null }
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; archetype: string | null; data: Record<string, string> } | null }
@@ -150,7 +141,7 @@ export async function GET(req: Request) {
       const { data: checks } = await supabase
         .from('compliance_checks')
         .select('regulation, check_type, status, notes, completed_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('regulation') as { data: Array<{ regulation: string; check_type: string; status: string; notes: string | null; completed_at: string | null }> | null }
 
       if (!checks || checks.length === 0) {
@@ -163,7 +154,7 @@ export async function GET(req: Request) {
       const query = supabase
         .from('architectures')
         .select('title, result')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
       const { data: archData } = entityId
         ? await query.eq('id', entityId).single() as { data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[]; examples?: string }>; nextSteps?: string[] } } | null }
         : await query.order('updated_at', { ascending: false }).limit(1).single() as { data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[]; examples?: string }>; nextSteps?: string[] } } | null }
@@ -180,7 +171,7 @@ export async function GET(req: Request) {
       const { data: esPortfolio } = await supabase
         .from('uc_portfolios')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle() as { data: { id: string } | null }
@@ -196,11 +187,11 @@ export async function GET(req: Request) {
         ucCountRes,
         topUcsRes,
       ] = await Promise.all([
-        supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', user.id).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { archetype: string; total_score: number; dim_scores: Record<string, number> } | null }>,
-        supabase.from('governance_sessions').select('use_case_name, result, protocol').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { use_case_name: string | null; result: string; protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null } | null }>,
-        supabase.from('roadmaps').select('title, archetype, phases').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; archetype: string | null; phases: Array<{ title: string; duration?: string; focus?: string; actions?: Array<{ label: string }>; kpis?: string[] }> } | null }>,
-        supabase.from('canvases').select('title, data').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; data: Record<string, string> } | null }>,
-        supabase.from('architectures').select('title, result').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[] }>; nextSteps?: string[] } } | null }>,
+        supabase.from('assessment_sessions').select('archetype, total_score, dim_scores').eq('user_id', userId).eq('completed', true).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { archetype: string; total_score: number; dim_scores: Record<string, number> } | null }>,
+        supabase.from('governance_sessions').select('use_case_name, result, protocol').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { use_case_name: string | null; result: string; protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null } | null }>,
+        supabase.from('roadmaps').select('title, archetype, phases').eq('user_id', userId).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; archetype: string | null; phases: Array<{ title: string; duration?: string; focus?: string; actions?: Array<{ label: string }>; kpis?: string[] }> } | null }>,
+        supabase.from('canvases').select('title, data').eq('user_id', userId).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; data: Record<string, string> } | null }>,
+        supabase.from('architectures').select('title, result').eq('user_id', userId).order('updated_at', { ascending: false }).limit(1).maybeSingle() as unknown as Promise<{ data: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[] }>; nextSteps?: string[] } } | null }>,
         portfolioId
           ? supabase.from('use_cases').select('*', { count: 'exact', head: true }).eq('portfolio_id', portfolioId)
           : Promise.resolve({ count: 0 }),
@@ -271,7 +262,7 @@ export async function GET(req: Request) {
       const { data: portfolio } = await supabase
         .from('uc_portfolios')
         .select('id, name')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single() as { data: { id: string; name: string } | null }

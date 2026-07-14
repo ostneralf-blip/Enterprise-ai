@@ -36,18 +36,20 @@ describe('Security: Settings API', () => {
       expect(source).toContain('status: 401')
     })
 
-    it('Portal-Route prüft Auth via supabase.auth.getUser()', () => {
+    it('Portal-Route prüft Auth via requireFeature (delegiert an tier-check)', () => {
       const source = readFileSync(join(process.cwd(), 'src/app/api/settings/portal/route.ts'), 'utf-8')
-      expect(source).toContain('supabase.auth.getUser()')
-      expect(source).toContain('status: 401')
+      // Auth und Tier-Check laufen zentral in requireFeature() — nicht mehr inline
+      expect(source).toContain('requireFeature')
+      expect(source).toContain('gate instanceof NextResponse')
     })
   })
 
   describe('Tier-Gating Portal (statischer Code-Check)', () => {
-    it('Portal-Route gibt 403 für Free-Tier zurück', () => {
+    it('Portal-Route nutzt requireFeature("billing_portal") statt manuellem Tier-Check', () => {
       const source = readFileSync(join(process.cwd(), 'src/app/api/settings/portal/route.ts'), 'utf-8')
-      expect(source).toContain("tier === 'free'")
-      expect(source).toContain('status: 403')
+      expect(source).toContain("requireFeature('billing_portal')")
+      // Kein manuelles tier === 'free' mehr — einzige Quelle der Wahrheit ist FEATURE_TIERS
+      expect(source).not.toContain("tier === 'free'")
     })
 
     it('Portal-Route prüft stripe_customer_id', () => {
