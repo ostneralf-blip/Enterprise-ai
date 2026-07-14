@@ -30,7 +30,7 @@ const doubleARasic: RasicMatrix = {
   ],
 }
 
-// ─── Rule 1: RASIC Accountability ────────────────────────────────────────────
+// ─── Rule 1: RASIC Accountability ────────────────────────────────
 describe('validateRasicAccountability', () => {
   test('passes when exactly one A per phase', () => {
     expect(validateRasicAccountability(validRasic).passed).toBe(true)
@@ -56,12 +56,12 @@ describe('validateRasicAccountability', () => {
     expect(validateRasicAccountability(noARasic).passed).toBe(false)
   })
 
-  test('anchor is rasic-matrix', () => {
-    expect(validateRasicAccountability(validRasic).anchor).toBe('rasic-matrix')
+  test('anchor is rasic (SortableSection id, siehe #176 Fix 45445ed)', () => {
+    expect(validateRasicAccountability(validRasic).anchor).toBe('rasic')
   })
 })
 
-// ─── Rule 3: Cross-Cutting Controls ──────────────────────────────────────────
+// ─── Rule 3: Cross-Cutting Controls ──────────────────────────────
 describe('validateCrossControls', () => {
   test('passes when no risk components', () => {
     const comps = [makeComp({ dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal' })]
@@ -98,7 +98,7 @@ describe('validateCrossControls', () => {
   })
 })
 
-// ─── Rule 4: EU Hosting ───────────────────────────────────────────────────────
+// ─── Rule 4: EU Hosting ───────────────────────────────────────
 describe('validateEuHosting', () => {
   test('passes when compliance is not strict', () => {
     const comps = [makeComp({ cloud_provider: 'aws', hosting: ['cloud'] })]
@@ -134,15 +134,23 @@ describe('validateEuHosting', () => {
   })
 })
 
-// ─── runEamValidation ─────────────────────────────────────────────────────────
+// ─── runEamValidation ─────────────────────────────────────────
 describe('runEamValidation', () => {
-  test('returns 3 results', () => {
-    expect(runEamValidation(validRasic, [], 'moderate')).toHaveLength(3)
+  test('returns 4 results (4. Regel: Komponenten-Owner, #155)', () => {
+    expect(runEamValidation(validRasic, [], 'moderate')).toHaveLength(4)
   })
 
-  test('all pass for clean state with no risks', () => {
-    const results = runEamValidation(validRasic, [], 'moderate')
+  test('all pass for clean state with active components and no risks', () => {
+    const comps = [makeComp({ dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal' })]
+    const results = runEamValidation(validRasic, comps, 'moderate', comps.length)
     expect(results.every(r => r.passed)).toBe(true)
+  })
+
+  test('r2 fails for empty selection — 0 Komponenten ist ROT, nicht vacuously true (#182)', () => {
+    const results = runEamValidation(validRasic, [], 'moderate', 0)
+    const r2 = results.find(r => r.ruleId === 'r2')
+    expect(r2?.passed).toBe(false)
+    expect(r2?.message.de).toContain('unvollständig')
   })
 
   test('r1 fails when rasic undefined', () => {

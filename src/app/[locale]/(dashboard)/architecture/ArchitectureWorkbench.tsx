@@ -7,7 +7,7 @@ import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 import type { WizardAnswers } from '@/config/architecture-data'
-import { findConflicts } from '@/lib/utils/catalog-compatibility'
+import { getSelectionStats } from '@/lib/architecture/selection'
 
 type Tab = 'komponenten' | 'diagramm' | 'katalog'
 const LS_OPEN = 'arch_workbench_open_v1'
@@ -31,13 +31,15 @@ interface Props {
   onOpsNotesChange: (name: string, notes: string) => void
   roleNames: string[]
   forceOpenTab?: 'komponenten' | 'diagramm' | 'katalog' | null
+  rejectedSuggestions?: string[]
+  acceptedSuggestions?: string[]
 }
 
 export function ArchitectureWorkbench({
   catalogRecs, recComponents, activeComponentNames, onCheckedChange,
   aiSuggestions, componentSources, aiSuggested, level, answers, useCaseName, locale,
   componentOwners, componentOpsNotes, onOwnerChange, onOpsNotesChange, roleNames,
-  forceOpenTab,
+  forceOpenTab, rejectedSuggestions, acceptedSuggestions,
 }: Props) {
   const t = useTranslations('modules.architecture')
   const [open, setOpen] = useState(() => {
@@ -58,11 +60,16 @@ export function ArchitectureWorkbench({
     localStorage.setItem(LS_TAB, forceOpenTab)
   }, [forceOpenTab])
 
-  const fallback = new Set(catalogRecs.layers.flatMap(lr => lr.componentNames))
-  const effective = activeComponentNames.size > 0 ? activeComponentNames : fallback
-  const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
-  const conflicts = findConflicts(effective, byName)
-  const openSuggestions = aiSuggestions.filter(s => !effective.has(s))
+  // Gate D (#182): Zählen ausschließlich über den zentralen Selektor —
+  // Header, KI-Panel und Validierung lesen damit dieselbe Quelle.
+  const { effectiveNames: effective, openSuggestions, conflicts } = getSelectionStats({
+    activeComponentNames,
+    fallbackNames: catalogRecs.layers.flatMap(lr => lr.componentNames),
+    components: recComponents,
+    aiSuggestions,
+    rejectedSuggestions,
+    acceptedSuggestions,
+  })
   const hasBadge = openSuggestions.length > 0 || conflicts.length > 0
 
   const handleToggle = () => {
