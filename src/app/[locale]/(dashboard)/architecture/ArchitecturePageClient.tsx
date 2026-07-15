@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
@@ -754,6 +754,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       })
   }, [view, result, resultAudience, rasic, recComponents, activeComponentNames, catalogRecs, answers])
 
+  // Case-insensitive Set der aktiven Namen — verhindert Duplikate durch Vendor-Schreibvarianten (#181)
+  const activeNameKeySet = useMemo(
+    () => new Set([...activeComponentNames].map(n => n.toLowerCase().trim())),
+    [activeComponentNames],
+  )
+
   const totalSteps = WIZARD_STEPS.length
   const step = WIZARD_STEPS[currentStep]
   const selectedOptionId = answers[step?.id ?? 'infra']
@@ -1057,6 +1063,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const canvasEnrichment = canvasContext?.canvas.ai_enrichment as { use_case_type?: string; confidence?: number; additional_compliance_flags?: string[] } | null | undefined
     const rejected = result.rejected_suggestions ?? []
     const handleAccept = (name: string) => {
+      // #181: Case-insensitiver Guard — nie eine Namensvariante doppelt übernehmen
+      if (activeNameKeySet.has(name.toLowerCase().trim())) return
       const comp = recComponents.find(c => c.name === name)
       if (comp?.architecture_layer) {
         setCatalogRecs(prev => {
@@ -1080,7 +1088,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const suggestions = aiNarrative?.component_suggestions ?? []
       const rejSet = new Set(result.rejected_suggestions ?? [])
       const toAccept: string[] = []
-      suggestions.filter(n => !rejSet.has(n) && !aiAccepted.includes(n)).forEach(name => {
+      suggestions.filter(n => !rejSet.has(n) && !aiAccepted.includes(n) && !activeNameKeySet.has(n.toLowerCase().trim())).forEach(name => {
         const comp = recComponents.find(c => c.name === name)
         if (comp?.architecture_layer) {
           setCatalogRecs(prev => {
@@ -1622,6 +1630,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     }
     const rejected = result?.rejected_suggestions ?? []
     const handleAcceptAI = (name: string) => {
+      if (activeNameKeySet.has(name.toLowerCase().trim())) return
       const comp = recComponents.find(c => c.name === name)
       // Add to layer only when architecture_layer is known — visual feedback always fires
       if (comp?.architecture_layer) {
@@ -1644,7 +1653,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       const rejSet = new Set(rejected)
       const acceptedSet = new Set(aiAccepted)
       const toAccept: string[] = []
-      suggestions.filter(n => !rejSet.has(n) && !acceptedSet.has(n)).forEach(name => {
+      suggestions.filter(n => !rejSet.has(n) && !acceptedSet.has(n) && !activeNameKeySet.has(n.toLowerCase().trim())).forEach(name => {
         const comp = recComponents.find(c => c.name === name)
         if (comp?.architecture_layer) {
           setCatalogRecs(prev => {
