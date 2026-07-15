@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
@@ -10,6 +10,7 @@ import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
+import { usePass1Classify } from '@/hooks/usePass1Classify'
 import type { Canvas, Archetype, Tier } from '@/types'
 
 type CanvasAIEnrichment = {
@@ -117,6 +118,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
+
+  const getCanvas = useCallback(() => active, [active])
+  const { handleBlur } = usePass1Classify(active?.id ?? null, getCanvas)
 
   const aiEnrichment = active?.ai_enrichment as CanvasAIEnrichment | undefined
 
@@ -290,6 +294,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                   if (!prev) return prev
                   return { ...prev, data: { ...prev.data, [field.id]: e.target.value } }
                 })}
+                onBlur={e => handleBlur(field.id, e.target.value)}
                 placeholder={pick(field.placeholder, locale)}
                 rows={4}
                 className="w-full text-sm text-slate-800 placeholder-slate-300 resize-none focus:outline-none"

@@ -28,3 +28,17 @@ export const ArchitectureNarrativeSchema = z.object({
 })
 
 export type ArchitectureNarrative = z.infer<typeof ArchitectureNarrativeSchema>
+
+// Pass-1-Vorklassifikation: Term-Klassifikation via Haiku (#191)
+export const TermClassEnum = z.enum(['produkt', 'projekt_eigenname', 'capability', 'fuellwort', 'mehrdeutig'])
+export type TermClass = z.infer<typeof TermClassEnum>
+
+export const Pass1TermResultSchema = z.object({
+  term:       z.string().max(200),
+  class:      TermClassEnum,
+  vendor:     z.string().max(100).nullable().optional(),
+  confidence: z.number().min(0).max(1),
+})
+export type Pass1TermResult = z.infer<typeof Pass1TermResultSchema>
+
+export const Pass1ClassificationSchema = z.array(Pass1TermResultSchema).max(20)
