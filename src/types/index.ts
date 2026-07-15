@@ -89,6 +89,12 @@ export interface CanvasSynonym {
   synonym_type: 'vendor' | 'category' | 'usecase'
   is_active: boolean
   created_at: string
+  review_status: 'pending' | 'approved' | 'rejected' | 'promoted'
+  source: 'admin' | 'ai'
+  client_id: string | null
+  evidence_count: number
+  last_seen_at: string
+  avg_confidence: number | null
 }
 
 export interface CatalogRole {

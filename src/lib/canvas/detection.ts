@@ -267,9 +267,24 @@ export interface CanvasDetectionResult {
   filledCount: number
 }
 
-export function analyzeCanvas(canvas: Canvas): CanvasDetectionResult {
+/** Fügt DB-Synonyme zu den statischen VENDOR_ALIASES hinzu (Client ergänzt, überschreibt nie). */
+export function mergeAliases(
+  base: Record<string, string[]>,
+  extra: Record<string, string[]>,
+): Record<string, string[]> {
+  const result: Record<string, string[]> = { ...base }
+  for (const [vendor, aliases] of Object.entries(extra)) {
+    const existing = result[vendor] ?? []
+    const toAdd = aliases.filter(a => !existing.includes(a.toLowerCase()))
+    result[vendor] = toAdd.length ? [...existing, ...toAdd.map(a => a.toLowerCase())] : existing
+  }
+  return result
+}
+
+export function analyzeCanvas(canvas: Canvas, extraAliases?: Record<string, string[]>): CanvasDetectionResult {
   const text = buildDetectionText(canvas)
-  const platform = detectPlatformTags(text)
+  const aliases = extraAliases ? mergeAliases(VENDOR_ALIASES, extraAliases) : VENDOR_ALIASES
+  const platform = detectPlatformTags(text, aliases)
   const ucTypes = detectUseCaseTypes(text)
   const complianceFlags = detectCompliance(text)
   const hasDocumentContext = detectDocumentContext(text)

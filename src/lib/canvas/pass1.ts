@@ -50,24 +50,22 @@ export function shouldAddToBlocklist(result: Pass1TermResult): boolean {
 // ─── DB-Writes ────────────────────────────────────────────────────────────────
 
 export interface ConsequenceStats {
-  synonymsPending: number
   blocklistPending: number
   discarded: number
 }
 
 /**
  * Wendet Pass-1-Konsequenzen auf klassifizierte Terme an.
- * - produkt + Guards → canvas_synonyms (is_active=false, review_status=pending, source=ai)
  * - fuellwort → detection_blocklist (status=pending, source=ai)
+ * - produkt → wird in Pass 2 (pass2.ts) zone-aware persistiert
  * - projekt_eigenname / mehrdeutig / capability → verwerfen
- * Guards werden IMMER geprüft — nie is_active/review_status überschreiben.
  */
 export async function applyConsequences(
   results: Pass1TermResult[],
-  canvasText: string,
+  _canvasText: string,
   supabase: SupabaseClient,
 ): Promise<ConsequenceStats> {
-  const stats: ConsequenceStats = { synonymsPending: 0, blocklistPending: 0, discarded: 0 }
+  const stats: ConsequenceStats = { blocklistPending: 0, discarded: 0 }
 
   for (const r of results) {
     if (shouldAddToBlocklist(r)) {
@@ -77,22 +75,8 @@ export async function applyConsequences(
       stats.blocklistPending++
       continue
     }
-
-    const decision = shouldAddSynonym(r, canvasText)
-    if (decision.ok && r.vendor) {
-      // is_active = false — aktiviert erst nach Admin-Freigabe
-      // ON CONFLICT DO NOTHING — nie is_active oder review_status überschreiben
-      await supabase
-        .from('canvas_synonyms')
-        .upsert(
-          { term: r.vendor, synonym: r.term.toLowerCase(), synonym_type: 'vendor', is_active: false, review_status: 'pending', source: 'ai' },
-          { onConflict: 'term,synonym', ignoreDuplicates: true },
-        )
-      stats.synonymsPending++
-      continue
-    }
-
-    stats.discarded++
+    // produkt → Pass 2 übernimmt; alle anderen Klassen → discard
+    if (r.class !== 'produkt') stats.discarded++
   }
 
   return stats

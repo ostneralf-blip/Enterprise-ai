@@ -5,6 +5,7 @@ import { callLLM } from '@/lib/ai/client'
 import { Pass1ClassificationSchema, Pass1TermResultSchema } from '@/lib/ai/schemas'
 import { getPass1UsageStatus, incrementPass1Usage } from '@/lib/ai/pass1-usage'
 import { applyConsequences } from '@/lib/canvas/pass1'
+import { applyPass2 } from '@/lib/canvas/pass2'
 import { trackServer } from '@/lib/posthog/server'
 import { getTier } from '@/lib/utils/tier-check'
 import { FIELD_PRIOR_MAP } from '@/lib/canvas/field-priors'
@@ -105,8 +106,10 @@ Return ONLY a JSON array: [{"term":"...","class":"produkt|projekt_eigenname|capa
   // Validate each result against strict schema (extra defense)
   const validResults = llmResult.filter(r => Pass1TermResultSchema.safeParse(r).success)
 
-  // Consequences: Synonyme + Blocklist (Guards always run)
+  // Pass 1 Consequences: Blocklist (fuellwort); Synonyme → Pass 2
   const stats = await applyConsequences(validResults, canvasText, supabase)
+  // Pass 2: zone-aware Synonym-Persistenz (client-scoped, auto-aktiv bei hoher Konfidenz)
+  const pass2Stats = await applyPass2(validResults, user.id, canvasText, supabase)
 
   const ok = await incrementPass1Usage(user.id, tier)
   if (!ok) {
@@ -115,8 +118,10 @@ Return ONLY a JSON array: [{"term":"...","class":"produkt|projekt_eigenname|capa
 
   void trackServer(user.id, 'pass1_call', {
     module: 'canvas', success: true, cached: meta.provider === 'cache',
-    candidates: toClassify.length, synonyms_pending: stats.synonymsPending,
+    candidates: toClassify.length,
     blocklist_pending: stats.blocklistPending, discarded: stats.discarded,
+    pass2_auto_active: pass2Stats.autoActive, pass2_pending: pass2Stats.pendingClient,
+    pass2_evidence_updated: pass2Stats.evidenceUpdated,
   })
 
   return NextResponse.json({ results: validResults, stats, usage: await getPass1UsageStatus(user.id, tier) })

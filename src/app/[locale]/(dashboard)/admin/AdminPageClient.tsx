@@ -50,6 +50,11 @@ interface Props {
 
 type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings'
 
+interface PromoQueueEntry {
+  term: string; synonym: string; synonym_type: string
+  client_count: number; avg_confidence: number; total_evidence: number
+}
+
 type FormState = {
   module: string
   category: string
@@ -216,6 +221,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [synForm, setSynForm] = useState({ term: '', synonym: '', synonym_type: 'vendor' as CanvasSynonym['synonym_type'] })
   const [synSaving, setSynSaving] = useState(false)
   const [synError, setSynError] = useState<string | null>(null)
+  const [promoQueue, setPromoQueue] = useState<PromoQueueEntry[]>([])
+  const [promoLoaded, setPromoLoaded] = useState(false)
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoAction, setPromoAction] = useState<string | null>(null)
+  const [promoThresholds, setPromoThresholds] = useState({ minClients: 3, minConfidence: 0.80 })
 
   // ── Scanner state ────────────────────────────────────────────────────────────
   const [drafts, setDrafts] = useState<ComplianceSourceDraft[]>(initialDrafts ?? [])
@@ -504,6 +514,35 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     if (!confirm('Synonym löschen?')) return
     const res = await fetch(`/api/admin/synonyms?id=${id}`, { method: 'DELETE' })
     if (res.ok) setSynonyms(prev => prev.filter(x => x.id !== id))
+  }
+
+  async function loadPromoQueue() {
+    if (promoLoaded) return
+    setPromoLoading(true)
+    try {
+      const res = await fetch('/api/admin/synonyms/promote')
+      const { queue, minClients, minConfidence } = await res.json() as { queue: PromoQueueEntry[]; minClients: number; minConfidence: number }
+      setPromoQueue(queue ?? [])
+      setPromoThresholds({ minClients: minClients ?? 3, minConfidence: minConfidence ?? 0.80 })
+      setPromoLoaded(true)
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  async function handlePromoAction(entry: PromoQueueEntry, action: 'approve' | 'reject' | 'block') {
+    const key = `${entry.term}::${entry.synonym}`
+    setPromoAction(key)
+    try {
+      await fetch('/api/admin/synonyms/promote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, term: entry.synonym, vendor: entry.term, synonym_type: entry.synonym_type }),
+      })
+      setPromoQueue(prev => prev.filter(e => !(e.term === entry.term && e.synonym === entry.synonym)))
+    } finally {
+      setPromoAction(null)
+    }
   }
 
   async function loadSuggestions() {
@@ -873,7 +912,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             key={id}
             role="tab"
             aria-selected={tab === id}
-            onClick={() => { setTab(id); if (id === 'synonyms') loadSynonyms(); if (id === 'pricing') loadPricing(); if (id === 'app_settings') loadAppSettings() }}
+            onClick={() => { setTab(id); if (id === 'synonyms') { void loadSynonyms(); void loadPromoQueue() } if (id === 'pricing') loadPricing(); if (id === 'app_settings') loadAppSettings() }}
             className={cn(
               'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
               tab === id
@@ -1998,6 +2037,75 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {/* List */}
+          {/* ── Promotion-Queue ─────────────────────────────────────────────── */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <div>
+                <p className="text-sm font-medium text-slate-700">Promotion-Queue</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Client-Synonyme mit ≥ {promoThresholds.minClients} Clients und Konfidenz ≥ {(promoThresholds.minConfidence * 100).toFixed(0)} %
+                </p>
+              </div>
+              <button
+                onClick={() => { setPromoLoaded(false); void loadPromoQueue() }}
+                disabled={promoLoading}
+                className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+              >
+                {promoLoading ? 'Lade…' : 'Aktualisieren'}
+              </button>
+            </div>
+            {promoLoading ? (
+              <p className="text-sm text-slate-400 py-6 text-center">Lade Queue…</p>
+            ) : promoQueue.length === 0 ? (
+              <p className="text-sm text-slate-400 py-6 text-center">Keine Kandidaten — Schwellen noch nicht erreicht.</p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {promoQueue.map(entry => {
+                  const key = `${entry.term}::${entry.synonym}`
+                  const busy = promoAction === key
+                  return (
+                    <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 min-w-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-medium text-slate-800">{entry.synonym}</span>
+                          <span className="text-xs text-slate-400">→</span>
+                          <span className="px-2 py-0.5 bg-primary-soft text-primary text-xs rounded-full font-medium">{entry.term}</span>
+                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded">{entry.synonym_type}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {entry.client_count} Clients · Ø {(entry.avg_confidence * 100).toFixed(0)} % Konfidenz · {entry.total_evidence}× gesehen
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button
+                          onClick={() => void handlePromoAction(entry, 'approve')}
+                          disabled={busy}
+                          className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {busy ? '…' : 'Übernehmen'}
+                        </button>
+                        <button
+                          onClick={() => void handlePromoAction(entry, 'reject')}
+                          disabled={busy}
+                          className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Ablehnen
+                        </button>
+                        <button
+                          onClick={() => void handlePromoAction(entry, 'block')}
+                          disabled={busy}
+                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Blocken
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           {synLoading ? (
             <p className="text-sm text-slate-400 py-4 text-center">Lade…</p>
           ) : synonyms.length === 0 ? (
@@ -2010,6 +2118,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Term</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Synonym</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Typ</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Scope</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Belege</th>
                     <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Aktiv</th>
                     <th className="px-4 py-3" />
                   </tr>
@@ -2028,6 +2138,17 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         )}>
                           {s.synonym_type}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={cn(
+                          'px-2 py-0.5 rounded text-[10px] font-medium',
+                          s.client_id ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500',
+                        )}>
+                          {s.client_id ? 'Client' : 'Global'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {s.evidence_count ?? '—'}
                       </td>
                       <td className="px-4 py-3">
                         <button

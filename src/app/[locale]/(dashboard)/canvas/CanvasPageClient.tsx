@@ -114,7 +114,21 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const insights = useMemo(() => active ? analyzeCanvas(active) : null, [active])
+  const [extraAliases, setExtraAliases] = useState<Record<string, string[]>>({})
+
+  // Einmalig: client-eigene + globale aktive Synonyme für Detection-Merge laden
+  useEffect(() => {
+    void fetch('/api/canvas/active-synonyms')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { aliases: Record<string, string[]> } | null) => {
+        if (data?.aliases) setExtraAliases(data.aliases)
+      })
+  }, [])
+
+  const insights = useMemo(
+    () => active ? analyzeCanvas(active, Object.keys(extraAliases).length ? extraAliases : undefined) : null,
+    [active, extraAliases],
+  )
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
