@@ -436,11 +436,16 @@ export function validateEuHosting(activeComponents: CatalogComponent[], complian
 
 export function validateComponentOwners(
   rasic: RasicMatrix | undefined,
-  activeComponents: CatalogComponent[]
+  activeComponents: CatalogComponent[],
+  activeCount?: number,
 ): EamValidationResult {
   const ruleId = 'r2'; const anchor = 'rasic-matrix'
-  if (!rasic || activeComponents.length === 0) {
-    return { ruleId, anchor, passed: true, message: { de: 'Keine Komponenten aktiv', en: 'No active components' } }
+  const count = activeCount ?? activeComponents.length
+  if (count === 0) {
+    return { ruleId, anchor, passed: false, message: { de: 'Keine Komponenten gewählt — Architektur unvollständig', en: 'No components selected — architecture incomplete' } }
+  }
+  if (!rasic) {
+    return { ruleId, anchor, passed: false, message: { de: 'Eigentümer nicht prüfbar — RASIC-Matrix fehlt', en: 'Owners cannot be checked — RASIC matrix missing' } }
   }
   const hasBuildOwner = rasic.entries.some(e => e.assignments['build'] === 'R' || e.assignments['build'] === 'A')
   const hasBetriebOwner = rasic.entries.some(e => e.assignments['betrieb'] === 'R' || e.assignments['betrieb'] === 'A')
@@ -450,7 +455,7 @@ export function validateComponentOwners(
   return {
     ruleId, anchor, passed,
     message: passed
-      ? { de: `${activeComponents.length} Komponente(n) — Build & Betrieb mit Eigentümer belegt`, en: `${activeComponents.length} component(s) — Build & Operations have owners` }
+      ? { de: `${count} Komponente(n) — Build & Betrieb mit Eigentümer belegt`, en: `${count} component(s) — Build & Operations have owners` }
       : { de: `Fehlende Eigentümer (R/A) in: ${missingDe}`, en: `Missing owners (R/A) in: ${missingEn}` },
   }
 }
@@ -458,11 +463,14 @@ export function validateComponentOwners(
 export function runEamValidation(
   rasic: RasicMatrix | undefined,
   activeComponents: CatalogComponent[],
-  compliance?: string
+  compliance?: string,
+  // #182: Zahl aus getSelectionStats — Namen zählen, nicht Katalog-Matches,
+  // damit Validierung und Workbench-Header dieselbe Quelle lesen (Gate D).
+  activeCount?: number,
 ): EamValidationResult[] {
   return [
     validateRasicAccountability(rasic),
-    validateComponentOwners(rasic, activeComponents),
+    validateComponentOwners(rasic, activeComponents, activeCount),
     validateCrossControls(activeComponents),
     validateEuHosting(activeComponents, compliance),
   ]

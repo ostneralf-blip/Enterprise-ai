@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
+import { getSelectionStats } from '@/lib/architecture/selection'
 
 interface CanvasEnrichment {
   use_case_type?: string
@@ -39,14 +40,16 @@ export function AIPanel({
   const [reanalyzing, setReanalyzing] = useState(false)
   const isPro = tier === 'pro' || tier === 'enterprise'
   const byName = new Map(catalogComponents.map(c => [c.name, c]))
-  const rejected = new Set(rejectedSuggestions)
   const accepted = new Set(acceptedSuggestions ?? [])
-  // Aktive Komponenten case-insensitiv — nie etwas vorschlagen, was bereits in der Architektur ist
-  const activeNormalized = new Set([...(activeComponentNames ?? [])].map(n => n.toLowerCase().trim()))
-  const suggestions = (narrative?.component_suggestions ?? []).filter(n =>
-    byName.has(n) && !rejected.has(n) && !activeNormalized.has(n.toLowerCase().trim())
-  )
-  const openSuggestions = suggestions.filter(n => !accepted.has(n))
+  // Gate D (#182): Zählen ausschließlich über den zentralen Selektor —
+  // Panel-Kopf, Workbench-Header und Validierung lesen dieselbe Quelle.
+  const { visibleSuggestions: suggestions, openSuggestions } = getSelectionStats({
+    activeComponentNames: activeComponentNames ?? new Set<string>(),
+    components: catalogComponents,
+    aiSuggestions: narrative?.component_suggestions,
+    rejectedSuggestions,
+    acceptedSuggestions,
+  })
 
   const complianceHint = canvasEnrichment?.additional_compliance_flags?.[0] ?? null
 
