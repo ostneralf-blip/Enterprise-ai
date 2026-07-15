@@ -232,7 +232,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
 
   if (active) {
     return (
-      <div className="max-w-3xl">
+      <div className="max-w-5xl">
         <div className="flex items-center gap-3 mb-5">
           <button
             onClick={() => setActive(null)}
@@ -268,6 +268,8 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <ShareButton module="canvas" entityId={active.id} tier={tier} />
         </div>
 
+        <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
+        <div className="min-w-0">
         <div className="flex gap-2 mb-5" role="group" aria-label={t('canvas.archetypeAriaLabel')}>
           {ARCHETYPE_BTNS.map(({ id, label }) => (
             <button
@@ -316,26 +318,34 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             </section>
           ))}
         </div>
+        </div>{/* end left column */}
 
-        {/* Kontextanalyse-Panel — deterministische Erkennung + KI-Enrichment gemergt */}
-        {insights && insights.filledCount >= 2 && (
-          <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+        {/* Kontextanalyse-Panel — sticky rechts (#195) */}
+        <div className="mt-6 lg:mt-0 lg:sticky lg:top-[74px]">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{t('canvas.contextAnalysisTitle')}</h2>
               <InfoHint title={t('canvas.contextAnalysisHintTitle')} side="top">
                 <p>{t('canvas.contextAnalysisHintP1')}</p>
                 <p className="mt-1.5">{t('canvas.contextAnalysisHintP2')}</p>
-                <p className="mt-1.5">{t('canvas.contextAnalysisHintP3', { count: insights.filledCount })}</p>
+                <p className="mt-1.5">{t('canvas.contextAnalysisHintP3', { count: insights?.filledCount ?? 0 })}</p>
               </InfoHint>
             </div>
 
-            {insights.filledCount < 4 && (
-              <HintBox variant="tip" className="text-xs">
-                {t('canvas.contextFillHint', { count: insights.filledCount })}
-              </HintBox>
-            )}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500">{t('canvas.contextFillHint', { count: insights?.filledCount ?? 0 })}</span>
+                <span className="text-xs font-semibold text-slate-700">{insights?.filledCount ?? 0}/8 {t('canvas.ctxFields')}</span>
+              </div>
+              <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${((insights?.filledCount ?? 0) / 8) * 100}%` }} />
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {(insights?.filledCount ?? 0) === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center italic">{t('canvas.ctxEmptyState')}</p>
+            ) : (<>
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('canvas.ctxPlatform')}</p>
                 {displayPlatform.length > 0 ? (
@@ -424,8 +434,10 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 {t('canvas.ctxLinkCompliance')}
               </Link>
             </div>
+            </>)}
           </div>
-        )}
+        </div>{/* end right column */}
+        </div>{/* end two-column grid */}
       </div>
     )
   }

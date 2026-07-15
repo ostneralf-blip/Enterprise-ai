@@ -355,6 +355,8 @@
       "ctxUseSignals": "Use detected signals automatically in other modules:",
       "ctxLinkArch": "→ Architecture",
       "ctxLinkCompliance": "→ Compliance",
+      "ctxFields": "fields",
+      "ctxEmptyState": "Analysis runs as you fill in the fields.",
       "newCanvas": "+ New Canvas",
       "createCanvas": "Create Canvas",
       "noCanvasYet": "No Canvas created yet",
