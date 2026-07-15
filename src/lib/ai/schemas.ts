@@ -13,6 +13,13 @@ export const CanvasAIEnrichmentSchema = z.object({
   suggested_complexity: z.enum(['low', 'medium', 'high']).optional(),
   infra_hints: z.array(z.string().max(200)).max(5).optional(),
   additional_compliance_flags: z.array(z.string().max(100)).max(3).optional(),
+  // #188: Term-Mappings für das Erkennungs-Harvesting — Begriffe, die wörtlich
+  // im Canvas-Text stehen, mit kanonischem Vendor/Kategorie/Use-Case-Ziel
+  detected_entities: z.array(z.object({
+    term: z.string().max(60),
+    canonical: z.string().max(60),
+    type: z.enum(['vendor', 'category', 'usecase']),
+  })).max(5).optional(),
   confidence: z.number().min(0).max(1),
 })
 
