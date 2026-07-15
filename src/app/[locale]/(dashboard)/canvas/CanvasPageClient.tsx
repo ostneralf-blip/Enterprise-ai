@@ -1,17 +1,27 @@
 'use client'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
 import { analyzeCanvas } from '@/lib/canvas/detection'
+import { detectAiActDomain, classifyAiAct, generateDocumentationText } from '@/lib/eu-ai-act/classifier'
+import type { AiActAnswers, AiActAssessment } from '@/lib/eu-ai-act/classifier'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import { usePass1Classify } from '@/hooks/usePass1Classify'
 import type { Canvas, Archetype, Tier } from '@/types'
+
+type AiActPartialAnswers = {
+  affectsPersons: boolean | null
+  involvesProfiling: boolean | null
+  isNarrowProcedural: boolean | null
+  humanReviewsBefore: boolean | null
+}
+const EMPTY_ACT_ANSWERS: AiActPartialAnswers = { affectsPersons: null, involvesProfiling: null, isNarrowProcedural: null, humanReviewsBefore: null }
 
 type CanvasAIEnrichment = {
   use_case_type?: string
@@ -132,6 +142,36 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [aiActOpen, setAiActOpen] = useState(false)
+  const [aiActAnswers, setAiActAnswers] = useState<AiActPartialAnswers>(EMPTY_ACT_ANSWERS)
+  const [aiActCopied, setAiActCopied] = useState(false)
+  const activeIdRef = useRef<string | null>(null)
+
+  // Reset EU AI Act answers when switching to a different canvas; restore from saved if available
+  useEffect(() => {
+    if (!active || activeIdRef.current === active.id) return
+    activeIdRef.current = active.id
+    const saved = active.ai_act_assessment as AiActAssessment | null
+    if (saved?.answers) {
+      setAiActAnswers(saved.answers)
+      setAiActOpen(true)
+    } else {
+      setAiActAnswers(EMPTY_ACT_ANSWERS)
+      setAiActOpen(false)
+    }
+  }, [active])
+
+  const aiActResult = useMemo<AiActAssessment | null>(() => {
+    const { affectsPersons, involvesProfiling, isNarrowProcedural, humanReviewsBefore } = aiActAnswers
+    if (affectsPersons === null || involvesProfiling === null || isNarrowProcedural === null || humanReviewsBefore === null) return null
+    if (!active) return null
+    const canvasText = `${active.title} ${Object.values(active.data).join(' ')}`
+    const domain = detectAiActDomain(canvasText)
+    const answers: AiActAnswers = { affectsPersons, involvesProfiling, isNarrowProcedural, humanReviewsBefore }
+    const classification = classifyAiAct(domain, answers)
+    const documentationText = generateDocumentationText(domain, classification, answers, active.title)
+    return { domain, answers, classification, documentationText, assessedAt: new Date().toISOString() }
+  }, [aiActAnswers, active])
 
   const getCanvas = useCallback(() => active, [active])
   const { handleBlur } = usePass1Classify(active?.id ?? null, getCanvas)
@@ -193,7 +233,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
     const res = await fetch(`/api/canvas/${active.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: active.title, archetype: active.archetype, data: active.data }),
+      body: JSON.stringify({ title: active.title, archetype: active.archetype, data: active.data, ...(aiActResult ? { ai_act_assessment: aiActResult } : {}) }),
     })
     setSaving(false)
     if (res.ok) {
@@ -389,6 +429,67 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                 )}
               </div>
             </div>
+
+            {/* EU AI Act Art. 6 Inline-Bewertung — erscheint wenn HR/Beschäftigungs-Kontext erkannt */}
+            {displayCompliance.some(c => /eu ai act/i.test(c)) && (
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => setAiActOpen(o => !o)}
+                  className="flex items-center justify-between w-full text-left"
+                  aria-expanded={aiActOpen}
+                >
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('canvas.euAiActTitle')}</p>
+                  <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-medium">{t('canvas.euAiActHrDetected')}</span>
+                </button>
+                {aiActOpen && (
+                  <div className="mt-2 space-y-2">
+                    {([
+                      { key: 'affectsPersons',    label: t('canvas.euAiActQ1') },
+                      { key: 'involvesProfiling',  label: t('canvas.euAiActQ2') },
+                      { key: 'isNarrowProcedural', label: t('canvas.euAiActQ3') },
+                      { key: 'humanReviewsBefore', label: t('canvas.euAiActQ4') },
+                    ] as const).map(({ key, label }) => (
+                      <div key={key} className="space-y-1">
+                        <p className="text-[11px] text-slate-600 leading-tight">{label}</p>
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => setAiActAnswers(a => ({ ...a, [key]: true }))}
+                            className={cn('flex-1 text-[11px] py-0.5 rounded border transition-colors', aiActAnswers[key] === true ? 'bg-primary text-white border-primary' : 'border-slate-200 text-slate-600 hover:border-slate-300')}
+                          >{t('canvas.euAiActYes')}</button>
+                          <button
+                            onClick={() => setAiActAnswers(a => ({ ...a, [key]: false }))}
+                            className={cn('flex-1 text-[11px] py-0.5 rounded border transition-colors', aiActAnswers[key] === false ? 'bg-slate-600 text-white border-slate-600' : 'border-slate-200 text-slate-600 hover:border-slate-300')}
+                          >{t('canvas.euAiActNo')}</button>
+                        </div>
+                      </div>
+                    ))}
+                    {aiActResult && (
+                      <div className="pt-1.5 space-y-1.5">
+                        <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block',
+                          aiActResult.classification.result === 'hochrisiko' ? 'bg-red-100 text-red-700' :
+                          aiActResult.classification.result === 'anhang_iii_ausgenommen' ? 'bg-amber-100 text-amber-700' :
+                          'bg-green-100 text-green-700'
+                        )}>
+                          {aiActResult.classification.result === 'hochrisiko' ? t('canvas.euAiActResultHoch') :
+                           aiActResult.classification.result === 'anhang_iii_ausgenommen' ? t('canvas.euAiActResultAusgenommen') :
+                           t('canvas.euAiActResultNicht')}
+                        </span>
+                        <button
+                          onClick={() => {
+                            void navigator.clipboard.writeText(locale === 'de' ? aiActResult.documentationText.de : aiActResult.documentationText.en)
+                            setAiActCopied(true)
+                            setTimeout(() => setAiActCopied(false), 2000)
+                          }}
+                          className="block text-[11px] text-primary hover:underline"
+                        >
+                          {aiActCopied ? t('canvas.euAiActCopied') : t('canvas.euAiActCopyDoc')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {detectedProvider && catalogSuggestions && catalogSuggestions.length > 0 && (
               <div className="pt-2 border-t border-slate-100">

@@ -262,6 +262,7 @@ export interface Canvas {
   created_at: string
   updated_at: string
   ai_enrichment?: Record<string, unknown> | null
+  ai_act_assessment?: Record<string, unknown> | null
   ai_model?: string | null
   ai_generated_at?: string | null
 }

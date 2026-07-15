@@ -361,7 +361,20 @@
       "createCanvas": "Canvas erstellen",
       "noCanvasYet": "Noch kein Canvas erstellt",
       "canvasCount": "{count, plural, one {# Canvas} other {# Canvasse}}",
-      "canvasTemplateDesc": "Strukturiertes Template für neue AI-Initiativen — 8 Felder, vom Problem bis zu den nächsten Schritten."
+      "canvasTemplateDesc": "Strukturiertes Template für neue AI-Initiativen — 8 Felder, vom Problem bis zu den nächsten Schritten.",
+      "euAiActTitle": "EU AI Act Art. 6",
+      "euAiActHrDetected": "Beschäftigung erkannt",
+      "euAiActQ1": "Trifft/beeinflusst das System Entscheidungen über natürliche Personen?",
+      "euAiActQ2": "Findet Profiling statt (Leistung, Verhalten, Zuverlässigkeit)?",
+      "euAiActQ3": "Handelt es sich um eine eng gefasste prozedurale Aufgabe (z. B. nur Datenextraktion)?",
+      "euAiActQ4": "Prüft ein Mensch das Ergebnis, bevor es wirksam wird?",
+      "euAiActYes": "Ja",
+      "euAiActNo": "Nein",
+      "euAiActResultHoch": "Hochrisiko (Art. 6 Abs. 2)",
+      "euAiActResultAusgenommen": "Ausgenommen (Art. 6 Abs. 3)",
+      "euAiActResultNicht": "Kein Anhang III",
+      "euAiActCopyDoc": "Dokumentationstext kopieren",
+      "euAiActCopied": "Kopiert!"
     },
     "governance": {
       "title": "Governance-Check",

@@ -15,6 +15,7 @@ const CanvasUpdateSchema = z.object({
     architecture: z.string(),
     next_steps: z.string(),
   }).optional(),
+  ai_act_assessment: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
 export async function PATCH(

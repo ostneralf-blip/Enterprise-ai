@@ -361,7 +361,20 @@
       "createCanvas": "Create Canvas",
       "noCanvasYet": "No Canvas created yet",
       "canvasCount": "{count, plural, one {# Canvas} other {# Canvases}}",
-      "canvasTemplateDesc": "Structured template for new AI initiatives — 8 fields, from problem to next steps."
+      "canvasTemplateDesc": "Structured template for new AI initiatives — 8 fields, from problem to next steps.",
+      "euAiActTitle": "EU AI Act Art. 6",
+      "euAiActHrDetected": "Employment detected",
+      "euAiActQ1": "Does/does the system affect decisions about natural persons?",
+      "euAiActQ2": "Is profiling involved (performance, behaviour, reliability)?",
+      "euAiActQ3": "Is it a narrowly defined procedural task (e.g. data extraction only)?",
+      "euAiActQ4": "Does a human review the output before it takes effect?",
+      "euAiActYes": "Yes",
+      "euAiActNo": "No",
+      "euAiActResultHoch": "High-risk (Art. 6(2))",
+      "euAiActResultAusgenommen": "Exempt (Art. 6(3))",
+      "euAiActResultNicht": "Not Annex III",
+      "euAiActCopyDoc": "Copy documentation text",
+      "euAiActCopied": "Copied!"
     },
     "governance": {
       "title": "Governance Check",
