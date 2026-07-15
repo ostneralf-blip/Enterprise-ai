@@ -33,3 +33,12 @@ export async function requireFeature(featureKey: FeatureKey): Promise<GateResult
 
   return { userId: user.id, tier }
 }
+
+/** Liest den Tier eines bereits authentifizierten Users aus profiles. */
+export async function getTier(userId: string): Promise<Tier> {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase.from('profiles') as any)
+    .select('tier').eq('id', userId).single()
+  return (data?.tier ?? 'free') as Tier
+}

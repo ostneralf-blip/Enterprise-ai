@@ -386,7 +386,7 @@ export interface EamValidationResult {
 const CROSS_CUTTING_KEYWORDS = ['monitor', 'gateway', 'hitl', 'audit', 'grafana', 'evidently', 'kong', 'observ']
 
 export function validateRasicAccountability(rasic: RasicMatrix | undefined): EamValidationResult {
-  const ruleId = 'r1'; const anchor = 'rasic'
+  const ruleId = 'r1'; const anchor = 'rasic-matrix'
   if (!rasic) return { ruleId, anchor, passed: false, message: { de: 'RASIC-Matrix nicht generiert', en: 'RASIC matrix not generated' } }
 
   const violations: RasicPhase[] = []
@@ -439,9 +439,7 @@ export function validateComponentOwners(
   activeComponents: CatalogComponent[],
   activeCount?: number,
 ): EamValidationResult {
-  const ruleId = 'r2'; const anchor = 'rasic'
-  // #182: 0 aktive Komponenten ist ein FEHLER, kein bestandener Check —
-  // eine Architektur ohne Komponenten ist unvollständig (nicht „vacuously true").
+  const ruleId = 'r2'; const anchor = 'rasic-matrix'
   const count = activeCount ?? activeComponents.length
   if (count === 0) {
     return { ruleId, anchor, passed: false, message: { de: 'Keine Komponenten gewählt — Architektur unvollständig', en: 'No components selected — architecture incomplete' } }

@@ -1,15 +1,17 @@
 'use client'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
+import { analyzeCanvas } from '@/lib/canvas/detection'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
-import type { Canvas, CanvasData, Archetype, Tier } from '@/types'
+import { usePass1Classify } from '@/hooks/usePass1Classify'
+import type { Canvas, Archetype, Tier } from '@/types'
 
 type CanvasAIEnrichment = {
   use_case_type?: string
@@ -21,33 +23,6 @@ type CanvasAIEnrichment = {
   confidence?: number
 }
 
-function analyzeCanvasData(data: CanvasData) {
-  const text = Object.values(data).join(' ').toLowerCase()
-  const platform: string[] = []
-  if (/\bsap\b/.test(text)) platform.push('SAP')
-  if (/\bazure\b/.test(text)) platform.push('Azure')
-  if (/\baws\b|amazon web/.test(text)) platform.push('AWS')
-  if (/\bgcp\b|google cloud/.test(text)) platform.push('GCP')
-  if (/on.?prem|\bserver\b|\blokal\b/.test(text)) platform.push('On-Premises')
-
-  const usecaseType =
-    /generativ|llm|sprachmodell|chatbot|gpt/.test(text) ? 'Generative AI' :
-    /prognose|vorhersage|forecast|predict/.test(text) ? 'Predictive Analytics' :
-    /automatisier|workflow|rpa/.test(text) ? 'Prozessautomatisierung' :
-    /vision|bilderkennung|computer.?vision/.test(text) ? 'Computer Vision' : null
-
-  const compliance: string[] = []
-  if (/dsgvo|datenschutz|personenbezogen|gdpr|art\.?\s*6|art\.?\s*9|betroffene|auskunftsrecht|lösch|auftragsverarbeitung|\bavv\b|datenschutzbeauftragte|privacy|\bdpo\b|einwilligung|verarbeitungsverzeichnis/.test(text)) compliance.push('DSGVO relevant')
-  if (/eu.?ai.?act|ki.?verordnung|hochrisiko|high.?risk|verbotene ki|prohibited|transparenzpflicht|konformitätsbewertung|technische dokumentation|ce.?kennzeichnung/.test(text)) compliance.push('EU AI Act relevant')
-  if (/eu.hosting|eu.server|frankfurt|irland|amsterdam|rechenzentrum europa|cloud act|schrems|drittland|standardvertragsklausel|angemessenheitsbeschluss|onshore|datensouveränität/.test(text)) compliance.push('EU-Hosting / Datensouveränität')
-  if (/iso.?27001|isms|informationssicherheit|it.?sicherheit|soc.?2|soc2|penetrationstest|pentest|schwachstellen/.test(text)) compliance.push('ISO 27001 / IT-Sicherheit relevant')
-  if (/nis.?2|nis2|kritis|kritische infrastruktur|netzwerk.*informationssicherheit|cyber.?sicherheit|meldepflicht.*vorfall/.test(text)) compliance.push('NIS2 / KRITIS relevant')
-  if (/gesundheit|patientendaten|medizin|klinik|krankenhaus|hipaa|mdr|medizinprodukt/.test(text)) compliance.push('Gesundheitsdaten / MDR relevant')
-  if (/finanz|banking|zahlungs|psd2|mifid|bafin|kreditinstitut|versicherung/.test(text)) compliance.push('Finanzregulierung relevant')
-
-  const filledCount = Object.values(data).filter(v => v?.trim()).length
-  return { platform, usecaseType, compliance, filledCount }
-}
 
 // Rohe KI-Compliance-Flags sind Freitext ohne festes Vokabular (der Prompt in
 // ai-enrich/route.ts gibt nur Beispiele vor, kein Enum) — bildet sie auf
@@ -139,10 +114,27 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const insights = useMemo(() => active ? analyzeCanvasData(active.data) : null, [active])
+  const [extraAliases, setExtraAliases] = useState<Record<string, string[]>>({})
+
+  // Einmalig: client-eigene + globale aktive Synonyme für Detection-Merge laden
+  useEffect(() => {
+    void fetch('/api/canvas/active-synonyms')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { aliases: Record<string, string[]> } | null) => {
+        if (data?.aliases) setExtraAliases(data.aliases)
+      })
+  }, [])
+
+  const insights = useMemo(
+    () => active ? analyzeCanvas(active, Object.keys(extraAliases).length ? extraAliases : undefined) : null,
+    [active, extraAliases],
+  )
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiError, setAiError] = useState<string | null>(null)
+
+  const getCanvas = useCallback(() => active, [active])
+  const { handleBlur } = usePass1Classify(active?.id ?? null, getCanvas)
 
   const aiEnrichment = active?.ai_enrichment as CanvasAIEnrichment | undefined
 
@@ -316,6 +308,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
                   if (!prev) return prev
                   return { ...prev, data: { ...prev.data, [field.id]: e.target.value } }
                 })}
+                onBlur={e => handleBlur(field.id, e.target.value)}
                 placeholder={pick(field.placeholder, locale)}
                 rows={4}
                 className="w-full text-sm text-slate-800 placeholder-slate-300 resize-none focus:outline-none"

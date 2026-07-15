@@ -12,7 +12,7 @@ import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, gene
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
-import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix } from '@/types'
+import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { EamMap } from './EamMap'
@@ -590,6 +590,37 @@ function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
   )
 }
 
+
+const RASIC_ROLE_DEFAULTS: Record<string, Partial<Record<RasicPhase, RasicValue>>> = {
+  'AI Product Owner':          { konzeption: 'A', daten: 'I', build: 'I', freigabe: 'A', betrieb: 'I' },
+  'Business AI Champion':      { konzeption: 'R', daten: 'S', build: 'S', freigabe: 'R', betrieb: 'S' },
+  'Data Engineer':             { konzeption: 'S', daten: 'R', build: 'R', freigabe: 'S', betrieb: 'S' },
+  'ML Engineer':               { konzeption: 'S', daten: 'S', build: 'R', freigabe: 'S', betrieb: 'S' },
+  'MLOps Engineer':            { konzeption: 'I', daten: 'S', build: 'A', freigabe: 'I', betrieb: 'R' },
+  'Data Scientist':            { konzeption: 'S', daten: 'C', build: 'R', freigabe: 'S', betrieb: 'S' },
+  'Data Privacy Manager':      { konzeption: 'C', daten: 'C', build: 'C', freigabe: 'C', betrieb: 'C' },
+  'AI Ethics / Risk Officer':  { konzeption: 'C', daten: 'C', build: 'C', freigabe: 'A', betrieb: 'C' },
+  'SAP AI Architect':          { konzeption: 'R', daten: 'C', build: 'C', freigabe: 'S', betrieb: 'I' },
+  'Enterprise Architect (AI)': { konzeption: 'C', daten: 'C', build: 'C', freigabe: 'C', betrieb: 'C' },
+  'Prompt Engineer':           { konzeption: 'S', daten: 'I', build: 'R', freigabe: 'S', betrieb: 'S' },
+  'AI CoE Lead':               { konzeption: 'A', daten: 'I', build: 'I', freigabe: 'A', betrieb: 'A' },
+  'Chief Data Officer (CDO)':  { konzeption: 'A', daten: 'A', build: 'I', freigabe: 'A', betrieb: 'A' },
+}
+
+function autoFillRasic(rasic: RasicMatrix): RasicMatrix {
+  const newEntries = rasic.entries.map(entry => {
+    const defaults = RASIC_ROLE_DEFAULTS[entry.role]
+    if (!defaults) return entry
+    const assignments = { ...entry.assignments }
+    for (const phase of rasic.phases as RasicPhase[]) {
+      if (!assignments[phase] && defaults[phase]) {
+        assignments[phase] = defaults[phase] as RasicValue
+      }
+    }
+    return { ...entry, assignments }
+  })
+  return { ...rasic, entries: newEntries }
+}
 
 function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
@@ -1366,34 +1397,78 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   )
                 }
                 if (sectionId === 'rasic') {
+                  const hasOpenRasicViolations = eamResults.some(r =>
+                    (r.ruleId === 'r1' || r.ruleId === 'r2') && !r.passed && !validationOverrides[r.ruleId]
+                  )
                   return resultAudience !== 'exec' ? (
                     <SortableSection key="rasic" id="rasic">
-                      <>
-                        <EamValidationBanner
-                          results={eamResults}
-                          overrides={validationOverrides}
-                          onOverride={(ruleId, override) => {
-                            setValidationOverrides(prev => {
-                              if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
-                              return { ...prev, [ruleId]: override }
-                            })
-                          }}
-                        />
-                        {rasic && (
-                          <RasicMatrixCard
-                            rasic={rasic}
-                            readOnly={resultAudience === 'compliance'}
-                            onUpdate={updated => {
-                              setRasic(updated)
-                              setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                      <div className="space-y-4">
+                        {/* RASIC Erklärung / Hilfetext */}
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                          <h3 className="text-sm font-semibold text-slate-900 mb-1">{t('architecture.rasicTitle')}</h3>
+                          <p className="text-xs text-slate-500 leading-relaxed">{t('architecture.rasicSectionDescription')}</p>
+                        </div>
+
+                        {/* EAM-Validierungsbanner — nur bei offenen Regelverstößen */}
+                        {hasOpenRasicViolations && (
+                          <EamValidationBanner
+                            results={eamResults.filter(r => r.ruleId === 'r1' || r.ruleId === 'r2')}
+                            overrides={validationOverrides}
+                            onOverride={(ruleId, override) => {
+                              setValidationOverrides(prev => {
+                                if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                                return { ...prev, [ruleId]: override }
+                              })
                             }}
-                            componentOwners={componentOwners}
                           />
                         )}
+
+                        {/* RASIC-Matrix */}
+                        {rasic ? (
+                          <>
+                            <RasicMatrixCard
+                              rasic={rasic}
+                              readOnly={resultAudience === 'compliance'}
+                              onUpdate={updated => {
+                                setRasic(updated)
+                                setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                              }}
+                              componentOwners={componentOwners}
+                            />
+                            {resultAudience !== 'compliance' && (
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const filled = autoFillRasic(rasic)
+                                    setRasic(filled)
+                                    setResult(prev => prev ? { ...prev, rasic: filled } : prev)
+                                  }}
+                                  className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
+                                >
+                                  {t('architecture.rasicSuggestButton')}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleSave()}
+                                  disabled={saving}
+                                  className="px-3 py-1.5 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring whitespace-nowrap"
+                                >
+                                  {saving ? t('architecture.saving') : t('architecture.save')}
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div id="rasic-matrix" className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-center">
+                            <p className="text-sm text-slate-400">{t('architecture.rasicNotGenerated')}</p>
+                          </div>
+                        )}
+
                         {resultAudience === 'compliance' && (
                           <ComplianceControlTable activeComponents={activeCompsForEam} rasic={rasic ?? undefined} />
                         )}
-                      </>
+                      </div>
                     </SortableSection>
                   ) : null
                 }
