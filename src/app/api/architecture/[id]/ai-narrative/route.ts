@@ -8,6 +8,10 @@ import { trackServer } from '@/lib/posthog/server'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 
+// #180: Budget für Bedrock-Versuch (8 s) + Direct-Fallback (30 s) + Overhead —
+// ohne maxDuration killt Vercel die Function vor dem Fallback (503 nach ~18 s).
+export const maxDuration = 60
+
 const BodySchema = z.object({
   components:        z.array(z.string()).max(30),
   roles:             z.array(z.string()).max(15),
