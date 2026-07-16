@@ -1208,48 +1208,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </div>
         )}
 
-        {/* DSGVO-Warnung bei bedingter Konformität — nur Komponenten die im Diagramm aktiv sind */}
-        {(() => {
-          const conditionalComps = selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')
-          if (conditionalComps.length === 0) return null
-          return (
-            <div role="alert" className="bg-amber-50 border border-amber-300 rounded-2xl p-4 sm:p-5">
-              <div className="flex items-start gap-3">
-                <span className="text-amber-600 text-lg flex-shrink-0" aria-hidden="true">⚠</span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-amber-900 mb-1">
-                    {t('architecture.dsgvoWarningTitle')}
-                  </h3>
-                  <p className="text-xs text-amber-800 mb-2 leading-relaxed">
-                    {t('architecture.dsgvoWarningBody')}
-                  </p>
-                  <ul className="mb-3 space-y-1">
-                    {conditionalComps.map(c => (
-                      <li key={c.name} className="text-xs text-amber-700 flex items-center gap-1.5">
-                        <span aria-hidden="true">·</span>
-                        <strong>{c.name}</strong>
-                        {c.vendor && <span className="text-amber-600">({c.vendor})</span>}
-                      </li>
-                    ))}
-                  </ul>
-                  {!dsgvoConfirmed && (
-                    <button
-                      onClick={() => setDsgvoConfirmed(true)}
-                      className="text-xs font-medium px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
-                    >
-                      {t('architecture.dsgvoConfirmButton')}
-                    </button>
-                  )}
-                  {dsgvoConfirmed && (
-                    <p className="text-xs text-amber-700 font-medium flex items-center gap-1.5">
-                      <span aria-hidden="true">✓</span> {t('architecture.dsgvoConfirmedMsg')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        })()}
 
         {/* Locale-Mismatch-Warnung */}
         {aiNarrative && narrativeLocale && narrativeLocale !== locale && (
@@ -1614,6 +1572,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             }}
             onReanalyze={handleAINarrative}
             loading={narrativeLoading}
+            conditionalComps={selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')}
+            dsgvoConfirmed={dsgvoConfirmed}
+            onDsgvoConfirm={() => setDsgvoConfirmed(true)}
           />
         </div>
       )}

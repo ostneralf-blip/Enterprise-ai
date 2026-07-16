@@ -28,6 +28,9 @@ interface Props {
   onScrollToFirst?: () => void
   onReanalyze?: () => Promise<void>
   loading?: boolean
+  conditionalComps?: CatalogComponent[]
+  dsgvoConfirmed?: boolean
+  onDsgvoConfirm?: () => void
 }
 
 export function AIPanel({
@@ -35,6 +38,7 @@ export function AIPanel({
   catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze,
   loading = false,
+  conditionalComps, dsgvoConfirmed, onDsgvoConfirm,
 }: Props) {
   const t = useTranslations('modules')
   const [reanalyzing, setReanalyzing] = useState(false)
@@ -199,6 +203,40 @@ export function AIPanel({
       {complianceHint && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
           <p className="text-[10px] text-amber-700 leading-relaxed">{complianceHint}</p>
+        </div>
+      )}
+
+      {/* 5b. DSGVO-Bestätigung (wandert aus dem Ergebnis-Flow ins Panel) */}
+      {conditionalComps && conditionalComps.length > 0 && (
+        <div className="border border-amber-200 bg-amber-50 rounded-xl px-3 py-3 space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
+            {t('architecture.dsgvoWarningTitle')}
+          </p>
+          <p className="text-[10px] text-amber-800 leading-relaxed">
+            {t('architecture.dsgvoWarningBody')}
+          </p>
+          <ul className="space-y-0.5">
+            {conditionalComps.map(c => (
+              <li key={c.name} className="text-[10px] text-amber-700 flex items-center gap-1">
+                <span aria-hidden="true">·</span>
+                <strong>{c.name}</strong>
+                {c.vendor && <span className="text-amber-500">({c.vendor})</span>}
+              </li>
+            ))}
+          </ul>
+          {!dsgvoConfirmed ? (
+            <button
+              type="button"
+              onClick={onDsgvoConfirm}
+              className="w-full py-1.5 text-[10px] font-semibold bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              {t('architecture.dsgvoConfirmButton')}
+            </button>
+          ) : (
+            <p className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
+              <span aria-hidden="true">✓</span> {t('architecture.dsgvoConfirmedMsg')}
+            </p>
+          )}
         </div>
       )}
 
