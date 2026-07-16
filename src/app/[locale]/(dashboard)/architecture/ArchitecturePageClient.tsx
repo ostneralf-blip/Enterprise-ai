@@ -392,7 +392,7 @@ function NarrativeCard({
               )}>
                 {loading ? t('architecture.narrativeLoading') : t('architecture.narrativeGeneratedChip')}
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
+              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color:var(--color-ai-soft)] border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
                 {audienceLabel[audience]}
               </span>
               {isStale && (

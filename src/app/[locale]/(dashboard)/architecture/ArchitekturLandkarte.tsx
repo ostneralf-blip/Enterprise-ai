@@ -112,7 +112,7 @@ function Band({ label, sub, children, dashed = false, hidden = false }: {
     )} style={{ gridTemplateColumns: '140px 1fr' }}>
       <div className={cn(
         'px-3 py-4 border-r border-slate-200 flex flex-col justify-center gap-1',
-        dashed ? 'bg-transparent' : 'bg-primary-soft',
+        dashed ? 'bg-slate-50' : 'bg-primary-soft',
       )}>
         <p className="font-serif text-[13px] font-semibold text-slate-900 leading-tight">{label}</p>
         <p className="text-[9px] uppercase tracking-wide text-slate-400 font-semibold leading-tight">{sub}</p>

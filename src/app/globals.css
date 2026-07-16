@@ -126,6 +126,37 @@
   & .text-emerald-800, & .text-emerald-700 { color: #6EE7B7; }
   & .text-green-800, & .text-green-700 { color: #4ADE80; }
 
+  /* Violett / Roadmap Phase 2 + AI-Native Pattern (#213, #214) */
+  & .bg-violet-50  { background-color: #1E1B4B; }
+  & .bg-violet-100 { background-color: #2E1B69; }
+  & .border-violet-200 { border-color: #4C1D95; }
+  & .text-violet-800, & .text-violet-700 { color: #C4B5FD; }
+  & .text-violet-600, & .text-violet-500 { color: #A78BFA; }
+  & .hover\:bg-violet-50:hover { background-color: #2E1B69; }
+
+  /* Fehlende Badge-Hintergründe (#213, #214) */
+  & .bg-emerald-100 { background-color: #064E3B; }
+  & .bg-blue-100    { background-color: #1E3A5F; }
+  & .bg-amber-100   { background-color: #431407; }
+  & .hover\:bg-amber-200:hover { background-color: #5C2006; }
+
+  /* Himmelblau / EamMap "Managed"-Chip (#214) */
+  & .bg-sky-50 { background-color: #0C2340; }
+  & .text-sky-700, & .text-sky-600 { color: #7DD3FC; }
+
+  /* Lila / KI-Analyse-Panel (#214) */
+  & .bg-purple-50  { background-color: #1A0533; }
+  & .bg-purple-200 { background-color: #4C1D95; }
+  & .text-purple-600 { color: #C084FC; }
+  & .border-purple-200 { border-color: #6B21A8; }
+  & .hover\:bg-purple-50:hover { background-color: #2D1B69; }
+
+  /* ResultBar Toolbar (#214) */
+  & .bg-white\/95 { background-color: rgb(15 23 42 / 0.95); }
+
+  /* EamMap: inaktive Layer-Knoten (#214) */
+  & .bg-slate-50\/50 { background-color: rgb(15 23 42 / 0.5); }
+
   /* Eingabefelder */
   & input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   & textarea,
