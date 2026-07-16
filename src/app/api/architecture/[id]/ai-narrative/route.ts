@@ -72,6 +72,8 @@ export async function POST(
 
 CRITICAL: You MUST write ALL text fields (summary, key_decisions, next_steps) exclusively in ${langName}. Do not use any other language.
 
+CRITICAL: NEVER translate product names, brand names, or technology names. Use the exact spelling from the component list below. For example: "Snowflake" stays "Snowflake" (never "Schneeflöckchen"), "Azure" stays "Azure", "Databricks" stays "Databricks". Product names are proper nouns and must not be translated under any circumstances.
+
 ${audienceInstruction}
 
 Architecture facts (pre-validated, structured data — not user free text):

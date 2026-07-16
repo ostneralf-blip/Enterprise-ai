@@ -682,6 +682,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [saved, setSaved] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
   const [dsgvoConfirmed, setDsgvoConfirmed] = useState(false)
+  const [showAllDecisions, setShowAllDecisions] = useState(false)
+  const [showAllSteps, setShowAllSteps] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
@@ -1337,29 +1339,63 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
                             {aiNarrative && <AIBadge />}
                           </div>
-                          <ul className="space-y-2.5" role="list">
-                            {allKeyDecisions.map((decision, i) => (
-                              <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                                <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
-                                  {i + 1}
-                                </span>
-                                <span className="min-w-0">{pick(decision, locale)}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          {(() => {
+                            const LIST_MAX = 7
+                            const visible = showAllDecisions ? allKeyDecisions : allKeyDecisions.slice(0, LIST_MAX)
+                            return (
+                              <>
+                                <ul className="space-y-2.5" role="list">
+                                  {visible.map((decision, i) => (
+                                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                                        {i + 1}
+                                      </span>
+                                      <span className="min-w-0">{pick(decision, locale)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                                {allKeyDecisions.length > LIST_MAX && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowAllDecisions(v => !v)}
+                                    className="mt-2 text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+                                  >
+                                    {showAllDecisions ? t('architecture.showLess') : t('architecture.showAll', { count: allKeyDecisions.length - LIST_MAX })}
+                                  </button>
+                                )}
+                              </>
+                            )
+                          })()}
                         </div>
                         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
                           <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.nextSteps')}</h3>
-                          <ul className="space-y-2.5" role="list">
-                            {allNextSteps.map((s, i) => (
-                              <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                                <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
-                                  {i + 1}
-                                </span>
-                                <span className="min-w-0">{pick(s, locale)}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          {(() => {
+                            const LIST_MAX = 7
+                            const visible = showAllSteps ? allNextSteps : allNextSteps.slice(0, LIST_MAX)
+                            return (
+                              <>
+                                <ul className="space-y-2.5" role="list">
+                                  {visible.map((s, i) => (
+                                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
+                                        {i + 1}
+                                      </span>
+                                      <span className="min-w-0">{pick(s, locale)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                                {allNextSteps.length > LIST_MAX && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowAllSteps(v => !v)}
+                                    className="mt-2 text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+                                  >
+                                    {showAllSteps ? t('architecture.showLess') : t('architecture.showAll', { count: allNextSteps.length - LIST_MAX })}
+                                  </button>
+                                )}
+                              </>
+                            )
+                          })()}
                         </div>
                       </div>
                     </SortableSection>

@@ -526,9 +526,9 @@ export function generateCrossModuleDecisions(ctx: CrossModuleContext): { de: str
 export function generateCrossModuleNextSteps(ctx: CrossModuleContext): { de: string; en: string }[] {
   const items: { de: string; en: string }[] = []
 
-  if (ctx.assessment && ctx.assessment.total_score < 50) {
-    const score = Math.round(ctx.assessment.total_score)
-    items.push({ de: `AI Readiness Score (${score} %) ausbauen — parallel zur Architektur-Implementierung Datenstrategie und Team-Kompetenzen stärken, bevor komplexe ML-Infrastruktur aufgebaut wird`, en: `Raise AI Readiness Score (${score} %) — strengthen data strategy and team skills in parallel with architecture implementation, before building complex ML infrastructure` })
+  if (ctx.assessment && ctx.assessment.total_score < 2.5) {
+    const scorePct = Math.round((ctx.assessment.total_score / 5) * 100)
+    items.push({ de: `AI Readiness Score (${scorePct} %) ausbauen — parallel zur Architektur-Implementierung Datenstrategie und Team-Kompetenzen stärken, bevor komplexe ML-Infrastruktur aufgebaut wird`, en: `Raise AI Readiness Score (${scorePct} %) — strengthen data strategy and team skills in parallel with architecture implementation, before building complex ML infrastructure` })
   }
 
   if (ctx.canvas) {

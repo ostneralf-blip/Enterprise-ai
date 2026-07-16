@@ -791,7 +791,9 @@
       "presentationTemplateBlueprint": "Blueprint",
       "presentationFullscreen": "Fullscreen",
       "presentationExit": "Exit",
-      "resetSectionOrder": "Reset order"
+      "resetSectionOrder": "Reset order",
+      "showAll": "+{count} more",
+      "showLess": "Show less"
     },
     "roadmap": {
       "title": "Roadmap Generator",
