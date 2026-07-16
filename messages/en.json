@@ -793,7 +793,12 @@
       "presentationExit": "Exit",
       "resetSectionOrder": "Reset order",
       "showAll": "+{count} more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "decisionTitle": "Decision Recommendation",
+      "decisionSkeletonComponents": "{rule} of {total} components from base pattern, {add} AI/manually added",
+      "decisionSkeletonValidationOk": "Architecture validation passed — all rules met",
+      "decisionSkeletonValidationFail": "Architecture validation: {n} open violation(s)",
+      "decisionAnalyzeCta": "◆ Analyze for this view"
     },
     "roadmap": {
       "title": "Roadmap Generator",

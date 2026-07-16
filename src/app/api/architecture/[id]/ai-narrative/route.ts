@@ -93,12 +93,15 @@ Keep each item concise (max 200 chars per language). Be specific to the exact co
 
 Also suggest up to 3 additional component names (exact catalog names, no descriptions) that are NOT already in the selected list but would strengthen this architecture. Only suggest real, widely-known tools/platforms. If none, omit the field.
 
+Also write a "decision_recommendation": 2-3 sentences in ${langName}. Audience-appropriate: for exec, include a pilot gate (e.g. "Freigabe als Pilot mit 3-Monats-Gate") with a concrete abort criterion; for architect, focus on the key integration risk; for compliance, focus on the most critical regulatory obligation. Max 800 chars. No bullet points — flowing prose only.
+
 Return this exact JSON structure:
 {
   "summary": "...",
   "key_decisions": [{"de": "...", "en": "..."}],
   "next_steps": [{"de": "...", "en": "..."}],
-  "component_suggestions": ["ComponentName1", "ComponentName2"]
+  "component_suggestions": ["ComponentName1", "ComponentName2"],
+  "decision_recommendation": "..."
 }`
 
   // haiku: Bedrock EU-Profil verifiziert (claude-haiku-4-5). Sonnet-Profil ausstehend (#148).

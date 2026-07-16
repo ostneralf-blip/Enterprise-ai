@@ -646,7 +646,7 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
   )
 }
 
-const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'joule', 'rasic', 'decisions'] as const
+const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'joule', 'rasic', 'decisions', 'decision'] as const
 type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
 const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
 
@@ -685,7 +685,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [showAllDecisions, setShowAllDecisions] = useState(false)
   const [showAllSteps, setShowAllSteps] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null>(null)
+  const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string } | null>(null)
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
   const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
@@ -1397,6 +1397,46 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             )
                           })()}
                         </div>
+                      </div>
+                    </SortableSection>
+                  )
+                }
+                if (sectionId === 'decision') {
+                  if (resultAudience === 'compliance') return null
+                  const ruleComps = selStats.activeComponents.filter(c => !componentSources[c.name] || componentSources[c.name] === 'rule').length
+                  const addComps = selStats.activeCount - ruleComps
+                  const openViolations = eamResults.filter(r => !r.passed && !validationOverrides[r.ruleId]).length
+                  const aiDecisionText = aiNarrative?.decision_recommendation ?? null
+                  return (
+                    <SortableSection key="decision" id="decision">
+                      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold text-slate-900">{t('architecture.decisionTitle')}</h3>
+                          {aiDecisionText && <AIBadge />}
+                        </div>
+                        <div className="space-y-1 text-xs text-slate-500">
+                          <p>{t('architecture.decisionSkeletonComponents', { rule: ruleComps, total: selStats.activeCount, add: addComps })}</p>
+                          <p>
+                            {openViolations === 0
+                              ? t('architecture.decisionSkeletonValidationOk')
+                              : t('architecture.decisionSkeletonValidationFail', { n: openViolations })}
+                          </p>
+                        </div>
+                        {aiDecisionText ? (
+                          <p className="text-xs text-slate-700 leading-relaxed border-l-2 border-purple-200 pl-3">
+                            <span className="text-[color:var(--color-ai)] mr-1" aria-hidden="true">◆</span>
+                            {aiDecisionText}
+                          </p>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => void handleAINarrative()}
+                            disabled={narrativeLoading || (aiUsageArch?.exceeded ?? false)}
+                            className="text-xs font-semibold text-[color:var(--color-ai)] border border-purple-200 rounded-lg px-3 py-1.5 hover:bg-purple-50 transition-colors disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                          >
+                            {t('architecture.decisionAnalyzeCta')}
+                          </button>
+                        )}
                       </div>
                     </SortableSection>
                   )

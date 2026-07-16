@@ -32,6 +32,7 @@ export const ArchitectureNarrativeSchema = z.object({
   key_decisions: z.array(BilingualItemSchema).max(10),
   next_steps: z.array(BilingualItemSchema).max(10),
   component_suggestions: z.array(z.string().max(200)).max(8).optional(),
+  decision_recommendation: z.string().max(1500).optional(),
 })
 
 export type ArchitectureNarrative = z.infer<typeof ArchitectureNarrativeSchema>

@@ -793,7 +793,12 @@
       "presentationExit": "Beenden",
       "resetSectionOrder": "Reihenfolge zurücksetzen",
       "showAll": "+{count} weitere anzeigen",
-      "showLess": "Weniger anzeigen"
+      "showLess": "Weniger anzeigen",
+      "decisionTitle": "Empfehlung für die Entscheidung",
+      "decisionSkeletonComponents": "{rule} von {total} Komponenten aus dem Basis-Muster, {add} KI/manuell ergänzt",
+      "decisionSkeletonValidationOk": "Architektur-Validierung bestanden — alle Regeln erfüllt",
+      "decisionSkeletonValidationFail": "Architektur-Validierung: {n} offene Regelverletzung(en)",
+      "decisionAnalyzeCta": "◆ Für diese Sicht analysieren"
     },
     "roadmap": {
       "title": "Roadmap-Generator",
