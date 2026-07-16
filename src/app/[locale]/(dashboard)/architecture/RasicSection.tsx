@@ -167,7 +167,7 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
         <table className="w-full text-xs border-collapse min-w-[480px]">
           <thead>
             <tr>
-              <th className="text-left py-2 px-3 text-slate-500 font-medium w-40">Rolle</th>
+              <th className="text-left py-2 px-3 text-slate-500 font-medium w-40">{t('architecture.rasicRoleColumn')}</th>
               {(rasic.phases as RasicPhase[]).map(phase => (
                 <th key={phase} className="text-center py-2 px-2 text-slate-500 font-medium whitespace-nowrap">
                   {phaseLabel[phase]}

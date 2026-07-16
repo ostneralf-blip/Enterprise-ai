@@ -517,15 +517,6 @@ export function GovernancePageClient({
       </div>
 
       <GovernanceHistory sessions={sessions} />
-
-      {archRasic && (
-        <div className="mt-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-3">
-            {t('governance.rasicTitle')}
-          </h2>
-          <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
-        </div>
-      )}
     </div>
   )
 }

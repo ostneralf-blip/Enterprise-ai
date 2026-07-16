@@ -728,6 +728,7 @@
       "landkarteValid": "Architecture EAM-valid",
       "landkarteInvalid": "EAM Validation: Rule violation detected",
       "rasicTitle": "Responsibilities (RASIC)",
+      "rasicRoleColumn": "Role",
       "rasicSectionDescription": "Assign responsibilities per project phase: R = Responsible (executes), A = Accountable (owns the outcome), S = Supportive (actively supports), I = Informed (kept in the loop), C = Consulted (provides input). Each phase must have exactly one role marked A.",
       "rasicSuggestButton": "◆ Apply AI suggestion",
       "rasicNotGenerated": "The RASIC matrix will appear after generation.",
