@@ -637,6 +637,8 @@
       "pdfButtonLabel": "PDF (active view)",
       "narrativeTitle": "AI Assessment",
       "narrativeGeneratedChip": "generated",
+      "narrativeStale": "outdated — selection changed",
+      "narrativeUnknownBasis": "basis unknown",
       "narrativeSaveFirst": "Save first to activate AI assessment",
       "narrativePlaceholder": "AI assessment not yet generated — start with the ◆ button.",
       "selectionTitle": "Select components",

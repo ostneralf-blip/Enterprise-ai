@@ -11,6 +11,7 @@ import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scal
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
+import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
@@ -352,9 +353,9 @@ function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
 }
 
 function NarrativeCard({
-  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error, loading,
+  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error, loading, currentHash,
 }: {
-  narrative: { summary?: string } | null
+  narrative: { summary?: string; based_on_hash?: string | null } | null
   aiModel: string | null
   generatedAt: string | null
   audience: ResultAudience
@@ -364,6 +365,7 @@ function NarrativeCard({
   usage: { remaining: number; used: number; limit: number; exceeded: boolean } | null
   error: string | null
   loading?: boolean
+  currentHash: string
 }) {
   const t = useTranslations('modules')
   const audienceLabel: Record<ResultAudience, string> = {
@@ -372,6 +374,10 @@ function NarrativeCard({
     compliance: t('architecture.viewCompliance'),
   }
   const hasSummary = !!narrative?.summary
+  const savedHash = narrative?.based_on_hash ?? null
+  const isStale = hasSummary && savedHash !== null && savedHash !== currentHash
+  const isUnknownBasis = hasSummary && savedHash === null
+
   return (
     <div className="border-l-[3px] border-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] rounded-r-2xl p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2 mb-2">
@@ -389,6 +395,20 @@ function NarrativeCard({
               <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
                 {audienceLabel[audience]}
               </span>
+              {isStale && (
+                <button
+                  type="button"
+                  onClick={() => void onAnalyze()}
+                  className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-700 whitespace-nowrap hover:bg-amber-200 transition-colors focus:outline-none focus:ring-1 focus:ring-amber-400"
+                >
+                  ⟳ {t('architecture.narrativeStale')}
+                </button>
+              )}
+              {isUnknownBasis && !isStale && (
+                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 whitespace-nowrap">
+                  {t('architecture.narrativeUnknownBasis')}
+                </span>
+              )}
             </>
           )}
         </div>
@@ -663,7 +683,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [showAllDecisions, setShowAllDecisions] = useState(false)
   const [showAllSteps, setShowAllSteps] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  type NarrativeEntry = { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string }
+  type NarrativeEntry = { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string; based_on_hash?: string | null }
   const [aiNarrativeByAudience, setAiNarrativeByAudience] = useState<Partial<Record<ResultAudience, NarrativeEntry>>>({})
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
   const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
@@ -681,6 +701,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
   const aiNarrative = aiNarrativeByAudience[resultAudience] ?? null
+  // #209: aktueller Hash aus selektierten Komponenten + Kontext-Signalen
+  const currentHash = useMemo(() => {
+    const phStats = getSelectionStats({
+      activeComponentNames,
+      fallbackNames: catalogRecs?.layers.flatMap(lr => lr.componentNames),
+      components: recComponents,
+    })
+    return contextHash(buildAnalysisContext({
+      components: phStats.activeComponents.map(c => c.name),
+      compliance: answers.compliance,
+      archetype: assessmentContext?.archetype,
+      canvasQuadrant: canvasContext?.useCase?.quadrant,
+      governanceResult: governanceContext?.result,
+      roadmapPhases: roadmapContext?.phasesCount,
+    }))
+  }, [activeComponentNames, catalogRecs, recComponents, answers.compliance, assessmentContext, canvasContext, governanceContext, roadmapContext])
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
@@ -923,6 +959,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         roadmap_phases: roadmapContext?.phasesCount ?? 0,
         locale,
         audience: audienceOverride ?? resultAudience,
+        context_hash: currentHash,
       }),
     })
     const json = await res.json() as {
@@ -1187,6 +1224,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           usage={aiUsageArch}
           error={aiNarrativeError}
           loading={narrativeLoading}
+          currentHash={currentHash}
         />
 
         {/* Exec: KPI-Kennzahlenstreifen */}

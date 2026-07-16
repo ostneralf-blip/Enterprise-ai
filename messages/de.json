@@ -637,6 +637,8 @@
       "pdfButtonLabel": "PDF (aktive Sicht)",
       "narrativeTitle": "KI-Einordnung",
       "narrativeGeneratedChip": "generiert",
+      "narrativeStale": "veraltet — Auswahl geändert",
+      "narrativeUnknownBasis": "Basis unbekannt",
       "narrativeSaveFirst": "Erst speichern, dann KI-Einordnung aktivieren",
       "narrativePlaceholder": "KI-Einordnung noch nicht generiert — mit dem ◆-Button starten.",
       "selectionTitle": "Komponenten auswählen",

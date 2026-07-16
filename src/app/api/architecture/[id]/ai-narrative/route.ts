@@ -22,6 +22,7 @@ const BodySchema = z.object({
   roadmap_phases:    z.number().int().min(0).max(10).optional(),
   locale:            z.enum(['de', 'en']).default('de'),
   audience:          z.enum(['exec', 'architect', 'compliance']).default('architect'),
+  context_hash:      z.string().max(32).optional(),
 })
 
 export async function POST(
@@ -52,7 +53,7 @@ export async function POST(
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
 
-  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience, locale } = body.data
+  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience, locale, context_hash } = body.data
 
   const langName = locale === 'de' ? 'German (Deutsch, de-DE)' : 'English (en-US)'
 
@@ -134,7 +135,8 @@ Return this exact JSON structure:
     : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
 
   const existingNarrative = (arch.ai_narrative as Record<string, unknown> | null) ?? {}
-  const mergedNarrative = { ...existingNarrative, [audience]: result }
+  const resultWithHash = context_hash ? { ...result, based_on_hash: context_hash } : result
+  const mergedNarrative = { ...existingNarrative, [audience]: resultWithHash }
 
   await supabase
     .from('architectures')
@@ -148,5 +150,5 @@ Return this exact JSON structure:
     .eq('user_id', userId)
 
   const updatedUsage = await getAIUsageStatus(userId, tier)
-  return NextResponse.json({ result, usage: updatedUsage, ai_model: aiModel })
+  return NextResponse.json({ result: resultWithHash, usage: updatedUsage, ai_model: aiModel })
 }
