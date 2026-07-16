@@ -1413,12 +1413,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   return resultAudience !== 'exec' ? (
                     <SortableSection key="rasic" id="rasic">
                       <div className="space-y-4">
-                        {/* RASIC Erklärung / Hilfetext */}
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                          <h3 className="text-sm font-semibold text-slate-900 mb-1">{t('architecture.rasicTitle')}</h3>
-                          <p className="text-xs text-slate-500 leading-relaxed">{t('architecture.rasicSectionDescription')}</p>
-                        </div>
-
                         {/* EAM-Validierungsbanner — nur bei offenen Regelverstößen */}
                         {hasOpenRasicViolations && (
                           <EamValidationBanner
@@ -1895,6 +1889,7 @@ function RoleDetailModal({ role, onClose, tc }: {
   onClose: () => void
   tc: (key: string) => string
 }) {
+  const t = useTranslations('modules')
   const catClass = role.role_category ? (ROLE_CATEGORY_CLASS[role.role_category] ?? '') : ''
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="role-modal-title" className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1918,7 +1913,7 @@ function RoleDetailModal({ role, onClose, tc }: {
 
         {role.responsibilities && role.responsibilities.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-semibold text-slate-700 mb-2">Verantwortlichkeiten</p>
+            <p className="text-xs font-semibold text-slate-700 mb-2">{t('architecture.roleResponsibilitiesLabel')}</p>
             <ul className="space-y-1.5">
               {role.responsibilities.map((r, i) => (
                 <li key={i} className="flex gap-2 text-xs text-slate-600">

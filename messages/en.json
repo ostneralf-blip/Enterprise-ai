@@ -626,6 +626,7 @@
       "patternReasonTitle": "Why is this pattern recommended?",
       "patternWhyTitle": "Why this pattern?",
       "teamHintTitle": "Recommended Project Team",
+      "roleResponsibilitiesLabel": "Responsibilities",
       "teamClickHint": "Click a role for details, responsibilities and RACI mapping.",
       "viewLabel": "View",
       "levelLabel": "Level",

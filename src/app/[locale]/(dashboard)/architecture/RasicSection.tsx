@@ -157,6 +157,7 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
     <div id="rasic-matrix" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
       <div>
         <h3 className="text-sm font-semibold text-slate-900">{t('architecture.rasicTitle')}</h3>
+        <p className="text-xs text-slate-500 leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
         {!readOnly && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
       </div>
       <div className="overflow-x-auto -mx-1">
