@@ -19,6 +19,7 @@ export function findConflicts(
   const conflicts: Conflict[] = []
   const seen = new Set<string>()
 
+  // Explicit incompatible_with pairs
   for (let i = 0; i < checkedList.length; i++) {
     for (let j = i + 1; j < checkedList.length; j++) {
       const a = checkedList[i]
@@ -42,6 +43,35 @@ export function findConflicts(
       ])).filter(alt => !checked.has(alt))
 
       conflicts.push({ a, b, alternatives })
+    }
+  }
+
+  // Capability-based conflicts: ≥2 active components with same exclusive capability
+  const byCapability = new Map<string, string[]>()
+  for (const name of checkedList) {
+    const cap = byName[name]?.capability
+    if (!cap) continue
+    const group = byCapability.get(cap) ?? []
+    group.push(name)
+    byCapability.set(cap, group)
+  }
+  for (const [, names] of byCapability) {
+    if (names.length < 2) continue
+    for (let i = 0; i < names.length; i++) {
+      for (let j = i + 1; j < names.length; j++) {
+        const a = names[i]
+        const b = names[j]
+        const pairKey = [a, b].sort().join('||')
+        if (seen.has(pairKey)) continue
+        seen.add(pairKey)
+        const compA = byName[a]
+        const compB = byName[b]
+        const alternatives = Array.from(new Set([
+          ...(compA?.suggests ?? []),
+          ...(compB?.suggests ?? []),
+        ])).filter(alt => !checked.has(alt))
+        conflicts.push({ a, b, alternatives })
+      }
     }
   }
 

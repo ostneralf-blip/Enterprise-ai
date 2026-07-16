@@ -798,7 +798,11 @@
       "decisionSkeletonComponents": "{rule} of {total} components from base pattern, {add} AI/manually added",
       "decisionSkeletonValidationOk": "Architecture validation passed — all rules met",
       "decisionSkeletonValidationFail": "Architecture validation: {n} open violation(s)",
-      "decisionAnalyzeCta": "◆ Analyze for this view"
+      "decisionAnalyzeCta": "◆ Analyze for this view",
+      "conflictShowAlt": "Show alternative",
+      "conflictHideAlt": "Hide alternative",
+      "conflictRemove": "Remove {name}",
+      "conflictAlternatives": "Alternatives"
     },
     "roadmap": {
       "title": "Roadmap Generator",

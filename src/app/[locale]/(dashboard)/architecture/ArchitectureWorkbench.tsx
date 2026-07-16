@@ -8,6 +8,7 @@ import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 import type { WizardAnswers } from '@/config/architecture-data'
 import { getSelectionStats } from '@/lib/architecture/selection'
+import { explainConflict } from '@/lib/utils/catalog-compatibility'
 
 type Tab = 'komponenten' | 'diagramm' | 'katalog'
 const LS_OPEN = 'arch_workbench_open_v1'
@@ -51,6 +52,7 @@ export function ArchitectureWorkbench({
     return (localStorage.getItem(LS_TAB) as Tab | null) ?? 'komponenten'
   })
   const [search, setSearch] = useState('')
+  const [expandedConflicts, setExpandedConflicts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!forceOpenTab) return
@@ -71,6 +73,7 @@ export function ArchitectureWorkbench({
     acceptedSuggestions,
   })
   const hasBadge = openSuggestions.length > 0 || conflicts.length > 0
+  const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
 
   const handleToggle = () => {
     setOpen(v => {
@@ -143,6 +146,70 @@ export function ArchitectureWorkbench({
           <div className="border-t border-slate-200 p-4 sm:p-6">
             {tab === 'komponenten' && (
               <div className="space-y-4">
+                {conflicts.length > 0 && (
+                  <div role="alert" className="space-y-2">
+                    {conflicts.map(c => {
+                      const key = [c.a, c.b].sort().join('||')
+                      const expanded = expandedConflicts.has(key)
+                      const explanation = explainConflict(c.a, c.b, byName)
+                      const removeA = () => { const next = new Set(activeComponentNames); next.delete(c.a); onCheckedChange(next) }
+                      const removeB = () => { const next = new Set(activeComponentNames); next.delete(c.b); onCheckedChange(next) }
+                      return (
+                        <div key={key} className="border border-red-200 bg-red-50 rounded-xl px-3 py-3 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-xs text-red-800 leading-relaxed flex-1 min-w-0">
+                              <span className="font-semibold">⚠ </span>
+                              {explanation[locale as 'de' | 'en'] ?? explanation.de}
+                            </p>
+                            {c.alternatives.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedConflicts(prev => {
+                                  const next = new Set(prev)
+                                  next.has(key) ? next.delete(key) : next.add(key)
+                                  return next
+                                })}
+                                className="text-[10px] font-semibold text-red-700 border border-red-300 rounded-lg px-2 py-1 hover:bg-red-100 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-red-400"
+                              >
+                                {expanded ? t('conflictHideAlt') : t('conflictShowAlt')}
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex gap-1.5 flex-wrap">
+                            <button type="button" onClick={removeA} className="text-[10px] font-semibold text-red-700 border border-red-200 rounded-lg px-2 py-1 hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
+                              {t('conflictRemove', { name: c.a })}
+                            </button>
+                            <button type="button" onClick={removeB} className="text-[10px] font-semibold text-red-700 border border-red-200 rounded-lg px-2 py-1 hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
+                              {t('conflictRemove', { name: c.b })}
+                            </button>
+                          </div>
+                          {expanded && c.alternatives.length > 0 && (
+                            <div className="pt-1 space-y-1">
+                              <p className="text-[10px] text-red-600 font-medium">{t('conflictAlternatives')}:</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {c.alternatives.map(alt => (
+                                  <button
+                                    key={alt}
+                                    type="button"
+                                    onClick={() => {
+                                      const next = new Set(activeComponentNames)
+                                      next.delete(c.a)
+                                      next.add(alt)
+                                      onCheckedChange(next)
+                                    }}
+                                    className="text-[10px] font-semibold border border-slate-200 text-slate-600 bg-white rounded-lg px-2 py-1 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                                  >
+                                    + {alt}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
                 <TechnicalArchitectureOptimisation
                   catalogRecs={catalogRecs}
                   recComponents={recComponents}

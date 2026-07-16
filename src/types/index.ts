@@ -75,6 +75,7 @@ export interface CatalogComponent {
   requires: string[]
   suggests: string[]
   aliases: string[]
+  capability?: string | null
   source: string
   is_active: boolean
   version_info?: { release?: string; model_id?: string; notes?: string } | null

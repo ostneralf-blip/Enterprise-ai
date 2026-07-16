@@ -798,7 +798,11 @@
       "decisionSkeletonComponents": "{rule} von {total} Komponenten aus dem Basis-Muster, {add} KI/manuell ergänzt",
       "decisionSkeletonValidationOk": "Architektur-Validierung bestanden — alle Regeln erfüllt",
       "decisionSkeletonValidationFail": "Architektur-Validierung: {n} offene Regelverletzung(en)",
-      "decisionAnalyzeCta": "◆ Für diese Sicht analysieren"
+      "decisionAnalyzeCta": "◆ Für diese Sicht analysieren",
+      "conflictShowAlt": "Alternative anzeigen",
+      "conflictHideAlt": "Alternative ausblenden",
+      "conflictRemove": "{name} entfernen",
+      "conflictAlternatives": "Alternativen"
     },
     "roadmap": {
       "title": "Roadmap-Generator",
