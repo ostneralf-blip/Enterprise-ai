@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { track } from '@/lib/posthog/client'
 
 interface Props {
   module: string
@@ -50,6 +51,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
       if (res.ok) {
         const { data } = await res.json()
         setUrl(data.url)
+        track('share_created', { module, expires_in_days: expiryDays ?? null })
       }
     } finally {
       setCreating(false)

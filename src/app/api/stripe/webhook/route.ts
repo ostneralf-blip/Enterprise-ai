@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe/client'
 import { deriveTier, safePeriodEnd } from '@/lib/stripe/tier-logic'
 import { createAdminClient } from '@/lib/supabase/server'
+import { trackServer } from '@/lib/posthog/server'
 import type Stripe from 'stripe'
 
 type ProfileRow = { id: string; email: string | null }
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         tier:                    'pro',
         subscription_status:     'active',
       })
+      void trackServer(userId, 'subscription_activated', { interval: session.metadata?.interval ?? null })
       break
     }
 
@@ -105,6 +107,9 @@ export async function POST(req: Request) {
       }
       console.info('[webhook]', { event_id: event.id, type: event.type, customer: sub.customer, tier, subscription_status, period_end: patch.subscription_period_end })
       await updateProfile(supabase, profile.id, patch)
+      if (event.type === 'customer.subscription.deleted') {
+        void trackServer(profile.id, 'subscription_cancelled', { subscription_status })
+      }
       break
     }
 
@@ -119,6 +124,7 @@ export async function POST(req: Request) {
       console.info('[webhook]', { event_id: event.id, type: event.type, customer: customerId, subscription_status: 'past_due' })
       await updateProfile(supabase, profile.id, { subscription_status: 'past_due' })
       if (profile.email) await sendPaymentFailedEmail(profile.email)
+      void trackServer(profile.id, 'payment_failed', { subscription_status: 'past_due' })
       break
     }
 
