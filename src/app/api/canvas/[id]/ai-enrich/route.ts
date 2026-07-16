@@ -7,6 +7,10 @@ import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
 import { trackServer } from '@/lib/posthog/server'
 import * as Sentry from '@sentry/nextjs'
 
+// #180: Budget für Bedrock-Versuch (8 s) + Direct-Fallback (30 s) + Overhead —
+// ohne maxDuration killt Vercel die Function vor dem Fallback (503 nach ~18 s).
+export const maxDuration = 60
+
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
