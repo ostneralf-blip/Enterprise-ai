@@ -1494,25 +1494,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   )
                 }
                 if (sectionId === 'rasic') {
-                  const hasOpenRasicViolations = eamResults.some(r =>
-                    (r.ruleId === 'r1' || r.ruleId === 'r2') && !r.passed && !validationOverrides[r.ruleId]
-                  )
                   return resultAudience !== 'exec' ? (
                     <SortableSection key="rasic" id="rasic">
                       <div className="space-y-4">
-                        {/* EAM-Validierungsbanner — nur bei offenen Regelverstößen */}
-                        {hasOpenRasicViolations && (
-                          <EamValidationBanner
-                            results={eamResults.filter(r => r.ruleId === 'r1' || r.ruleId === 'r2')}
-                            overrides={validationOverrides}
-                            onOverride={(ruleId, override) => {
-                              setValidationOverrides(prev => {
-                                if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
-                                return { ...prev, [ruleId]: override }
-                              })
-                            }}
-                          />
-                        )}
+                        {/* EAM-Validierungsbanner — immer sichtbar (#202: war bisher nur bei Verletzungen) */}
+                        <EamValidationBanner
+                          results={eamResults.filter(r => r.ruleId === 'r1' || r.ruleId === 'r2')}
+                          overrides={validationOverrides}
+                          onOverride={(ruleId, override) => {
+                            setValidationOverrides(prev => {
+                              if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                              return { ...prev, [ruleId]: override }
+                            })
+                          }}
+                        />
 
                         {/* RASIC-Matrix */}
                         {rasic ? (

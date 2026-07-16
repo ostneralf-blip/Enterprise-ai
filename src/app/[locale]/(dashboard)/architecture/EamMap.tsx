@@ -211,20 +211,21 @@ export function EamMap({
         {roleNames.length === 0 && <EmptyBandHint />}
       </EamBand>
 
-      {/* Band 3: Applikation */}
-      <EamBand label={t('eamApplication')}>
-        {appComps.map((c) => (
-          <ComponentCard
-            key={c.id}
-            comp={c}
-            source={componentSources?.[c.name]}
-            detailLevel={detailLevel}
-            owner={componentOwners?.[c.name]}
-            opsNote={componentOpsNotes?.[c.name]}
-          />
-        ))}
-        {appComps.length === 0 && <EmptyBandHint />}
-      </EamBand>
+      {/* Band 3: Applikation — ausgeblendet wenn leer (#202) */}
+      {appComps.length > 0 && (
+        <EamBand label={t('eamApplication')}>
+          {appComps.map((c) => (
+            <ComponentCard
+              key={c.id}
+              comp={c}
+              source={componentSources?.[c.name]}
+              detailLevel={detailLevel}
+              owner={componentOwners?.[c.name]}
+              opsNote={componentOpsNotes?.[c.name]}
+            />
+          ))}
+        </EamBand>
+      )}
 
       {/* Band 4: Daten & Technologie */}
       <EamBand label={t('eamData')}>
