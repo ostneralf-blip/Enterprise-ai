@@ -41,6 +41,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { AlertBox } from '@/components/shared/AlertBox'
 
 const NOW = Date.now()
 
@@ -496,31 +497,8 @@ function ResultBar({
           ))}
         </div>
       </div>
-      {/* Präsentationsmodus + PDF */}
+      {/* PDF — Präsentations-Templates (board/blueprint) temporär deaktiviert (#201) */}
       <div className="flex items-center gap-1.5 ml-auto">
-        {tier !== 'free' ? (
-          (['book', 'board', 'blueprint'] as const).map(tmpl => (
-            <button
-              key={tmpl}
-              onClick={() => onPresentation(tmpl)}
-              className={cn(
-                'px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring',
-                presentationTemplate === tmpl ? 'bg-primary text-white border-primary' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-              )}
-            >
-              {tmpl === 'book' ? '◻ ' : tmpl === 'board' ? '⬛ ' : '⬡ '}
-              {t(`architecture.presentationTemplate${tmpl.charAt(0).toUpperCase() + tmpl.slice(1)}` as Parameters<typeof t>[0])}
-            </button>
-          ))
-        ) : (
-          <button
-            className="px-2.5 py-1.5 text-[10px] font-semibold rounded-lg border border-slate-200 text-slate-400 whitespace-nowrap cursor-default"
-            title={t('architecture.presentationModeButton')}
-            disabled
-          >
-            ⬡ {t('architecture.presentationModeButton')} 🔒
-          </button>
-        )}
         {savedId && tier !== 'free' && (
           <a
             href={`/api/export/pdf?module=architecture&entityId=${savedId}&locale=${locale}&template=${presentationTemplate}&audience=${audience}&level=${level}`}
@@ -1205,9 +1183,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Compliance: Hinweis-Banner */}
         {resultAudience === 'compliance' && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-800 leading-relaxed">
-            {t('architecture.complianceHighlightHint')}
-          </div>
+          <AlertBox variant="warning">{t('architecture.complianceHighlightHint')}</AlertBox>
         )}
 
 
