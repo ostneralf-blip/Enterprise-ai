@@ -532,7 +532,12 @@
       "regCountOpen": "· {count} open",
       "regProgress": "{label} progress",
       "templatesEmpty": "No policy templates available.",
-      "rasicTitle": "Roles & RASIC (from Architecture)"
+      "rolesTitle": "Roles & Responsibilities",
+      "rolesDesc": "Overview of all project-critical roles. Roles assigned in your most recently saved architecture's RASIC matrix are highlighted.",
+      "rolesUsedBadge": "✓ Used in architecture · {title}",
+      "rolesResponsibilities": "Responsibilities",
+      "rolesEmpty": "No roles in the catalog yet.",
+      "rolesNoArch": "After running the Architecture Generator, the roles assigned in the RASIC will appear here."
     },
     "architecture": {
       "title": "Architecture Generator",

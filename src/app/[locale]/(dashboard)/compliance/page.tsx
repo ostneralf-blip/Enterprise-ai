@@ -6,7 +6,7 @@ import { CompliancePageClient } from './CompliancePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { getTranslations } from 'next-intl/server'
-import type { Tier, RasicMatrix } from '@/types'
+import type { Tier, RasicMatrix, CatalogRole } from '@/types'
 import type { CheckRow } from '@/config/compliance-data'
 import type { Metadata } from 'next'
 
@@ -28,10 +28,10 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: latestArch }, { data: checks }, { data: policyTemplates }] = await Promise.all([
+  const [{ data: latestArch }, { data: checks }, { data: policyTemplates }, { data: rolesCatalogRaw }] = await Promise.all([
     supabase
       .from('architectures')
-      .select('result')
+      .select('result, title, updated_at')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
       .limit(1)
@@ -47,7 +47,17 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
       .eq('locale', locale)
       .eq('is_published', true)
       .order('display_order', { ascending: true }),
+    supabase
+      .from('roles_catalog')
+      .select('role_name, role_category, description, responsibilities')
+      .eq('is_active', true)
+      .order('role_name'),
   ])
+
+  const archResult = latestArch?.result as Record<string, unknown> | null
+  const archRasicEntries = ((archResult?.rasic as RasicMatrix | null)?.entries ?? []) as { role: string }[]
+  const archUsedRoles = new Set(archRasicEntries.map(e => e.role))
+  const archTitle = (latestArch as { title?: string | null } | null)?.title ?? null
 
   return (
     <div>
@@ -58,7 +68,9 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
       <CompliancePageClient
         initialChecks={(checks ?? []) as CheckRow[]}
         policyTemplates={policyTemplates ?? []}
-        archRasic={((latestArch?.result as Record<string, unknown> | null)?.rasic ?? null) as RasicMatrix | null}
+        rolesCatalog={(rolesCatalogRaw ?? []) as Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'responsibilities'>[]}
+        archUsedRoles={archUsedRoles}
+        archTitle={archTitle}
       />
     </div>
   )

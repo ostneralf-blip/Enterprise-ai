@@ -532,7 +532,12 @@
       "regCountOpen": "· {count} offen",
       "regProgress": "{label} Fortschritt",
       "templatesEmpty": "Keine Policy-Templates verfügbar.",
-      "rasicTitle": "Rollen & RASIC (aus Architektur)"
+      "rolesTitle": "Rollen & Verantwortlichkeiten",
+      "rolesDesc": "Alle projektkritischen Rollen im Überblick. Rollen, die in Ihrer zuletzt gespeicherten Architektur in der RASIC-Matrix belegt sind, werden hervorgehoben.",
+      "rolesUsedBadge": "✓ In Architektur belegt · {title}",
+      "rolesResponsibilities": "Aufgaben",
+      "rolesEmpty": "Noch keine Rollen im Katalog hinterlegt.",
+      "rolesNoArch": "Nach dem Ausführen des Architektur-Generators erscheint hier, welche Rollen in der RASIC belegt sind."
     },
     "architecture": {
       "title": "Architektur-Generator",

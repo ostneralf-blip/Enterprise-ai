@@ -28,8 +28,7 @@ interface DbPolicyTemplate {
 }
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
-import type { RasicMatrix } from '@/types'
-import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
+import type { CatalogRole } from '@/types'
 
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
 
@@ -39,17 +38,21 @@ const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'e
 const CONTENT_REVIEWED_AT = '2026-06-25'
 const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
 
+type RoleCatalogItem = Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'responsibilities'>
+
 interface Props {
   initialChecks: CheckRow[]
   policyTemplates?: DbPolicyTemplate[]
-  archRasic?: RasicMatrix | null
+  rolesCatalog?: RoleCatalogItem[]
+  archUsedRoles?: Set<string>
+  archTitle?: string | null
 }
 
 function makeKey(regulation: string, checkType: string) {
   return `${regulation}::${checkType}`
 }
 
-export function CompliancePageClient({ initialChecks, policyTemplates = [], archRasic }: Props) {
+export function CompliancePageClient({ initialChecks, policyTemplates = [], rolesCatalog = [], archUsedRoles = new Set(), archTitle = null }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [tab, setTab] = useState<Tab>('euaiact')
@@ -697,15 +700,61 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
         </div>
       </div>
 
-      {/* RASIC aus Architektur */}
-      {archRasic && (
-        <div className="mt-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-3">
-            {t('compliance.rasicTitle')}
-          </h2>
-          <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
+      {/* Rollen & Verantwortlichkeiten */}
+      <div className="mt-6">
+        <div className="flex items-start gap-2 mb-3">
+          <h2 className="text-base font-semibold text-slate-900">{t('compliance.rolesTitle')}</h2>
+          <InfoHint title={t('compliance.rolesTitle')}>{t('compliance.rolesDesc')}</InfoHint>
         </div>
-      )}
+        {rolesCatalog.length === 0 ? (
+          <p className="text-sm text-slate-500">{t('compliance.rolesEmpty')}</p>
+        ) : (
+          <div className="space-y-3">
+            {archUsedRoles.size === 0 && (
+              <p className="text-xs text-slate-400 italic">{t('compliance.rolesNoArch')}</p>
+            )}
+            {rolesCatalog.map(role => {
+              const used = archUsedRoles.has(role.role_name)
+              return (
+                <div
+                  key={role.role_name}
+                  className={cn(
+                    'rounded-xl border p-4',
+                    used ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'
+                  )}
+                >
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-sm font-semibold text-slate-900">{role.role_name}</span>
+                    {role.role_category && (
+                      <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                        {role.role_category}
+                      </span>
+                    )}
+                    {used && archTitle && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white whitespace-nowrap">
+                        {t('compliance.rolesUsedBadge', { title: archTitle })}
+                      </span>
+                    )}
+                  </div>
+                  {role.description && (
+                    <p className="text-xs text-slate-600 mb-2">{role.description}</p>
+                  )}
+                  {role.responsibilities && role.responsibilities.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{t('compliance.rolesResponsibilities')}</p>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {role.responsibilities.map((r, i) => (
+                          <li key={i} className="text-xs text-slate-600">{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">

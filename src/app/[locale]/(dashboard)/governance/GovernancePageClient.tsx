@@ -19,8 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Tier, RasicMatrix } from '@/types'
-import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
+import type { Tier } from '@/types'
 import {
   GOVERNANCE_GATES,
   calculateVerdict,
@@ -102,7 +101,7 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
 }
 
 export function GovernancePageClient({
-  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk, archRasic,
+  tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk,
 }: {
   tier: Tier
   sessions: GovernanceSession[]
@@ -110,7 +109,6 @@ export function GovernancePageClient({
   initialUseCaseName?: string
   initialUseCaseId?: string
   complianceRisk?: string | null
-  archRasic?: RasicMatrix | null
 }) {
   const t = useTranslations('modules')
   const locale = useLocale()
@@ -338,14 +336,6 @@ export function GovernancePageClient({
 
         <GovernanceHistory sessions={sessions} />
 
-        {archRasic && (
-          <div className="mt-6">
-            <h2 className="text-base font-semibold text-slate-900 mb-3">
-              {t('governance.rasicTitle')}
-            </h2>
-            <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
-          </div>
-        )}
       </div>
     )
   }
