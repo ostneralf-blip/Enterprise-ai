@@ -365,7 +365,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">{t('canvas.contextAnalysisTitle')}</h2>
-              <InfoHint title={t('canvas.contextAnalysisHintTitle')} side="top">
+              <InfoHint title={t('canvas.contextAnalysisHintTitle')} side="top" align="right">
                 <p>{t('canvas.contextAnalysisHintP1')}</p>
                 <p className="mt-1.5">{t('canvas.contextAnalysisHintP2')}</p>
                 <p className="mt-1.5">{t('canvas.contextAnalysisHintP3', { count: insights?.filledCount ?? 0 })}</p>

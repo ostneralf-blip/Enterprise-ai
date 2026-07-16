@@ -7,9 +7,10 @@ interface InfoHintProps {
   children: React.ReactNode
   className?: string
   side?: 'top' | 'bottom'
+  align?: 'left' | 'right'
 }
 
-export function InfoHint({ title, children, className, side = 'top' }: InfoHintProps) {
+export function InfoHint({ title, children, className, side = 'top', align = 'left' }: InfoHintProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -37,7 +38,8 @@ export function InfoHint({ title, children, className, side = 'top' }: InfoHintP
         <div
           role="tooltip"
           className={cn(
-            'absolute left-0 z-30 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-4',
+            'absolute z-30 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-4',
+            align === 'right' ? 'right-0' : 'left-0',
             side === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
           )}
         >
