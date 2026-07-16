@@ -12,6 +12,8 @@ interface EamMapProps {
   result: ArchitectureResult
   activeComponents: CatalogComponent[]
   componentSources?: Record<string, 'rule' | 'ai' | 'manual'>
+  componentOwners?: Record<string, string>
+  componentOpsNotes?: Record<string, string>
   eamResults: EamValidationResult[]
   roleNames: string[]
   detailLevel: 1 | 2 | 3
@@ -48,10 +50,14 @@ function ComponentCard({
   comp,
   source,
   detailLevel,
+  owner,
+  opsNote,
 }: {
   comp: CatalogComponent
   source?: 'rule' | 'ai' | 'manual'
   detailLevel: number
+  owner?: string
+  opsNote?: string
 }) {
   return (
     <div className="relative bg-white border border-slate-200 rounded-lg px-3 py-2 min-w-[120px] max-w-[200px]">
@@ -81,10 +87,18 @@ function ComponentCard({
           </span>
         )}
       </div>
-      {detailLevel >= 3 && comp.description && (
-        <p className="text-[9px] text-slate-400 mt-1 italic line-clamp-2">
-          {comp.description}
-        </p>
+      {detailLevel >= 3 && (
+        <div className="mt-1.5 space-y-0.5">
+          {owner && (
+            <p className="text-[9px] text-slate-600 font-medium">👤 {owner}</p>
+          )}
+          {opsNote && (
+            <p className="text-[9px] text-slate-400 italic line-clamp-2">{opsNote}</p>
+          )}
+          {!owner && !opsNote && comp.description && (
+            <p className="text-[9px] text-slate-400 italic line-clamp-2">{comp.description}</p>
+          )}
+        </div>
       )}
     </div>
   )
@@ -114,6 +128,8 @@ export function EamMap({
   result: _result,
   activeComponents,
   componentSources,
+  componentOwners,
+  componentOpsNotes,
   eamResults,
   roleNames,
   detailLevel,
@@ -200,6 +216,8 @@ export function EamMap({
             comp={c}
             source={componentSources?.[c.name]}
             detailLevel={detailLevel}
+            owner={componentOwners?.[c.name]}
+            opsNote={componentOpsNotes?.[c.name]}
           />
         ))}
         {appComps.length === 0 && <EmptyBandHint />}
@@ -213,6 +231,8 @@ export function EamMap({
             comp={c}
             source={componentSources?.[c.name]}
             detailLevel={detailLevel}
+            owner={componentOwners?.[c.name]}
+            opsNote={componentOpsNotes?.[c.name]}
           />
         ))}
         {dataComps.length === 0 && <EmptyBandHint />}
@@ -226,6 +246,8 @@ export function EamMap({
             comp={c}
             source={componentSources?.[c.name]}
             detailLevel={detailLevel}
+            owner={componentOwners?.[c.name]}
+            opsNote={componentOpsNotes?.[c.name]}
           />
         ))}
         {crossComps.length === 0 && <EmptyBandHint />}

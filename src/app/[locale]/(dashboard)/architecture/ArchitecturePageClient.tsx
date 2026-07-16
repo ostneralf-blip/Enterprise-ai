@@ -1350,6 +1350,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                           result={result}
                           activeComponents={selStats.activeComponents}
                           componentSources={componentSources}
+                          componentOwners={componentOwners}
+                          componentOpsNotes={componentOpsNotes}
                           eamResults={eamResults}
                           roleNames={catalogRecs?.roleNames ?? []}
                           detailLevel={resultLevel}
@@ -1440,6 +1442,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               onUpdate={updated => {
                                 setRasic(updated)
                                 setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                                ;(window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('rasic_edited')
                               }}
                               componentOwners={componentOwners}
                             />
@@ -1701,28 +1704,26 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           onConfirm={handleConfirmSelection}
           locale={locale}
         />
-        {(aiNarrative || aiUsageArch) && (
-          <div className="lg:sticky lg:top-[74px]">
-            <AIPanel
-              narrative={aiNarrative}
-              usage={aiUsageArch}
-              aiModel={aiModel}
-              generatedAt={aiGeneratedAt}
-              tier={tier}
-              catalogComponents={recComponents}
-              rejectedSuggestions={rejected}
-              acceptedSuggestions={aiAccepted}
-              activeComponentNames={activeComponentNames}
-              canvasEnrichment={pickerEnrichment}
-              onAccept={handleAcceptAI}
-              onReject={handleRejectAI}
-              onAcceptAll={handleAcceptAllAI}
-              onScrollToFirst={handleScrollToFirstAI}
-              onReanalyze={handleAINarrative}
-              loading={narrativeLoading}
-            />
-          </div>
-        )}
+        <div className="lg:sticky lg:top-[74px]">
+          <AIPanel
+            narrative={aiNarrative}
+            usage={aiUsageArch}
+            aiModel={aiModel}
+            generatedAt={aiGeneratedAt}
+            tier={tier}
+            catalogComponents={recComponents}
+            rejectedSuggestions={rejected}
+            acceptedSuggestions={aiAccepted}
+            activeComponentNames={activeComponentNames}
+            canvasEnrichment={pickerEnrichment}
+            onAccept={handleAcceptAI}
+            onReject={handleRejectAI}
+            onAcceptAll={handleAcceptAllAI}
+            onScrollToFirst={handleScrollToFirstAI}
+            onReanalyze={handleAINarrative}
+            loading={narrativeLoading}
+          />
+        </div>
       </div>
     )
   }
