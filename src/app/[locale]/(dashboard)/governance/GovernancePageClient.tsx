@@ -3,6 +3,22 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import {
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  useSortable,
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Tier, RasicMatrix } from '@/types'
 import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
 import {
@@ -58,6 +74,33 @@ const WEIGHT_DOT: Record<string, string> = {
   green: 'bg-emerald-500',
 }
 
+const DEFAULT_GOV_SECTIONS = ['verdict', 'actions', 'gates'] as const
+type GovSectionId = typeof DEFAULT_GOV_SECTIONS[number]
+const GOV_SECTION_ORDER_KEY = 'governance_result_section_order_v1'
+
+function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn('relative', isDragging && 'z-10 opacity-75')}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="hidden md:flex absolute -left-5 top-3 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 select-none focus:outline-none"
+        aria-label="Abschnitt verschieben"
+        role="button"
+        tabIndex={0}
+      >
+        ⠿
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export function GovernancePageClient({
   tier, sessions, useCases = [], initialUseCaseName, initialUseCaseId, complianceRisk, archRasic,
 }: {
@@ -80,6 +123,24 @@ export function GovernancePageClient({
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [savedId, setSavedId] = useState<string | null>(null)
+
+  const [sectionOrder, setSectionOrder] = useState<GovSectionId[]>(() => {
+    if (typeof window === 'undefined') return [...DEFAULT_GOV_SECTIONS]
+    try {
+      const stored = localStorage.getItem(GOV_SECTION_ORDER_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as string[]
+        const valid = parsed.filter((id): id is GovSectionId => (DEFAULT_GOV_SECTIONS as readonly string[]).includes(id))
+        if (valid.length === DEFAULT_GOV_SECTIONS.length) return valid
+      }
+    } catch {}
+    return [...DEFAULT_GOV_SECTIONS]
+  })
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   const toggleUseCase = (id: string) => {
     setUseCaseIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -154,9 +215,10 @@ export function GovernancePageClient({
     const styles = VERDICT_STYLES[verdict.level]
     const actionItems = reviews.filter(r => r.option.weight !== 'green' && r.option.recommendation)
 
-    return (
-      <div className="max-w-2xl space-y-5">
-        {/* Verdict card */}
+    const visibleSections = sectionOrder.filter(s => s !== 'actions' || actionItems.length > 0)
+
+    const sectionContent: Record<GovSectionId, React.ReactNode> = {
+      verdict: (
         <div className={cn('rounded-2xl border p-5 sm:p-6', styles.bg, styles.border)}>
           <div className="flex items-start gap-3">
             <span className="text-2xl" aria-hidden="true">{verdict.icon}</span>
@@ -166,37 +228,32 @@ export function GovernancePageClient({
             </div>
           </div>
         </div>
-
-        {/* Action items */}
-        {actionItems.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-sm font-semibold text-slate-900">{t('governance.actionFieldsTitle')}</h3>
-              <InfoHint title={t('governance.actionFieldsHintTitle')}>
-                <p>{t('governance.actionFieldsHintP1')}</p>
-                <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />{t('governance.actionFieldsHintYellow')}</p>
-                <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />{t('governance.actionFieldsHintRed')}</p>
-                <p className="mt-1.5">{t('governance.actionFieldsHintFootnote')}</p>
-              </InfoHint>
-            </div>
-            <ul className="space-y-4" role="list">
-              {actionItems.map(({ gate: g, option }) => (
-                <li key={g.id} className="flex gap-3">
-                  <span
-                    className={cn('mt-1.5 flex-shrink-0 w-2 h-2 rounded-full', WEIGHT_DOT[option.weight])}
-                    aria-hidden="true"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{pick(g.question, locale).split('?')[0]}</p>
-                    <p className="text-sm text-slate-700 mt-0.5">{option.recommendation ? pick(option.recommendation, locale) : null}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+      ),
+      actions: actionItems.length > 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-sm font-semibold text-slate-900">{t('governance.actionFieldsTitle')}</h3>
+            <InfoHint title={t('governance.actionFieldsHintTitle')}>
+              <p>{t('governance.actionFieldsHintP1')}</p>
+              <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />{t('governance.actionFieldsHintYellow')}</p>
+              <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />{t('governance.actionFieldsHintRed')}</p>
+              <p className="mt-1.5">{t('governance.actionFieldsHintFootnote')}</p>
+            </InfoHint>
           </div>
-        )}
-
-        {/* Gate summary */}
+          <ul className="space-y-4" role="list">
+            {actionItems.map(({ gate: g, option }) => (
+              <li key={g.id} className="flex gap-3">
+                <span className={cn('mt-1.5 flex-shrink-0 w-2 h-2 rounded-full', WEIGHT_DOT[option.weight])} aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{pick(g.question, locale).split('?')[0]}</p>
+                  <p className="text-sm text-slate-700 mt-0.5">{option.recommendation ? pick(option.recommendation, locale) : null}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null,
+      gates: (
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
           <h3 className="text-sm font-semibold text-slate-900 mb-4">{t('governance.summaryTitle')}</h3>
           <ul className="space-y-3" role="list">
@@ -214,6 +271,36 @@ export function GovernancePageClient({
             ))}
           </ul>
         </div>
+      ),
+    }
+
+    return (
+      <div className="max-w-2xl space-y-5">
+        <DndContext
+          sensors={dndSensors}
+          onDragEnd={(event: DragEndEvent) => {
+            const { active, over } = event
+            if (over && active.id !== over.id) {
+              setSectionOrder(prev => {
+                const oldIndex = prev.indexOf(active.id as GovSectionId)
+                const newIndex = prev.indexOf(over.id as GovSectionId)
+                const next = arrayMove(prev, oldIndex, newIndex)
+                try { localStorage.setItem(GOV_SECTION_ORDER_KEY, JSON.stringify(next)) } catch {}
+                return next
+              })
+            }
+          }}
+        >
+          <SortableContext items={visibleSections} strategy={verticalListSortingStrategy}>
+            <div className="space-y-5">
+              {visibleSections.map(id => (
+                <SortableSection key={id} id={id}>
+                  {sectionContent[id]}
+                </SortableSection>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         <div className="flex flex-wrap items-center gap-3">
           <button

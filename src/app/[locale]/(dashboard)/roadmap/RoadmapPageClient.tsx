@@ -3,6 +3,22 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import {
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  useSortable,
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
 import { QUADRANT_META } from '@/config/usecase-data'
 import { InfoHint } from '@/components/shared/InfoHint'
@@ -63,6 +79,31 @@ interface Props {
 
 const ARCHETYPES: Archetype[] = ['starter', 'scaler', 'transformer']
 const PHASES = ['phase1', 'phase2', 'phase3'] as const
+type PhaseId = typeof PHASES[number]
+const PHASE_ORDER_KEY = 'roadmap_phase_order_v1'
+
+function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn('relative', isDragging && 'z-10 opacity-75')}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="hidden md:flex absolute -left-5 top-3 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 select-none focus:outline-none"
+        aria-label="Abschnitt verschieben"
+        role="button"
+        tabIndex={0}
+      >
+        ⠿
+      </div>
+      {children}
+    </div>
+  )
+}
 
 function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus> {
   const result: Record<string, MilestoneStatus> = {}
@@ -97,6 +138,30 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
   const [saved, setSaved] = useState(!!savedRoadmap)
   const [dismissedDecisions, setDismissedDecisions] = useState<Set<string>>(new Set())
 
+  const [phaseOrder, setPhaseOrder] = useState<PhaseId[]>(() => {
+    if (savedRoadmap?.phases) {
+      const ids = (savedRoadmap.phases as { phase?: string }[])
+        .map(p => p.phase)
+        .filter((id): id is PhaseId => (PHASES as readonly string[]).includes(id as string))
+      if (ids.length === PHASES.length) return ids
+    }
+    if (typeof window === 'undefined') return [...PHASES]
+    try {
+      const stored = localStorage.getItem(PHASE_ORDER_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as string[]
+        const valid = parsed.filter((id): id is PhaseId => (PHASES as readonly string[]).includes(id))
+        if (valid.length === PHASES.length) return valid
+      }
+    } catch {}
+    return [...PHASES]
+  })
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
   const handleArchetypeChange = (a: Archetype) => { setArchetype(a); setSaved(false) }
 
   const toggleMilestone = (key: string) => {
@@ -106,7 +171,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
   const handleSave = async () => {
     const roadmap = ROADMAPS[archetype]
-    const phases = PHASES.map(phaseId => {
+    const phases = phaseOrder.map(phaseId => {
       const phaseMilestones = Object.fromEntries(
         Object.entries(milestones)
           .filter(([k]) => k.startsWith(`${phaseId}_`))
@@ -273,15 +338,33 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       )}
 
       {/* 3-Phasen-Roadmap */}
-      <div className="space-y-4">
-        {PHASES.map(phaseId => {
-          const phase = roadmap[phaseId]
-          const colors = PHASE_COLORS[phaseId]
-          const doneCount = phase.actions.filter((_, i) => milestones[`${phaseId}_${i}`] === 'done').length
-          const progressPct = phase.actions.length > 0 ? Math.round((doneCount / phase.actions.length) * 100) : 0
-          return (
-            <section key={phaseId} aria-labelledby={`${phaseId}-heading`}
-              className={cn('rounded-2xl border p-4 sm:p-6', colors.bg, colors.border)}>
+      <DndContext
+        sensors={dndSensors}
+        onDragEnd={(event: DragEndEvent) => {
+          const { active, over } = event
+          if (over && active.id !== over.id) {
+            setPhaseOrder(prev => {
+              const oldIndex = prev.indexOf(active.id as PhaseId)
+              const newIndex = prev.indexOf(over.id as PhaseId)
+              const next = arrayMove(prev, oldIndex, newIndex)
+              try { localStorage.setItem(PHASE_ORDER_KEY, JSON.stringify(next)) } catch {}
+              return next
+            })
+            setSaved(false)
+          }
+        }}
+      >
+        <SortableContext items={phaseOrder} strategy={verticalListSortingStrategy}>
+          <div className="space-y-4">
+            {phaseOrder.map(phaseId => {
+              const phase = roadmap[phaseId]
+              const colors = PHASE_COLORS[phaseId]
+              const doneCount = phase.actions.filter((_, i) => milestones[`${phaseId}_${i}`] === 'done').length
+              const progressPct = phase.actions.length > 0 ? Math.round((doneCount / phase.actions.length) * 100) : 0
+              return (
+                <SortableSection key={phaseId} id={phaseId}>
+                <section aria-labelledby={`${phaseId}-heading`}
+                  className={cn('rounded-2xl border p-4 sm:p-6', colors.bg, colors.border)}>
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -361,10 +444,13 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   )}
                 </div>
               </div>
-            </section>
-          )
-        })}
-      </div>
+                </section>
+                </SortableSection>
+              )
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Aktions-Leiste — unterhalb der Phasen */}
       <div className="flex flex-wrap items-center gap-3 mt-6">
