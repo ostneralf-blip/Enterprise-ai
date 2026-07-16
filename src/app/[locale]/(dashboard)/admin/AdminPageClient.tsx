@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogSource, CatalogUploadLog, CanvasSynonym, ComplianceSourceDraft, ScanSourceResult, SourceScanStatus } from '@/types'
 import { cn } from '@/lib/utils'
+import { AlertBox } from '@/components/shared/AlertBox'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
@@ -965,11 +966,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <h2 className="text-base sm:text-lg font-semibold text-slate-900">
                 {editing ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}
               </h2>
-              {error && (
-                <div role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  {error}
-                </div>
-              )}
+              {error && <AlertBox variant="error">{error}</AlertBox>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="admin-module" className="block text-xs font-medium text-slate-700 mb-1">Modul</label>

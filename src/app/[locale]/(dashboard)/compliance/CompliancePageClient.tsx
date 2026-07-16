@@ -3,6 +3,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
+import { AlertBox } from '@/components/shared/AlertBox'
 import {
   EU_AI_ACT_RISK_CLASSES,
   EU_AI_ACT_OBLIGATIONS,
@@ -267,10 +268,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
           </div>
 
           {riskClass === 'prohibited' && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5">
-              <p className="text-sm font-semibold text-red-800 mb-1">{t('compliance.prohibitedTitle')}</p>
-              <p className="text-xs text-red-600">{t('compliance.prohibitedDesc')}</p>
-            </div>
+            <AlertBox variant="error" title={t('compliance.prohibitedTitle')}>
+              {t('compliance.prohibitedDesc')}
+            </AlertBox>
           )}
 
           {riskClass === 'minimal' && (

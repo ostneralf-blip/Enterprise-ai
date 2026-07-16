@@ -4,6 +4,7 @@ import { useRouter } from '@/i18n/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { CHANGELOG } from '@/config/changelog'
 import { pick } from '@/lib/utils/locale-data'
+import { AlertBox } from '@/components/shared/AlertBox'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5 MB
 
@@ -117,9 +118,7 @@ export default function FeedbackPage() {
       ) : (
         <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-4">
           {error && (
-            <div role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
+            <AlertBox variant="error">{error}</AlertBox>
           )}
 
           <div>

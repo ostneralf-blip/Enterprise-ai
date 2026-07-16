@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { track } from '@/lib/posthog/client'
 import type { PricingData } from '@/app/api/pricing/route'
+import { AlertBox } from '@/components/shared/AlertBox'
 
 const FEATURES = [
   'PDF-Export aller Ergebnisse',
@@ -75,9 +76,7 @@ export function UpgradePageClient({ pricing }: Props) {
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
-          {error}
-        </div>
+        <AlertBox variant="error" className="mb-6">{error}</AlertBox>
       )}
 
       <div className="bg-white border border-slate-200 rounded-2xl p-8 mb-8">
