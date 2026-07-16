@@ -10,6 +10,7 @@ export type SeedComponent = {
   tags: string[]
   suggests?: string[]
   incompatible_with?: string[]
+  capability?: string
 }
 
 export const SEED_COMPONENTS: SeedComponent[] = [
@@ -259,19 +260,28 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['automation'], infra_types: ['cloud'], cloud_provider: 'azure',
     icon_name: 'logos:microsoft', website_url: 'https://azure.microsoft.com/purview', description: 'Unified Data Governance: Datenkatalog, Data Lineage, Compliance und Klassifizierung.',
-    tags: ['azure','governance','catalog','compliance'] },
+    tags: ['azure','governance','catalog','compliance'],
+    capability: 'data_catalog',
+    suggests: ['OpenMetadata', 'AWS DataZone'],
+    incompatible_with: [] },
 
   { name: 'OpenMetadata', vendor: 'OpenMetadata', category: 'governance', architecture_layer: 'governance',
     hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['automation'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
     icon_name: null, website_url: 'https://open-metadata.org', description: 'Open-Source Datenkatalog mit Data Lineage, Collaboration und Qualitäts-Checks.',
-    tags: ['governance','catalog','lineage','oss'] },
+    tags: ['governance','catalog','lineage','oss'],
+    capability: 'data_catalog',
+    suggests: ['Microsoft Purview', 'AWS DataZone'],
+    incompatible_with: [] },
 
   { name: 'AWS DataZone', vendor: 'AWS', category: 'governance', architecture_layer: 'governance',
     hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['automation'], infra_types: ['cloud'], cloud_provider: 'aws',
     icon_name: 'logos:aws', description: 'Verwalteter Datenkatalog und -marktplatz für sicheres Datensharing im Unternehmen.',
-    tags: ['aws','governance','catalog'] },
+    tags: ['aws','governance','catalog'],
+    capability: 'data_catalog',
+    suggests: ['OpenMetadata'],
+    incompatible_with: [] },
 
   // ── SECURITY LAYER ────────────────────────────────────────────────────────
   { name: 'SAP BTP Auth & Trust', vendor: 'SAP', category: 'security', architecture_layer: 'security',
@@ -280,6 +290,7 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     use_case_types: ['automation'], infra_types: ['cloud'], cloud_provider: 'sap',
     icon_name: 'simple-icons:sap', description: 'Identity & Access Management auf SAP BTP — SAML, OAuth 2.0, OIDC für SAP-Anwendungen.',
     tags: ['sap','iam','auth','btp','oauth','oidc'],
+    capability: 'primary_idp',
     suggests: ['SAP Integration Suite', 'SAP AI Core'],
     incompatible_with: [] },
 
@@ -287,7 +298,10 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: true, use_case_types: ['automation'], infra_types: ['cloud','hybrid'], cloud_provider: 'azure',
     icon_name: 'logos:microsoft', description: 'Enterprise Identity Platform (vormals Azure AD) — SSO, MFA, Conditional Access für AI-Anwendungen.',
-    tags: ['azure','iam','sso','entra'] },
+    tags: ['azure','iam','sso','entra'],
+    capability: 'primary_idp',
+    suggests: ['SAP BTP Auth & Trust', 'Keycloak'],
+    incompatible_with: [] },
 
   { name: 'HashiCorp Vault', vendor: 'HashiCorp', category: 'security', architecture_layer: 'security',
     hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
@@ -299,7 +313,10 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['automation'], infra_types: ['onprem','hybrid'], cloud_provider: 'independent',
     icon_name: 'logos:keycloak', website_url: 'https://keycloak.org', description: 'Open-Source Identity & Access Management — SSO, OAuth 2.0, OIDC für OnPrem-Deployments.',
-    tags: ['iam','sso','onprem','oss'] },
+    tags: ['iam','sso','onprem','oss'],
+    capability: 'primary_idp',
+    suggests: ['SAP BTP Auth & Trust', 'Microsoft Entra ID'],
+    incompatible_with: [] },
 
   // ── APPLICATION / INTEGRATION ─────────────────────────────────────────────
   { name: 'SAP Integration Suite', vendor: 'SAP', category: 'integration', architecture_layer: 'application',
@@ -324,19 +341,28 @@ export const SEED_COMPONENTS: SeedComponent[] = [
     hosting: ['us','eu'], dsgvo_status: 'conditional', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['generative','automation'], infra_types: ['cloud'], cloud_provider: 'aws',
     icon_name: 'logos:aws', description: 'Vollständig verwaltetes API Gateway für REST, HTTP und WebSocket APIs.',
-    tags: ['aws','api','gateway'] },
+    tags: ['aws','api','gateway'],
+    capability: 'api_gateway',
+    suggests: ['Kong Gateway', 'Azure API Management'],
+    incompatible_with: [] },
 
   { name: 'Azure API Management', vendor: 'Microsoft', category: 'integration', architecture_layer: 'application',
     hosting: ['eu','us'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['generative','automation'], infra_types: ['cloud','hybrid'], cloud_provider: 'azure',
     icon_name: 'logos:microsoft', description: 'Hybrides API Management mit LLM-Gateway-Funktion für Azure OpenAI.',
-    tags: ['azure','api','gateway','llm'] },
+    tags: ['azure','api','gateway','llm'],
+    capability: 'api_gateway',
+    suggests: ['Kong Gateway', 'AWS API Gateway'],
+    incompatible_with: [] },
 
   { name: 'Kong Gateway', vendor: 'Kong', category: 'integration', architecture_layer: 'application',
     hosting: ['eu','us','onprem','hybrid'], dsgvo_status: 'compliant', eu_ai_act_risk: 'minimal',
     sap_compatible: false, use_case_types: ['generative','automation'], infra_types: ['cloud','onprem','hybrid'], cloud_provider: 'independent',
     icon_name: 'logos:kong', website_url: 'https://konghq.com', description: 'Open-Source API Gateway mit AI-Plugin-Ökosystem und LLM-Proxy-Funktionalität.',
-    tags: ['api','gateway','oss','llm-proxy'] },
+    tags: ['api','gateway','oss','llm-proxy'],
+    capability: 'api_gateway',
+    suggests: ['Azure API Management', 'AWS API Gateway'],
+    incompatible_with: [] },
 ]
 
 // ── SEED: Roles Catalog ────────────────────────────────────────────────────────
