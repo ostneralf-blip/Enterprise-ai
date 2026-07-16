@@ -18,6 +18,7 @@ interface EamMapProps {
   roleNames: string[]
   detailLevel: 1 | 2 | 3
   locale: string
+  compliance?: string
 }
 
 function EamBand({
@@ -134,9 +135,17 @@ export function EamMap({
   roleNames,
   detailLevel,
   locale,
+  compliance,
 }: EamMapProps) {
   const t = useTranslations('modules.architecture')
   const [mapFilter, setMapFilter] = useState<MapFilter>('all')
+
+  const motivNodes: { icon: string; label: string; sub: string }[] = []
+  if (compliance === 'strict' || compliance === 'moderate') {
+    motivNodes.push({ icon: '⚖', label: 'EU AI Act', sub: compliance === 'strict' ? 'HOCHRISIKO · Art. 13–15' : 'LIMITED RISK · Art. 50' })
+    motivNodes.push({ icon: '🛡', label: 'DSGVO', sub: 'EU-HOSTING PFLICHT' })
+  }
+  motivNodes.push({ icon: '◎', label: t('landkarteBizGoal'), sub: '' })
 
   const filterComp = (c: CatalogComponent) => {
     if (mapFilter === 'managed') return c.hosting.includes('cloud')
@@ -186,18 +195,12 @@ export function EamMap({
 
       {/* Band 1: Motivation & Vorgaben */}
       <EamBand label={t('eamMotivation')} dashed>
-        {eamResults.map((r) => (
-          <span
-            key={r.ruleId}
-            className={cn(
-              'text-[10px] px-2 py-0.5 rounded-full font-medium',
-              r.passed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700',
-            )}
-          >
-            {r.passed ? '✓' : '✗'} {r.message[locale as 'de' | 'en'] ?? r.message.de}
-          </span>
+        {motivNodes.map(n => (
+          <div key={n.label} className="bg-primary-soft border border-primary-border rounded-xl p-2.5 min-w-[140px]">
+            <p className="text-[12.5px] font-semibold text-slate-900">{n.icon} {n.label}</p>
+            {n.sub && <p className="text-[9px] uppercase tracking-wide text-amber-600 font-bold mt-1">{n.sub}</p>}
+          </div>
         ))}
-        {eamResults.length === 0 && <EmptyBandHint />}
       </EamBand>
 
       {/* Band 2: Business */}

@@ -1356,6 +1356,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                           roleNames={catalogRecs?.roleNames ?? []}
                           detailLevel={resultLevel}
                           locale={locale}
+                          compliance={answers.compliance}
                         />
                       </SortableSection>
                     )
