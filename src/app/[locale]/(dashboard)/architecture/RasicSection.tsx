@@ -161,8 +161,31 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
       <div>
         <h3 className="text-sm font-semibold text-slate-900">{t('architecture.rasicTitle')}</h3>
         <p className="text-xs text-slate-500 leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
-        {!readOnly && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
+        {!readOnly && !preview && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
       </div>
+      {/* Preview-Banner ÜBER der Tabelle — sofort sichtbar ohne Scrollen */}
+      {preview && onPreviewConfirm && onPreviewCancel && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-amber-800">{t('architecture.rasicPreviewTitle')}</p>
+          <p className="text-xs text-amber-700">{t('architecture.rasicPreviewDesc')}</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onPreviewConfirm}
+              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              {t('architecture.rasicPreviewConfirm')}
+            </button>
+            <button
+              type="button"
+              onClick={onPreviewCancel}
+              className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+            >
+              {t('architecture.rasicPreviewCancel')}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto -mx-1">
         <table className="w-full text-xs border-collapse min-w-[480px]">
           <thead>
@@ -220,28 +243,6 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
           </tbody>
         </table>
       </div>
-      {preview && onPreviewConfirm && onPreviewCancel && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
-          <p className="text-xs font-semibold text-amber-800">{t('architecture.rasicPreviewTitle')}</p>
-          <p className="text-xs text-amber-700">{t('architecture.rasicPreviewDesc')}</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onPreviewConfirm}
-              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
-            >
-              {t('architecture.rasicPreviewConfirm')}
-            </button>
-            <button
-              type="button"
-              onClick={onPreviewCancel}
-              className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
-            >
-              {t('architecture.rasicPreviewCancel')}
-            </button>
-          </div>
-        </div>
-      )}
       {(() => {
         const assigned = Object.entries(componentOwners ?? {}).filter(([, r]) => r)
         if (assigned.length === 0) return null

@@ -734,6 +734,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [rasicPreview, setRasicPreview] = useState<RasicMatrix | null>(null)
+  const [rasicSuggestNoop, setRasicSuggestNoop] = useState(false)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
   const [aiAccepted, setAiAccepted] = useState<string[]>([])
   const [componentOwners, setComponentOwners] = useState<Record<string, string>>({})
@@ -1518,6 +1519,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               onUpdate={updated => {
                                 setRasic(updated)
                                 setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                                setRasicSuggestNoop(false)
                                 ;(window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('rasic_edited')
                               }}
                               componentOwners={componentOwners}
@@ -1527,29 +1529,43 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                                 setRasic(rasicPreview)
                                 setResult(prev => prev ? { ...prev, rasic: rasicPreview } : prev)
                                 setRasicPreview(null)
+                                setRasicSuggestNoop(false)
                                 ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('rasic_edited', { source: 'ai_suggestion' })
                               }}
-                              onPreviewCancel={() => setRasicPreview(null)}
+                              onPreviewCancel={() => {
+                                setRasicPreview(null)
+                                setRasicSuggestNoop(false)
+                              }}
                             />
                             {resultAudience !== 'compliance' && (
                               <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const target = computeRasicTarget(rasic)
-                                    const hasDiff = target.entries.some(te =>
-                                      (rasic.phases as RasicPhase[]).some(ph =>
-                                        te.assignments[ph] !== rasic.entries.find(e => e.role === te.role)?.assignments[ph]
+                                {!rasicPreview && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRasicSuggestNoop(false)
+                                      const target = computeRasicTarget(rasic)
+                                      const hasDiff = target.entries.some(te =>
+                                        (rasic.phases as RasicPhase[]).some(ph =>
+                                          te.assignments[ph] !== rasic.entries.find(e => e.role === te.role)?.assignments[ph]
+                                        )
                                       )
-                                    )
-                                    if (hasDiff) {
-                                      setRasicPreview(target)
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
-                                >
-                                  {t('architecture.rasicSuggestButton')}
-                                </button>
+                                      if (hasDiff) {
+                                        setRasicPreview(target)
+                                      } else {
+                                        setRasicSuggestNoop(true)
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
+                                  >
+                                    {t('architecture.rasicSuggestButton')}
+                                  </button>
+                                )}
+                                {rasicSuggestNoop && !rasicPreview && (
+                                  <p className="text-xs text-emerald-600 font-medium">
+                                    {t('architecture.rasicNoChanges')}
+                                  </p>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => void handleSave()}
