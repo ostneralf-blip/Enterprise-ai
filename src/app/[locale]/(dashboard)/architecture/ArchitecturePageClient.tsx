@@ -605,19 +605,33 @@ const RASIC_ROLE_DEFAULTS: Record<string, Partial<Record<RasicPhase, RasicValue>
   'Chief Data Officer (CDO)':  { konzeption: 'A', daten: 'A', build: 'I', freigabe: 'A', betrieb: 'A' },
 }
 
-function autoFillRasic(rasic: RasicMatrix): RasicMatrix {
-  const newEntries = rasic.entries.map(entry => {
+// #208: Vollständige Zielbelegung aus Defaults — überschreibt bestehende Werte,
+// erzwingt genau ein A pro Phase (erste Zeile mit A-Default gewinnt, Rest → S).
+function computeRasicTarget(rasic: RasicMatrix): RasicMatrix {
+  const proposed = rasic.entries.map(entry => {
     const defaults = RASIC_ROLE_DEFAULTS[entry.role]
     if (!defaults) return entry
+    const assignments: Record<string, RasicValue> = {}
+    for (const phase of rasic.phases as RasicPhase[]) {
+      assignments[phase] = (defaults[phase] as RasicValue | undefined) ?? (entry.assignments[phase] ?? '' as RasicValue)
+    }
+    return { ...entry, assignments }
+  })
+  const aClaimedByPhase = new Set<string>()
+  const resolved = proposed.map(entry => {
     const assignments = { ...entry.assignments }
     for (const phase of rasic.phases as RasicPhase[]) {
-      if (!assignments[phase] && defaults[phase]) {
-        assignments[phase] = defaults[phase] as RasicValue
+      if (assignments[phase] === 'A') {
+        if (aClaimedByPhase.has(phase)) {
+          assignments[phase] = 'S'
+        } else {
+          aClaimedByPhase.add(phase)
+        }
       }
     }
     return { ...entry, assignments }
   })
-  return { ...rasic, entries: newEntries }
+  return { ...rasic, entries: resolved }
 }
 
 function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
@@ -719,6 +733,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   }, [activeComponentNames, catalogRecs, recComponents, answers.compliance, assessmentContext, canvasContext, governanceContext, roadmapContext])
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
+  const [rasicPreview, setRasicPreview] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
   const [aiAccepted, setAiAccepted] = useState<string[]>([])
   const [componentOwners, setComponentOwners] = useState<Record<string, string>>({})
@@ -880,6 +895,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setShowCanvasBanner(false)
     setSelectedCanvasIds([])
     setRasic(null)
+    setRasicPreview(null)
     setAiModel(null)
     // Canvas-Scope-Schritt zeigen (wird übersprungen wenn keine Canvases vorhanden)
     setView('canvas-scope')
@@ -1503,15 +1519,30 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                                 ;(window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('rasic_edited')
                               }}
                               componentOwners={componentOwners}
+                              preview={rasicPreview}
+                              onPreviewConfirm={() => {
+                                if (!rasicPreview) return
+                                setRasic(rasicPreview)
+                                setResult(prev => prev ? { ...prev, rasic: rasicPreview } : prev)
+                                setRasicPreview(null)
+                                ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('rasic_edited', { source: 'ai_suggestion' })
+                              }}
+                              onPreviewCancel={() => setRasicPreview(null)}
                             />
                             {resultAudience !== 'compliance' && (
                               <div className="flex flex-wrap items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const filled = autoFillRasic(rasic)
-                                    setRasic(filled)
-                                    setResult(prev => prev ? { ...prev, rasic: filled } : prev)
+                                    const target = computeRasicTarget(rasic)
+                                    const hasDiff = target.entries.some(te =>
+                                      (rasic.phases as RasicPhase[]).some(ph =>
+                                        te.assignments[ph] !== rasic.entries.find(e => e.role === te.role)?.assignments[ph]
+                                      )
+                                    )
+                                    if (hasDiff) {
+                                      setRasicPreview(target)
+                                    }
                                   }}
                                   className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
                                 >

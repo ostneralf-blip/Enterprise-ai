@@ -127,9 +127,12 @@ interface RasicMatrixCardProps {
   readOnly?: boolean
   onUpdate: (rasic: RasicMatrix) => void
   componentOwners?: Record<string, string>
+  preview?: RasicMatrix | null
+  onPreviewConfirm?: () => void
+  onPreviewCancel?: () => void
 }
 
-export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOwners }: RasicMatrixCardProps) {
+export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOwners, preview, onPreviewConfirm, onPreviewCancel }: RasicMatrixCardProps) {
   const t = useTranslations('modules')
   const locale = useLocale()
 
@@ -181,22 +184,34 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
                 {(rasic.phases as RasicPhase[]).map(phase => {
                   const val = (entry.assignments[phase] ?? '') as RasicValue
                   const tooltip = val ? pick(RASIC_TOOLTIP[val], locale) : ''
+                  const previewEntry = preview?.entries.find(e => e.role === entry.role)
+                  const previewVal = previewEntry ? ((previewEntry.assignments[phase] ?? '') as RasicValue) : null
+                  const hasDiff = previewVal !== null && previewVal !== val
                   return (
                     <td key={phase} className="py-1.5 px-2 text-center">
-                      <button
-                        onClick={() => cycleValue(entry.role, phase)}
-                        disabled={readOnly}
-                        title={tooltip}
-                        aria-label={`${entry.role} ${phaseLabel[phase]}: ${val || '—'}`}
-                        className={cn(
-                          'w-8 h-8 rounded-lg border text-[11px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
-                          RASIC_CELL_STYLE[val] ?? RASIC_CELL_STYLE[''],
-                          !readOnly && 'hover:brightness-95 cursor-pointer',
-                          readOnly && 'cursor-default'
-                        )}
-                      >
-                        {val || '·'}
-                      </button>
+                      {hasDiff ? (
+                        <span className="inline-flex flex-col items-center gap-0.5">
+                          <span className="text-[10px] text-slate-400 line-through">{val || '·'}</span>
+                          <span className={cn('w-8 h-8 rounded-lg border text-[11px] inline-flex items-center justify-center ring-2 ring-amber-400', RASIC_CELL_STYLE[previewVal] ?? RASIC_CELL_STYLE[''])}>
+                            {previewVal || '·'}
+                          </span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => cycleValue(entry.role, phase)}
+                          disabled={readOnly || !!preview}
+                          title={tooltip}
+                          aria-label={`${entry.role} ${phaseLabel[phase]}: ${val || '—'}`}
+                          className={cn(
+                            'w-8 h-8 rounded-lg border text-[11px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
+                            RASIC_CELL_STYLE[val] ?? RASIC_CELL_STYLE[''],
+                            !readOnly && !preview && 'hover:brightness-95 cursor-pointer',
+                            (readOnly || !!preview) && 'cursor-default'
+                          )}
+                        >
+                          {val || '·'}
+                        </button>
+                      )}
                     </td>
                   )
                 })}
@@ -205,6 +220,28 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
           </tbody>
         </table>
       </div>
+      {preview && onPreviewConfirm && onPreviewCancel && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-amber-800">{t('architecture.rasicPreviewTitle')}</p>
+          <p className="text-xs text-amber-700">{t('architecture.rasicPreviewDesc')}</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onPreviewConfirm}
+              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              {t('architecture.rasicPreviewConfirm')}
+            </button>
+            <button
+              type="button"
+              onClick={onPreviewCancel}
+              className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+            >
+              {t('architecture.rasicPreviewCancel')}
+            </button>
+          </div>
+        </div>
+      )}
       {(() => {
         const assigned = Object.entries(componentOwners ?? {}).filter(([, r]) => r)
         if (assigned.length === 0) return null
