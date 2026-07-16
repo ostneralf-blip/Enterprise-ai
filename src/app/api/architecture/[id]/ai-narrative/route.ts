@@ -40,7 +40,7 @@ export async function POST(
   const supabase = await createClient()
   const { data: arch } = await supabase
     .from('architectures')
-    .select('id')
+    .select('id, ai_narrative')
     .eq('id', id)
     .eq('user_id', userId)
     .single()
@@ -133,10 +133,13 @@ Return this exact JSON structure:
     ? `${meta.modelId} (cached)`
     : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
 
+  const existingNarrative = (arch.ai_narrative as Record<string, unknown> | null) ?? {}
+  const mergedNarrative = { ...existingNarrative, [audience]: result }
+
   await supabase
     .from('architectures')
     .update({
-      ai_narrative:    result,
+      ai_narrative:    mergedNarrative,
       ai_model:        aiModel,
       ai_generated_at: new Date().toISOString(),
       narrative_locale: locale,

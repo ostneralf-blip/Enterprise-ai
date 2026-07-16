@@ -65,7 +65,7 @@ interface SavedArchitecture {
   wizard_data: WizardAnswers
   result: ArchitectureResult
   updated_at: string
-  ai_narrative?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] } | null
+  ai_narrative?: Record<string, unknown> | null
   narrative_locale?: string | null
 }
 
@@ -663,7 +663,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [showAllDecisions, setShowAllDecisions] = useState(false)
   const [showAllSteps, setShowAllSteps] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [aiNarrative, setAiNarrative] = useState<{ summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string } | null>(null)
+  type NarrativeEntry = { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string }
+  const [aiNarrativeByAudience, setAiNarrativeByAudience] = useState<Partial<Record<ResultAudience, NarrativeEntry>>>({})
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
   const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
@@ -679,6 +680,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
+  const aiNarrative = aiNarrativeByAudience[resultAudience] ?? null
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
@@ -873,7 +875,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setResult(arch.result)
     setSaved(true)
     setSavedId(arch.id)
-    setAiNarrative(arch.ai_narrative ?? null)
+    const rawNarrative = arch.ai_narrative ?? null
+    if (rawNarrative) {
+      const isKeyed = ('exec' in rawNarrative || 'architect' in rawNarrative || 'compliance' in rawNarrative)
+      if (isKeyed) {
+        setAiNarrativeByAudience(rawNarrative as Partial<Record<ResultAudience, NarrativeEntry>>)
+      } else {
+        setAiNarrativeByAudience({ architect: rawNarrative as NarrativeEntry })
+      }
+    } else {
+      setAiNarrativeByAudience({})
+    }
     setNarrativeLocale(arch.narrative_locale ?? null)
     setAiUsageArch(null)
     setAiModel(null)
@@ -922,7 +934,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
     if (json.result) {
-      setAiNarrative(json.result)
+      const aud = audienceOverride ?? resultAudience
+      setAiNarrativeByAudience(prev => ({ ...prev, [aud]: json.result }))
       setAiGeneratedAt(new Date().toISOString())
       setNarrativeLocale(locale)
       setAiAccepted([])
