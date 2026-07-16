@@ -13,16 +13,17 @@ import { z } from 'zod'
 export const maxDuration = 60
 
 const BodySchema = z.object({
-  components:        z.array(z.string()).max(30),
-  roles:             z.array(z.string()).max(15),
-  compliance:        z.string().max(50).optional(),
-  archetype:         z.string().max(50).optional(),
-  canvas_quadrant:   z.string().max(50).optional(),
-  governance_result: z.string().max(50).optional(),
-  roadmap_phases:    z.number().int().min(0).max(10).optional(),
-  locale:            z.enum(['de', 'en']).default('de'),
-  audience:          z.enum(['exec', 'architect', 'compliance']).default('architect'),
-  context_hash:      z.string().max(32).optional(),
+  components:           z.array(z.string()).max(30),
+  roles:                z.array(z.string()).max(15),
+  compliance:           z.string().max(50).optional(),
+  archetype:            z.string().max(50).optional(),
+  canvas_quadrant:      z.string().max(50).optional(),
+  governance_result:    z.string().max(50).optional(),
+  roadmap_phases:       z.number().int().min(0).max(10).optional(),
+  assessment_score_pct: z.number().int().min(0).max(100).optional(),
+  locale:               z.enum(['de', 'en']).default('de'),
+  audience:             z.enum(['exec', 'architect', 'compliance']).default('architect'),
+  context_hash:         z.string().max(32).optional(),
 })
 
 export async function POST(
@@ -53,7 +54,7 @@ export async function POST(
     return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
   }
 
-  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, audience, locale, context_hash } = body.data
+  const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, assessment_score_pct, audience, locale, context_hash } = body.data
 
   const langName = locale === 'de' ? 'German (Deutsch, de-DE)' : 'English (en-US)'
 
@@ -69,11 +70,18 @@ export async function POST(
     ? 'Write a 2-3 sentence compliance summary: which EU AI Act / GDPR obligations apply, which components require special attention, and what the immediate compliance action is.'
     : 'Write a 2-3 sentence technical summary: the overall architecture pattern, the most important integration decision, and the primary operational challenge.'
 
+  const scoreLine = assessment_score_pct != null
+    ? `- AI Readiness Score: ${assessment_score_pct} % (on a 0–100 scale; ALWAYS use this exact value when referencing the score — NEVER invent or recalculate it)`
+    : ''
+
   const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific output. Return ONLY valid JSON.
 
 CRITICAL: You MUST write ALL text fields (summary, key_decisions, next_steps) exclusively in ${langName}. Do not use any other language.
 
-CRITICAL: NEVER translate product names, brand names, or technology names. Use the exact spelling from the component list below. For example: "Snowflake" stays "Snowflake" (never "Schneeflöckchen"), "Azure" stays "Azure", "Databricks" stays "Databricks". Product names are proper nouns and must not be translated under any circumstances.
+CRITICAL — PROTECTED PRODUCT NAMES: The following component names are proper nouns and MUST appear exactly as listed below in your output. NEVER translate, paraphrase, or modify them in any way. Using any other form (e.g. "Schneeflöckchen" for "Snowflake") is a critical error.
+Protected names: ${components.join(', ')}
+
+CRITICAL — LIST SIZE: Generate EXACTLY 3 to 5 key decisions and EXACTLY 3 to 5 next steps. Never generate more than 5 items per list. Be selective and focused.
 
 ${audienceInstruction}
 
@@ -84,7 +92,7 @@ Architecture facts (pre-validated, structured data — not user free text):
 - AI maturity archetype: ${archetype ?? 'not specified'}
 - Canvas use case quadrant: ${canvas_quadrant ?? 'not specified'}
 - Governance result: ${governance_result ?? 'not specified'}
-- Roadmap phases planned: ${roadmap_phases ?? 0}
+- Roadmap phases planned: ${roadmap_phases ?? 0}${scoreLine ? '\n' + scoreLine : ''}
 
 Summary instruction: ${summaryInstruction}
 The summary MUST be written in ${langName}. Max 600 chars.

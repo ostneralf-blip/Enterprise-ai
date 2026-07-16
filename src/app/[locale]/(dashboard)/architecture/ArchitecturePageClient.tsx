@@ -973,6 +973,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         canvas_quadrant: canvasContext?.useCase?.quadrant ?? undefined,
         governance_result: governanceContext?.result ?? undefined,
         roadmap_phases: roadmapContext?.phasesCount ?? 0,
+        assessment_score_pct: assessmentContext?.total_score != null
+          ? Math.round((assessmentContext.total_score / 5) * 100)
+          : undefined,
         locale,
         audience: audienceOverride ?? resultAudience,
         context_hash: currentHash,
@@ -1188,8 +1191,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const kpAiStp = aiNarrative?.next_steps ?? []
     const kpSeenDe = new Set([...kpAiDec, ...kpCrossDecisions, ...kpDecisions].map(d => d.de))
     const kpSeenStepDe = new Set([...kpAiStp, ...kpCrossSteps, ...kpSteps].map(s => s.de))
-    const allKeyDecisions = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
-    const allNextSteps = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+    // #204: Max 7 Einträge je Liste (AI > Cross-Module > Deterministisch); Überschuss via "Alle anzeigen" erreichbar
+    const MAX_ITEMS = 7
+    const allKeyDecisionsFull = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
+    const allNextStepsFull = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+    const allKeyDecisions = allKeyDecisionsFull.slice(0, Math.max(MAX_ITEMS, kpAiDec.length))
+    const allNextSteps = allNextStepsFull.slice(0, Math.max(MAX_ITEMS, kpAiStp.length))
 
     return (
       <div
