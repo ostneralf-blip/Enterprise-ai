@@ -1202,15 +1202,17 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
         {/* Locale-Mismatch-Warnung */}
         {aiNarrative && narrativeLocale && narrativeLocale !== locale && (
-          <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
-            <span>{locale === 'de' ? '⚠ Analyse wurde auf Englisch gespeichert.' : '⚠ Analysis was saved in German.'}</span>
-            <button
-              onClick={() => void handleAINarrative()}
-              className="whitespace-nowrap font-semibold underline underline-offset-2 hover:text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-600 rounded"
-            >
-              {locale === 'de' ? 'Auf Deutsch neu generieren' : 'Re-generate in English'}
-            </button>
-          </div>
+          <AlertBox variant="warning">
+            <div className="flex items-center justify-between gap-3">
+              <span>{locale === 'de' ? 'Analyse wurde auf Englisch gespeichert.' : 'Analysis was saved in German.'}</span>
+              <button
+                onClick={() => void handleAINarrative()}
+                className="whitespace-nowrap font-semibold underline underline-offset-2 hover:opacity-75 focus:outline-none focus:ring-1 focus:ring-amber-600 rounded"
+              >
+                {locale === 'de' ? 'Auf Deutsch neu generieren' : 'Re-generate in English'}
+              </button>
+            </div>
+          </AlertBox>
         )}
 
         {/* Drag&Drop Sektionen — vollständig umsortierbar (#166): Pattern, EAM-Karte, Kosten, Joule, RASIC, Key Decisions */}
