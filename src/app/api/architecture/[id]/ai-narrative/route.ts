@@ -100,7 +100,7 @@ Return this exact JSON structure:
 }`
 
   // haiku: Bedrock EU-Profil verifiziert (claude-haiku-4-5). Sonnet-Profil ausstehend (#148).
-  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'haiku', maxTokens: 1024 })
+  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'haiku', maxTokens: 2048 })
 
   // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
   if (!result) {
