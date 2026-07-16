@@ -64,6 +64,7 @@ interface CallLLMOptions {
   maxTokens?: number
   systemPrompt?: string
   timeoutMs?: number
+  module?: string
 }
 
 function hashPrompt(prompt: string, model: string): string {
@@ -89,6 +90,13 @@ export async function callLLM<T>(
   const maxTokens = opts.maxTokens ?? 1024
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
   const t0        = Date.now()
+  const module    = opts.module ?? 'unknown'
+
+  function trackCacheStats(hit: boolean) {
+    createAdminClient().then(async sb => {
+      await sb.rpc('increment_cache_stat', { p_module: module, p_hit: hit })
+    }).catch(() => {})
+  }
 
   // Cache-Check
   const cacheKey = hashPrompt(userPrompt + (opts.systemPrompt ?? ''), modelId)
@@ -103,6 +111,7 @@ export async function callLLM<T>(
     if (cached?.response) {
       const parsed = schema.safeParse(cached.response)
       if (parsed.success) {
+        trackCacheStats(true)
         return { data: parsed.data, meta: { provider: 'cache', modelId, latencyMs: Date.now() - t0, region: REGION } }
       }
     }
@@ -151,7 +160,7 @@ export async function callLLM<T>(
     const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
     if (!parsed.success) return noData('bedrock')
 
-    // Cache 24h schreiben (fire-and-forget)
+    // Cache 24h schreiben + Miss verfolgen (fire-and-forget)
     createAdminClient().then(async sb => {
       const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
       await sb.from('ai_prompt_cache').upsert(
@@ -159,6 +168,7 @@ export async function callLLM<T>(
         { onConflict: 'cache_key' }
       )
     }).catch(() => {})
+    trackCacheStats(false)
 
     return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
   } catch (err) {

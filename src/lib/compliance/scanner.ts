@@ -69,6 +69,6 @@ Antworte genau so:
 
 final = im EU-Amtsblatt veröffentlicht. entwurf = Vorschlag/Einigung noch nicht verabschiedet. unklar = nicht bestimmbar.`
 
-  const { data } = await callLLM(prompt, ScanSummarySchema, { model: 'haiku', maxTokens: 300, timeoutMs: 30_000 })
+  const { data } = await callLLM(prompt, ScanSummarySchema, { model: 'haiku', maxTokens: 300, timeoutMs: 30_000, module: 'compliance' })
   return data ?? FALLBACK
 }

@@ -86,16 +86,30 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [appSettingsSaving, setAppSettingsSaving] = useState(false)
   const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
   const [aiConfig, setAiConfig] = useState<{ hasAnthropicKey: boolean; hasBedrockKeys: boolean; bedrockRegion: string } | null>(null)
+  const [cacheStats, setCacheStats] = useState<{ active: number; expired: number; oldest: string | null; newest: string | null; estimatedBytes: number | null; hitRateToday: number | null; hitRate7d: number | null; topModules: { module: string; hits: number; misses: number; total: number }[] } | null>(null)
+  const [cachePurgeMsg, setCachePurgeMsg] = useState<string | null>(null)
 
   async function loadAppSettings() {
     if (appSettingsLoaded) return
-    const [data, cfg] = await Promise.all([
+    const [data, cfg, cache] = await Promise.all([
       fetch('/api/admin/settings').then(r => r.json()),
       fetch('/api/admin/ai-config').then(r => r.json()),
+      fetch('/api/admin/cache').then(r => r.json()),
     ])
     setAppSettings(data)
     setAiConfig(cfg)
+    setCacheStats(cache)
     setAppSettingsLoaded(true)
+  }
+
+  async function handleCachePurge() {
+    if (!window.confirm(t('cachePurgeConfirm'))) return
+    setCachePurgeMsg(null)
+    const res = await fetch('/api/admin/cache', { method: 'DELETE' }).then(r => r.json())
+    if (typeof res.deleted === 'number') {
+      setCachePurgeMsg(res.deleted > 0 ? t('cachePurgeSuccess', { count: res.deleted }) : t('cachePurgeNone'))
+      fetch('/api/admin/cache').then(r => r.json()).then(setCacheStats).catch(() => {})
+    }
   }
 
   async function saveAppSettings() {
@@ -2713,6 +2727,77 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-slate-900 mb-1">{t('cacheCardTitle')}</h2>
+                <p className="text-xs text-slate-500">{t('cacheCardDesc')}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCachePurge}
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap"
+              >
+                {t('cachePurgeBtn')}
+              </button>
+            </div>
+            {cachePurgeMsg && (
+              <p className="mb-3 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{cachePurgeMsg}</p>
+            )}
+            {!cacheStats ? (
+              <p className="text-xs text-slate-400">{t('cacheNoData')}</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {([
+                    ['cacheHitRateToday', cacheStats.hitRateToday !== null ? `${cacheStats.hitRateToday}%` : '—'],
+                    ['cacheHitRate7d',    cacheStats.hitRate7d    !== null ? `${cacheStats.hitRate7d}%`    : '—'],
+                    ['cacheActiveEntries',  String(cacheStats.active)],
+                    ['cacheExpiredEntries', String(cacheStats.expired)],
+                  ] as const).map(([key, val]) => (
+                    <div key={key} className="bg-slate-50 rounded-lg p-3 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">{t(key)}</p>
+                      <p className="text-xl font-bold text-slate-900">{val}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheEstimatedSize')}:</span>
+                    <span className="font-medium">{cacheStats.estimatedBytes !== null ? `${(cacheStats.estimatedBytes / 1024).toFixed(1)} KB` : '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheOldestEntry')}:</span>
+                    <span className="font-medium">{cacheStats.oldest ? new Date(cacheStats.oldest).toLocaleDateString('de-DE') : '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheNewestEntry')}:</span>
+                    <span className="font-medium">{cacheStats.newest ? new Date(cacheStats.newest).toLocaleDateString('de-DE') : '—'}</span>
+                  </div>
+                </div>
+                {cacheStats.topModules.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">{t('cacheTopModules')}</p>
+                    <div className="space-y-1">
+                      {cacheStats.topModules.map(m => (
+                        <div key={m.module} className="flex items-center gap-2 text-xs">
+                          <span className="w-24 font-medium text-slate-700 capitalize">{m.module}</span>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-400 rounded-full"
+                              style={{ width: `${m.total > 0 ? Math.round((m.hits / m.total) * 100) : 0}%` }}
+                            />
+                          </div>
+                          <span className="text-slate-500 w-16 text-right">{m.hits}H / {m.misses}M</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
