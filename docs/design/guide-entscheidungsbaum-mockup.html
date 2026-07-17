@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wie kommt ein AI-Use-Case sauber durch die Freigabe? — AI Navigator Leitfaden</title>
+<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/governance-entscheidungsbaum">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/governance-entscheidungsbaum">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/governance-decision-tree">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/governance-decision-tree">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  .tree-list{margin:8px 0 4px}
+  .tr-item{display:grid;grid-template-columns:34px 1fr;gap:16px;padding:16px 0;border-top:1px solid var(--line)}
+  .tr-item:first-child{border-top:none}
+  .tr-n{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--primary);background:var(--primary-soft);border-radius:50%;width:28px;height:28px;display:grid;place-items:center}
+  .tr-body h4{font-size:14.5px;font-weight:600;margin-bottom:5px}
+  .tr-body p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .tr-body .out{display:block;margin-top:6px;font-size:12.5px}
+  .tr-body .out b{color:var(--primary);font-weight:500}
+
+  .risk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:600px){.risk-grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
+  .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
+  .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
+  .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Leitfaden</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">Das Buch</a><a href="preise-mockup.html">Preise</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Kostenlos starten</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="startseite-mockup.html">Start</a><span>/</span><a href="guide-hub-mockup.html">Leitfaden</a><span>/</span>Governance-Entscheidungsbaum
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Leitfaden · Governance &amp; Recht</div>
+  <h1>Wie kommt ein AI-Use-Case sauber durch die Freigabe?</h1>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Kurzantwort</span>
+  <p>Fünf Fragen entscheiden über die Freigabe eines AI-Use-Case: personenbezogene Daten, automatisierte Personenentscheidungen, EU-AI-Act-Risikoklasse, externes Basismodell und menschliche Prüfbarkeit. Wer den Baum sauber durchläuft, <strong>erreicht eine Freigabe in 5 Werktagen statt in 5 Monaten</strong> — Governance wird zum Beschleuniger, nicht zur Hürde.</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>Welche fünf Fragen entscheiden über die Freigabe?</h2>
+  <p class="lead">Dieser Entscheidungsbaum führt durch den Freigabeprozess für jeden neuen AI-Use-Case. Er ersetzt keine Rechtsberatung, sondern gibt Orientierung für den internen Prozess — Schritt für Schritt, ohne Umwege.</p>
+
+  <div class="tree-list">
+    <div class="tr-item"><div class="tr-n">1</div><div class="tr-body"><h4>Verarbeitet der Use Case personenbezogene Daten?</h4><p>Ja → weiter zu Frage 2. Nein → kein DSGVO-Review nötig, direkt weiter zu Frage 3.</p></div></div>
+    <div class="tr-item"><div class="tr-n">2</div><div class="tr-body"><h4>Trifft das System automatisiert Entscheidungen über Personen?</h4><p>Ja → DSGVO Art. 22 Review, explizite Einwilligung oder Ausnahmetatbestand prüfen. Nein → Standard-Datenschutzfolgeabschätzung, weiter zu Frage 3.</p></div></div>
+    <div class="tr-item"><div class="tr-n">3</div><div class="tr-body"><h4>Fällt der Use Case in eine EU-AI-Act-Hochrisiko-Kategorie?</h4><p>Ja → Hochrisiko-Prozess: Konformitätsbewertung, technische Dokumentation, menschliche Aufsicht. Nein → weiter zu Frage 4.</p></div></div>
+    <div class="tr-item"><div class="tr-n">4</div><div class="tr-body"><h4>Nutzt der Use Case ein externes Basismodell (GPAI)?</h4><p>Ja → GPAI-Deployer-Pflichten prüfen: Nutzungspolitik, Output-Monitoring, Transparenzpflicht. Nein → weiter zu Frage 5.</p></div></div>
+    <div class="tr-item"><div class="tr-n">5</div><div class="tr-body"><h4>Kann ein Mensch die Ergebnisse prüfen und überstimmen?</h4><p>Ja → Use Case kann genehmigt werden, Governance-Board-Freigabe einholen. Nein → menschliche Aufsicht einbauen oder Use Case nicht genehmigen.</p></div></div>
+  </div>
+
+  <h2>Wie schwer wiegt das Risiko wirklich?</h2>
+  <p class="lead">AI-Risiken unterscheiden sich fundamental von klassischen IT-Risiken: Sie sind emergent — sie entstehen durch Modellverhalten, nicht durch Konfigurationsfehler — und verändern sich durch Lernprozesse. Eine statische Bewertung reicht nicht, kontinuierliches Monitoring ist Pflicht.</p>
+
+  <div class="risk-grid">
+    <div class="card">
+      <span class="lvl">Datenrisiken</span>
+      <h3>Von geringer Qualität bis kritisches Datenleck</h3>
+      <p>Kritische Ausprägung: eine Datenpanne im AI-System oder ein kritisches Datenleck.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Modellrisiken</span>
+      <h3>Von sporadischen Halluzinationen bis autonomer Fehlentscheidung</h3>
+      <p>Kritische Ausprägung: systematische Fehler oder eine autonome Fehlentscheidung ohne Aufsicht.</p>
+    </div>
+    <div class="card is-relevant">
+      <span class="lvl">Compliance-Risiken</span>
+      <h3>Von Dokumentationslücken bis AI-Act-Verletzung</h3>
+      <p>Kritische Ausprägung: ein Hochrisiko-Use-Case ohne Review oder eine direkte EU-AI-Act-Verletzung.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Operationale Risiken</span>
+      <h3>Von Adoptionslücken bis kritischem Systemausfall</h3>
+      <p>Kritische Ausprägung: Vendor-Lock-in ohne Exit-Strategie oder ein kritischer Systemausfall.</p>
+    </div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-Pattern</span>
+    <p>Das unterschätzte Risiko: Prompt Injection ist 2026 der meistgenutzte Angriffsvektor auf AI-Agenten. Ein Angreifer bettet manipulative Anweisungen in Daten ein, die der Agent verarbeitet — und bringt ihn dazu, unbeabsichtigte Aktionen auszuführen. Bei Agenten mit Transaktionsberechtigung, etwa für Zahlungen oder Bestellungen, ist das kein theoretisches Risiko, sondern ein operatives. Mitigationen: Input Validation, Output Sandboxing, minimale Agent-Berechtigungen.</p>
+  </div>
+
+  <p class="body">Der Baum ist bewusst als wiederholbarer Prozess gedacht, nicht als Einzelfallprüfung: Jeder neue Use Case durchläuft dieselben fünf Fragen, jede Antwort wird protokolliert, jede Freigabe ist im Nachhinein nachvollziehbar. Genau das unterscheidet einen Governance-Prozess, der Vertrauen aufbaut, von einer Ad-hoc-Entscheidung, die bei der nächsten Prüfung nicht mehr erklärbar ist.</p>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">Entscheidungsbaum</a>
+    <a class="gchip" href="#">DSFA</a>
+    <a class="gchip" href="#">GPAI-Deployer</a>
+    <a class="gchip" href="#">Prompt Injection</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Jeden Use Case in 5 Werktagen durch die Freigabe</h2>
+  <p>Das Compliance Center führt jeden neuen Use Case automatisch durch den Entscheidungsbaum und dokumentiert das Ergebnis auditierbar.</p>
+  <a class="btn btn-primary" href="preise-mockup.html">Compliance Center öffnen →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Häufige Fragen</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>Ersetzt dieser Entscheidungsbaum eine Rechtsberatung?</summary>
+      <p>Nein. Er gibt Orientierung für den internen Prozess. Die abschließende rechtliche Bewertung, insbesondere bei Hochrisiko-Fällen, gehört immer zu Legal oder externer Beratung.</p>
+    </details>
+    <details>
+      <summary>Was, wenn ein Use Case mehrere Fragen gleichzeitig betrifft?</summary>
+      <p>Der Baum wird trotzdem sequenziell durchlaufen — jede Ja-Antwort kann zusätzliche Pflichten auslösen, die sich addieren, statt sich gegenseitig zu ersetzen.</p>
+    </details>
+    <details>
+      <summary>Warum ist Prompt Injection gerade bei Agenten so kritisch?</summary>
+      <p>Weil Agenten mit Transaktionsberechtigung reale Aktionen ausführen — eine erfolgreiche Injection wird so von einem Text- zu einem operativen Risiko.</p>
+    </details>
+    <details>
+      <summary>Wie realistisch sind 5 Werktage bis zur Freigabe?</summary>
+      <p>Realistisch, wenn Rollen und Entscheidungsbaum vorher klar definiert sind. Ohne beides dauert derselbe Prozess oft Monate, weil jede Frage neu diskutiert wird.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Autor, „Enterprise AI Leitfaden" · Entwickler AI Navigator</div>
+        <p>Dieser Guide basiert auf Kapitel 4 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
+        <a href="#">Mehr über das Buch →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Weiterlesen</h2>
+  <div class="rcards">
+    <a class="card" href="guide-governance-mockup.html"><div class="n">Leitfaden 05</div><h3>AI-Governance aufbauen: 3 Ebenen, 5 Rollen, 6 Entscheidungen</h3></a>
+    <a class="card" href="guide-detail-mockup.html"><div class="n">Leitfaden 01</div><h3>EU AI Act für Unternehmen: Welche Risikoklasse gilt?</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossar</div><h3>Entscheidungsbaum, DSFA &amp; weitere Begriffe</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU-Hosting · DSGVO · Cookieless</div>
+  <div><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Start","item":"https://enterprise-ai.biz/de"},
+    {"@type":"ListItem","position":2,"name":"Leitfaden","item":"https://enterprise-ai.biz/de/leitfaden"},
+    {"@type":"ListItem","position":3,"name":"Governance-Entscheidungsbaum","item":"https://enterprise-ai.biz/de/leitfaden/governance-entscheidungsbaum"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Ersetzt dieser Entscheidungsbaum eine Rechtsberatung?","acceptedAnswer":{"@type":"Answer","text":"Nein — er gibt Orientierung für den internen Prozess, die abschließende rechtliche Bewertung gehört zu Legal oder externer Beratung."}},
+    {"@type":"Question","name":"Was, wenn ein Use Case mehrere Fragen gleichzeitig betrifft?","acceptedAnswer":{"@type":"Answer","text":"Der Baum wird sequenziell durchlaufen — jede Ja-Antwort kann zusätzliche Pflichten auslösen, die sich addieren."}},
+    {"@type":"Question","name":"Warum ist Prompt Injection gerade bei Agenten so kritisch?","acceptedAnswer":{"@type":"Answer","text":"Weil Agenten mit Transaktionsberechtigung reale Aktionen ausführen, wodurch aus einem Text- ein operatives Risiko wird."}},
+    {"@type":"Question","name":"Wie realistisch sind 5 Werktage bis zur Freigabe?","acceptedAnswer":{"@type":"Answer","text":"Realistisch, wenn Rollen und Entscheidungsbaum vorher klar definiert sind — sonst dauert derselbe Prozess oft Monate."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Autor, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
