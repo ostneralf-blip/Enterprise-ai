@@ -7,7 +7,8 @@ export function initPostHog() {
   // Dev-Guard: kein Tracking in der lokalen Entwicklung
   if (process.env.NODE_ENV === 'development') return posthog
   posthog.init(key, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com',
+    api_host: '/ingest',
+    ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com',
     person_profiles: 'identified_only',
     capture_pageview: false,   // manuell via usePathname-Hook
     capture_pageleave: true,
