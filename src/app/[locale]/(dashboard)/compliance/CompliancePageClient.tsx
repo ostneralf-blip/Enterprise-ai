@@ -200,31 +200,47 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
         </span>
       </div>
 
-      {/* Tab bar */}
-      <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-        {TAB_IDS.map(id => (
-          <button
-            key={id}
-            role="tab"
-            id={`tab-${id}`}
-            aria-selected={tab === id}
-            aria-controls={`panel-${id}`}
-            onClick={() => setTab(id)}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
-              tab === id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            )}
-          >
-            {getTabLabel(id)}
-            {id === 'summary' && allOpenItems.length > 0 && (
-              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
-                {allOpenItems.length}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Tab bar — Mobile: select, Desktop: button row */}
+      <div className="mb-6">
+        {/* Mobile select (< md) */}
+        <select
+          className="md:hidden w-full border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-ring"
+          value={tab}
+          onChange={e => setTab(e.target.value as Tab)}
+          aria-label={t('compliance.tablistAriaLabel')}
+        >
+          {TAB_IDS.map(id => (
+            <option key={id} value={id}>
+              {getTabLabel(id)}{id === 'summary' && allOpenItems.length > 0 ? ` (${allOpenItems.length})` : ''}
+            </option>
+          ))}
+        </select>
+        {/* Desktop tab list (≥ md) */}
+        <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="hidden md:flex gap-1 border-b border-line">
+          {TAB_IDS.map(id => (
+            <button
+              key={id}
+              role="tab"
+              id={`tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`panel-${id}`}
+              onClick={() => setTab(id)}
+              className={cn(
+                'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
+                tab === id
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-ink-secondary hover:text-ink hover:border-line-strong'
+              )}
+            >
+              {getTabLabel(id)}
+              {id === 'summary' && allOpenItems.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                  {allOpenItems.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── EU AI ACT ── */}

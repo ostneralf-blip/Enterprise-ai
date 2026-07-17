@@ -911,9 +911,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         <p className="text-sm text-slate-500 mt-0.5">Interne Verwaltung</p>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b border-slate-200" role="tablist">
-        {([
+      {/* Tab bar — Mobile: select, Desktop: button row */}
+      {(() => {
+        const ADMIN_TABS: [Tab, string, number][] = [
           ['content', 'Content Library', entries.length],
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
@@ -922,24 +922,48 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['policy_templates', 'Policy Templates', policyTemplates.length],
           ['pricing', 'Preise & Aktionen', promotions.filter(p => p.is_active).length],
           ['app_settings', 'Einstellungen', 0],
-        ] as [Tab, string, number][]).map(([id, label, count]) => (
-          <button
-            key={id}
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => { setTab(id); if (id === 'synonyms') { void loadSynonyms(); void loadPromoQueue() } if (id === 'pricing') loadPricing(); if (id === 'app_settings') loadAppSettings() }}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
-              tab === id
-                ? 'border-primary text-primary-hover'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            )}
-          >
-            {label}
-            <span className="ml-1.5 text-xs text-slate-400">({count})</span>
-          </button>
-        ))}
-      </div>
+        ]
+        const handleTabClick = (id: Tab) => {
+          setTab(id)
+          if (id === 'synonyms') { void loadSynonyms(); void loadPromoQueue() }
+          if (id === 'pricing') loadPricing()
+          if (id === 'app_settings') loadAppSettings()
+        }
+        return (
+          <div className="mb-6">
+            {/* Mobile select (< md) */}
+            <select
+              className="md:hidden w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              value={tab}
+              onChange={e => handleTabClick(e.target.value as Tab)}
+            >
+              {ADMIN_TABS.map(([id, label, count]) => (
+                <option key={id} value={id}>{label}{count > 0 ? ` (${count})` : ''}</option>
+              ))}
+            </select>
+            {/* Desktop tab list (≥ md) */}
+            <div className="hidden md:flex gap-1 border-b border-slate-200" role="tablist">
+              {ADMIN_TABS.map(([id, label, count]) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={tab === id}
+                  onClick={() => handleTabClick(id)}
+                  className={cn(
+                    'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
+                    tab === id
+                      ? 'border-primary text-primary-hover'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  )}
+                >
+                  {label}
+                  <span className="ml-1.5 text-xs text-slate-400">({count})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ─── Content Library tab ─────────────────────────────────────────────── */}
       {tab === 'content' && (
@@ -1536,7 +1560,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             </div>
           ) : (
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-sm" aria-label={t('catalogTableAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -1697,7 +1721,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             {uploadLog.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-xs" aria-label={t('uploadLogAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr>

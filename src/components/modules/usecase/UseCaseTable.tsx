@@ -62,7 +62,8 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
           />
         </div>
       )}
-      <div className="overflow-x-auto min-w-0">
+      <div className="relative">
+        <div className="overflow-x-auto min-w-0 scrollbar-hidden">
         <table className="w-full text-sm" role="table">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
@@ -145,6 +146,9 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
             ))}
           </tbody>
         </table>
+        </div>
+        {/* Fade-Kante: Hinweis auf weiteren Inhalt rechts (nur sichtbar wenn Overflow) */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent md:hidden" aria-hidden="true" />
       </div>
     </div>
   )

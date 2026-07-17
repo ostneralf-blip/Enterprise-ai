@@ -332,3 +332,12 @@ body {
     stroke-dashoffset: 0 !important;
   }
 }
+
+/* ── Scrollbar-Utility: native Scrollbar verstecken, Inhalt scrollbar ── */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
