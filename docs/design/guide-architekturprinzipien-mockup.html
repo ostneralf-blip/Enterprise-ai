@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welche 8 Architekturprinzipien gelten für jede produktionsreife AI-Plattform? — AI Navigator Leitfaden</title>
+<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/8-architekturprinzipien">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/8-architekturprinzipien">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/8-architecture-principles">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/8-architecture-principles">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:170px 1fr;gap:18px;padding:15px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .f-body .vio{display:block;margin-top:5px;font-size:12px;color:var(--primary)}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Leitfaden</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">Das Buch</a><a href="preise-mockup.html">Preise</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Kostenlos starten</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="startseite-mockup.html">Start</a><span>/</span><a href="guide-hub-mockup.html">Leitfaden</a><span>/</span>8 Architekturprinzipien
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Leitfaden · Architektur</div>
+  <h1>Welche 8 Architekturprinzipien gelten für jede produktionsreife AI-Plattform?</h1>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Kurzantwort</span>
+  <p>Acht Prinzipien bilden die verbindlichen Leitplanken für jede AI-Architektur: API First, Human in the Loop, Explainability by Design, Fail Safe, saubere Kernsysteme, eine zentrale AI-Runway-Plattform, Datenqualität als Agentenqualität und Interop over Lock-in. Jedes Prinzip hat einen <strong>Verletzungsindikator</strong> — ein konkretes Signal, wann es gebrochen wird. Kein Go-Live ohne Prüfung aller acht.</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>Was bedeuten die 8 Prinzipien konkret?</h2>
+  <p class="lead">Architekturprinzipien sind keine Wunschliste, sondern verbindliche Leitplanken, die vor jeder Technologieentscheidung geprüft werden. Sie sind bewusst herstellerneutral formuliert — sie gelten unabhängig davon, welche Plattform, welches ERP oder welche Cloud im Hintergrund läuft.</p>
+
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">P1 · API First</div><div class="f-body"><p>Jede Funktionalität wird über eine dokumentierte, versionierte API exponiert — keine Direktzugriffe auf Datenbanken oder interne Strukturen.</p><span class="vio">Verletzt, wenn: Custom-Code direkt auf interne Tabellen zugreift, keine REST/OData-Schicht vorhanden ist.</span></div></div>
+    <div class="f-item"><div class="f-stat">P2 · Human in the Loop</div><div class="f-body"><p>Jede AI-Entscheidung mit erheblicher Wirkung auf Personen, Finanzen oder kritische Prozesse hat einen definierten menschlichen Prüfpfad.</p><span class="vio">Verletzt, wenn: ein Agent Transaktionen autonom ohne Schwellenwert-Eskalation durchführt.</span></div></div>
+    <div class="f-item"><div class="f-stat">P3 · Explainability by Design</div><div class="f-body"><p>AI-Systeme in Produktion dokumentieren ihre Entscheidungsgrundlage nachvollziehbar — für Audit, Compliance und Nutzervertrauen.</p><span class="vio">Verletzt, wenn: ein Output ohne Quellenangabe, Konfidenzwert oder Begründungspfad geliefert wird.</span></div></div>
+    <div class="f-item"><div class="f-stat">P4 · Fail Safe &amp; Graceful</div><div class="f-body"><p>Jedes AI-System hat einen definierten Fallback-Pfad für Ausfälle, niedrige Konfidenz und Out-of-Scope-Anfragen.</p><span class="vio">Verletzt, wenn: kein Fallback definiert ist und ein Ausfall den Kernprozess blockiert.</span></div></div>
+    <div class="f-item"><div class="f-stat">P5 · Saubere Kernsysteme First</div><div class="f-body"><p>Kein AI-Deployment auf Basis eines nicht sanierten Kernsystems — ein sauberer Datenkern ist Eintrittsbedingung, nicht Zukunftsprojekt.</p><span class="vio">Verletzt, wenn: AI-Investitionen auf stark individualisierten Systemen ohne Sanierungs-Roadmap laufen.</span></div></div>
+    <div class="f-item"><div class="f-stat">P6 · Eine zentrale AI-Runway</div><div class="f-body"><p>Eine dokumentierte Plattform ist die primäre Basis für AI-Extensions und Custom Agents — kein paralleler proprietärer AI-Stack.</p><span class="vio">Verletzt, wenn: ein eigener LLM-Stack außerhalb der zentralen Plattform aufgebaut wird.</span></div></div>
+    <div class="f-item"><div class="f-stat">P7 · Datenqualität = Agentenqualität</div><div class="f-body"><p>Die Qualität jedes AI-Agenten ist eine direkte Funktion der Master-Data-Governance — keine Governance heißt keine zuverlässigen Agenten.</p><span class="vio">Verletzt, wenn: ein Agent inkonsistente Ergebnisse liefert, weil Stammdaten dupliziert sind.</span></div></div>
+    <div class="f-item"><div class="f-stat">P8 · Interop over Lock-in</div><div class="f-body"><p>Architekturentscheidungen priorisieren Interoperabilität (offene Protokolle, offene APIs) gegenüber herstellerspezifischen Stacks.</p><span class="vio">Verletzt, wenn: ein vollständiger Agent-Stack eines Anbieters ohne Exit-Strategie besteht.</span></div></div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-Pattern</span>
+    <p>Die am häufigsten unterschätzte Schicht ist die Orchestrierung — nicht Daten, nicht Modell. Ohne Prompt Registry werden Prompts manuell im Code vergraben. Ohne MLOps veralten Modelle unbemerkt. Ohne Monitoring entstehen keine Feedback-Loops für Verbesserungen. Die Investition in diese Schicht zahlt sich spätestens ab dem zweiten produktiven Use Case aus — wer sie beim ersten Use Case überspringt, baut die Schulden für alle folgenden mit auf.</p>
+  </div>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">API First</a>
+    <a class="gchip" href="#">Human in the Loop</a>
+    <a class="gchip" href="#">Explainability</a>
+    <a class="gchip" href="#">Interop over Lock-in</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Alle 8 Prinzipien vor jedem Go-Live prüfen</h2>
+  <p>Die Architektur-Checkliste im Produkt führt jeden Use Case durch alle acht Prinzipien und dokumentiert Abweichungen automatisch.</p>
+  <a class="btn btn-primary" href="preise-mockup.html">Architektur-Checkliste öffnen →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Häufige Fragen</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>Müssen alle 8 Prinzipien gleichzeitig umgesetzt sein?</summary>
+      <p>Vor jedem Go-Live müssen alle acht geprüft werden — das heißt aber nicht, dass jedes Prinzip zu 100 % erfüllt sein muss. Wichtiger ist, bewusste Abweichungen zu dokumentieren statt sie zu übersehen.</p>
+    </details>
+    <details>
+      <summary>Was, wenn unser Kernsystem noch nicht sauber ist?</summary>
+      <p>Dann sollte die Sanierungs-Roadmap Teil des AI-Projektplans werden, nicht eine separate Entscheidung. Prinzip P5 verlangt eine Roadmap, keine sofortige Perfektion.</p>
+    </details>
+    <details>
+      <summary>Bedeutet Interop over Lock-in, dass man keine Plattform-Standardprodukte nutzen darf?</summary>
+      <p>Nein. Es bedeutet, dass offene Protokolle und ein Exit-Pfad von Anfang an mitgeplant werden — auch wenn man sich bewusst für eine zentrale Plattform entscheidet.</p>
+    </details>
+    <details>
+      <summary>Wer prüft die 8 Prinzipien vor Go-Live?</summary>
+      <p>In der Praxis das Architektur- oder AI-Governance-Board gemeinsam mit dem verantwortlichen AI Engineer — dieselben Rollen, die auch die Go-Live-Freigabe erteilen.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Autor, „Enterprise AI Leitfaden" · Entwickler AI Navigator</div>
+        <p>Dieser Guide basiert auf Kapitel 5 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
+        <a href="#">Mehr über das Buch →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Weiterlesen</h2>
+  <div class="rcards">
+    <a class="card" href="guide-warum-scheitern-mockup.html"><div class="n">Leitfaden 03</div><h3>Welche technischen Bausteine braucht eine AI-Architektur?</h3></a>
+    <a class="card" href="guide-governance-mockup.html"><div class="n">Leitfaden 05</div><h3>AI-Governance aufbauen: 3 Ebenen, 5 Rollen, 6 Entscheidungen</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossar</div><h3>API First, Interop over Lock-in &amp; weitere Begriffe</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU-Hosting · DSGVO · Cookieless</div>
+  <div><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Start","item":"https://enterprise-ai.biz/de"},
+    {"@type":"ListItem","position":2,"name":"Leitfaden","item":"https://enterprise-ai.biz/de/leitfaden"},
+    {"@type":"ListItem","position":3,"name":"8 Architekturprinzipien","item":"https://enterprise-ai.biz/de/leitfaden/8-architekturprinzipien"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Müssen alle 8 Prinzipien gleichzeitig umgesetzt sein?","acceptedAnswer":{"@type":"Answer","text":"Vor jedem Go-Live müssen alle acht geprüft werden, bewusste Abweichungen sollten dokumentiert statt übersehen werden."}},
+    {"@type":"Question","name":"Was, wenn unser Kernsystem noch nicht sauber ist?","acceptedAnswer":{"@type":"Answer","text":"Die Sanierungs-Roadmap sollte Teil des AI-Projektplans werden, nicht eine separate Entscheidung."}},
+    {"@type":"Question","name":"Bedeutet Interop over Lock-in, dass man keine Standardprodukte nutzen darf?","acceptedAnswer":{"@type":"Answer","text":"Nein — offene Protokolle und ein Exit-Pfad werden von Anfang an mitgeplant, auch bei einer zentralen Plattform."}},
+    {"@type":"Question","name":"Wer prüft die 8 Prinzipien vor Go-Live?","acceptedAnswer":{"@type":"Answer","text":"Das Architektur- oder AI-Governance-Board gemeinsam mit dem verantwortlichen AI Engineer."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Autor, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
