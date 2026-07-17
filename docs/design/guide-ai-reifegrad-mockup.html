@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wie AI-ready ist Ihre Organisation? Die 6 Dimensionen im 10-Minuten-Quick-Scan — AI Navigator Leitfaden</title>
-<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/ai-readiness-quick-scan">
-<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/ai-readiness-quick-scan">
-<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/ai-readiness-quick-scan">
-<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/ai-readiness-quick-scan">
+<title>Welcher AI-Archetyp ist Ihr Unternehmen — Starter, Scaler oder Transformer? — AI Navigator Leitfaden</title>
+<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/ai-reifegrad-starter-scaler-transformer">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/ai-reifegrad-starter-scaler-transformer">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  /* Identische Tokens wie startseite/preise/guide-detail-mockup.html — keine neuen Farben */
   :root{
     --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
     --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
@@ -55,16 +54,22 @@
   article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
   article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
 
-  /* Karten-Grids — exakt die .card-Optik aus Startseite/Guide-Detail (weiß, Linie, Hover primär) */
-  .dim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
-  .scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0 4px}
-  @media(max-width:700px){.dim-grid,.scan-grid{grid-template-columns:1fr}}
+  .arch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:700px){.arch-grid{grid-template-columns:1fr}}
   .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
   .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
   .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
   .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
   .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
   .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+  .card .qw{display:block;margin-top:10px;font-size:11.5px;font-family:var(--mono);color:var(--primary)}
+
+  /* Level-Fakten — schlichte Zeilen, wie Timeline/Fact-List in Guide 1/3 */
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:110px 1fr;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
 
   .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
   .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
@@ -73,9 +78,6 @@
   .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
   .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
   .gchip:hover{border-color:var(--primary);color:var(--primary)}
-
-  .page-note{font-size:12.5px;line-height:1.6;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin-top:8px}
-  .page-note a{color:var(--primary);text-decoration:none;font-weight:500}
 
   .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
   .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
@@ -119,117 +121,94 @@
 </div></header>
 
 <div class="wrap crumb">
-  <a href="#">Start</a><span>/</span><a href="#">Leitfaden</a><span>/</span>AI-Readiness
+  <a href="#">Start</a><span>/</span><a href="#">Leitfaden</a><span>/</span>AI-Reifegrad
 </div>
 
 <section class="hero"><div class="wrap">
   <div class="eyebrow">Leitfaden · Readiness</div>
-  <h1>Wie AI-ready ist Ihre Organisation? Die 6 Dimensionen im 10-Minuten-Quick-Scan</h1>
+  <h1>Welcher AI-Archetyp ist Ihr Unternehmen — Starter, Scaler oder Transformer?</h1>
 </div></section>
 
 <section class="answer-band"><div class="wrap">
   <span class="tag">Kurzantwort</span>
-  <p>AI-Readiness ist kein einzelner Wert, sondern sechs unabhängige Dimensionen: Daten, Infrastruktur, Skills, Prozesse, Governance, Kultur. Schwäche in nur einer davon reicht, um ein AI-Projekt scheitern zu lassen — <strong>Datenqualität allein steht hinter 85 % aller abgebrochenen Projekte</strong>. Der 10-Minuten-Quick-Scan zeigt ehrlich, wo Sie stehen, bevor Sie investieren.</p>
+  <p>Drei Archetypen fassen den AI-Reifegrad zusammen: <strong>AI Starter</strong> (kein produktiver Use Case), <strong>AI Scaler</strong> (1–3 Use Cases, Skalierung offen) und <strong>AI Transformer</strong> (5+ Use Cases, strategisch differenzierend). Kein Archetyp ist besser — jeder hat andere Prioritäten. Der entscheidende Test für Level 3: Läuft der Use Case auch ohne seine Kernteilnehmer?</p>
 </div></section>
 
 <article><div class="col">
 
-  <h2>Welche sechs Dimensionen entscheiden über AI-Readiness?</h2>
-  <p class="lead">Ein Unternehmen kann exzellente Daten haben und trotzdem an fehlender Governance scheitern. Es kann modernste Infrastruktur betreiben und an unveränderten Workflows hängen bleiben. Jede der sechs Dimensionen ist unabhängig zu bewerten — genau eine schwache Dimension genügt, um ein sonst solides AI-Projekt auszubremsen.</p>
+  <h2>Was unterscheidet die drei Archetypen wirklich?</h2>
+  <p class="lead">Ein Archetyp beschreibt Unternehmenstyp und AI-Reifegrad vereinfacht, aber belastbar — er hilft, Empfehlungen zu priorisieren, ohne jeden Kontext neu erklären zu müssen. Die drei Typen unterscheiden sich vor allem in der Zahl produktiver Use Cases, der Datenstrategie und dem Reifegrad der Governance.</p>
 
-  <div class="dim-grid">
+  <div class="arch-grid">
+    <div class="card">
+      <span class="lvl">AI Starter</span>
+      <h3>Kein produktiver Use Case</h3>
+      <p>Meist nur ein PoC im Haus. Daten liegen in Silos, es gibt keine AI-spezifische Governance. Hauptfrage: Wo anfangen, was priorisieren?</p>
+      <span class="qw">Quick Win: Readiness-Assessment + 1 Use Case</span>
+    </div>
     <div class="card is-relevant">
-      <span class="lvl">D1 · Daten</span>
-      <h3>Sind unsere Daten AI-ready?</h3>
-      <p>85 % aller Projektabbrüche gehen laut Gartner auf mangelnde Datenqualität zurück — der häufigste Scheiternsfaktor überhaupt.</p>
+      <span class="lvl">AI Scaler</span>
+      <h3>1–3 Use Cases live</h3>
+      <p>Skalierung steht noch aus. Datenstrategie im Aufbau, Governance rudimentär und projektbezogen. Hauptfrage: Wie skaliere ich das Erreichte?</p>
+      <span class="qw">Quick Win: PromptOps + Use-Case-Canvas</span>
     </div>
     <div class="card">
-      <span class="lvl">D2 · Infrastruktur</span>
-      <h3>Kann unsere Plattform AI deployen?</h3>
-      <p>Clean-Core-Schulden und fehlende API-Schichten blockieren Deployment-Geschwindigkeit direkt, unabhängig von der Modellqualität.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">D3 · Skills</span>
-      <h3>Haben wir die Fähigkeiten?</h3>
-      <p>Die Kompetenzlücke wächst schneller als der Markt sie schließen kann — MLOps-Rollen fehlen in 80 % der Unternehmen komplett.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">D4 · Prozesse</span>
-      <h3>Sind Prozesse AI-tauglich redesigned?</h3>
-      <p>Der stärkste einzelne ROI-Prädiktor ist laut McKinsey nicht die Modellqualität, sondern das Workflow-Redesign vor der Einführung.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">D5 · Governance</span>
-      <h3>Wer entscheidet, wer verantwortet?</h3>
-      <p>Fehlendes Ownership ist der häufigste Grund, warum AI-Projekte still sterben — nicht offen scheitern, sondern versanden.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">D6 · Kultur</span>
-      <h3>Will die Organisation AI wirklich?</h3>
-      <p>47 % der Mitarbeiter erwarten AI für einen Großteil ihrer Arbeit — Führungskräfte schätzen diesen Wert nur halb so hoch.</p>
+      <span class="lvl">AI Transformer</span>
+      <h3>5+ Use Cases, enterprise-weit</h3>
+      <p>AI läuft in kritischen Prozessen. Governed Data Fabric vorhanden, Enterprise-AI-Governance etabliert. Hauptfrage: Wie differenziere ich strategisch?</p>
+      <span class="qw">Quick Win: Agent-Orchestrierung</span>
     </div>
   </div>
 
-  <h2>Wie funktioniert der 10-Minuten-Quick-Scan?</h2>
-  <p class="lead">Der Scan stellt 18 Fragen, exakt drei pro Dimension, jeweils mit einem einfachen Ja oder Nein beantwortet. Sie zählen die Ja-Antworten pro Dimension und lesen das Ergebnis direkt ab: null bis eine Ja-Antwort markiert eine kritische Lücke, drei bedeuten, die Dimension trägt bereits eine Skalierung.</p>
-  <p class="body">Drei Beispielfragen aus dem Scan: Können wir Geschäftsdaten über dokumentierte APIs abrufen, ohne manuelle Excel-Exports? Beginnen AI-Projekte bei uns mit Prozessanalyse oder mit Tool-Auswahl? Haben wir schon einmal ein AI-Experiment bewusst scheitern lassen und die Erkenntnisse dokumentiert? Alle 18 Fragen samt Auswertung stehen im AI-Readiness Assessment im Produkt.</p>
+  <h2>Wie schätze ich den Reifegrad präzise ein — jenseits der drei Archetypen?</h2>
+  <p class="lead">Reifegradmodelle scheitern oft, wenn Level 3 zur Auffangkategorie für alles Mittelmäßige wird. Das folgende 5-Level-Modell definiert jede Stufe über messbare Kriterien statt über Bauchgefühl — von null produktiven Use Cases bis zur strategischen Differenzierung, die sich messbar im EBIT niederschlägt.</p>
 
-  <div class="scan-grid">
-    <div class="card is-relevant">
-      <span class="lvl">0–1 von 3 Ja</span>
-      <h3>Kritische Lücke</h3>
-      <p>Sofortiger Handlungsbedarf — empfehlenswert mit externer Beratung.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">2 von 3 Ja</span>
-      <h3>Entwicklungsfeld</h3>
-      <p>Strukturierter Aufbau nötig — Gap-Analyse als nächster Schritt.</p>
-    </div>
-    <div class="card">
-      <span class="lvl">3 von 3 Ja</span>
-      <h3>Dimension bereit</h3>
-      <p>Skalierung möglich — Fokus auf die verbleibenden schwachen Dimensionen.</p>
-    </div>
-  </div>
-
-  <div class="glossary-row">
-    <a class="gchip" href="#">AI-Readiness</a>
-    <a class="gchip" href="#">Clean Core</a>
-    <a class="gchip" href="#">MLOps</a>
-    <a class="gchip" href="#">Data Stewardship</a>
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">L1 · Bewusstsein</div><div class="f-body"><p>Kein AI-Projekt aktiv, AI wird beobachtet, nicht priorisiert. Kein Budget, kein Owner, keine Datenstrategie. Messbar: 0 produktive Use Cases, 0 AI-Rollen.</p></div></div>
+    <div class="f-item"><div class="f-stat">L2 · Exploration</div><div class="f-body"><p>PoC läuft oder ist abgeschlossen, kein Produktiveinsatz. Piloten skalieren wegen Governance-Lücken nicht — „Pilot Purgatory". Messbar: 0–1 Use Case, Data Readiness unter 30 %.</p></div></div>
+    <div class="f-item"><div class="f-stat">L3 · Produktion</div><div class="f-body"><p>Mindestens 1 Use Case live, aber begrenzte Skalierung. Schärfungstest: Läuft er ohne seine Kernteilnehmer? Nein bedeutet Level 2. Messbar: RACI vorhanden, Datenqualitäts-KPIs definiert.</p></div></div>
+    <div class="f-item"><div class="f-stat">L4 · Skalierung</div><div class="f-body"><p>3 oder mehr Use Cases live, MLOps etabliert, Governance greift operativ. AI ist reproduzierbar, nicht mehr von Einzelpersonen abhängig. Messbar: ROI messbar.</p></div></div>
+    <div class="f-item"><div class="f-stat">L5 · Transformation</div><div class="f-body"><p>AI ist kein Projekt mehr, sondern das Betriebsmodell. Agenten orchestrieren durchgängig, Daten sind vertrauenswürdig. Messbar: AI als KPI-Treiber, EBIT-Impact.</p></div></div>
   </div>
 
   <div class="pattern-box">
     <span class="tag">Anti-Pattern</span>
-    <p>Der Irrtum, der mir am häufigsten begegnet: Datenmigration wird mit Datenbereinigung verwechselt. ERP-Landschaften tragen oft jahrzehntealte Master-Data-Schulden — duplizierte Lieferantenstämme, inkonsistente Materialklassen — unverändert in jede Systemmigration und blockieren danach jeden KI-Agenten-Einsatz. Kundeneigenentwicklungen im ERP-Kern stehen Standard-KI-Modellen oft grundsätzlich nicht zur Verfügung. Wer einen hohen Anteil an Eigenentwicklungen hat, sollte vor jedem AI-Projekt prüfen, welche Use Cases ohne Bereinigung überhaupt realisierbar sind.</p>
+    <p>Reifegradmodelle scheitern, wenn Level 3 zur Auffangkategorie für alles Mittelmäßige wird — der Schärfungstest ist einfach: Läuft der Use Case ohne seine Kernteilnehmer? Wenn nein, ist es Level 2, nicht Level 3. Ebenso gefährlich ist der Durchschnittsscore: Ein Unternehmen mit hoher Infrastruktur-Reife und niedriger Governance-Reife hat ein fundamental anderes Problem als eines mit mittlerem Niveau in allen Dimensionen. Handeln Sie immer an der schwächsten Dimension — nicht am Durchschnitt.</p>
+  </div>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">Archetyp</a>
+    <a class="gchip" href="#">Pilot Purgatory</a>
+    <a class="gchip" href="#">Gap-Analyse</a>
+    <a class="gchip" href="#">RACI</a>
   </div>
 
 </div></article>
 
 <section class="cta-band"><div class="wrap">
-  <h2>Ihr Readiness-Profil in 10 Minuten</h2>
-  <p>Das AI-Readiness Assessment ordnet Ihre Organisation allen sechs Dimensionen zu und zeigt, wo zuerst gehandelt werden sollte.</p>
-  <a class="btn btn-primary" href="#">Jetzt Quick Scan starten →</a>
+  <h2>Wo steht Ihr Unternehmen wirklich? Wir zeigen es in 10 Minuten.</h2>
+  <p>Das Reifegrad-Assessment ordnet Sie einem Archetyp zu und zeigt, welche Dimension zuerst Aufmerksamkeit braucht — bevor Sie in Skalierung investieren.</p>
+  <a class="btn btn-primary" href="#">Reifegrad-Assessment starten →</a>
 </div></section>
 
 <section class="faq"><div class="wrap">
   <h2>Häufige Fragen</h2>
   <div class="faq-list">
     <details open>
-      <summary>Reicht der Quick Scan, oder brauche ich das volle Assessment?</summary>
-      <p>Der Quick Scan gibt in 10 Minuten ein grobes Profil über 18 Fragen. Für eine belastbare Grundlage vor Investitionsentscheidungen empfiehlt sich das vollständige 42-Fragen-Deep-Assessment im Produkt.</p>
+      <summary>Ist ein AI-Archetyp eine Wertung — ist Transformer automatisch besser?</summary>
+      <p>Nein. Jeder Archetyp hat andere Prioritäten, Quick Wins und Risiken. Ein Starter, der wie ein Transformer agieren will, scheitert typischerweise am fehlenden Fundament.</p>
     </details>
     <details>
-      <summary>Was, wenn wir in einer Dimension bei 0 von 3 liegen?</summary>
-      <p>Das markiert eine kritische Lücke mit sofortigem Handlungsbedarf. In dieser Situation lohnt sich meist externe Beratung, bevor weiter in AI-Projekte investiert wird.</p>
+      <summary>Woran erkenne ich, ob ein Use Case wirklich Level 3 erreicht hat?</summary>
+      <p>Am Schärfungstest: Läuft er ohne seine Kernteilnehmer weiter? Wenn nein, handelt es sich noch um Level 2 — einen Piloten im Pilot Purgatory.</p>
     </details>
     <details>
-      <summary>Ist Datenqualität wirklich wichtiger als die Wahl des KI-Modells?</summary>
-      <p>In der Praxis ja. 85 % aller abgebrochenen AI-Projekte scheitern an Datenqualität — die Modellwahl ist selten die Hauptursache.</p>
+      <summary>Was ist der häufigste Fehler bei der Reifegrad-Selbsteinschätzung?</summary>
+      <p>Einen Durchschnittsscore über alle Dimensionen zu bilden. Hohe Infrastruktur-Reife bei niedriger Governance-Reife ist ein anderes Problem als mittleres Niveau überall — handeln Sie an der schwächsten Dimension.</p>
     </details>
     <details>
-      <summary>Welche Rolle spielt die Wahl des Tools für AI-Readiness?</summary>
-      <p>Eine kleinere, als viele denken. Laut McKinsey ist Workflow-Redesign vor der Einführung der stärkste einzelne ROI-Prädiktor — nicht die Technologie- oder Modellauswahl.</p>
+      <summary>Muss ich alle sechs Dimensionen gleich stark entwickeln, um zu skalieren?</summary>
+      <p>Nein, aber die schwächste Dimension begrenzt das Gesamttempo. Skalierung auf Level 4 setzt voraus, dass keine Dimension kritisch zurückbleibt.</p>
     </details>
   </div>
 </div></section>
@@ -241,7 +220,7 @@
       <div>
         <h4>Daniel Ostner</h4>
         <div class="role">Autor, „Enterprise AI Leitfaden" · Entwickler AI Navigator</div>
-        <p>Dieser Guide basiert auf Kapitel 2 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
+        <p>Dieser Guide basiert auf Kapitel 1 und 2 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
         <a href="#">Mehr über das Buch →</a>
       </div>
     </div>
@@ -251,9 +230,9 @@
 <section class="related"><div class="wrap">
   <h2>Weiterlesen</h2>
   <div class="rcards">
-    <a class="card" href="#"><div class="n">Leitfaden 04</div><h3>AI-Reifegrad: Starter, Scaler, Transformer — Selbstdiagnose</h3></a>
-    <a class="card" href="#"><div class="n">Leitfaden 03</div><h3>Warum AI-Projekte wirklich scheitern</h3></a>
-    <a class="card" href="#"><div class="n">Glossar</div><h3>AI-Readiness, Clean Core &amp; weitere Begriffe</h3></a>
+    <a class="card" href="#"><div class="n">Leitfaden 01</div><h3>Warum scheitern die meisten AI-Projekte wirklich?</h3></a>
+    <a class="card" href="#"><div class="n">Leitfaden 02</div><h3>AI-Readiness: Die 6 Dimensionen im 10-Minuten-Quick-Scan</h3></a>
+    <a class="card" href="#"><div class="n">Glossar</div><h3>Archetyp, Pilot Purgatory &amp; weitere Begriffe</h3></a>
   </div>
 </div></section>
 
@@ -269,7 +248,7 @@
   "itemListElement": [
     {"@type":"ListItem","position":1,"name":"Start","item":"https://enterprise-ai.biz/de"},
     {"@type":"ListItem","position":2,"name":"Leitfaden","item":"https://enterprise-ai.biz/de/leitfaden"},
-    {"@type":"ListItem","position":3,"name":"AI-Readiness","item":"https://enterprise-ai.biz/de/leitfaden/ai-readiness-quick-scan"}
+    {"@type":"ListItem","position":3,"name":"AI-Reifegrad","item":"https://enterprise-ai.biz/de/leitfaden/ai-reifegrad-starter-scaler-transformer"}
   ]
 }
 </script>
@@ -278,10 +257,10 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"Reicht der Quick Scan, oder brauche ich das volle Assessment?","acceptedAnswer":{"@type":"Answer","text":"Der Quick Scan gibt in 10 Minuten ein grobes Profil über 18 Fragen. Für eine belastbare Grundlage empfiehlt sich das vollständige 42-Fragen-Deep-Assessment im Produkt."}},
-    {"@type":"Question","name":"Was, wenn wir in einer Dimension bei 0 von 3 liegen?","acceptedAnswer":{"@type":"Answer","text":"Das markiert eine kritische Lücke mit sofortigem Handlungsbedarf, meist empfiehlt sich externe Beratung."}},
-    {"@type":"Question","name":"Ist Datenqualität wirklich wichtiger als die Wahl des KI-Modells?","acceptedAnswer":{"@type":"Answer","text":"In der Praxis ja — 85 % aller abgebrochenen AI-Projekte scheitern an Datenqualität, nicht an der Modellwahl."}},
-    {"@type":"Question","name":"Welche Rolle spielt die Wahl des Tools für AI-Readiness?","acceptedAnswer":{"@type":"Answer","text":"Eine kleinere als viele denken — laut McKinsey ist Workflow-Redesign vor der Einführung der stärkste ROI-Prädiktor, nicht die Technologieauswahl."}}
+    {"@type":"Question","name":"Ist ein AI-Archetyp eine Wertung — ist Transformer automatisch besser?","acceptedAnswer":{"@type":"Answer","text":"Nein — jeder Archetyp hat andere Prioritäten, Quick Wins und Risiken. Ein Starter, der wie ein Transformer agieren will, scheitert typischerweise am fehlenden Fundament."}},
+    {"@type":"Question","name":"Woran erkenne ich, ob ein Use Case wirklich Level 3 erreicht hat?","acceptedAnswer":{"@type":"Answer","text":"Am Schärfungstest: Läuft er ohne seine Kernteilnehmer weiter? Wenn nein, handelt es sich noch um Level 2, einen Piloten im Pilot Purgatory."}},
+    {"@type":"Question","name":"Was ist der häufigste Fehler bei der Reifegrad-Selbsteinschätzung?","acceptedAnswer":{"@type":"Answer","text":"Einen Durchschnittsscore über alle Dimensionen zu bilden, statt an der schwächsten Dimension zu handeln."}},
+    {"@type":"Question","name":"Muss ich alle sechs Dimensionen gleich stark entwickeln, um zu skalieren?","acceptedAnswer":{"@type":"Answer","text":"Nein, aber die schwächste Dimension begrenzt das Gesamttempo. Skalierung auf Level 4 setzt voraus, dass keine Dimension kritisch zurückbleibt."}}
   ]
 }
 </script>
