@@ -8,17 +8,17 @@ export function ComplianceContextBanner({ riskClass }: { riskClass: string | nul
 
   const RISK_CONFIG: Record<string, { bg: string; border: string; text: string; label: string; message: string }> = {
     prohibited: {
-      bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
+      bg: 'bg-error-subtle', border: 'border-error-border', text: 'text-error-text',
       label: t('compliance.bannerProhibitedLabel'),
       message: t('compliance.bannerProhibitedMsg'),
     },
     high: {
-      bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800',
+      bg: 'bg-error-subtle', border: 'border-error-border', text: 'text-error-text',
       label: t('compliance.bannerHighLabel'),
       message: t('compliance.bannerHighMsg'),
     },
     limited: {
-      bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800',
+      bg: 'bg-warning-subtle', border: 'border-warning-border', text: 'text-warning-text',
       label: t('compliance.bannerLimitedLabel'),
       message: t('compliance.bannerLimitedMsg'),
     },

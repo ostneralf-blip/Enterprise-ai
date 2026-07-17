@@ -42,35 +42,35 @@ const VERDICT_TO_API: Record<VerdictLevel, string> = {
 
 const VERDICT_STYLES: Record<VerdictLevel, { bg: string; border: string; title: string; badge: string }> = {
   unlawful: {
-    bg: 'bg-red-50',
-    border: 'border-red-200',
-    title: 'text-red-800',
-    badge: 'bg-red-100 text-red-700',
+    bg: 'bg-error-subtle',
+    border: 'border-error-border',
+    title: 'text-error-text',
+    badge: 'bg-error-subtle text-error-text',
   },
   stop: {
-    bg: 'bg-red-50',
-    border: 'border-red-200',
-    title: 'text-red-800',
-    badge: 'bg-red-100 text-red-700',
+    bg: 'bg-error-subtle',
+    border: 'border-error-border',
+    title: 'text-error-text',
+    badge: 'bg-error-subtle text-error-text',
   },
   conditional: {
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    title: 'text-amber-800',
-    badge: 'bg-amber-100 text-amber-700',
+    bg: 'bg-warning-subtle',
+    border: 'border-warning-border',
+    title: 'text-warning-text',
+    badge: 'bg-warning-subtle text-warning-text',
   },
   approved: {
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    title: 'text-emerald-800',
-    badge: 'bg-emerald-100 text-emerald-700',
+    bg: 'bg-success-subtle',
+    border: 'border-success-border',
+    title: 'text-success-text',
+    badge: 'bg-success-subtle text-success-text',
   },
 }
 
 const WEIGHT_DOT: Record<string, string> = {
-  red: 'bg-red-500',
-  yellow: 'bg-amber-400',
-  green: 'bg-emerald-500',
+  red: 'bg-error-text',
+  yellow: 'bg-warning-text',
+  green: 'bg-success-text',
 }
 
 const DEFAULT_GOV_SECTIONS = ['verdict', 'actions', 'gates'] as const
@@ -233,8 +233,8 @@ export function GovernancePageClient({
             <h3 className="text-sm font-semibold text-slate-900">{t('governance.actionFieldsTitle')}</h3>
             <InfoHint title={t('governance.actionFieldsHintTitle')}>
               <p>{t('governance.actionFieldsHintP1')}</p>
-              <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1" />{t('governance.actionFieldsHintYellow')}</p>
-              <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />{t('governance.actionFieldsHintRed')}</p>
+              <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-warning-text mr-1" />{t('governance.actionFieldsHintYellow')}</p>
+              <p className="mt-1"><span className="inline-block w-2 h-2 rounded-full bg-error-text mr-1" />{t('governance.actionFieldsHintRed')}</p>
               <p className="mt-1.5">{t('governance.actionFieldsHintFootnote')}</p>
             </InfoHint>
           </div>
