@@ -11,7 +11,7 @@ export function initPostHog() {
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com',
     defaults: '2026-05-30',    // PostHog-Defaults auf dieses Datum pinnen → kein unerwartetes Verhalten bei SDK-Updates
     person_profiles: 'identified_only',
-    capture_pageview: true,    // initiales $pageview via PostHog intern, SPA-Navigation via Hook
+    capture_pageview: false,   // manuell via PostHogPageView im Root-Layout
     capture_pageleave: true,
     autocapture: false,        // nur manuelle Events (DSGVO)
     persistence: 'memory',     // kein Cookie vor Consent
