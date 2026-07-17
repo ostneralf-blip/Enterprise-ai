@@ -13,6 +13,8 @@ import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
+import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft-store'
+import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
@@ -704,6 +706,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [aiModel, setAiModel] = useState<string | null>(null)
+  const [archDraftBanner, setArchDraftBanner] = useState<{ age: string; data: Partial<Record<ResultAudience, NarrativeEntry>> } | null>(null)
   const [narrativeLoading, setNarrativeLoading] = useState(false)
   const [validationOverrides, setValidationOverrides] = useState<Record<string, ValidationOverride>>({})
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
@@ -942,6 +945,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setNarrativeLocale(arch.narrative_locale ?? null)
     setAiUsageArch(null)
     setAiModel(null)
+    // Draft-Prüfung: falls Server-Narrative leer, Draft aus localStorage anbieten
+    const draft = loadDraft('architecture', arch.id)
+    if (draft && !rawNarrative) {
+      setArchDraftBanner({ age: formatDraftAge(draft.savedAt), data: draft.result as Partial<Record<ResultAudience, NarrativeEntry>> })
+    } else {
+      setArchDraftBanner(null)
+    }
     setView('result')
     const saved = arch.result as unknown as { componentOwners?: Record<string, string>; componentOpsNotes?: Record<string, string>; selectedComponents?: string[] }
     // #182 Lazy-Migration: fehlt rasic im Alt-Datensatz, wird er in applyRecs
@@ -992,7 +1002,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
     if (json.result) {
       const aud = audienceOverride ?? resultAudience
-      setAiNarrativeByAudience(prev => ({ ...prev, [aud]: json.result }))
+      setAiNarrativeByAudience(prev => {
+        const next = { ...prev, [aud]: json.result }
+        if (savedId) saveDraft('architecture', savedId, next, { model: json.ai_model })
+        return next
+      })
       setAiGeneratedAt(new Date().toISOString())
       setNarrativeLocale(locale)
       setAiAccepted([])
@@ -1018,6 +1032,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         setArchitectures(prev => [data, ...prev])
         setSaved(true)
         setSavedId(data.id)
+        clearDraft('architecture', data.id)
+        setArchDraftBanner(null)
       }
     } finally {
       setSaving(false)
@@ -1235,6 +1251,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           canvasContext={canvasCtx}
           canvasTitle={canvasContext?.canvas.title}
         />
+
+        {/* Draft-Wiederherstellungs-Banner */}
+        {archDraftBanner && (
+          <AiDraftBanner
+            age={archDraftBanner.age}
+            onKeep={() => {
+              setAiNarrativeByAudience(archDraftBanner.data)
+              setArchDraftBanner(null)
+            }}
+            onDiscard={() => {
+              if (savedId) clearDraft('architecture', savedId)
+              setArchDraftBanner(null)
+            }}
+            className="mb-4"
+          />
+        )}
 
         {/* KI-Einordnung Narrativ-Karte */}
         <NarrativeCard

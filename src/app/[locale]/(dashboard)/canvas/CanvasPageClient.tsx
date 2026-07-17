@@ -12,6 +12,8 @@ import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
+import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft-store'
+import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import { usePass1Classify } from '@/hooks/usePass1Classify'
 import type { Canvas, Archetype, Tier } from '@/types'
 
@@ -124,6 +126,7 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [canvasDraftBanner, setCanvasDraftBanner] = useState<{ age: string; result: Record<string, unknown> } | null>(null)
   const [extraAliases, setExtraAliases] = useState<Record<string, string[]>>({})
 
   // Einmalig: client-eigene + globale aktive Synonyme für Detection-Merge laden
@@ -160,6 +163,23 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
       setAiActOpen(false)
     }
   }, [active])
+
+  // Draft-Prüfung: falls Canvas kein ai_enrichment hat, aber Draft vorhanden ist
+  useEffect(() => {
+    if (!active) { setCanvasDraftBanner(null); return }
+    if (active.ai_enrichment) {
+      clearDraft('canvas', active.id)
+      setCanvasDraftBanner(null)
+      return
+    }
+    const draft = loadDraft('canvas', active.id)
+    if (draft) {
+      setCanvasDraftBanner({ age: formatDraftAge(draft.savedAt), result: draft.result as Record<string, unknown> })
+    } else {
+      setCanvasDraftBanner(null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?.id, active?.ai_enrichment])
 
   const aiActResult = useMemo<AiActAssessment | null>(() => {
     const { affectsPersons, involvesProfiling, isNarrowProcedural, humanReviewsBefore } = aiActAnswers
@@ -266,7 +286,9 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
       return
     }
     if (json.result) {
+      saveDraft('canvas', active.id, json.result)
       setActive(prev => prev ? { ...prev, ai_enrichment: json.result, ai_generated_at: new Date().toISOString() } : prev)
+      setCanvasDraftBanner(null)
     }
   }
 
@@ -503,6 +525,19 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
             )}
 
             <div className="pt-2 border-t border-slate-200 space-y-2">
+              {canvasDraftBanner && (
+                <AiDraftBanner
+                  age={canvasDraftBanner.age}
+                  onKeep={() => {
+                    setActive(prev => prev ? { ...prev, ai_enrichment: canvasDraftBanner.result } : prev)
+                    setCanvasDraftBanner(null)
+                  }}
+                  onDiscard={() => {
+                    if (active) clearDraft('canvas', active.id)
+                    setCanvasDraftBanner(null)
+                  }}
+                />
+              )}
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <AIAnalysisButton
                   tier={tier}
