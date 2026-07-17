@@ -25,17 +25,17 @@ const ARCHETYPE_LABELS: Record<string, string> = {
 }
 
 const RISK_CLASS_COLORS: Record<string, string> = {
-  prohibited: 'text-red-700 bg-red-50 border-red-200',
-  high:       'text-red-700 bg-red-50 border-red-200',
-  limited:    'text-amber-700 bg-amber-50 border-amber-200',
-  minimal:    'text-emerald-700 bg-emerald-50 border-emerald-200',
+  prohibited: 'text-error-text bg-error-subtle border-error-border',
+  high:       'text-error-text bg-error-subtle border-error-border',
+  limited:    'text-warning-text bg-warning-subtle border-warning-border',
+  minimal:    'text-success-text bg-success-subtle border-success-border',
 }
 
 const GOV_RESULT_COLORS: Record<string, string> = {
-  approve:    'text-emerald-700 bg-emerald-50 border-emerald-200',
-  stop_dsgvo: 'text-red-700 bg-red-50 border-red-200',
-  stop_risk:  'text-red-700 bg-red-50 border-red-200',
-  improve:    'text-amber-700 bg-amber-50 border-amber-200',
+  approve:    'text-success-text bg-success-subtle border-success-border',
+  stop_dsgvo: 'text-error-text bg-error-subtle border-error-border',
+  stop_risk:  'text-error-text bg-error-subtle border-error-border',
+  improve:    'text-warning-text bg-warning-subtle border-warning-border',
 }
 
 export default async function ZusammenfassungPage() {
@@ -133,11 +133,11 @@ export default async function ZusammenfassungPage() {
       date: latestAssessment?.created_at,
       detail: latestAssessment ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_COLORS[latestAssessment.archetype as string] ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${ARCHETYPE_COLORS[latestAssessment.archetype as string] ?? 'text-ink-secondary bg-surface-raised border-line'}`}>
             {ARCHETYPE_LABELS[latestAssessment.archetype as string] ?? latestAssessment.archetype}
           </span>
-          <span className="text-xs text-slate-600">
-            Score: <span className="font-semibold text-slate-900">{latestAssessment.total_score}</span> / 5.0
+          <span className="text-xs text-ink-secondary">
+            Score: <span className="font-semibold text-ink">{latestAssessment.total_score}</span> / 5.0
           </span>
         </div>
       ) : null,
@@ -150,10 +150,10 @@ export default async function ZusammenfassungPage() {
       date: topUsecase?.created_at,
       detail: topUsecase ? (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs text-slate-600">
-            {t('topUseCase')} <span className="font-semibold text-slate-900">{topUsecase.name}</span>
+          <span className="text-xs text-ink-secondary">
+            {t('topUseCase')} <span className="font-semibold text-ink">{topUsecase.name}</span>
           </span>
-          <span className="text-xs text-slate-400">{t('totalCount', { count: usecaseCount ?? 0 })}</span>
+          <span className="text-xs text-ink-muted">{t('totalCount', { count: usecaseCount ?? 0 })}</span>
         </div>
       ) : null,
     },
@@ -166,11 +166,11 @@ export default async function ZusammenfassungPage() {
       detail: latestGovernance ? (
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           {latestGovernance.use_case_name && (
-            <span className="text-xs text-slate-600 truncate min-w-0">
-              {t('useCase')} <span className="font-semibold text-slate-900">{latestGovernance.use_case_name}</span>
+            <span className="text-xs text-ink-secondary truncate min-w-0">
+              {t('useCase')} <span className="font-semibold text-ink">{latestGovernance.use_case_name}</span>
             </span>
           )}
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${GOV_RESULT_COLORS[latestGovernance.result as string] ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border shrink-0 ${GOV_RESULT_COLORS[latestGovernance.result as string] ?? 'text-ink-secondary bg-surface-raised border-line'}`}>
             {GOV_RESULT_LABELS[latestGovernance.result as string] ?? latestGovernance.result}
           </span>
         </div>
@@ -184,8 +184,8 @@ export default async function ZusammenfassungPage() {
       date: latestRoadmap?.updated_at,
       detail: latestRoadmap ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-600">
-            {t('roadmapLabel')} <span className="font-semibold text-slate-900">{latestRoadmap.title ?? t('untitled')}</span>
+          <span className="text-xs text-ink-secondary">
+            {t('roadmapLabel')} <span className="font-semibold text-ink">{latestRoadmap.title ?? t('untitled')}</span>
           </span>
           {latestRoadmap.archetype && (
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${ARCHETYPE_COLORS[latestRoadmap.archetype as string] ?? ''}`}>
@@ -202,8 +202,8 @@ export default async function ZusammenfassungPage() {
       done: !!latestCanvas,
       date: latestCanvas?.updated_at,
       detail: latestCanvas ? (
-        <span className="text-xs text-slate-600">
-          {t('canvasLabel')} <span className="font-semibold text-slate-900">{latestCanvas.title}</span>
+        <span className="text-xs text-ink-secondary">
+          {t('canvasLabel')} <span className="font-semibold text-ink">{latestCanvas.title}</span>
         </span>
       ) : null,
     },
@@ -225,7 +225,7 @@ export default async function ZusammenfassungPage() {
           ) : null
         })()
       ) : hasAccess(tier, 'pro') ? (
-        <span className="text-xs text-slate-400 italic">{t('notDoneYet')}</span>
+        <span className="text-xs text-ink-muted italic">{t('notDoneYet')}</span>
       ) : null,
     },
     {
@@ -235,8 +235,8 @@ export default async function ZusammenfassungPage() {
       done: !!latestArchitecture,
       date: latestArchitecture?.updated_at,
       detail: latestArchitecture ? (
-        <span className="text-xs text-slate-600">
-          {t('architectureLabel')} <span className="font-semibold text-slate-900">{latestArchitecture.title ?? t('untitled')}</span>
+        <span className="text-xs text-ink-secondary">
+          {t('architectureLabel')} <span className="font-semibold text-ink">{latestArchitecture.title ?? t('untitled')}</span>
         </span>
       ) : null,
     },
@@ -266,8 +266,8 @@ export default async function ZusammenfassungPage() {
     <div className="max-w-2xl">
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">{t('title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold font-serif text-ink">{t('title')}</h1>
+          <p className="text-ink-secondary text-sm mt-1">
             {company ? `${company} · ` : ''}
             {t('completedOf', { completed: completedCount, total: modules.length })}
           </p>
@@ -283,9 +283,9 @@ export default async function ZusammenfassungPage() {
 
       {/* ── KI-Priorisierungs-Summary ─────────────────────────── */}
       {summary.actions.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-6">
-          <h2 className="text-sm font-semibold text-slate-900 mb-1">{summary.headline}</h2>
-          <p className="text-xs text-slate-500 mb-4">{summary.subtext}</p>
+        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-ink mb-1">{summary.headline}</h2>
+          <p className="text-xs text-ink-secondary mb-4">{summary.subtext}</p>
           <ul className="space-y-2.5" role="list">
             {summary.actions.map((action, i) => {
               const s = URGENCY_STYLE[action.urgency]
@@ -301,7 +301,7 @@ export default async function ZusammenfassungPage() {
                         <span className={`text-[10px] font-semibold uppercase tracking-wide ${s.title}`}>{s.label}</span>
                       </div>
                       <p className={`text-xs font-medium ${s.title}`}>{action.title}</p>
-                      <p className="text-xs text-slate-600 mt-0.5">{action.description}</p>
+                      <p className="text-xs text-ink-secondary mt-0.5">{action.description}</p>
                     </div>
                   </Link>
                 </li>
@@ -318,35 +318,35 @@ export default async function ZusammenfassungPage() {
             <Link
               key={mod.step}
               href={locked ? '/upgrade' : mod.href}
-              className="block bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-4 sm:p-5 transition-colors group"
+              className="block bg-surface border border-line hover:border-line-strong rounded-2xl p-4 sm:p-5 transition-colors group"
             >
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-base text-slate-500 group-hover:border-primary-border transition-colors">
+                <div className="flex-shrink-0 w-9 h-9 bg-surface-raised border border-line rounded-lg flex items-center justify-center text-base text-ink-secondary group-hover:border-primary-border transition-colors">
                   {mod.icon}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className="text-xs text-slate-400 font-medium tabular-nums">{mod.step}</span>
-                    <span className="text-sm font-semibold text-slate-900">{mod.title}</span>
+                    <span className="text-xs text-ink-muted font-medium tabular-nums">{mod.step}</span>
+                    <span className="text-sm font-semibold text-ink">{mod.title}</span>
                     {locked && (
                       <span className="text-xs text-primary bg-primary-soft border border-primary-border rounded-md px-1.5 py-0.5 shrink-0">Pro</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mb-2">{mod.description}</p>
+                  <p className="text-xs text-ink-muted mb-2">{mod.description}</p>
                   {mod.detail && <div>{mod.detail}</div>}
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-end gap-1.5 ml-2">
                   {mod.done ? (
-                    <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
+                    <span className="text-xs font-medium text-success-text bg-success-subtle border border-success-border rounded-full px-2.5 py-0.5 whitespace-nowrap">
                       {t('statusDone')}
                     </span>
                   ) : (
-                    <span className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-2.5 py-0.5 whitespace-nowrap">
+                    <span className="text-xs font-medium text-ink-secondary bg-surface-raised border border-line rounded-full px-2.5 py-0.5 whitespace-nowrap">
                       {locked ? t('statusProFeature') : t('statusPending')}
                     </span>
                   )}
                   {mod.date && (
-                    <span className="text-xs text-slate-300">{formatDate(mod.date, locale)}</span>
+                    <span className="text-xs text-ink-subtle">{formatDate(mod.date, locale)}</span>
                   )}
                 </div>
               </div>
