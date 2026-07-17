@@ -15,9 +15,10 @@ const AUTH_ROUTES = ['/login', '/register']
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // API-Routen, statische Assets und spezielle Next.js-Dateien überspringen
+  // API-Routen, PostHog-Proxy, statische Assets und spezielle Next.js-Dateien überspringen
   if (
     pathname.startsWith('/api/') ||
+    pathname.startsWith('/ingest/') ||
     pathname.startsWith('/_next/') ||
     pathname === '/sitemap.xml' ||
     pathname === '/robots.txt' ||
@@ -85,6 +86,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|ingest|_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
