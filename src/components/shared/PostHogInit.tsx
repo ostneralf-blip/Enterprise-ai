@@ -3,6 +3,7 @@
 // Wird einmalig im Dashboard-Layout gemountet und erhält User-Daten vom Server.
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
+import posthog from 'posthog-js'
 import { initPostHog, identify, track } from '@/lib/posthog/client'
 
 interface PostHogInitProps {
@@ -24,12 +25,11 @@ export function PostHogInit({ userId, email, tier }: PostHogInitProps) {
   }, [userId, email, tier])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
     // App-Router ändert pathname client-seitig ohne vollständigen Page-Load →
-    // $pageview manuell capturen
-    import('posthog-js').then(({ default: posthog }) => {
-      if (posthog.__loaded) posthog.capture('$pageview', { $current_url: window.location.href })
-    })
+    // $pageview manuell capturen. initialized.current-Guard stellt sicher, dass
+    // PostHog bereits durch den Init-Effekt geladen wurde bevor wir capturen.
+    if (!initialized.current || typeof window === 'undefined') return
+    posthog.capture('$pageview', { $current_url: window.location.href })
   }, [pathname])
 
   return null
