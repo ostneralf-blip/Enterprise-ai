@@ -269,15 +269,25 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
             )
           })}
         </div>
-        <p className="text-xs text-slate-400 mt-2">{pick(ARCHETYPE_LABELS[archetype].desc, locale)}</p>
+        <div className="flex items-center gap-1.5 mt-2">
+          <p className="text-xs text-slate-400">{pick(ARCHETYPE_LABELS[archetype].desc, locale)}</p>
+          <InfoHint title={t('roadmap.hintArchetypeTitle')} side="bottom">
+            <p>{t('roadmap.hintArchetype')}</p>
+          </InfoHint>
+        </div>
       </div>
 
       {/* Top Use-Cases aus Scoring */}
       {topUseCases.length > 0 && (
         <div className="mb-6 bg-primary-soft border border-primary-border rounded-2xl p-4">
-          <p className="text-xs font-medium text-primary-hover uppercase tracking-wide mb-2.5">
-            {t('roadmap.topUseCasesLabel')}
-          </p>
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <p className="text-xs font-medium text-primary-hover uppercase tracking-wide">
+              {t('roadmap.topUseCasesLabel')}
+            </p>
+            <InfoHint title={t('roadmap.hintTopUseCasesTitle')} side="bottom">
+              <p>{t('roadmap.hintTopUseCases')}</p>
+            </InfoHint>
+          </div>
           <div className="flex flex-wrap gap-2">
             {topUseCases.map((uc, i) => {
               const qMeta = uc.quadrant ? QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META] : null
@@ -386,7 +396,12 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{t('roadmap.measuresLabel')}</p>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{t('roadmap.measuresLabel')}</p>
+                    <InfoHint title={t('roadmap.hintMeasuresTitle')} side="bottom">
+                      <p>{t('roadmap.hintMeasures')}</p>
+                    </InfoHint>
+                  </div>
                   <ul className="space-y-2" role="list">
                     {phase.actions.map((action, i) => {
                       const key = `${phaseId}_${i}`
@@ -421,7 +436,12 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                   )}
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">{t('roadmap.kpisLabel')}</p>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{t('roadmap.kpisLabel')}</p>
+                    <InfoHint title={t('roadmap.hintKpisTitle')} side="bottom">
+                      <p>{t('roadmap.hintKpis')}</p>
+                    </InfoHint>
+                  </div>
                   <ul className="space-y-2" role="list">
                     {phase.kpis.map((kpi, i) => (
                       <li key={i} className="flex items-start gap-2">

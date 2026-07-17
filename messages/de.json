@@ -847,7 +847,15 @@
       "problemLabel": "Problem:",
       "archDecisionsTitle": "Key Decisions aus der Architektur",
       "archDecisionDismiss": "Entfernen",
-      "archDecisionsAllDismissed": "Alle Entscheidungen ausgeblendet."
+      "archDecisionsAllDismissed": "Alle Entscheidungen ausgeblendet.",
+      "hintArchetypeTitle": "Was bedeutet der Archetyp?",
+      "hintArchetype": "Der Archetyp beschreibt den aktuellen AI-Reifegrad Ihres Unternehmens. Starter konzentriert sich auf erste Pilotprojekte, Scaler auf die Ausweitung erfolgreicher Use Cases, Transformer auf unternehmensweite AI-Integration. Die Roadmap passt Maßnahmen und Budgets automatisch an.",
+      "hintTopUseCasesTitle": "Woher kommen diese Use Cases?",
+      "hintTopUseCases": "Die Top-Use-Cases stammen aus Ihrer Use-Case-Scoring-Analyse. Die Reihenfolge spiegelt die gewichtete Gesamtpunktzahl wider — der erste Use Case hat die höchste strategische Priorität für Ihre Roadmap.",
+      "hintMeasuresTitle": "Was sind die Maßnahmen?",
+      "hintMeasures": "Die Maßnahmen sind konkrete Umsetzungsschritte für diese Phase. Klicken Sie auf eine Maßnahme, um den Status zu wechseln: offen → in Bearbeitung → erledigt. Erledigte Maßnahmen erscheinen durchgestrichen.",
+      "hintKpisTitle": "Was sind die Ziel-KPIs?",
+      "hintKpis": "KPIs (Key Performance Indicators) zeigen, woran Sie den Erfolg dieser Phase messen. Sie sind archetyp-spezifisch und helfen, den Fortschritt objektiv zu bewerten."
     },
     "versions": {
       "panelButtonPro": "Versionen (Pro)",

@@ -847,7 +847,15 @@
       "exportPdf": "Export PDF",
       "archDecisionsTitle": "Key Decisions from Architecture",
       "archDecisionDismiss": "Dismiss",
-      "archDecisionsAllDismissed": "All decisions dismissed."
+      "archDecisionsAllDismissed": "All decisions dismissed.",
+      "hintArchetypeTitle": "What does the archetype mean?",
+      "hintArchetype": "The archetype describes your organisation's current AI maturity level. Starter focuses on initial pilot projects, Scaler on expanding successful use cases, Transformer on enterprise-wide AI integration. The roadmap adapts actions and budgets automatically.",
+      "hintTopUseCasesTitle": "Where do these use cases come from?",
+      "hintTopUseCases": "The top use cases come from your use case scoring analysis. The order reflects the weighted total score — the first use case has the highest strategic priority for your roadmap.",
+      "hintMeasuresTitle": "What are the actions?",
+      "hintMeasures": "Actions are concrete implementation steps for this phase. Click an action to cycle its status: open → in progress → done. Completed actions appear with strikethrough.",
+      "hintKpisTitle": "What are the target KPIs?",
+      "hintKpis": "KPIs (Key Performance Indicators) show how to measure the success of this phase. They are archetype-specific and help assess progress objectively."
     },
     "versions": {
       "panelButtonPro": "Versions (Pro)",
