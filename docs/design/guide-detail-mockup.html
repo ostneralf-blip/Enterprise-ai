@@ -5,14 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EU AI Act für Unternehmen: Welche Risikoklasse gilt — und was ist bis wann zu tun? — AI Navigator Leitfaden</title>
 <link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/eu-ai-act-risikoklassen">
-<!-- hreflang-Paar (Konzept Säule 2 / Issue #220 Element 2) -->
 <link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/eu-ai-act-risikoklassen">
 <link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/eu-ai-act-risk-classes">
 <link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/eu-ai-act-risk-classes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  /* Identische Tokens wie startseite-mockup.html / preise-mockup.html — keine neuen Farben */
   :root{
     --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
     --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
@@ -24,7 +22,6 @@
   .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
   .col{max-width:720px;margin:0 auto;padding:0 24px}
   a{color:inherit}
-  /* Header — 1:1 aus startseite-mockup.html */
   header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
   .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
   .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
@@ -39,23 +36,19 @@
   .btn-ghost:hover{border-color:var(--ink)}
   @media(max-width:760px){nav{display:none}}
 
-  /* Breadcrumb */
   .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
   .crumb a{text-decoration:none;color:var(--muted)}
   .crumb a:hover{color:var(--primary)}
   .crumb span{margin:0 6px;color:#C6CFDA}
 
-  /* Hero — gleiche Anatomie wie startseite-mockup.html .hero */
   .hero{padding:56px 0 40px;text-align:center}
   .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
 
-  /* Antwort-Band — wie .tools in startseite-mockup.html (soft, zentriert) */
   .answer-band{background:var(--soft);padding:40px 0}
   .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
   .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
 
-  /* Lesespalte */
   article{padding:56px 0}
   article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
   article h2:first-child{margin-top:0}
@@ -63,7 +56,6 @@
   article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
   article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
 
-  /* Risikoklassen — exakt die .card-Optik aus der Startseite (weiß, Linie, Hover primär) */
   .risk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:8px 0 4px}
   @media(max-width:600px){.risk-grid{grid-template-columns:1fr}}
   .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;transition:.15s}
@@ -73,7 +65,6 @@
   .card h3{font-family:var(--serif);font-size:16.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
   .card p{font-size:13.5px;line-height:1.55;color:var(--muted)}
 
-  /* Timeline — schlichte Zeilen mit Trennlinie, ein Akzent (primary) für die relevante Frist */
   .timeline{margin:8px 0 4px}
   .t-item{display:grid;grid-template-columns:110px 1fr;gap:18px;padding:16px 0;border-top:1px solid var(--line)}
   .t-item:first-child{border-top:none}
@@ -90,16 +81,13 @@
   .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
   .gchip:hover{border-color:var(--primary);color:var(--primary)}
 
-  /* Seitenbemerkung — dezenter Scope-Hinweis, kein eigener Farbakzent */
   .page-note{font-size:12.5px;line-height:1.6;color:var(--muted);border-top:1px solid var(--line);padding-top:16px;margin-top:8px}
   .page-note a{color:var(--primary);text-decoration:none;font-weight:500}
 
-  /* CTA-Band — exakt die .vorwort-Anatomie aus der Startseite, für den einen Tool-CTA wiederverwendet */
   .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
   .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
   .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
 
-  /* FAQ — 1:1 aus startseite-mockup.html */
   .faq{padding:64px 0}
   .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
   .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
@@ -111,7 +99,6 @@
   details[open] summary::after{content:'–'}
   details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
 
-  /* Autor-Box — schlichte Karte, keine Zusatzfarbe */
   .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
   .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
   .author-box h4{font-size:15px;font-weight:600}
@@ -119,7 +106,6 @@
   .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
   .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
 
-  /* Weiterlesen — wie .tools-Band, Karten wie .card */
   .related{background:var(--soft);padding:56px 0}
   .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
   .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
@@ -134,13 +120,13 @@
 <body>
 
 <header><div class="wrap hd">
-  <a class="logo" href="#"><div class="mark">N</div>AI Navigator</a>
-  <nav><a href="#">Leitfaden</a><a href="#">Tools</a><a href="#">Das Buch</a><a href="#">Preise</a></nav>
-  <a class="btn btn-primary" href="#">Kostenlos starten</a>
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Leitfaden</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">Das Buch</a><a href="preise-mockup.html">Preise</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Kostenlos starten</a>
 </div></header>
 
 <div class="wrap crumb">
-  <a href="#">Start</a><span>/</span><a href="#">Leitfaden</a><span>/</span>EU AI Act für Unternehmen
+  <a href="startseite-mockup.html">Start</a><span>/</span><a href="guide-hub-mockup.html">Leitfaden</a><span>/</span>EU AI Act für Unternehmen
 </div>
 
 <section class="hero"><div class="wrap">
@@ -209,14 +195,14 @@
     <p>Der Irrtum, der mir in Projekten am häufigsten begegnet: HR-KI gilt fast immer als Hochrisiko. Annex III Punkt 4 nennt Beschäftigung und Personalmanagement ausdrücklich — dazu zählen KI-gestützte Bewerberauswahl, Beförderungsentscheidungen und Leistungsbeurteilung. Wer KI-Recruiting-Funktionen in bestehender HR-Software aktiviert, ist damit sehr wahrscheinlich Hochrisiko-Deployer. Diese Einordnung gehört vor den Go-Live geprüft, nicht danach.</p>
   </div>
 
-  <p class="page-note">Dieser Guide behandelt den AI Act im Detail — er ersetzt keine Rechtsberatung und keine vollständige Regulatorik-Prüfung. Weitere relevante Regelwerke (DSGVO, branchenspezifische Vorgaben, Produkthaftung) sind hier nur am Rand erwähnt; vollständig abgebildet finden Sie sie im <a href="#">Compliance Center</a> des Produkts.</p>
+  <p class="page-note">Dieser Guide behandelt den AI Act im Detail — er ersetzt keine Rechtsberatung und keine vollständige Regulatorik-Prüfung. Weitere relevante Regelwerke (DSGVO, branchenspezifische Vorgaben, Produkthaftung) sind hier nur am Rand erwähnt; vollständig abgebildet finden Sie sie im <a href="preise-mockup.html">Compliance Center</a> des Produkts.</p>
 
 </div></article>
 
 <section class="cta-band"><div class="wrap">
   <h2>In 10 Minuten wissen, wo Sie stehen</h2>
   <p>Das Compliance Center ordnet Ihr System den vier Risikoklassen zu und zeigt die konkret geltenden Pflichten und Fristen.</p>
-  <a class="btn btn-primary" href="#">Jetzt einordnen →</a>
+  <a class="btn btn-primary" href="preise-mockup.html">Jetzt einordnen →</a>
 </div></section>
 
 <section class="faq"><div class="wrap">
@@ -258,9 +244,9 @@
 <section class="related"><div class="wrap">
   <h2>Weiterlesen</h2>
   <div class="rcards">
-    <a class="card" href="#"><div class="n">Leitfaden 05</div><h3>AI-Governance aufbauen: 3 Ebenen, 5 Rollen, 6 Entscheidungen</h3></a>
-    <a class="card" href="#"><div class="n">Leitfaden 06</div><h3>Vom Use Case zur Freigabe: Der Governance-Entscheidungsbaum</h3></a>
-    <a class="card" href="#"><div class="n">Glossar</div><h3>Hochrisiko-KI, Konformitätsbewertung &amp; weitere Begriffe</h3></a>
+    <a class="card" href="guide-governance-mockup.html"><div class="n">Leitfaden 05</div><h3>AI-Governance aufbauen: 3 Ebenen, 5 Rollen, 6 Entscheidungen</h3></a>
+    <a class="card" href="guide-entscheidungsbaum-mockup.html"><div class="n">Leitfaden 06</div><h3>Vom Use Case zur Freigabe: Der Governance-Entscheidungsbaum</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossar</div><h3>Hochrisiko-KI, Konformitätsbewertung &amp; weitere Begriffe</h3></a>
   </div>
 </div></section>
 
@@ -269,7 +255,6 @@
   <div><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
 </div></footer>
 
-<!-- Strukturierte Daten (Issue #220, Element 2) — zur Sichtprüfung im Mockup enthalten -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
