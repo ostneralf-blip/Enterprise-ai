@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wie baut man AI-Governance auf, die nicht zum Papiertiger wird? — AI Navigator Leitfaden</title>
+<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/ai-governance-aufbauen">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/ai-governance-aufbauen">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/building-ai-governance">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/building-ai-governance">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  .level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:700px){.level-grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
+  .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
+  .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
+  .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:160px 1fr;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Leitfaden</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">Das Buch</a><a href="preise-mockup.html">Preise</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Kostenlos starten</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="startseite-mockup.html">Start</a><span>/</span><a href="guide-hub-mockup.html">Leitfaden</a><span>/</span>AI-Governance aufbauen
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Leitfaden · Governance &amp; Recht</div>
+  <h1>Wie baut man AI-Governance auf, die nicht zum Papiertiger wird?</h1>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Kurzantwort</span>
+  <p>Tragfähige AI-Governance läuft auf drei Ebenen gleichzeitig: strategisch, taktisch, operativ — und in genau dieser Reihenfolge aufgebaut. Der häufigste Fehler: operative Tools und Prozesse einführen, <strong>bevor der strategische Rahmen steht</strong>. Das Ergebnis ist Governance-Theater statt Governance. Ein Minimalmodell mit 5 Rollen und 6 Kernentscheidungen reicht für den Start.</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>Welche drei Ebenen braucht ein tragfähiges Governance-Framework?</h2>
+  <p class="lead">Schwäche auf einer Ebene destabilisiert das Gesamtsystem: Strategische Richtung ohne operative Umsetzung bleibt Papier. Operative Kontrolle ohne strategischen Rahmen produziert inkonsistente Entscheidungen. Taktische Policies ohne Führung und Kultur werden schlicht umgangen — AI-Governance greift zudem in bestehende interne Regularien ein und muss mit diesen abgestimmt werden, nicht isoliert daneben stehen.</p>
+
+  <div class="level-grid">
+    <div class="card is-relevant">
+      <span class="lvl">01 · Strategische Ebene</span>
+      <h3>Ziele, Werte, Risikotoleranz</h3>
+      <p>C-Level, Board, AI Ethics Committee. Klärt Risikotoleranz und Verantwortlichkeiten, bevor irgendein Tool beschafft wird.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">02 · Taktische Ebene</span>
+      <h3>Policies, Prozesse, Standards</h3>
+      <p>CDO/CIO, AI Governance Officer, Legal &amp; DPO. Übersetzt die strategische Richtung in konkrete, nutzbare Policies.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">03 · Operative Ebene</span>
+      <h3>Use Cases, Monitoring, Betrieb</h3>
+      <p>AI Engineers, MLOps, Business Owner. Setzt Policies im Tagesgeschäft um — Reviews, Monitoring, Audit.</p>
+    </div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-Pattern</span>
+    <p>Reihenfolge entscheidet: Zuerst die strategische Ebene aufbauen — Risikotoleranz, Werte, Verantwortlichkeiten auf C-Level klären. Dann die taktische Ebene — Policies schreiben, die auf der Strategie aufbauen. Zuletzt die operative Ebene — Use-Case-Reviews, Monitoring, Audit. Der häufigste Fehler ist die umgekehrte Reihenfolge: operative Tools und Prozesse ohne strategischen Rahmen einführen. Das erzeugt Governance-Theater, keine Governance.</p>
+  </div>
+
+  <h2>Wer entscheidet was? Das Minimalmodell mit 5 Rollen</h2>
+  <p class="lead">Jedes Unternehmen braucht dieses Mindestmodell — unabhängig von Größe und Reifegrad. Fünf Rollen genügen, um sechs kritische Entscheidungen sauber zuzuordnen: CDO/CIO, AI Governance Officer, DPO/Legal, BU-Owner und AI Engineer. R steht für Responsible, A für Accountable, C für Consulted, I für Informed.</p>
+
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">Use Case genehmigen</div><div class="f-body"><p>Accountable: CDO/CIO. Responsible: AI Governance Officer. Legal und BU-Owner werden konsultiert.</p></div></div>
+    <div class="f-item"><div class="f-stat">Risikoklasse einordnen</div><div class="f-body"><p>Accountable: CDO/CIO. Responsible: AI Governance Officer und Legal gemeinsam — nach EU AI Act.</p></div></div>
+    <div class="f-item"><div class="f-stat">Datenschutz-Folgeabschätzung</div><div class="f-body"><p>Accountable und Responsible: DPO/Legal. AI Governance Officer und BU-Owner werden konsultiert.</p></div></div>
+    <div class="f-item"><div class="f-stat">Go-Live-Freigabe</div><div class="f-body"><p>Accountable: CDO/CIO. Responsible: AI Governance Officer und AI Engineer gemeinsam.</p></div></div>
+    <div class="f-item"><div class="f-stat">Modell deaktivieren (Incident)</div><div class="f-body"><p>Accountable: CDO/CIO. Responsible: AI Governance Officer und AI Engineer — sofort, ohne Rückfrage.</p></div></div>
+    <div class="f-item"><div class="f-stat">Policy-Änderung genehmigen</div><div class="f-body"><p>Accountable: CDO/CIO. Responsible: AI Governance Officer. BU-Owner und AI Engineer werden informiert.</p></div></div>
+  </div>
+
+  <p class="body">Eskalationspfade gehören von Anfang an dazu, nicht erst nach dem ersten Vorfall. Fehlerhafte oder diskriminierende Ergebnisse eines AI-Systems eskalieren innerhalb von 4 Stunden an AI Governance Officer und BU-Owner, bei Bedarf weiter an CDO, DPO und Legal. Eine Datenpanne eskaliert innerhalb einer Stunde an DPO und CISO — die 72-Stunden-Meldefrist der DSGVO läuft parallel mit. Führt ein Agent mit Transaktionsberechtigung eine nicht autorisierte Aktion aus, eskaliert das an AI Engineer und BU-Owner, in der zweiten Stufe an CDO, CISO und den zuständigen Software-Anbieter.</p>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">RACI</a>
+    <a class="gchip" href="#">AI Ethics Committee</a>
+    <a class="gchip" href="#">Eskalationspfad</a>
+    <a class="gchip" href="#">Governance-Theater</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Governance-Framework in einem Nachmittag aufsetzen</h2>
+  <p>Die Governance-Vorlage im Produkt liefert das Drei-Ebenen-Modell, die RACI-Matrix und die Eskalationspfade als ausfüllbares Template.</p>
+  <a class="btn btn-primary" href="preise-mockup.html">Governance-Vorlage öffnen →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Häufige Fragen</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>Brauchen auch kleine Unternehmen alle drei Ebenen?</summary>
+      <p>Ja, aber schlank: Ein AI-Starter braucht keine eigene Ethikkommission, aber jemanden, der auf C-Level Risikotoleranz und Verantwortlichkeit klärt — sonst fehlt der Rahmen für alles Weitere.</p>
+    </details>
+    <details>
+      <summary>Was ist Governance-Theater genau?</summary>
+      <p>Operative Prozesse und Tools, die ohne strategischen Rahmen eingeführt wurden — sie sehen nach Governance aus, sind aber inkonsistent und werden bei der ersten Belastung umgangen.</p>
+    </details>
+    <details>
+      <summary>Reicht eine Person für alle fünf Rollen bei einem Starter?</summary>
+      <p>Übergangsweise ja — entscheidend ist, dass die sechs Kernentscheidungen jemandem klar zugeordnet sind, nicht dass fünf verschiedene Personen existieren.</p>
+    </details>
+    <details>
+      <summary>Wie schnell sollte ein Governance-Prozess eine Freigabe ermöglichen?</summary>
+      <p>Ziel sind 5 Werktage, nicht 5 Monate. Klare Rollen und ein definierter Entscheidungsbaum sind dafür Voraussetzung, keine zusätzliche Bürokratie.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Autor, „Enterprise AI Leitfaden" · Entwickler AI Navigator</div>
+        <p>Dieser Guide basiert auf Kapitel 4 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
+        <a href="#">Mehr über das Buch →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Weiterlesen</h2>
+  <div class="rcards">
+    <a class="card" href="guide-entscheidungsbaum-mockup.html"><div class="n">Leitfaden 06</div><h3>Vom Use Case zur Freigabe: Der Governance-Entscheidungsbaum</h3></a>
+    <a class="card" href="guide-detail-mockup.html"><div class="n">Leitfaden 01</div><h3>EU AI Act für Unternehmen: Welche Risikoklasse gilt?</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossar</div><h3>RACI, Eskalationspfad &amp; weitere Begriffe</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU-Hosting · DSGVO · Cookieless</div>
+  <div><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Start","item":"https://enterprise-ai.biz/de"},
+    {"@type":"ListItem","position":2,"name":"Leitfaden","item":"https://enterprise-ai.biz/de/leitfaden"},
+    {"@type":"ListItem","position":3,"name":"AI-Governance aufbauen","item":"https://enterprise-ai.biz/de/leitfaden/ai-governance-aufbauen"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Brauchen auch kleine Unternehmen alle drei Ebenen?","acceptedAnswer":{"@type":"Answer","text":"Ja, aber schlank — entscheidend ist, dass jemand auf C-Level Risikotoleranz und Verantwortlichkeit klärt, bevor operative Tools eingeführt werden."}},
+    {"@type":"Question","name":"Was ist Governance-Theater genau?","acceptedAnswer":{"@type":"Answer","text":"Operative Prozesse ohne strategischen Rahmen — sie sehen nach Governance aus, werden aber bei der ersten Belastung umgangen."}},
+    {"@type":"Question","name":"Reicht eine Person für alle fünf Rollen bei einem Starter?","acceptedAnswer":{"@type":"Answer","text":"Übergangsweise ja, solange die sechs Kernentscheidungen klar zugeordnet sind."}},
+    {"@type":"Question","name":"Wie schnell sollte ein Governance-Prozess eine Freigabe ermöglichen?","acceptedAnswer":{"@type":"Answer","text":"Ziel sind 5 Werktage, nicht 5 Monate — klare Rollen und ein definierter Entscheidungsbaum sind dafür Voraussetzung."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Autor, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
