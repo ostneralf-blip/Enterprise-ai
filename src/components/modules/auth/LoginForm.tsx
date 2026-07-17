@@ -5,7 +5,7 @@ import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
-import { track } from '@/lib/posthog/client'
+import { track, identify } from '@/lib/posthog/client'
 
 interface LoginFormProps {
   searchParams: Promise<{ redirect?: string; message?: string }>
@@ -44,8 +44,9 @@ export function LoginForm({ searchParams }: LoginFormProps) {
     const refreshToken = params.get('refresh_token')
     if (!accessToken || !refreshToken) return
     supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      .then(({ error }) => {
+      .then(async ({ error, data }) => {
         if (!error) {
+          if (data.user) identify(data.user.id, { email: data.user.email })
           track('login', { method: 'magic_link' })
           router.push('/dashboard')
           router.refresh()
@@ -89,6 +90,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
         return
       }
 
+      identify(result.data.user!.id, { email: result.data.user!.email })
       track('login', { method: 'email' })
       router.push(redirectTo)
       router.refresh()

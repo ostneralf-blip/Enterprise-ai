@@ -89,7 +89,7 @@ export async function POST(req: Request) {
         tier:                    'pro',
         subscription_status:     'active',
       })
-      void trackServer(userId, 'subscription_activated', { tier: 'pro', source: 'checkout' })
+      void trackServer(userId, 'subscription_activated', { interval: session.metadata?.interval ?? null })
       break
     }
 
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       console.info('[webhook]', { event_id: event.id, type: event.type, customer: sub.customer, tier, subscription_status, period_end: patch.subscription_period_end })
       await updateProfile(supabase, profile.id, patch)
       if (event.type === 'customer.subscription.deleted') {
-        void trackServer(profile.id, 'subscription_cancelled', { tier, subscription_status })
+        void trackServer(profile.id, 'subscription_cancelled', { subscription_status })
       }
       break
     }
@@ -125,6 +125,7 @@ export async function POST(req: Request) {
       await updateProfile(supabase, profile.id, { subscription_status: 'past_due' })
       void trackServer(profile.id, 'payment_failed', { customer: customerId })
       if (profile.email) await sendPaymentFailedEmail(profile.email)
+      void trackServer(profile.id, 'payment_failed', { subscription_status: 'past_due' })
       break
     }
 
