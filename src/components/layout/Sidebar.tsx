@@ -24,16 +24,16 @@ export function Sidebar({ profile }: SidebarProps) {
   const content = (
     <>
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+      <div className="px-6 py-5 border-b border-line flex items-center justify-between">
         <Link href="/dashboard" onClick={close} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm font-bold text-white">N</div>
           <div>
-            <div className="font-semibold text-sm tracking-wide text-slate-900">AI Navigator</div>
-            <div className="text-xs text-slate-400">enterprise-ai.biz</div>
+            <div className="font-semibold text-sm tracking-wide text-ink">AI Navigator</div>
+            <div className="text-xs text-ink-subtle">enterprise-ai.biz</div>
           </div>
         </Link>
         <button onClick={close} aria-label={t('menuClose')}
-          className="lg:hidden text-slate-400 hover:text-slate-600 p-1 -mr-1">
+          className="lg:hidden text-ink-subtle hover:text-ink-secondary p-1 -mr-1">
           ✕
         </button>
       </div>
@@ -81,10 +81,10 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* Tier Badge */}
       {tier === 'free' && (
-        <div className="p-4 border-t border-slate-200">
+        <div className="p-4 border-t border-line">
           <div className="bg-primary-soft border border-primary-border rounded-lg p-3">
             <div className="text-xs font-semibold text-primary mb-1">{t('explorerPlan')}</div>
-            <div className="text-xs text-slate-500 mb-2">{t('explorerDesc')}</div>
+            <div className="text-xs text-ink-muted mb-2">{t('explorerDesc')}</div>
             <Link href="/upgrade" onClick={close}
               className="block text-center text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-md py-1.5 transition-colors">
               {t('upgradeCta')}
@@ -94,24 +94,24 @@ export function Sidebar({ profile }: SidebarProps) {
       )}
 
       {/* Legal-Footer */}
-      <div className="px-4 py-3 border-t border-slate-200 space-y-2">
+      <div className="px-4 py-3 border-t border-line space-y-2">
         <div className="flex gap-3">
-          <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('impressum')}</Link>
-          <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('datenschutz')}</Link>
-          <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('agb')}</Link>
-          <Link href="/widerruf" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('widerruf')}</Link>
+          <Link href="/impressum" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('impressum')}</Link>
+          <Link href="/datenschutz" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('datenschutz')}</Link>
+          <Link href="/agb" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('agb')}</Link>
+          <Link href="/widerruf" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('widerruf')}</Link>
         </div>
         <div className="flex items-center justify-between">
-          <Link href="/trust" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('euHosting')}</Link>
-          <span className="text-xs text-slate-400">v{CHANGELOG[0].version}</span>
+          <Link href="/trust" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('euHosting')}</Link>
+          <span className="text-xs text-ink-subtle">v{CHANGELOG[0].version}</span>
         </div>
-        <div className="pt-1 border-t border-slate-200">
-          <span className="text-xs text-slate-400">{t('basedOn')} </span>
+        <div className="pt-1 border-t border-line">
+          <span className="text-xs text-ink-subtle">{t('basedOn')} </span>
           <a
             href="https://enterprise-ai.biz"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors"
           >
             {t('bookLink')}
           </a>
@@ -123,7 +123,7 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <>
       {/* Desktop: statische Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-line shrink-0">
         {content}
       </aside>
 
@@ -135,7 +135,7 @@ export function Sidebar({ profile }: SidebarProps) {
         aria-hidden={!isOpen}
         inert={!isOpen}
         className={cn(
-          'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-white border-r border-slate-200 shrink-0 transition-transform duration-200',
+          'lg:hidden fixed inset-y-0 left-0 z-50 flex flex-col w-72 max-w-[85vw] bg-surface border-r border-line shrink-0 transition-transform duration-200',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -157,12 +157,12 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
         active
           ? 'bg-primary-soft text-primary border-l-[3px] border-primary -ml-px pl-[11px]'
           : locked
-          ? 'text-slate-400 cursor-pointer hover:text-slate-500'
-          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          ? 'text-ink-subtle cursor-pointer hover:text-ink-muted'
+          : 'text-ink-secondary hover:bg-surface-raised hover:text-ink'
       )}>
       <span className="text-base w-5 text-center shrink-0">{icon}</span>
       <span className="flex-1 truncate">{label}</span>
-      {locked && <span className="text-xs text-slate-400 shrink-0">{t('pro')}</span>}
+      {locked && <span className="text-xs text-ink-subtle shrink-0">{t('pro')}</span>}
     </Link>
   )
 }

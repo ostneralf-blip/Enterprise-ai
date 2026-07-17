@@ -27,6 +27,46 @@
 
   /* Serifenschrift (Lora via next/font/google, geladen in layout.tsx) */
   --font-serif: var(--font-lora);
+
+  /* ── Semantische Surface-/Ink-/Line-Tokens (#201) ────────────────────────
+     Jede Theme-Variante überschreibt diese Werte in ihrem [data-theme]-Block.
+     Tailwind v4 generiert daraus bg-surface, text-ink, border-line etc. ── */
+
+  /* Oberflächen */
+  --color-surface:        #ffffff;   /* Karten-, Dialog-Hintergrund */
+  --color-surface-raised: #F8FAFC;   /* Hover-Zustände, erhöhte Elemente (slate-50) */
+  --color-surface-input:  #F1F5F9;   /* Eingabefelder, Code-Blöcke (slate-100) */
+
+  /* Text */
+  --color-ink:            #0F172A;   /* Primärer Text (slate-900) */
+  --color-ink-secondary:  #334155;   /* Sekundärer Text (slate-700) */
+  --color-ink-muted:      #64748B;   /* Gedämpfter Text, Placeholder (slate-500) */
+  --color-ink-subtle:     #94A3B8;   /* Deaktiviert, sehr fein (slate-400) */
+
+  /* Rahmen */
+  --color-line-subtle:    #F1F5F9;   /* Feine Trennlinie (slate-100) */
+  --color-line:           #E2E8F0;   /* Standardrahmen (slate-200) */
+  --color-line-strong:    #CBD5E1;   /* Betonter Rahmen (slate-300) */
+
+  /* Status: Erfolg */
+  --color-success-subtle: #F0FDF4;
+  --color-success-border: #D1FAE5;   /* emerald-100 */
+  --color-success-text:   #065F46;   /* emerald-800 */
+
+  /* Status: Warnung */
+  --color-warning-subtle: #FFFBEB;
+  --color-warning-border: #FDE68A;   /* amber-200 */
+  --color-warning-text:   #92400E;   /* amber-800 */
+
+  /* Status: Fehler */
+  --color-error-subtle:   #FEF2F2;
+  --color-error-border:   #FECACA;   /* red-200 */
+  --color-error-text:     #991B1B;   /* red-800 */
+
+  /* Status: Info */
+  --color-info-subtle:    #EFF6FF;
+  --color-info-border:    #BFDBFE;   /* blue-200 */
+  --color-info-text:      #1E40AF;   /* blue-800 */
 }
 
 /* ── Theme: book (Default — Cover-Blau, bereits in @theme gesetzt) ── */
@@ -78,6 +118,31 @@
   --color-ai:             #A78BFA;
   --color-ai-soft:        #2D1B69;
 
+  /* ── Semantische Token-Overrides für Dark (#201) ── */
+  --color-surface:        #1E293B;
+  --color-surface-raised: #1E293B;
+  --color-surface-input:  #0F172A;
+  --color-ink:            #F1F5F9;
+  --color-ink-secondary:  #CBD5E1;
+  --color-ink-muted:      #94A3B8;
+  --color-ink-subtle:     #64748B;
+  --color-line-subtle:    #334155;
+  --color-line:           #334155;
+  --color-line-strong:    #475569;
+  --color-success-subtle: #052E16;
+  --color-success-border: #14532D;
+  --color-success-text:   #6EE7B7;
+  --color-warning-subtle: #1C1200;
+  --color-warning-border: #78350F;
+  --color-warning-text:   #FCD34D;
+  --color-error-subtle:   #1A0808;
+  --color-error-border:   #7F1D1D;
+  --color-error-text:     #FCA5A5;
+  --color-info-subtle:    #0C1E3C;
+  --color-info-border:    #1E3A5F;
+  --color-info-text:      #93C5FD;
+
+  /* Klassen-Overrides bleiben als Fallback für noch nicht migrierte Komponenten */
   /* Neutrale Hintergründe */
   & .bg-white     { background-color: #1E293B; }
   & .bg-slate-50  { background-color: #0F172A; }

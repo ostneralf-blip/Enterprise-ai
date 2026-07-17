@@ -40,27 +40,27 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-surface rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="text-center mb-6">
           {promo && (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning-subtle text-warning-text border border-warning-border mb-3">
               <span>✦</span>
               {promo.badge_text}
             </div>
           )}
           <div className="text-3xl mb-3">⬡</div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Upgrade auf Professional</h2>
-          <p className="text-slate-500 text-sm">
-            <strong className="text-slate-700">{feature}</strong> ist im Professional Plan verfügbar.
+          <h2 className="text-xl font-semibold text-ink mb-2">Upgrade auf Professional</h2>
+          <p className="text-ink-muted text-sm">
+            <strong className="text-ink-secondary">{feature}</strong> ist im Professional Plan verfügbar.
           </p>
           {promo?.description && (
-            <p className="mt-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5">{promo.description}</p>
+            <p className="mt-2 text-xs text-warning-text bg-warning-subtle rounded-lg px-3 py-1.5">{promo.description}</p>
           )}
         </div>
 
         <div className="space-y-3 mb-6">
           {['PDF-Export aller Ergebnisse', 'Ergebnisse speichern & versionieren', 'Link-Sharing', 'Deep Assessment (42 Fragen)', 'Compliance Center (vollständig)', 'Architektur-Generator Wizard'].map(f => (
-            <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
+            <div key={f} className="flex items-center gap-2 text-sm text-ink-secondary">
               <span className="text-emerald-500">✓</span> {f}
             </div>
           ))}
@@ -68,16 +68,16 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
 
         <div className="grid grid-cols-2 gap-3">
           <button onClick={() => handleUpgrade('monthly')} disabled={loading}
-            className="border border-slate-200 hover:border-slate-300 rounded-xl p-4 text-center transition-all">
+            className="border border-line hover:border-line-strong rounded-xl p-4 text-center transition-all">
             {promo ? (
               <>
-                <div className="text-xs text-slate-400 line-through">{fmt(monthly)}</div>
+                <div className="text-xs text-ink-subtle line-through">{fmt(monthly)}</div>
                 <div className="font-semibold text-amber-700">{fmt(promo.promo_price)}</div>
               </>
             ) : (
-              <div className="font-semibold text-slate-900">{fmt(monthly)}</div>
+              <div className="font-semibold text-ink">{fmt(monthly)}</div>
             )}
-            <div className="text-xs text-slate-500">pro Monat</div>
+            <div className="text-xs text-ink-muted">pro Monat</div>
           </button>
           <button onClick={() => handleUpgrade('yearly')} disabled={loading}
             className="bg-primary hover:bg-primary/90 rounded-xl p-4 text-center transition-all">
@@ -94,12 +94,12 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
         </div>
 
         {promo?.valid_until && (
-          <p className="text-center text-xs text-amber-600 mt-3">
+          <p className="text-center text-xs text-warning-text mt-3">
             Aktion gültig bis {new Date(promo.valid_until).toLocaleDateString('de-DE')}
           </p>
         )}
 
-        <button onClick={onClose} className="w-full text-center text-xs text-slate-400 hover:text-slate-600 mt-4 transition-colors">
+        <button onClick={onClose} className="w-full text-center text-xs text-ink-subtle hover:text-ink-secondary mt-4 transition-colors">
           Vielleicht später
         </button>
       </div>
