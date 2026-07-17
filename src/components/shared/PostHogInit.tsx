@@ -26,10 +26,10 @@ export function PostHogInit({ userId, email, tier }: PostHogInitProps) {
 
   useEffect(() => {
     // App-Router ändert pathname client-seitig ohne vollständigen Page-Load →
-    // $pageview manuell capturen. initialized.current-Guard stellt sicher, dass
-    // PostHog bereits durch den Init-Effekt geladen wurde bevor wir capturen.
-    if (!initialized.current || typeof window === 'undefined') return
-    posthog.capture('$pageview', { $current_url: window.location.href })
+    // $pageview manuell capturen. posthog.__loaded ist nach initPostHog() (Effect 1)
+    // synchron true — kein separater Guard nötig.
+    if (typeof window === 'undefined' || !posthog.__loaded) return
+    posthog.capture('$pageview')
   }, [pathname])
 
   return null
