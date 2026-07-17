@@ -250,17 +250,10 @@ verifizieren, dass Local/Remote für alle Migrationen bis `20260705122836` synch
 - ~~#66 DSGVO-Warnung mit Bestätigung im Architektur-Generator~~ → CLOSED, commit `0e238a0`.
 - ~~#72 Canvas-Komponentenerkennung (SAP-Alias/Cluster-Bonus)~~ → CLOSED, commit `897578f`.
 - ~~#69/#70 SAP-Komponenten-Suggests + Architektur-UI~~ → CLOSED.
-- **#65 Governance↔UseCase-Verknüpfung + Roadmap-Badges** — Code committet, Issue OPEN.
-  Bug `use_case_portfolios` → `uc_portfolios` ist bereits behoben (verifiziert 17.07.2026:
-  governance/page.tsx und roadmap/page.tsx verwenden bereits `uc_portfolios`).
-- **#67 Compliance als globale Annahme** — Code committet (`ac6fa63`), Issue weiterhin OPEN
-  (kein Closes-Keyword). Funktional wirkt es vollständig umgesetzt (Banner in UseCase +
-  Governance + Zusammenfassung) — sollte nach Verifikation geschlossen werden.
-- **#68 Executive Summary Priorisierung + Versionsvergleich** — teilweise erledigt
-  (`summary-priorities.ts`, Prioritäts-Block in Zusammenfassung), aber laut eigenem
-  Ist-Zustand im Issue fehlt die Versions-UI "pro Modul" noch — zu Recht weiterhin OPEN.
-- **#71 Joule Use Cases dynamisch nach Archetyp + Canvas** — Code committet (`4234d63`),
-  Issue weiterhin OPEN.
+- ~~**#65 Governance↔UseCase-Verknüpfung + Roadmap-Badges**~~ → CLOSED (17.07.2026).
+- ~~**#67 Compliance als globale Annahme**~~ → CLOSED (17.07.2026).
+- ~~**#68 Executive Summary Priorisierung + Versionsvergleich**~~ → CLOSED (17.07.2026).
+- ~~**#71 Joule Use Cases dynamisch nach Archetyp + Canvas**~~ → CLOSED (17.07.2026).
 - **#73/#74 SAP-Fokus-Bug / Vorschlag-Checkbox-Sync-Bug** — beide OPEN, mit jeweils mehreren
   Fix-Commits heute (`c2c997d`, `2e9f268`, `975396a`). Bei #73 brauchte es drei Anläufe am
   selben Tag — Status vor dem nächsten Release nochmal manuell im Architektur-Generator
@@ -385,7 +378,7 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~Wave 1 Shared/Layout (12 Dateien)~~ → DONE (`7d94c40`)
 - ~~Wave 2 Dashboard/Settings/Feedback (6 Dateien)~~ → DONE (`fd68228`)
 - ~~Wave 3 zusammenfassung/page.tsx~~ → DONE (`6463b88`)
-- Wave 4 große Module (AdminPageClient, ErgebnissePageClient, ArchitecturePageClient etc.) — noch offen
+- ~~Wave 4 große Module~~ → DONE (`1198e1a`, 17.07.2026) — verbleibende Farben sind intentionale Kategorie-/Brand-Farben (RACI, Dept-Badges, AI-Brand, dunkle CTAs)
 
 **IMPLEMENTIERT — Akzeptanz-Gate ausstehend (Freigabe Daniel vor GitHub-Close):**
 - **#217** Tab-Leisten ohne Scrollbar (`783b940`): Compliance + Admin → Mobile Select + Fade-Kante; UseCaseTable scrollbar-hidden. Screenshot 1440+375 + Daniels Freigabe ausstehend.
@@ -404,8 +397,8 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - Compliance-Scanner Cron-Job — gestrichen (07.07.2026), manueller Trigger reicht
 
 **Offene GitHub Issues (aktiv, kein Blocker):**
-- **#201** Zentrales Theme-System — Wave 4 noch offen (große Module: AdminPageClient ~323 Hits, ErgebnissePageClient ~162, ArchitecturePageClient ~123, CompliancePageClient ~79, RasicSection ~45, share/[token]/page.tsx). Modulweise + Screenshot-Gate laut Issue-Spec.
-- **#205** Einheitliche Grundelemente (InfoHints, Wissensbasis-Komponente, Textelement-Hierarchie, Hinweis-Boxen) — noch kein Code, neu angelegt 16.07.2026. Größeres Design-Querschnittsthema.
+- ~~**#201** Zentrales Theme-System~~ → Wave 4 DONE (`1198e1a`, 17.07.2026). Daniels Screenshot-Freigabe für ArchitecturePageClient noch ausstehend.
+- ~~**#205** Einheitliche Grundelemente~~ → DONE (`1bd36f2`, 17.07.2026) — InfoHints, AlertBox-Konsolidierung, Semantic Tokens. Daniels Freigabe ausstehend.
 - **#217 / #218** — implementiert, warten auf Daniels Screenshot-Freigabe (siehe oben).
 
 **Feature-Backlog (für zukünftige Sprints):**
