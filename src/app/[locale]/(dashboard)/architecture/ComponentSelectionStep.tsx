@@ -6,6 +6,7 @@ import { pick } from '@/lib/utils/locale-data'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
+import { AlertBox } from '@/components/shared/AlertBox'
 
 const COLLAPSE_KEY = 'arch_selection_collapsed_v1'
 
@@ -214,37 +215,32 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
               const explanation = explainConflict(conflict.a, conflict.b, byNameRecord)
               const isShowingAlts = showAltFor.has(pairKey)
               return (
-                <div key={pairKey} className="mt-1.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-amber-600 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs text-amber-800 font-medium">{pick(explanation, locale)}</p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <button type="button" onClick={() => {
-                          const next = new Set(showAltFor)
-                          if (next.has(pairKey)) next.delete(pairKey); else next.add(pairKey)
-                          setShowAltFor(next)
-                        }} className="text-[10px] font-semibold text-amber-700 underline hover:opacity-70 focus:outline-none">
-                          {t('architecture.conflictShowAlts')}
-                        </button>
-                        <button type="button" onClick={() => resolveConflict(conflict.b)}
-                          className="text-[10px] font-semibold text-amber-700 underline hover:opacity-70 focus:outline-none">
-                          {conflict.b} {t('architecture.conflictRemove')}
-                        </button>
-                      </div>
-                      {isShowingAlts && conflict.alternatives.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {conflict.alternatives.map(alt => (
-                            <button key={alt} type="button" onClick={() => resolveConflict(conflict.b, alt)}
-                              className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-800 hover:bg-amber-100 focus:outline-none">
-                              + {alt}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                <AlertBox key={pairKey} variant="warning" className="mt-1.5">
+                  <p className="font-medium">{pick(explanation, locale)}</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button type="button" onClick={() => {
+                      const next = new Set(showAltFor)
+                      if (next.has(pairKey)) next.delete(pairKey); else next.add(pairKey)
+                      setShowAltFor(next)
+                    }} className="text-[10px] font-semibold opacity-70 underline hover:opacity-100 focus:outline-none">
+                      {t('architecture.conflictShowAlts')}
+                    </button>
+                    <button type="button" onClick={() => resolveConflict(conflict.b)}
+                      className="text-[10px] font-semibold opacity-70 underline hover:opacity-100 focus:outline-none">
+                      {conflict.b} {t('architecture.conflictRemove')}
+                    </button>
                   </div>
-                </div>
+                  {isShowingAlts && conflict.alternatives.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {conflict.alternatives.map(alt => (
+                        <button key={alt} type="button" onClick={() => resolveConflict(conflict.b, alt)}
+                          className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-surface border border-line hover:bg-surface-raised focus:outline-none">
+                          + {alt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </AlertBox>
               )
             })}
             </div>

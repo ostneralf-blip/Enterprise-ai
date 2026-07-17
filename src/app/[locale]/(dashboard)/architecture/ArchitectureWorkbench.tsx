@@ -155,9 +155,9 @@ export function ArchitectureWorkbench({
                       const removeA = () => { const next = new Set(activeComponentNames); next.delete(c.a); onCheckedChange(next) }
                       const removeB = () => { const next = new Set(activeComponentNames); next.delete(c.b); onCheckedChange(next) }
                       return (
-                        <div key={key} className="border border-red-200 bg-red-50 rounded-xl px-3 py-3 space-y-2">
+                        <div key={key} className="border border-error-border bg-error-subtle rounded-xl px-3 py-3 space-y-2">
                           <div className="flex items-start justify-between gap-2">
-                            <p className="text-xs text-red-800 leading-relaxed flex-1 min-w-0">
+                            <p className="text-xs text-error-text leading-relaxed flex-1 min-w-0">
                               <span className="font-semibold">⚠ </span>
                               {explanation[locale as 'de' | 'en'] ?? explanation.de}
                             </p>
@@ -169,23 +169,23 @@ export function ArchitectureWorkbench({
                                   next.has(key) ? next.delete(key) : next.add(key)
                                   return next
                                 })}
-                                className="text-[10px] font-semibold text-red-700 border border-red-300 rounded-lg px-2 py-1 hover:bg-red-100 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-error-subtle transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-error-border"
                               >
                                 {expanded ? t('conflictHideAlt') : t('conflictShowAlt')}
                               </button>
                             )}
                           </div>
                           <div className="flex gap-1.5 flex-wrap">
-                            <button type="button" onClick={removeA} className="text-[10px] font-semibold text-red-700 border border-red-200 rounded-lg px-2 py-1 hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <button type="button" onClick={removeA} className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-error-border">
                               {t('conflictRemove', { name: c.a })}
                             </button>
-                            <button type="button" onClick={removeB} className="text-[10px] font-semibold text-red-700 border border-red-200 rounded-lg px-2 py-1 hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <button type="button" onClick={removeB} className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-error-border">
                               {t('conflictRemove', { name: c.b })}
                             </button>
                           </div>
                           {expanded && c.alternatives.length > 0 && (
                             <div className="pt-1 space-y-1">
-                              <p className="text-[10px] text-red-600 font-medium">{t('conflictAlternatives')}:</p>
+                              <p className="text-[10px] text-error-text font-medium">{t('conflictAlternatives')}:</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {c.alternatives.map(alt => (
                                   <button

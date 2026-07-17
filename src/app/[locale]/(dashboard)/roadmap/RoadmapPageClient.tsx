@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
 import { QUADRANT_META } from '@/config/usecase-data'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { AlertBox } from '@/components/shared/AlertBox'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
 import type { Archetype, Tier } from '@/types'
@@ -309,21 +310,18 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
       {/* Key Decisions aus Architektur */}
       {archKeyDecisions.length > 0 && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
-          <h3 className="text-sm font-semibold text-blue-900">
-            {t('roadmap.archDecisionsTitle')}
-          </h3>
-          <ul className="space-y-1.5">
+        <AlertBox variant="info" title={t('roadmap.archDecisionsTitle')} className="mb-6">
+          <ul className="space-y-1.5 mt-1">
             {archKeyDecisions
               .filter(d => !dismissedDecisions.has(d.de))
               .map(d => (
-                <li key={d.de} className="flex items-start gap-2 text-xs text-blue-800">
+                <li key={d.de} className="flex items-start gap-2">
                   <span className="shrink-0 mt-0.5" aria-hidden="true">◆</span>
                   <span className="flex-1 min-w-0">{locale === 'de' ? d.de : d.en}</span>
                   <button
                     type="button"
                     onClick={() => setDismissedDecisions(prev => new Set([...prev, d.de]))}
-                    className="shrink-0 text-blue-400 hover:text-blue-600 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 rounded"
+                    className="shrink-0 opacity-50 hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-current rounded"
                     aria-label={t('roadmap.archDecisionDismiss')}
                   >
                     ✕
@@ -332,9 +330,9 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
               ))}
           </ul>
           {archKeyDecisions.every(d => dismissedDecisions.has(d.de)) && (
-            <p className="text-xs text-blue-500 italic">{t('roadmap.archDecisionsAllDismissed')}</p>
+            <p className="opacity-70 italic">{t('roadmap.archDecisionsAllDismissed')}</p>
           )}
-        </div>
+        </AlertBox>
       )}
 
       {/* 3-Phasen-Roadmap */}

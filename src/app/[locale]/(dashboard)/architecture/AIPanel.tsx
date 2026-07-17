@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { AlertBox } from '@/components/shared/AlertBox'
 import type { CatalogComponent } from '@/types'
 import { getSelectionStats } from '@/lib/architecture/selection'
 
@@ -201,26 +202,23 @@ export function AIPanel({
 
       {/* 5. Compliance-Hinweis */}
       {complianceHint && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          <p className="text-[10px] text-amber-700 leading-relaxed">{complianceHint}</p>
-        </div>
+        <AlertBox variant="warning" className="p-2.5 px-3">
+          {complianceHint}
+        </AlertBox>
       )}
 
       {/* 5b. DSGVO-Bestätigung (wandert aus dem Ergebnis-Flow ins Panel) */}
       {conditionalComps && conditionalComps.length > 0 && (
-        <div className="border border-amber-200 bg-amber-50 rounded-xl px-3 py-3 space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">
-            {t('architecture.dsgvoWarningTitle')}
-          </p>
-          <p className="text-[10px] text-amber-800 leading-relaxed">
+        <AlertBox variant="warning" title={t('architecture.dsgvoWarningTitle')} className="p-3">
+          <p className="text-[10px] leading-relaxed mb-2">
             {t('architecture.dsgvoWarningBody')}
           </p>
-          <ul className="space-y-0.5">
+          <ul className="space-y-0.5 mb-2">
             {conditionalComps.map(c => (
-              <li key={c.name} className="text-[10px] text-amber-700 flex items-center gap-1">
+              <li key={c.name} className="text-[10px] flex items-center gap-1">
                 <span aria-hidden="true">·</span>
                 <strong>{c.name}</strong>
-                {c.vendor && <span className="text-amber-500">({c.vendor})</span>}
+                {c.vendor && <span className="opacity-70">({c.vendor})</span>}
               </li>
             ))}
           </ul>
@@ -233,11 +231,11 @@ export function AIPanel({
               {t('architecture.dsgvoConfirmButton')}
             </button>
           ) : (
-            <p className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
+            <p className="text-[10px] font-medium flex items-center gap-1">
               <span aria-hidden="true">✓</span> {t('architecture.dsgvoConfirmedMsg')}
             </p>
           )}
-        </div>
+        </AlertBox>
       )}
 
       {/* 6. Provenienz-Zeile mit Cache-Hit-Status */}

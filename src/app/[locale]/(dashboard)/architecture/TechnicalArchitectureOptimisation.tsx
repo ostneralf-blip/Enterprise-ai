@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { AlertBox } from '@/components/shared/AlertBox'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
@@ -115,14 +116,14 @@ export function TechnicalArchitectureOptimisation({
               {conflicts.map(({ a, b, alternatives }) => {
                 const explanation = explainConflict(a, b, byName)
                 return (
-                  <div key={`${a}|${b}`} className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
-                    <p className="text-amber-800">{locale === 'de' ? explanation.de : explanation.en}</p>
+                  <AlertBox key={`${a}|${b}`} variant="warning" className="p-3">
+                    <p>{locale === 'de' ? explanation.de : explanation.en}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {[a, b].map(name => (
                         <button
                           key={name}
                           onClick={() => { const next = new Set(effective); next.delete(name); onCheckedChange(next) }}
-                          className="text-xs text-red-600 underline"
+                          className="text-xs text-error-text underline"
                         >
                           {name} {t('conflictRemove')}
                         </button>
@@ -131,13 +132,13 @@ export function TechnicalArchitectureOptimisation({
                         <button
                           key={alt}
                           onClick={() => { const next = new Set(effective); next.delete(a); next.add(alt); onCheckedChange(next) }}
-                          className="text-xs rounded border border-slate-300 bg-white px-2 py-0.5 hover:bg-slate-50"
+                          className="text-xs rounded border border-line bg-surface px-2 py-0.5 hover:bg-surface-raised"
                         >
                           {alt}
                         </button>
                       ))}
                     </div>
-                  </div>
+                  </AlertBox>
                 )
               })}
             </div>

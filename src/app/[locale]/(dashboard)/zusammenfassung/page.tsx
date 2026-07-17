@@ -257,9 +257,9 @@ export default async function ZusammenfassungPage() {
   })
 
   const URGENCY_STYLE = {
-    critical:    { dot: 'bg-red-500',        card: 'border-red-100 bg-red-50',          title: 'text-red-800',   label: t('urgencyCritical') },
-    recommended: { dot: 'bg-amber-400',      card: 'border-amber-100 bg-amber-50',      title: 'text-amber-800', label: t('urgencyRecommended') },
-    next:        { dot: 'bg-primary-ring',   card: 'border-primary-soft bg-primary-soft', title: 'text-primary', label: t('urgencyNext') },
+    critical:    { dot: 'bg-error-text',     card: 'border-error-border bg-error-subtle',     title: 'text-error-text',   label: t('urgencyCritical') },
+    recommended: { dot: 'bg-warning-text',   card: 'border-warning-border bg-warning-subtle', title: 'text-warning-text', label: t('urgencyRecommended') },
+    next:        { dot: 'bg-primary-ring',   card: 'border-primary-soft bg-primary-soft',     title: 'text-primary',      label: t('urgencyNext') },
   }
 
   return (
