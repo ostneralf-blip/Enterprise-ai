@@ -3,6 +3,7 @@ import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-dat
 import { ARCHETYPES } from '@/types'
 import { FeedbackWidget } from '@/components/shared/FeedbackWidget'
 import { UpgradeModal } from '@/components/shared/UpgradeModal'
+import { InfoHint } from '@/components/shared/InfoHint'
 import { RadarChart } from './RadarChart'
 import { track } from '@/lib/posthog/client'
 import { useState } from 'react'
@@ -57,9 +58,14 @@ export function AssessmentResults({
         {/* Header Score */}
         <div className="bg-slate-900 rounded-2xl p-5 sm:p-8 flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-8">
           <div className="text-center shrink-0">
-            <div className={`text-4xl sm:text-5xl font-bold font-mono ${maturity.color.replace('text-', 'text-')}`}
-                 style={{ color: totalScore >= 4 ? '#10b981' : totalScore >= 3 ? '#f59e0b' : '#ef4444' }}>
-              {totalScore.toFixed(1)}
+            <div className="flex items-start justify-center gap-1.5">
+              <div className={`text-4xl sm:text-5xl font-bold font-mono ${maturity.color.replace('text-', 'text-')}`}
+                   style={{ color: totalScore >= 4 ? '#10b981' : totalScore >= 3 ? '#f59e0b' : '#ef4444' }}>
+                {totalScore.toFixed(1)}
+              </div>
+              <InfoHint title={t('assessment.hintScoreTitle')} side="bottom" align="left" className="mt-1">
+                <p>{t('assessment.hintScore')}</p>
+              </InfoHint>
             </div>
             <div className="text-slate-400 text-xs mt-1">{t('assessment.outOf')}</div>
           </div>
@@ -75,13 +81,23 @@ export function AssessmentResults({
 
         {/* Radar-Chart */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">{t('assessment.profileTitle')}</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="font-semibold text-slate-900">{t('assessment.profileTitle')}</h3>
+            <InfoHint title={t('assessment.hintProfileTitle')} side="bottom" align="left">
+              <p>{t('assessment.hintProfile')}</p>
+            </InfoHint>
+          </div>
           <RadarChart dimScores={dimScores} />
         </div>
 
         {/* Dimension Scores */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-5">{t('assessment.resultByDim')}</h3>
+          <div className="flex items-center gap-2 mb-5">
+            <h3 className="font-semibold text-slate-900">{t('assessment.resultByDim')}</h3>
+            <InfoHint title={t('assessment.hintDimResultTitle')} side="bottom" align="left">
+              <p>{t('assessment.hintDimResult')}</p>
+            </InfoHint>
+          </div>
           <div className="space-y-4">
             {ASSESSMENT_DIMENSIONS.map((dim, barIndex) => {
               const score = dimScores[dim.id]
@@ -119,7 +135,12 @@ export function AssessmentResults({
 
         {/* Recommendations based on weakest dims */}
         <div className="bg-primary-soft border border-primary-border rounded-2xl p-6">
-          <h3 className="font-semibold text-slate-900 mb-3">{t('assessment.recommendationsTitle')}</h3>
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="font-semibold text-slate-900">{t('assessment.recommendationsTitle')}</h3>
+            <InfoHint title={t('assessment.hintRecommendationsTitle')} side="top" align="left">
+              <p>{t('assessment.hintRecommendations')}</p>
+            </InfoHint>
+          </div>
           <div className="space-y-2">
             {Object.entries(dimScores)
               .sort(([, a], [, b]) => a - b)

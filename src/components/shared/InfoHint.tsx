@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 
 interface InfoHintProps {
@@ -12,19 +12,59 @@ interface InfoHintProps {
 
 export function InfoHint({ title, children, className, side = 'top', align = 'left' }: InfoHintProps) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [resolvedSide, setResolvedSide] = useState(side)
+  const [resolvedAlign, setResolvedAlign] = useState(align)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  // Auto-flip: Prüft nach dem Öffnen ob das Popover den Viewport verlässt und korrigiert.
+  const adjustPosition = useCallback(() => {
+    const popover = popoverRef.current
+    const container = containerRef.current
+    if (!popover || !container) return
+
+    const pop = popover.getBoundingClientRect()
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const margin = 8
+
+    // Vertikale Seite
+    if (resolvedSide === 'top' && pop.top < margin) {
+      setResolvedSide('bottom')
+    } else if (resolvedSide === 'bottom' && pop.bottom > vh - margin) {
+      setResolvedSide('top')
+    }
+
+    // Horizontale Ausrichtung
+    if (resolvedAlign === 'left' && pop.right > vw - margin) {
+      setResolvedAlign('right')
+    } else if (resolvedAlign === 'right' && pop.left < margin) {
+      setResolvedAlign('left')
+    }
+  }, [resolvedSide, resolvedAlign])
+
+  useEffect(() => {
+    if (!open) {
+      // Position beim Schließen zurücksetzen
+      setResolvedSide(side)
+      setResolvedAlign(align)
+      return
+    }
+    // Nach nächstem Paint messen
+    requestAnimationFrame(adjustPosition)
+  }, [open, side, align, adjustPosition])
 
   useEffect(() => {
     if (!open) return
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
   return (
-    <div className={cn('relative inline-flex', className)} ref={ref}>
+    <div className={cn('relative inline-flex', className)} ref={containerRef}>
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
@@ -36,11 +76,12 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
       </button>
       {open && (
         <div
+          ref={popoverRef}
           role="tooltip"
           className={cn(
-            'absolute z-30 w-72 bg-surface border border-line rounded-xl shadow-lg p-4',
-            align === 'right' ? 'right-0' : 'left-0',
-            side === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+            'absolute z-50 w-72 bg-surface border border-line rounded-xl shadow-lg p-4',
+            resolvedAlign === 'right' ? 'right-0' : 'left-0',
+            resolvedSide === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
           )}
         >
           <div className="flex items-start justify-between gap-2 mb-2">
