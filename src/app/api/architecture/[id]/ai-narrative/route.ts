@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
-import { ArchitectureNarrativeSchema } from '@/lib/ai/schemas'
+import { NarrativeSectionSchema } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
 import { trackServer } from '@/lib/posthog/server'
+import { buildSharedContext, buildSectionBlocks } from '@/lib/ai/analysis'
+import { createClient } from '@/lib/supabase/server'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 
-// #180: Budget für Bedrock-Versuch (8 s) + Direct-Fallback (30 s) + Overhead —
-// ohne maxDuration killt Vercel die Function vor dem Fallback (503 nach ~18 s).
+// #180: Budget für Bedrock-Versuch (8 s) + Direct-Fallback (30 s) + Overhead
 export const maxDuration = 60
 
 const BodySchema = z.object({
@@ -25,6 +25,18 @@ const BodySchema = z.object({
   audience:             z.enum(['exec', 'architect', 'compliance']).default('architect'),
   context_hash:         z.string().max(32).optional(),
 })
+
+// Adapter: audience → unified section name
+const AUDIENCE_SECTION = {
+  exec:       'narrative_exec',
+  architect:  'narrative_architect',
+  compliance: 'narrative_compliance',
+} as const
+
+// Wrapper-Schema: unified endpoint gibt {"narrative_exec": {...}} zurück
+function makeSectionWrapperSchema(section: string) {
+  return z.object({ [section]: NarrativeSectionSchema }).passthrough()
+}
 
 export async function POST(
   req: NextRequest,
@@ -46,78 +58,27 @@ export async function POST(
     .eq('id', id)
     .eq('user_id', userId)
     .single()
-
   if (!arch) return NextResponse.json({ error: 'Architektur nicht gefunden' }, { status: 404 })
 
   const usage = await getAIUsageStatus(userId, tier)
-  if (usage.exceeded) {
-    return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
-  }
+  if (usage.exceeded) return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED', usage }, { status: 429 })
 
   const { components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, assessment_score_pct, audience, locale, context_hash } = body.data
+  const section = AUDIENCE_SECTION[audience]
 
-  const langName = locale === 'de' ? 'German (Deutsch, de-DE)' : 'English (en-US)'
+  const sharedContext = buildSharedContext({ components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, assessment_score_pct, locale })
+  const sectionBlocks = buildSectionBlocks([section])
+  const wrapperSchema = makeSectionWrapperSchema(section)
 
-  const audienceInstruction = audience === 'exec'
-    ? 'Target audience: C-level / CFO. Use business language only. Key decisions = strategic, budget-relevant. Next steps = high-level milestones with timeframes. No technical jargon.'
-    : audience === 'compliance'
-    ? 'Target audience: Compliance / Audit / DPO. Focus on data flows, EU AI Act obligations, GDPR controls, risk mitigations, and audit evidence. Key decisions = regulatory commitments. Next steps = compliance actions.'
-    : 'Target audience: Enterprise Architect / IT Lead. Full technical depth. Be specific about integration points, model choices, infrastructure decisions, and operational requirements.'
+  const { data: rawResult, meta, errorCode } = await callLLM(
+    sectionBlocks,
+    wrapperSchema,
+    { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
+  )
 
-  const summaryInstruction = audience === 'exec'
-    ? 'Write a 2-3 sentence executive summary in plain business language: what this AI architecture delivers, the key business value, and the most critical risk. No technical terms.'
-    : audience === 'compliance'
-    ? 'Write a 2-3 sentence compliance summary: which EU AI Act / GDPR obligations apply, which components require special attention, and what the immediate compliance action is.'
-    : 'Write a 2-3 sentence technical summary: the overall architecture pattern, the most important integration decision, and the primary operational challenge.'
+  const result = rawResult ? NarrativeSectionSchema.safeParse((rawResult as Record<string, unknown>)[section]) : null
 
-  const scoreLine = assessment_score_pct != null
-    ? `- AI Readiness Score: ${assessment_score_pct} % (on a 0–100 scale; ALWAYS use this exact value when referencing the score — NEVER invent or recalculate it)`
-    : ''
-
-  const prompt = `You are an enterprise AI architecture expert. Based on the following validated architecture facts, generate concise, context-specific output. Return ONLY valid JSON.
-
-CRITICAL: You MUST write ALL text fields (summary, key_decisions, next_steps) exclusively in ${langName}. Do not use any other language.
-
-CRITICAL — PROTECTED PRODUCT NAMES: The following component names are proper nouns and MUST appear exactly as listed below in your output. NEVER translate, paraphrase, or modify them in any way. Using any other form (e.g. "Schneeflöckchen" for "Snowflake") is a critical error.
-Protected names: ${components.join(', ')}
-
-CRITICAL — LIST SIZE: Generate EXACTLY 3 to 5 key decisions and EXACTLY 3 to 5 next steps. Never generate more than 5 items per list. Be selective and focused.
-
-${audienceInstruction}
-
-Architecture facts (pre-validated, structured data — not user free text):
-- Selected components: ${components.join(', ')}
-- Recommended roles: ${roles.join(', ')}
-- Compliance level: ${compliance ?? 'not specified'}
-- AI maturity archetype: ${archetype ?? 'not specified'}
-- Canvas use case quadrant: ${canvas_quadrant ?? 'not specified'}
-- Governance result: ${governance_result ?? 'not specified'}
-- Roadmap phases planned: ${roadmap_phases ?? 0}${scoreLine ? '\n' + scoreLine : ''}
-
-Summary instruction: ${summaryInstruction}
-The summary MUST be written in ${langName}. Max 600 chars.
-
-Also generate 3-5 key decisions and 3-5 next steps. Each must have both German (de) and English (en) versions.
-Keep each item concise (max 200 chars per language). Be specific to the exact components and context above.
-
-Also suggest up to 3 additional component names (exact catalog names, no descriptions) that are NOT already in the selected list but would strengthen this architecture. Only suggest real, widely-known tools/platforms. If none, omit the field.
-
-Also write a "decision_recommendation": 2-3 sentences in ${langName}. Audience-appropriate: for exec, include a pilot gate (e.g. "Freigabe als Pilot mit 3-Monats-Gate") with a concrete abort criterion; for architect, focus on the key integration risk; for compliance, focus on the most critical regulatory obligation. Max 800 chars. No bullet points — flowing prose only.
-
-Return this exact JSON structure:
-{
-  "summary": "...",
-  "key_decisions": [{"de": "...", "en": "..."}],
-  "next_steps": [{"de": "...", "en": "..."}],
-  "component_suggestions": ["ComponentName1", "ComponentName2"],
-  "decision_recommendation": "..."
-}`
-
-  // haiku: Bedrock EU-Profil verifiziert (claude-haiku-4-5). Sonnet-Profil ausstehend (#148).
-  const { data: result, meta, errorCode } = await callLLM(prompt, ArchitectureNarrativeSchema, { model: 'haiku', maxTokens: 2048, module: 'architecture' })
-
-  // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
-  if (!result) {
+  if (!result?.success) {
     void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'architecture', success: false, cached: false, latency_ms: meta.latencyMs })
     return NextResponse.json({
       error: 'KI-Analyse fehlgeschlagen — deterministische Bausteine bleiben aktiv',
@@ -126,15 +87,12 @@ Return this exact JSON structure:
     }, { status: 503 })
   }
 
-  // Non-EU-Fallback in Produktion → sofortiger Sentry-Alarm
   if (meta.provider === 'direct' && process.env.VERCEL_ENV === 'production') {
     Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'architecture', model: meta.modelId } })
   }
 
   const ok = await incrementAIUsage(userId, tier)
-  if (!ok) {
-    return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
-  }
+  if (!ok) return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
 
   void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'architecture', success: true, cached: meta.provider === 'cache', latency_ms: meta.latencyMs, audience })
 
@@ -142,21 +100,15 @@ Return this exact JSON structure:
     ? `${meta.modelId} (cached)`
     : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
 
+  const resultWithHash = context_hash ? { ...result.data, based_on_hash: context_hash } : result.data
   const existingNarrative = (arch.ai_narrative as Record<string, unknown> | null) ?? {}
-  const resultWithHash = context_hash ? { ...result, based_on_hash: context_hash } : result
   const mergedNarrative = { ...existingNarrative, [audience]: resultWithHash }
 
   await supabase
     .from('architectures')
-    .update({
-      ai_narrative:    mergedNarrative,
-      ai_model:        aiModel,
-      ai_generated_at: new Date().toISOString(),
-      narrative_locale: locale,
-    })
+    .update({ ai_narrative: mergedNarrative, ai_model: aiModel, ai_generated_at: new Date().toISOString(), narrative_locale: locale })
     .eq('id', id)
     .eq('user_id', userId)
 
-  const updatedUsage = await getAIUsageStatus(userId, tier)
-  return NextResponse.json({ result: resultWithHash, usage: updatedUsage, ai_model: aiModel })
+  return NextResponse.json({ result: resultWithHash, usage: await getAIUsageStatus(userId, tier), ai_model: aiModel })
 }
