@@ -30,10 +30,10 @@ import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
 import type { CatalogRole } from '@/types'
 
-type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
+type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras' | 'roles'
 
 // Tab labels are resolved at render time via useTranslations — see getTabLabel() below
-const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'extras']
+const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'extras', 'roles']
 
 const CONTENT_REVIEWED_AT = '2026-06-25'
 const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
@@ -63,6 +63,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
     if (id === 'matrix')    return t('compliance.tabRiskMatrix')
     if (id === 'summary')   return t('compliance.tabSummary')
     if (id === 'templates') return t('compliance.tabTemplates')
+    if (id === 'roles')     return t('compliance.tabRoles')
     return t('compliance.tabExtras')
   }
   const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
@@ -700,61 +701,62 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
         </div>
       </div>
 
-      {/* Rollen & Verantwortlichkeiten */}
-      <div className="mt-6">
-        <div className="flex items-start gap-2 mb-3">
-          <h2 className="text-base font-semibold text-slate-900">{t('compliance.rolesTitle')}</h2>
-          <InfoHint title={t('compliance.rolesTitle')}>{t('compliance.rolesDesc')}</InfoHint>
-        </div>
-        {rolesCatalog.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('compliance.rolesEmpty')}</p>
-        ) : (
-          <div className="space-y-3">
-            {archUsedRoles.size === 0 && (
-              <p className="text-xs text-slate-400 italic">{t('compliance.rolesNoArch')}</p>
-            )}
-            {rolesCatalog.map(role => {
-              const used = archUsedRoles.has(role.role_name)
-              return (
-                <div
-                  key={role.role_name}
-                  className={cn(
-                    'rounded-xl border p-4',
-                    used ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'
-                  )}
-                >
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold text-slate-900">{role.role_name}</span>
-                    {role.role_category && (
-                      <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                        {role.role_category}
-                      </span>
+      {/* ── ROLLEN & VERANTWORTLICHKEITEN ── */}
+      {tab === 'roles' && (
+        <div role="tabpanel" id="panel-roles" aria-labelledby="tab-roles" className="space-y-4">
+          <HintBox variant="tip" className="mb-1">
+            {t('compliance.rolesDesc')}
+          </HintBox>
+          {rolesCatalog.length === 0 ? (
+            <p className="text-sm text-ink-muted">{t('compliance.rolesEmpty')}</p>
+          ) : (
+            <div className="space-y-3">
+              {archUsedRoles.size === 0 && (
+                <p className="text-xs text-ink-subtle italic">{t('compliance.rolesNoArch')}</p>
+              )}
+              {rolesCatalog.map(role => {
+                const used = archUsedRoles.has(role.role_name)
+                return (
+                  <div
+                    key={role.role_name}
+                    className={cn(
+                      'rounded-xl border p-4',
+                      used ? 'border-success-border bg-success-subtle' : 'border-line bg-surface'
                     )}
-                    {used && archTitle && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white whitespace-nowrap">
-                        {t('compliance.rolesUsedBadge', { title: archTitle })}
-                      </span>
+                  >
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-ink">{role.role_name}</span>
+                      {role.role_category && (
+                        <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-surface-input text-ink-muted">
+                          {role.role_category}
+                        </span>
+                      )}
+                      {used && archTitle && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white whitespace-nowrap">
+                          {t('compliance.rolesUsedBadge', { title: archTitle })}
+                        </span>
+                      )}
+                    </div>
+                    {role.description && (
+                      <p className="text-xs text-ink-secondary mb-2">{role.description}</p>
+                    )}
+                    {role.responsibilities && role.responsibilities.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">{t('compliance.rolesResponsibilities')}</p>
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {role.responsibilities.map((r, i) => (
+                            <li key={i} className="text-xs text-ink-secondary">{r}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                  {role.description && (
-                    <p className="text-xs text-slate-600 mb-2">{role.description}</p>
-                  )}
-                  {role.responsibilities && role.responsibilities.length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{t('compliance.rolesResponsibilities')}</p>
-                      <ul className="list-disc list-inside space-y-0.5">
-                        {role.responsibilities.map((r, i) => (
-                          <li key={i} className="text-xs text-slate-600">{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
