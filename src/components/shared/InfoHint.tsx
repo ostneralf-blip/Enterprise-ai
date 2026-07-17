@@ -30,7 +30,7 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
         onClick={() => setOpen(v => !v)}
         aria-label={`Info: ${title}`}
         aria-expanded={open}
-        className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 hover:bg-primary-soft hover:text-primary text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 flex-shrink-0"
+        className="w-4 h-4 rounded-full bg-surface-input text-ink-muted hover:bg-primary-soft hover:text-primary text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 flex-shrink-0"
       >
         ?
       </button>
@@ -38,22 +38,22 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
         <div
           role="tooltip"
           className={cn(
-            'absolute z-30 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-4',
+            'absolute z-30 w-72 bg-surface border border-line rounded-xl shadow-lg p-4',
             align === 'right' ? 'right-0' : 'left-0',
             side === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
           )}
         >
           <div className="flex items-start justify-between gap-2 mb-2">
-            <p className="text-xs font-semibold text-slate-900">{title}</p>
+            <p className="text-xs font-semibold text-ink">{title}</p>
             <button
               onClick={() => setOpen(false)}
-              className="text-slate-400 hover:text-slate-600 text-base leading-none flex-shrink-0 focus:outline-none"
+              className="text-ink-subtle hover:text-ink-secondary text-base leading-none flex-shrink-0 focus:outline-none"
               aria-label="Schließen"
             >
               ×
             </button>
           </div>
-          <div className="text-xs text-slate-600 leading-relaxed space-y-1.5">
+          <div className="text-xs text-ink-secondary leading-relaxed space-y-1.5">
             {children}
           </div>
         </div>
@@ -75,8 +75,8 @@ export function HintBox({ children, className, dismissible = false, variant = 'i
 
   const colors = {
     info:    'bg-primary-soft border-primary-border text-primary',
-    tip:     'bg-emerald-50 border-emerald-100 text-emerald-800',
-    warning: 'bg-amber-50 border-amber-200 text-amber-800',
+    tip:     'bg-success-subtle border-success-border text-success-text',
+    warning: 'bg-warning-subtle border-warning-border text-warning-text',
   }
 
   return (

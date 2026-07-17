@@ -69,7 +69,7 @@ Return JSON with this exact structure:
 
 detected_entities rules (max 5): ONLY software products, platforms or technologies that literally appear in the canvas text. NEVER person names, company names of the user, or free text. For type 'vendor', canonical must be the well-known vendor (SAP, Microsoft, AWS, Google, Salesforce, IBM, Oracle, Databricks, Snowflake, Siemens). Example: text mentions "Successfactor" => {"term": "successfactor", "canonical": "SAP", "type": "vendor"}. If none, return an empty array.`
 
-  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 2048 })
+  const { data: result, meta } = await callLLM(prompt, CanvasAIEnrichmentSchema, { model: 'haiku', maxTokens: 2048, module: 'canvas' })
 
   // Nur bei Erfolg zählen — fehlgeschlagene Calls verbrauchen kein Kontingent
   if (!result) {

@@ -37,7 +37,51 @@ export const ArchitectureNarrativeSchema = z.object({
 
 export type ArchitectureNarrative = z.infer<typeof ArchitectureNarrativeSchema>
 
-// Pass-1-Vorklassifikation: Term-Klassifikation via Haiku (#191)
+// ─── Unified Analysis: Sektions-Schemas (#210) ────────────────────────────
+export const SectionEnum = z.enum([
+  'narrative_exec', 'narrative_architect', 'narrative_compliance',
+  'rasic_suggestion', 'compliance_hints', 'decision',
+])
+export type AnalysisSection = z.infer<typeof SectionEnum>
+
+export const NarrativeSectionSchema = z.object({
+  summary: z.string().max(2000).optional(),
+  key_decisions: z.array(BilingualItemSchema).max(10),
+  next_steps: z.array(BilingualItemSchema).max(10),
+  component_suggestions: z.array(z.string().max(200)).max(8).optional(),
+  decision_recommendation: z.string().max(1500).optional(),
+})
+
+export const RasicSuggestionSectionSchema = z.object({
+  entries: z.array(z.object({
+    role: z.string().max(100),
+    phases: z.record(z.string(), z.string().max(1)),
+  })).max(20),
+})
+
+export const ComplianceHintsSectionSchema = z.object({
+  hints: z.array(z.object({
+    article: z.string().max(100),
+    title: z.string().max(200),
+    relevance: z.string().max(500),
+  })).max(5),
+})
+
+export const DecisionSectionSchema = z.object({
+  recommendation: z.string().max(1500),
+})
+
+export const AnalysisRawSchema = z.object({
+  narrative_exec:       NarrativeSectionSchema.optional(),
+  narrative_architect:  NarrativeSectionSchema.optional(),
+  narrative_compliance: NarrativeSectionSchema.optional(),
+  rasic_suggestion:     RasicSuggestionSectionSchema.optional(),
+  compliance_hints:     ComplianceHintsSectionSchema.optional(),
+  decision:             DecisionSectionSchema.optional(),
+}).passthrough()
+export type AnalysisRaw = z.infer<typeof AnalysisRawSchema>
+
+// ─── Pass-1-Vorklassifikation: Term-Klassifikation via Haiku (#191) ────────
 export const TermClassEnum = z.enum(['produkt', 'projekt_eigenname', 'capability', 'fuellwort', 'mehrdeutig'])
 export type TermClass = z.infer<typeof TermClassEnum>
 

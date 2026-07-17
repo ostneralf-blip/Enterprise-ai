@@ -104,7 +104,9 @@ export interface CatalogRole {
   role_category: RoleCategory | null
   archetype_levels: string[]
   description: string | null
+  description_en: string | null
   responsibilities: string[]
+  responsibilities_en: string[]
   skills_required: string[]
   fte_range: string | null
   priority_per_archetype: Record<string, string> | null

@@ -127,9 +127,12 @@ interface RasicMatrixCardProps {
   readOnly?: boolean
   onUpdate: (rasic: RasicMatrix) => void
   componentOwners?: Record<string, string>
+  preview?: RasicMatrix | null
+  onPreviewConfirm?: () => void
+  onPreviewCancel?: () => void
 }
 
-export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOwners }: RasicMatrixCardProps) {
+export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOwners, preview, onPreviewConfirm, onPreviewCancel }: RasicMatrixCardProps) {
   const t = useTranslations('modules')
   const locale = useLocale()
 
@@ -158,13 +161,36 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
       <div>
         <h3 className="text-sm font-semibold text-slate-900">{t('architecture.rasicTitle')}</h3>
         <p className="text-xs text-slate-500 leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
-        {!readOnly && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
+        {!readOnly && !preview && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
       </div>
+      {/* Preview-Banner ÜBER der Tabelle — sofort sichtbar ohne Scrollen */}
+      {preview && onPreviewConfirm && onPreviewCancel && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-amber-800">{t('architecture.rasicPreviewTitle')}</p>
+          <p className="text-xs text-amber-700">{t('architecture.rasicPreviewDesc')}</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onPreviewConfirm}
+              className="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white rounded-lg hover:bg-amber-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              {t('architecture.rasicPreviewConfirm')}
+            </button>
+            <button
+              type="button"
+              onClick={onPreviewCancel}
+              className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+            >
+              {t('architecture.rasicPreviewCancel')}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto -mx-1">
         <table className="w-full text-xs border-collapse min-w-[480px]">
           <thead>
             <tr>
-              <th className="text-left py-2 px-3 text-slate-500 font-medium w-40">Rolle</th>
+              <th className="text-left py-2 px-3 text-slate-500 font-medium w-40">{t('architecture.rasicRoleColumn')}</th>
               {(rasic.phases as RasicPhase[]).map(phase => (
                 <th key={phase} className="text-center py-2 px-2 text-slate-500 font-medium whitespace-nowrap">
                   {phaseLabel[phase]}
@@ -181,22 +207,34 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
                 {(rasic.phases as RasicPhase[]).map(phase => {
                   const val = (entry.assignments[phase] ?? '') as RasicValue
                   const tooltip = val ? pick(RASIC_TOOLTIP[val], locale) : ''
+                  const previewEntry = preview?.entries.find(e => e.role === entry.role)
+                  const previewVal = previewEntry ? ((previewEntry.assignments[phase] ?? '') as RasicValue) : null
+                  const hasDiff = previewVal !== null && previewVal !== val
                   return (
                     <td key={phase} className="py-1.5 px-2 text-center">
-                      <button
-                        onClick={() => cycleValue(entry.role, phase)}
-                        disabled={readOnly}
-                        title={tooltip}
-                        aria-label={`${entry.role} ${phaseLabel[phase]}: ${val || '—'}`}
-                        className={cn(
-                          'w-8 h-8 rounded-lg border text-[11px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
-                          RASIC_CELL_STYLE[val] ?? RASIC_CELL_STYLE[''],
-                          !readOnly && 'hover:brightness-95 cursor-pointer',
-                          readOnly && 'cursor-default'
-                        )}
-                      >
-                        {val || '·'}
-                      </button>
+                      {hasDiff ? (
+                        <span className="inline-flex flex-col items-center gap-0.5">
+                          <span className="text-[10px] text-slate-400 line-through">{val || '·'}</span>
+                          <span className={cn('w-8 h-8 rounded-lg border text-[11px] inline-flex items-center justify-center ring-2 ring-amber-400', RASIC_CELL_STYLE[previewVal] ?? RASIC_CELL_STYLE[''])}>
+                            {previewVal || '·'}
+                          </span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => cycleValue(entry.role, phase)}
+                          disabled={readOnly || !!preview}
+                          title={tooltip}
+                          aria-label={`${entry.role} ${phaseLabel[phase]}: ${val || '—'}`}
+                          className={cn(
+                            'w-8 h-8 rounded-lg border text-[11px] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
+                            RASIC_CELL_STYLE[val] ?? RASIC_CELL_STYLE[''],
+                            !readOnly && !preview && 'hover:brightness-95 cursor-pointer',
+                            (readOnly || !!preview) && 'cursor-default'
+                          )}
+                        >
+                          {val || '·'}
+                        </button>
+                      )}
                     </td>
                   )
                 })}

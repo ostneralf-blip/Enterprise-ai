@@ -5,6 +5,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { BfcacheGuard } from '@/components/shared/BfcacheGuard'
 import { MobileNavProvider } from '@/components/layout/MobileNavContext'
 import { PaperNoise } from '@/components/shared/PaperNoise'
+import { PostHogInit } from '@/components/shared/PostHogInit'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <MobileNavProvider>
+      <PostHogInit userId={user.id} email={user.email ?? undefined} tier={profile?.tier ?? undefined} />
       <PaperNoise />
       {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt */}
       <div className="flex h-[100dvh] bg-ivory">

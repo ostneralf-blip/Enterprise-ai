@@ -28,31 +28,34 @@ interface DbPolicyTemplate {
 }
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
-import type { RasicMatrix } from '@/types'
-import { RasicMatrixCard } from '@/app/[locale]/(dashboard)/architecture/RasicSection'
+import type { CatalogRole } from '@/types'
 
-type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras'
+type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras' | 'roles'
 
 // Tab labels are resolved at render time via useTranslations — see getTabLabel() below
-const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'extras']
+const TAB_IDS: Tab[] = ['summary', 'euaiact', 'dsgvo', 'matrix', 'roles', 'templates', 'extras']
 
 const CONTENT_REVIEWED_AT = '2026-06-25'
 const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
 
+type RoleCatalogItem = Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'description_en' | 'responsibilities' | 'responsibilities_en'>
+
 interface Props {
   initialChecks: CheckRow[]
   policyTemplates?: DbPolicyTemplate[]
-  archRasic?: RasicMatrix | null
+  rolesCatalog?: RoleCatalogItem[]
+  archUsedRoles?: Set<string>
+  archTitle?: string | null
 }
 
 function makeKey(regulation: string, checkType: string) {
   return `${regulation}::${checkType}`
 }
 
-export function CompliancePageClient({ initialChecks, policyTemplates = [], archRasic }: Props) {
+export function CompliancePageClient({ initialChecks, policyTemplates = [], rolesCatalog = [], archUsedRoles = new Set(), archTitle = null }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
-  const [tab, setTab] = useState<Tab>('euaiact')
+  const [tab, setTab] = useState<Tab>('summary')
 
   const getTabLabel = (id: Tab): string => {
     if (id === 'euaiact')   return 'EU AI Act'
@@ -60,6 +63,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
     if (id === 'matrix')    return t('compliance.tabRiskMatrix')
     if (id === 'summary')   return t('compliance.tabSummary')
     if (id === 'templates') return t('compliance.tabTemplates')
+    if (id === 'roles')     return t('compliance.tabRoles')
     return t('compliance.tabExtras')
   }
   const [checks, setChecks] = useState<Map<string, CheckRow>>(() => {
@@ -196,31 +200,47 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
         </span>
       </div>
 
-      {/* Tab bar */}
-      <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="flex gap-1 border-b border-slate-200 mb-6 overflow-x-auto">
-        {TAB_IDS.map(id => (
-          <button
-            key={id}
-            role="tab"
-            id={`tab-${id}`}
-            aria-selected={tab === id}
-            aria-controls={`panel-${id}`}
-            onClick={() => setTab(id)}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
-              tab === id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            )}
-          >
-            {getTabLabel(id)}
-            {id === 'summary' && allOpenItems.length > 0 && (
-              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
-                {allOpenItems.length}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Tab bar — Mobile: select, Desktop: button row */}
+      <div className="mb-6">
+        {/* Mobile select (< md) */}
+        <select
+          className="md:hidden w-full border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-ring"
+          value={tab}
+          onChange={e => setTab(e.target.value as Tab)}
+          aria-label={t('compliance.tablistAriaLabel')}
+        >
+          {TAB_IDS.map(id => (
+            <option key={id} value={id}>
+              {getTabLabel(id)}{id === 'summary' && allOpenItems.length > 0 ? ` (${allOpenItems.length})` : ''}
+            </option>
+          ))}
+        </select>
+        {/* Desktop tab list (≥ md) */}
+        <div role="tablist" aria-label={t('compliance.tablistAriaLabel')} className="hidden md:flex gap-1 border-b border-line">
+          {TAB_IDS.map(id => (
+            <button
+              key={id}
+              role="tab"
+              id={`tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`panel-${id}`}
+              onClick={() => setTab(id)}
+              className={cn(
+                'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring',
+                tab === id
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-ink-secondary hover:text-ink hover:border-line-strong'
+              )}
+            >
+              {getTabLabel(id)}
+              {id === 'summary' && allOpenItems.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                  {allOpenItems.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── EU AI ACT ── */}
@@ -523,6 +543,23 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
               <p className="text-xs font-medium text-emerald-800">{t('compliance.noOpenItems')}</p>
             </div>
           )}
+
+          {/* Regulatory Watchlist */}
+          <div className="border border-warning-border rounded-xl bg-warning-subtle p-4 sm:p-6 space-y-3 mt-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold text-warning-text">{t('compliance.watchlistTitle')}</span>
+              <span className="px-2 py-0.5 text-xs bg-warning-border text-warning-text border border-warning-border rounded-full">
+                {t('compliance.watchlistBadge')}
+              </span>
+              <span className="text-xs text-warning-text ml-auto">({REGULATORY_WATCHLIST.length})</span>
+            </div>
+            <p className="text-xs text-warning-text">{t('compliance.watchlistNote')}</p>
+            <div className="space-y-2">
+              {REGULATORY_WATCHLIST.map(item => (
+                <WatchlistCard key={item.id} item={item} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -680,30 +717,62 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], arch
         </div>
       )}
 
-      {/* Regulatorische Beobachtungsliste */}
-      <div className="border border-amber-200 rounded-xl bg-amber-50 p-4 sm:p-6 space-y-3 mt-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold text-amber-700">{t('compliance.watchlistTitle')}</span>
-          <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full">
-            {t('compliance.watchlistBadge')}
-          </span>
-          <span className="text-xs text-amber-600 ml-auto">({REGULATORY_WATCHLIST.length})</span>
-        </div>
-        <p className="text-xs text-amber-600">{t('compliance.watchlistNote')}</p>
-        <div className="space-y-2">
-          {REGULATORY_WATCHLIST.map(item => (
-            <WatchlistCard key={item.id} item={item} />
-          ))}
-        </div>
-      </div>
-
-      {/* RASIC aus Architektur */}
-      {archRasic && (
-        <div className="mt-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-3">
-            {t('compliance.rasicTitle')}
-          </h2>
-          <RasicMatrixCard rasic={archRasic} readOnly onUpdate={() => {}} />
+      {/* ── ROLLEN & VERANTWORTLICHKEITEN ── */}
+      {tab === 'roles' && (
+        <div role="tabpanel" id="panel-roles" aria-labelledby="tab-roles" className="space-y-4">
+          <HintBox variant="tip" className="mb-1">
+            {t('compliance.rolesDesc')}
+          </HintBox>
+          {rolesCatalog.length === 0 ? (
+            <p className="text-sm text-ink-muted">{t('compliance.rolesEmpty')}</p>
+          ) : (
+            <div className="space-y-3">
+              {archUsedRoles.size === 0 && (
+                <p className="text-xs text-ink-subtle italic">{t('compliance.rolesNoArch')}</p>
+              )}
+              {rolesCatalog.map(role => {
+                const used = archUsedRoles.has(role.role_name)
+                return (
+                  <div
+                    key={role.role_name}
+                    className={cn(
+                      'rounded-xl border p-4',
+                      used ? 'border-success-border bg-success-subtle' : 'border-line bg-surface'
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-sm font-semibold text-ink">{role.role_name}</span>
+                      {role.role_category && (
+                        <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded bg-surface-input text-ink-muted">
+                          {role.role_category}
+                        </span>
+                      )}
+                      {used && archTitle && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white whitespace-nowrap">
+                          {t('compliance.rolesUsedBadge', { title: archTitle })}
+                        </span>
+                      )}
+                    </div>
+                    {(locale === 'en' ? role.description_en : role.description) && (
+                      <p className="text-xs text-ink-secondary mb-2">
+                        {locale === 'en' ? role.description_en : role.description}
+                      </p>
+                    )}
+                    {((locale === 'en' ? role.responsibilities_en : role.responsibilities) ?? []).length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">{t('compliance.rolesResponsibilities')}</p>
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {(locale === 'en' ? role.responsibilities_en : role.responsibilities).map((r, i) => (
+                            <li key={i} className="text-xs text-ink-secondary">{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -86,16 +86,30 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [appSettingsSaving, setAppSettingsSaving] = useState(false)
   const [appSettingsLoaded, setAppSettingsLoaded] = useState(false)
   const [aiConfig, setAiConfig] = useState<{ hasAnthropicKey: boolean; hasBedrockKeys: boolean; bedrockRegion: string } | null>(null)
+  const [cacheStats, setCacheStats] = useState<{ active: number; expired: number; oldest: string | null; newest: string | null; estimatedBytes: number | null; hitRateToday: number | null; hitRate7d: number | null; topModules: { module: string; hits: number; misses: number; total: number }[] } | null>(null)
+  const [cachePurgeMsg, setCachePurgeMsg] = useState<string | null>(null)
 
   async function loadAppSettings() {
     if (appSettingsLoaded) return
-    const [data, cfg] = await Promise.all([
+    const [data, cfg, cache] = await Promise.all([
       fetch('/api/admin/settings').then(r => r.json()),
       fetch('/api/admin/ai-config').then(r => r.json()),
+      fetch('/api/admin/cache').then(r => r.json()),
     ])
     setAppSettings(data)
     setAiConfig(cfg)
+    setCacheStats(cache)
     setAppSettingsLoaded(true)
+  }
+
+  async function handleCachePurge() {
+    if (!window.confirm(t('cachePurgeConfirm'))) return
+    setCachePurgeMsg(null)
+    const res = await fetch('/api/admin/cache', { method: 'DELETE' }).then(r => r.json())
+    if (typeof res.deleted === 'number') {
+      setCachePurgeMsg(res.deleted > 0 ? t('cachePurgeSuccess', { count: res.deleted }) : t('cachePurgeNone'))
+      fetch('/api/admin/cache').then(r => r.json()).then(setCacheStats).catch(() => {})
+    }
   }
 
   async function saveAppSettings() {
@@ -897,9 +911,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         <p className="text-sm text-slate-500 mt-0.5">Interne Verwaltung</p>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b border-slate-200" role="tablist">
-        {([
+      {/* Tab bar — Mobile: select, Desktop: button row */}
+      {(() => {
+        const ADMIN_TABS: [Tab, string, number][] = [
           ['content', 'Content Library', entries.length],
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
@@ -908,24 +922,48 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['policy_templates', 'Policy Templates', policyTemplates.length],
           ['pricing', 'Preise & Aktionen', promotions.filter(p => p.is_active).length],
           ['app_settings', 'Einstellungen', 0],
-        ] as [Tab, string, number][]).map(([id, label, count]) => (
-          <button
-            key={id}
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => { setTab(id); if (id === 'synonyms') { void loadSynonyms(); void loadPromoQueue() } if (id === 'pricing') loadPricing(); if (id === 'app_settings') loadAppSettings() }}
-            className={cn(
-              'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
-              tab === id
-                ? 'border-primary text-primary-hover'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            )}
-          >
-            {label}
-            <span className="ml-1.5 text-xs text-slate-400">({count})</span>
-          </button>
-        ))}
-      </div>
+        ]
+        const handleTabClick = (id: Tab) => {
+          setTab(id)
+          if (id === 'synonyms') { void loadSynonyms(); void loadPromoQueue() }
+          if (id === 'pricing') loadPricing()
+          if (id === 'app_settings') loadAppSettings()
+        }
+        return (
+          <div className="mb-6">
+            {/* Mobile select (< md) */}
+            <select
+              className="md:hidden w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              value={tab}
+              onChange={e => handleTabClick(e.target.value as Tab)}
+            >
+              {ADMIN_TABS.map(([id, label, count]) => (
+                <option key={id} value={id}>{label}{count > 0 ? ` (${count})` : ''}</option>
+              ))}
+            </select>
+            {/* Desktop tab list (≥ md) */}
+            <div className="hidden md:flex gap-1 border-b border-slate-200" role="tablist">
+              {ADMIN_TABS.map(([id, label, count]) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={tab === id}
+                  onClick={() => handleTabClick(id)}
+                  className={cn(
+                    'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
+                    tab === id
+                      ? 'border-primary text-primary-hover'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  )}
+                >
+                  {label}
+                  <span className="ml-1.5 text-xs text-slate-400">({count})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ─── Content Library tab ─────────────────────────────────────────────── */}
       {tab === 'content' && (
@@ -1522,7 +1560,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             </div>
           ) : (
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-sm" aria-label={t('catalogTableAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -1683,7 +1721,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             {uploadLog.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-xs" aria-label={t('uploadLogAriaLabel')}>
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr>
@@ -2713,6 +2751,77 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-slate-900 mb-1">{t('cacheCardTitle')}</h2>
+                <p className="text-xs text-slate-500">{t('cacheCardDesc')}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCachePurge}
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap"
+              >
+                {t('cachePurgeBtn')}
+              </button>
+            </div>
+            {cachePurgeMsg && (
+              <p className="mb-3 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{cachePurgeMsg}</p>
+            )}
+            {!cacheStats ? (
+              <p className="text-xs text-slate-400">{t('cacheNoData')}</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {([
+                    ['cacheHitRateToday', cacheStats.hitRateToday !== null ? `${cacheStats.hitRateToday}%` : '—'],
+                    ['cacheHitRate7d',    cacheStats.hitRate7d    !== null ? `${cacheStats.hitRate7d}%`    : '—'],
+                    ['cacheActiveEntries',  String(cacheStats.active)],
+                    ['cacheExpiredEntries', String(cacheStats.expired)],
+                  ] as const).map(([key, val]) => (
+                    <div key={key} className="bg-slate-50 rounded-lg p-3 text-center">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">{t(key)}</p>
+                      <p className="text-xl font-bold text-slate-900">{val}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheEstimatedSize')}:</span>
+                    <span className="font-medium">{cacheStats.estimatedBytes !== null ? `${(cacheStats.estimatedBytes / 1024).toFixed(1)} KB` : '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheOldestEntry')}:</span>
+                    <span className="font-medium">{cacheStats.oldest ? new Date(cacheStats.oldest).toLocaleDateString('de-DE') : '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{t('cacheNewestEntry')}:</span>
+                    <span className="font-medium">{cacheStats.newest ? new Date(cacheStats.newest).toLocaleDateString('de-DE') : '—'}</span>
+                  </div>
+                </div>
+                {cacheStats.topModules.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">{t('cacheTopModules')}</p>
+                    <div className="space-y-1">
+                      {cacheStats.topModules.map(m => (
+                        <div key={m.module} className="flex items-center gap-2 text-xs">
+                          <span className="w-24 font-medium text-slate-700 capitalize">{m.module}</span>
+                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-400 rounded-full"
+                              style={{ width: `${m.total > 0 ? Math.round((m.hits / m.total) * 100) : 0}%` }}
+                            />
+                          </div>
+                          <span className="text-slate-500 w-16 text-right">{m.hits}H / {m.misses}M</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

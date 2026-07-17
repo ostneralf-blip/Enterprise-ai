@@ -6,7 +6,7 @@ import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
-import type { Tier, RasicMatrix } from '@/types'
+import type { Tier } from '@/types'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Governance-Check' }
@@ -44,16 +44,6 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
       .eq('user_id', user.id)
       .maybeSingle() as unknown as Promise<{ data: { primary_compliance_id: string | null } | null }>,
   ])
-
-  const { data: latestArch } = await supabase
-    .from('architectures')
-    .select('result')
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const archRasic = ((latestArch?.result as Record<string, unknown> | null)?.rasic ?? null) as RasicMatrix | null
 
   let complianceRiskNotes = latestCompliance?.notes ?? null
   if (prefs?.primary_compliance_id) {
@@ -104,7 +94,6 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
         initialUseCaseName={initialUseCaseName}
         initialUseCaseId={initialUseCaseId}
         complianceRisk={complianceRiskNotes}
-        archRasic={archRasic}
       />
     </div>
   )

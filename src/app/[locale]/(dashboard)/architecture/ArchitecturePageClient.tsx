@@ -11,7 +11,10 @@ import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scal
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
+import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
+import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft-store'
+import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import type { Archetype, CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
@@ -352,9 +355,9 @@ function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
 }
 
 function NarrativeCard({
-  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error, loading,
+  narrative, aiModel, generatedAt, audience, tier, savedId, onAnalyze, usage, error, loading, currentHash,
 }: {
-  narrative: { summary?: string } | null
+  narrative: { summary?: string; based_on_hash?: string | null } | null
   aiModel: string | null
   generatedAt: string | null
   audience: ResultAudience
@@ -364,6 +367,7 @@ function NarrativeCard({
   usage: { remaining: number; used: number; limit: number; exceeded: boolean } | null
   error: string | null
   loading?: boolean
+  currentHash: string
 }) {
   const t = useTranslations('modules')
   const audienceLabel: Record<ResultAudience, string> = {
@@ -372,6 +376,10 @@ function NarrativeCard({
     compliance: t('architecture.viewCompliance'),
   }
   const hasSummary = !!narrative?.summary
+  const savedHash = narrative?.based_on_hash ?? null
+  const isStale = hasSummary && savedHash !== null && savedHash !== currentHash
+  const isUnknownBasis = hasSummary && savedHash === null
+
   return (
     <div className="border-l-[3px] border-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] rounded-r-2xl p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2 mb-2">
@@ -386,9 +394,23 @@ function NarrativeCard({
               )}>
                 {loading ? t('architecture.narrativeLoading') : t('architecture.narrativeGeneratedChip')}
               </span>
-              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
+              <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color:var(--color-ai-soft)] border border-purple-200 text-[color:var(--color-ai)] whitespace-nowrap">
                 {audienceLabel[audience]}
               </span>
+              {isStale && (
+                <button
+                  type="button"
+                  onClick={() => void onAnalyze()}
+                  className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-700 whitespace-nowrap hover:bg-amber-200 transition-colors focus:outline-none focus:ring-1 focus:ring-amber-400"
+                >
+                  ⟳ {t('architecture.narrativeStale')}
+                </button>
+              )}
+              {isUnknownBasis && !isStale && (
+                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 whitespace-nowrap">
+                  {t('architecture.narrativeUnknownBasis')}
+                </span>
+              )}
             </>
           )}
         </div>
@@ -585,19 +607,33 @@ const RASIC_ROLE_DEFAULTS: Record<string, Partial<Record<RasicPhase, RasicValue>
   'Chief Data Officer (CDO)':  { konzeption: 'A', daten: 'A', build: 'I', freigabe: 'A', betrieb: 'A' },
 }
 
-function autoFillRasic(rasic: RasicMatrix): RasicMatrix {
-  const newEntries = rasic.entries.map(entry => {
+// #208: Vollständige Zielbelegung aus Defaults — überschreibt bestehende Werte,
+// erzwingt genau ein A pro Phase (erste Zeile mit A-Default gewinnt, Rest → S).
+function computeRasicTarget(rasic: RasicMatrix): RasicMatrix {
+  const proposed = rasic.entries.map(entry => {
     const defaults = RASIC_ROLE_DEFAULTS[entry.role]
     if (!defaults) return entry
+    const assignments: Record<string, RasicValue> = {}
+    for (const phase of rasic.phases as RasicPhase[]) {
+      assignments[phase] = (defaults[phase] as RasicValue | undefined) ?? (entry.assignments[phase] ?? '' as RasicValue)
+    }
+    return { ...entry, assignments }
+  })
+  const aClaimedByPhase = new Set<string>()
+  const resolved = proposed.map(entry => {
     const assignments = { ...entry.assignments }
     for (const phase of rasic.phases as RasicPhase[]) {
-      if (!assignments[phase] && defaults[phase]) {
-        assignments[phase] = defaults[phase] as RasicValue
+      if (assignments[phase] === 'A') {
+        if (aClaimedByPhase.has(phase)) {
+          assignments[phase] = 'S'
+        } else {
+          aClaimedByPhase.add(phase)
+        }
       }
     }
     return { ...entry, assignments }
   })
-  return { ...rasic, entries: newEntries }
+  return { ...rasic, entries: resolved }
 }
 
 function SortableSection({ id, children }: { id: string; children: React.ReactNode }) {
@@ -663,13 +699,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [showAllDecisions, setShowAllDecisions] = useState(false)
   const [showAllSteps, setShowAllSteps] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  type NarrativeEntry = { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string }
+  type NarrativeEntry = { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[]; decision_recommendation?: string; based_on_hash?: string | null }
   const [aiNarrativeByAudience, setAiNarrativeByAudience] = useState<Partial<Record<ResultAudience, NarrativeEntry>>>({})
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null)
   const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
   const [aiModel, setAiModel] = useState<string | null>(null)
+  const [archDraftBanner, setArchDraftBanner] = useState<{ age: string; data: Partial<Record<ResultAudience, NarrativeEntry>> } | null>(null)
   const [narrativeLoading, setNarrativeLoading] = useState(false)
   const [validationOverrides, setValidationOverrides] = useState<Record<string, ValidationOverride>>({})
   const [catalogRecs, setCatalogRecs] = useState<CatalogRecommendations | null>(null)
@@ -681,8 +718,26 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
   const aiNarrative = aiNarrativeByAudience[resultAudience] ?? null
+  // #209: aktueller Hash aus selektierten Komponenten + Kontext-Signalen
+  const currentHash = useMemo(() => {
+    const phStats = getSelectionStats({
+      activeComponentNames,
+      fallbackNames: catalogRecs?.layers.flatMap(lr => lr.componentNames),
+      components: recComponents,
+    })
+    return contextHash(buildAnalysisContext({
+      components: phStats.activeComponents.map(c => c.name),
+      compliance: answers.compliance,
+      archetype: assessmentContext?.archetype,
+      canvasQuadrant: canvasContext?.useCase?.quadrant,
+      governanceResult: governanceContext?.result,
+      roadmapPhases: roadmapContext?.phasesCount,
+    }))
+  }, [activeComponentNames, catalogRecs, recComponents, answers.compliance, assessmentContext, canvasContext, governanceContext, roadmapContext])
   const [resultLevel, setResultLevel] = useState<1 | 2 | 3>(1)
   const [rasic, setRasic] = useState<RasicMatrix | null>(null)
+  const [rasicPreview, setRasicPreview] = useState<RasicMatrix | null>(null)
+  const [rasicSuggestNoop, setRasicSuggestNoop] = useState(false)
   const [presentationTemplate, setPresentationTemplate] = useState<'book' | 'board' | 'blueprint'>('book')
   const [aiAccepted, setAiAccepted] = useState<string[]>([])
   const [componentOwners, setComponentOwners] = useState<Record<string, string>>({})
@@ -844,6 +899,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setShowCanvasBanner(false)
     setSelectedCanvasIds([])
     setRasic(null)
+    setRasicPreview(null)
     setAiModel(null)
     // Canvas-Scope-Schritt zeigen (wird übersprungen wenn keine Canvases vorhanden)
     setView('canvas-scope')
@@ -889,6 +945,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setNarrativeLocale(arch.narrative_locale ?? null)
     setAiUsageArch(null)
     setAiModel(null)
+    // Draft-Prüfung: falls Server-Narrative leer, Draft aus localStorage anbieten
+    const draft = loadDraft('architecture', arch.id)
+    if (draft && !rawNarrative) {
+      setArchDraftBanner({ age: formatDraftAge(draft.savedAt), data: draft.result as Partial<Record<ResultAudience, NarrativeEntry>> })
+    } else {
+      setArchDraftBanner(null)
+    }
     setView('result')
     const saved = arch.result as unknown as { componentOwners?: Record<string, string>; componentOpsNotes?: Record<string, string>; selectedComponents?: string[] }
     // #182 Lazy-Migration: fehlt rasic im Alt-Datensatz, wird er in applyRecs
@@ -921,8 +984,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         canvas_quadrant: canvasContext?.useCase?.quadrant ?? undefined,
         governance_result: governanceContext?.result ?? undefined,
         roadmap_phases: roadmapContext?.phasesCount ?? 0,
+        assessment_score_pct: assessmentContext?.total_score != null
+          ? Math.round((assessmentContext.total_score / 5) * 100)
+          : undefined,
         locale,
         audience: audienceOverride ?? resultAudience,
+        context_hash: currentHash,
       }),
     })
     const json = await res.json() as {
@@ -935,7 +1002,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
     if (json.result) {
       const aud = audienceOverride ?? resultAudience
-      setAiNarrativeByAudience(prev => ({ ...prev, [aud]: json.result }))
+      setAiNarrativeByAudience(prev => {
+        const next = { ...prev, [aud]: json.result }
+        if (savedId) saveDraft('architecture', savedId, next, { model: json.ai_model })
+        return next
+      })
       setAiGeneratedAt(new Date().toISOString())
       setNarrativeLocale(locale)
       setAiAccepted([])
@@ -961,6 +1032,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         setArchitectures(prev => [data, ...prev])
         setSaved(true)
         setSavedId(data.id)
+        clearDraft('architecture', data.id)
+        setArchDraftBanner(null)
       }
     } finally {
       setSaving(false)
@@ -1135,8 +1208,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const kpAiStp = aiNarrative?.next_steps ?? []
     const kpSeenDe = new Set([...kpAiDec, ...kpCrossDecisions, ...kpDecisions].map(d => d.de))
     const kpSeenStepDe = new Set([...kpAiStp, ...kpCrossSteps, ...kpSteps].map(s => s.de))
-    const allKeyDecisions = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
-    const allNextSteps = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+    // #204: Max 7 Einträge je Liste (AI > Cross-Module > Deterministisch); Überschuss via "Alle anzeigen" erreichbar
+    const MAX_ITEMS = 7
+    const allKeyDecisionsFull = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
+    const allNextStepsFull = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+    const allKeyDecisions = allKeyDecisionsFull.slice(0, Math.max(MAX_ITEMS, kpAiDec.length))
+    const allNextSteps = allNextStepsFull.slice(0, Math.max(MAX_ITEMS, kpAiStp.length))
 
     return (
       <div
@@ -1175,6 +1252,22 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           canvasTitle={canvasContext?.canvas.title}
         />
 
+        {/* Draft-Wiederherstellungs-Banner */}
+        {archDraftBanner && (
+          <AiDraftBanner
+            age={archDraftBanner.age}
+            onKeep={() => {
+              setAiNarrativeByAudience(archDraftBanner.data)
+              setArchDraftBanner(null)
+            }}
+            onDiscard={() => {
+              if (savedId) clearDraft('architecture', savedId)
+              setArchDraftBanner(null)
+            }}
+            className="mb-4"
+          />
+        )}
+
         {/* KI-Einordnung Narrativ-Karte */}
         <NarrativeCard
           narrative={aiNarrative}
@@ -1187,6 +1280,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           usage={aiUsageArch}
           error={aiNarrativeError}
           loading={narrativeLoading}
+          currentHash={currentHash}
         />
 
         {/* Exec: KPI-Kennzahlenstreifen */}
@@ -1433,25 +1527,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   )
                 }
                 if (sectionId === 'rasic') {
-                  const hasOpenRasicViolations = eamResults.some(r =>
-                    (r.ruleId === 'r1' || r.ruleId === 'r2') && !r.passed && !validationOverrides[r.ruleId]
-                  )
                   return resultAudience !== 'exec' ? (
                     <SortableSection key="rasic" id="rasic">
                       <div className="space-y-4">
-                        {/* EAM-Validierungsbanner — nur bei offenen Regelverstößen */}
-                        {hasOpenRasicViolations && (
-                          <EamValidationBanner
-                            results={eamResults.filter(r => r.ruleId === 'r1' || r.ruleId === 'r2')}
-                            overrides={validationOverrides}
-                            onOverride={(ruleId, override) => {
-                              setValidationOverrides(prev => {
-                                if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
-                                return { ...prev, [ruleId]: override }
-                              })
-                            }}
-                          />
-                        )}
+                        {/* EAM-Validierungsbanner — immer sichtbar (#202: war bisher nur bei Verletzungen) */}
+                        <EamValidationBanner
+                          results={eamResults.filter(r => r.ruleId === 'r1' || r.ruleId === 'r2')}
+                          overrides={validationOverrides}
+                          onOverride={(ruleId, override) => {
+                            setValidationOverrides(prev => {
+                              if (!override) { const { [ruleId]: _, ...rest } = prev; return rest }
+                              return { ...prev, [ruleId]: override }
+                            })
+                          }}
+                        />
 
                         {/* RASIC-Matrix */}
                         {rasic ? (
@@ -1462,23 +1551,53 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               onUpdate={updated => {
                                 setRasic(updated)
                                 setResult(prev => prev ? { ...prev, rasic: updated } : prev)
+                                setRasicSuggestNoop(false)
                                 ;(window as Window & { posthog?: { capture: (e: string) => void } }).posthog?.capture('rasic_edited')
                               }}
                               componentOwners={componentOwners}
+                              preview={rasicPreview}
+                              onPreviewConfirm={() => {
+                                if (!rasicPreview) return
+                                setRasic(rasicPreview)
+                                setResult(prev => prev ? { ...prev, rasic: rasicPreview } : prev)
+                                setRasicPreview(null)
+                                setRasicSuggestNoop(false)
+                                ;(window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('rasic_edited', { source: 'ai_suggestion' })
+                              }}
+                              onPreviewCancel={() => {
+                                setRasicPreview(null)
+                                setRasicSuggestNoop(false)
+                              }}
                             />
                             {resultAudience !== 'compliance' && (
                               <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const filled = autoFillRasic(rasic)
-                                    setRasic(filled)
-                                    setResult(prev => prev ? { ...prev, rasic: filled } : prev)
-                                  }}
-                                  className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
-                                >
-                                  {t('architecture.rasicSuggestButton')}
-                                </button>
+                                {!rasicPreview && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRasicSuggestNoop(false)
+                                      const target = computeRasicTarget(rasic)
+                                      const hasDiff = target.entries.some(te =>
+                                        (rasic.phases as RasicPhase[]).some(ph =>
+                                          te.assignments[ph] !== rasic.entries.find(e => e.role === te.role)?.assignments[ph]
+                                        )
+                                      )
+                                      if (hasDiff) {
+                                        setRasicPreview(target)
+                                      } else {
+                                        setRasicSuggestNoop(true)
+                                      }
+                                    }}
+                                    className="px-3 py-1.5 text-xs font-semibold border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 whitespace-nowrap"
+                                  >
+                                    {t('architecture.rasicSuggestButton')}
+                                  </button>
+                                )}
+                                {rasicSuggestNoop && !rasicPreview && (
+                                  <p className="text-xs text-emerald-600 font-medium">
+                                    {t('architecture.rasicNoChanges')}
+                                  </p>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => void handleSave()}

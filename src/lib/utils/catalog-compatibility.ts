@@ -1,5 +1,13 @@
 import type { CatalogComponent } from '@/types'
 
+// Sofort-Fallback wenn DB-Katalog noch nicht re-geseeded wurde (#199).
+// Sobald alle Komponenten capability-Felder aus der DB haben, greift der dynamische Pfad.
+const KNOWN_CAPABILITY_GROUPS: Record<string, string[]> = {
+  api_gateway:   ['AWS API Gateway', 'Azure API Management', 'Kong Gateway'],
+  primary_idp:   ['SAP BTP Auth & Trust', 'Microsoft Entra ID', 'Keycloak'],
+  data_catalog:  ['Microsoft Purview', 'OpenMetadata', 'AWS DataZone'],
+}
+
 export interface Conflict {
   a: string
   b: string
@@ -46,14 +54,26 @@ export function findConflicts(
     }
   }
 
-  // Capability-based conflicts: ≥2 active components with same exclusive capability
+  // Capability-based conflicts: ≥2 active components with same exclusive capability.
+  // Primär: capability-Feld aus der DB. Fallback: KNOWN_CAPABILITY_GROUPS (#199).
   const byCapability = new Map<string, string[]>()
   for (const name of checkedList) {
-    const cap = byName[name]?.capability
-    if (!cap) continue
-    const group = byCapability.get(cap) ?? []
-    group.push(name)
-    byCapability.set(cap, group)
+    const dbCap = byName[name]?.capability
+    if (dbCap) {
+      const group = byCapability.get(dbCap) ?? []
+      group.push(name)
+      byCapability.set(dbCap, group)
+    }
+  }
+  // Fallback: statische Gruppen für Komponenten ohne DB-Capability
+  for (const [cap, members] of Object.entries(KNOWN_CAPABILITY_GROUPS)) {
+    const activeMembers = checkedList.filter(
+      n => members.includes(n) && !byName[n]?.capability
+    )
+    if (activeMembers.length > 0) {
+      const existing = byCapability.get(cap) ?? []
+      byCapability.set(cap, [...existing, ...activeMembers])
+    }
   }
   for (const [, names] of byCapability) {
     if (names.length < 2) continue

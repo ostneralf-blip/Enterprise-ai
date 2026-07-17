@@ -67,30 +67,30 @@ function SortableTile({ tile }: { tile: TileData }) {
 
   const Icon = MODULE_ICONS[tile.id] ?? FileText
 
-  const chipBg   = tile.locked ? 'bg-slate-100'   : tile.done ? 'bg-emerald-50'    : tile.isNext ? 'bg-primary'  : 'bg-primary-soft'
-  const chipIcon = tile.locked ? 'text-slate-400' : tile.done ? 'text-emerald-700' : tile.isNext ? 'text-white'  : 'text-primary'
+  const chipBg   = tile.locked ? 'bg-surface-input'  : tile.done ? 'bg-success-subtle'  : tile.isNext ? 'bg-primary'  : 'bg-primary-soft'
+  const chipIcon = tile.locked ? 'text-ink-subtle'   : tile.done ? 'text-success-text'  : tile.isNext ? 'text-white'  : 'text-primary'
 
   const statusText  = tile.locked ? '🔒 Pro'
     : tile.done   ? t('tileDone')
     : tile.isNext ? t('tileNext')
     : t('tileStart')
-  const statusColor = tile.locked ? 'text-slate-400' : tile.done ? 'text-emerald-700' : 'text-primary'
+  const statusColor = tile.locked ? 'text-ink-subtle' : tile.done ? 'text-success-text' : 'text-primary'
 
   return (
     <div ref={setNodeRef} style={style} className="group/tile">
-      <div className={`relative bg-white rounded-xl p-4 border transition-[border-color,box-shadow,opacity,transform] duration-150 ${
+      <div className={`relative bg-surface rounded-xl p-4 border transition-[border-color,box-shadow,opacity,transform] duration-150 ${
         isDragging
           ? 'shadow-lg scale-[1.02] border-dashed border-primary-border opacity-70'
-          : tile.locked ? 'opacity-60 border-slate-200'
-          : tile.done   ? 'border-emerald-200 hover:border-emerald-300 hover:shadow-sm'
-          : 'border-slate-200 hover:border-primary-border hover:shadow-sm'
+          : tile.locked ? 'opacity-60 border-line'
+          : tile.done   ? 'border-success-border hover:border-emerald-300 hover:shadow-sm'
+          : 'border-line hover:border-primary-border hover:shadow-sm'
       }`}>
         {/* Drag-Handle — 36px Touch-Target, always present, brighten on hover */}
         <button
           ref={setActivatorNodeRef}
           {...listeners}
           {...attributes}
-          className="absolute top-1.5 right-1.5 w-9 h-9 z-10 flex items-center justify-center text-slate-200 hover:text-slate-400 rounded-md touch-none cursor-grab active:cursor-grabbing opacity-40 group-hover/tile:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+          className="absolute top-1.5 right-1.5 w-9 h-9 z-10 flex items-center justify-center text-line hover:text-ink-subtle rounded-md touch-none cursor-grab active:cursor-grabbing opacity-40 group-hover/tile:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
           aria-label={t('tileDragAria', { title: tile.title })}
           onClick={e => e.preventDefault()}
         >
@@ -108,8 +108,8 @@ function SortableTile({ tile }: { tile: TileData }) {
             <Icon size={16} className={chipIcon} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[12.5px] font-semibold text-slate-900 truncate leading-snug">{tile.title}</div>
-            <div className="text-[9.5px] text-slate-400 mt-0.5 truncate">{tile.subtitle}</div>
+            <div className="text-[12.5px] font-semibold text-ink truncate leading-snug">{tile.title}</div>
+            <div className="text-[9.5px] text-ink-subtle mt-0.5 truncate">{tile.subtitle}</div>
             <div className={`text-[9.5px] font-semibold mt-1 ${statusColor}`}>{statusText}</div>
           </div>
         </Link>
@@ -196,7 +196,7 @@ export function SortableTileGrid({ tiles: defaultTiles }: SortableTileGridProps)
         <div className="mt-3 text-center">
           <button
             onClick={handleReset}
-            className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-2"
+            className="text-[10px] text-ink-subtle hover:text-ink-secondary transition-colors underline underline-offset-2"
           >
             {t('tileResetOrder')}
           </button>

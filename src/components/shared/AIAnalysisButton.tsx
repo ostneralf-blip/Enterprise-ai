@@ -33,7 +33,7 @@ export function AIAnalysisButton({ tier, onAnalyze, usage, className, size = 'md
 
   if (!isPro) {
     return (
-      <div className={cn('flex items-center gap-1.5 text-xs text-slate-400', className)}>
+      <div className={cn('flex items-center gap-1.5 text-xs text-ink-subtle', className)}>
         {SPARKLE}
         <span>{t('proRequired')}</span>
       </div>
@@ -59,7 +59,7 @@ export function AIAnalysisButton({ tier, onAnalyze, usage, className, size = 'md
           'flex items-center gap-1.5 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1',
           size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-xs sm:text-sm',
           exceeded || loading
-            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            ? 'bg-surface-input text-ink-subtle cursor-not-allowed'
             : 'bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100',
         )}
       >
@@ -67,7 +67,7 @@ export function AIAnalysisButton({ tier, onAnalyze, usage, className, size = 'md
         {loading ? t('analyzing') : t('analyzeButton')}
       </button>
       {usage && (
-        <p className={cn('text-[11px]', exceeded ? 'text-amber-600' : 'text-slate-400')}>
+        <p className={cn('text-[11px]', exceeded ? 'text-warning-text' : 'text-ink-subtle')}>
           {exceeded
             ? t('usageExceeded', { used: usage.used, limit: usage.limit })
             : t('usageRemaining', { remaining: usage.remaining, limit: usage.limit })}

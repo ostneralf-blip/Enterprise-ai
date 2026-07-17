@@ -51,6 +51,7 @@ export interface LLMMeta {
   modelId: string
   latencyMs: number
   region: string
+  promptCachedTokens?: number
 }
 
 export interface LLMResult<T> {
@@ -64,10 +65,14 @@ interface CallLLMOptions {
   maxTokens?: number
   systemPrompt?: string
   timeoutMs?: number
+  module?: string
+  // Wenn gesetzt: wird als cache_control-Block in Anthropic-Direct-Calls markiert (#210)
+  // Für Bedrock: wird als normales Präfix vorangestellt
+  cacheControlPrefix?: string
 }
 
-function hashPrompt(prompt: string, model: string): string {
-  return createHash('sha256').update(`${model}:${prompt}`).digest('hex').slice(0, 32)
+function hashPrompt(prompt: string, model: string, prefix?: string): string {
+  return createHash('sha256').update(`${model}:${prefix ?? ''}:${prompt}`).digest('hex').slice(0, 32)
 }
 
 function classifyBedrockError(err: unknown): string {
@@ -89,9 +94,16 @@ export async function callLLM<T>(
   const maxTokens = opts.maxTokens ?? 1024
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
   const t0        = Date.now()
+  const module    = opts.module ?? 'unknown'
 
-  // Cache-Check
-  const cacheKey = hashPrompt(userPrompt + (opts.systemPrompt ?? ''), modelId)
+  function trackCacheStats(hit: boolean) {
+    createAdminClient().then(async sb => {
+      await sb.rpc('increment_cache_stat', { p_module: module, p_hit: hit })
+    }).catch(() => {})
+  }
+
+  // Cache-Check — cacheControlPrefix fließt in den Key ein (#210)
+  const cacheKey = hashPrompt(userPrompt + (opts.systemPrompt ?? ''), modelId, opts.cacheControlPrefix)
   try {
     const supabase = await createAdminClient()
     const { data: cached } = await supabase
@@ -103,16 +115,21 @@ export async function callLLM<T>(
     if (cached?.response) {
       const parsed = schema.safeParse(cached.response)
       if (parsed.success) {
+        trackCacheStats(true)
         return { data: parsed.data, meta: { provider: 'cache', modelId, latencyMs: Date.now() - t0, region: REGION } }
       }
     }
   } catch { /* Cache-Fehler sind nicht blockierend */ }
 
+  // Für Bedrock: cacheControlPrefix als normales Präfix voranstellen
+  const bedrockUserContent = opts.cacheControlPrefix
+    ? `${opts.cacheControlPrefix}\n\n${userPrompt}`
+    : userPrompt
   const body = JSON.stringify({
     anthropic_version: 'bedrock-2023-05-31',
     max_tokens: maxTokens,
     system: opts.systemPrompt ?? 'You are a precise JSON-only API. Respond ONLY with valid JSON matching the requested schema. No explanation, no markdown, no additional text.',
-    messages: [{ role: 'user', content: userPrompt }],
+    messages: [{ role: 'user', content: bedrockUserContent }],
   })
 
   const noData = (provider: LLMMeta['provider'], errorCode?: string): LLMResult<T> =>
@@ -151,7 +168,7 @@ export async function callLLM<T>(
     const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
     if (!parsed.success) return noData('bedrock')
 
-    // Cache 24h schreiben (fire-and-forget)
+    // Cache 24h schreiben + Miss verfolgen (fire-and-forget)
     createAdminClient().then(async sb => {
       const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
       await sb.from('ai_prompt_cache').upsert(
@@ -159,6 +176,7 @@ export async function callLLM<T>(
         { onConflict: 'cache_key' }
       )
     }).catch(() => {})
+    trackCacheStats(false)
 
     return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
   } catch (err) {
@@ -198,18 +216,27 @@ export async function callLLM<T>(
   // Direct-Fallback (Anthropic API, non-EU — nur bei aktivem Admin-Toggle/env-Flag, #177)
   try {
     const directModel = await getDirectFallbackModelId(model)
+    // Wenn cacheControlPrefix gesetzt: stabiles Präfix als cache_control-Block markieren (#210)
+    const directMessages = opts.cacheControlPrefix
+      ? [{ role: 'user', content: [
+          { type: 'text', text: opts.cacheControlPrefix, cache_control: { type: 'ephemeral' } },
+          { type: 'text', text: userPrompt },
+        ]}]
+      : [{ role: 'user', content: userPrompt }]
+    const directHeaders: Record<string, string> = {
+      'x-api-key':         process.env.ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+      'content-type':      'application/json',
+    }
+    if (opts.cacheControlPrefix) directHeaders['anthropic-beta'] = 'prompt-caching-2024-07-31'
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'x-api-key':         process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
+      headers: directHeaders,
       body: JSON.stringify({
         model: directModel, max_tokens: maxTokens,
         system: opts.systemPrompt ?? 'You are a precise JSON-only API. Respond ONLY with valid JSON.',
-        messages: [{ role: 'user', content: userPrompt }],
+        messages: directMessages,
       }),
       signal: AbortSignal.timeout(DIRECT_TIMEOUT),
     })
@@ -220,6 +247,7 @@ export async function callLLM<T>(
     }
     const json     = await res.json()
     const content  = json?.content?.[0]?.text ?? ''
+    const promptCachedTokens = (json?.usage?.cache_read_input_tokens as number | undefined) ?? 0
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       console.error('[ai/client] Anthropic: kein JSON in Antwort gefunden', content.slice(0, 200))
@@ -230,8 +258,8 @@ export async function callLLM<T>(
       console.error('[ai/client] Anthropic: Zod-Parse fehlgeschlagen', parsed.error.issues)
       return noData('direct', 'ZOD_PARSE')
     }
-    console.info('[ai/client] Anthropic-Fallback erfolgreich', { model: directModel, ms: Date.now() - t0 })
-    return { data: parsed.data, meta: { provider: 'direct', modelId: directModel, latencyMs: Date.now() - t0, region: 'us' } }
+    console.info('[ai/client] Anthropic-Fallback erfolgreich', { model: directModel, ms: Date.now() - t0, promptCachedTokens })
+    return { data: parsed.data, meta: { provider: 'direct', modelId: directModel, latencyMs: Date.now() - t0, region: 'us', promptCachedTokens } }
   } catch (err) {
     console.error('[ai/client] Anthropic-Fallback Exception:', err)
     return noData('direct', 'EXCEPTION')

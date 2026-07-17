@@ -38,13 +38,13 @@ const TIER_LABELS: Record<Tier, string> = {
 }
 
 const TIER_COLORS: Record<Tier, string> = {
-  free: 'bg-slate-100 text-slate-600',
+  free: 'bg-surface-input text-ink-secondary',
   pro: 'bg-primary-soft text-primary-hover',
   enterprise: 'bg-violet-100 text-violet-700',
 }
 
-const inputClass = 'w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring disabled:bg-slate-50 disabled:text-slate-400'
-const labelClass = 'block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5'
+const inputClass = 'w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring disabled:bg-surface-raised disabled:text-ink-subtle'
+const labelClass = 'block text-xs font-medium text-ink-muted uppercase tracking-wide mb-1.5'
 
 export function SettingsPageClient({ profile, email }: Props) {
   const t = useTranslations('settings')
@@ -189,8 +189,8 @@ export function SettingsPageClient({ profile, email }: Props) {
     <div className="max-w-xl space-y-6">
 
       {/* Profil */}
-      <section aria-labelledby="profile-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="profile-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('profileSection')}</h2>
+      <section aria-labelledby="profile-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h2 id="profile-heading" className="text-base sm:text-lg font-semibold text-ink mb-5">{t('profileSection')}</h2>
         <form onSubmit={handleSave} noValidate className="space-y-4">
           <div>
             <label htmlFor="full-name" className={labelClass}>Name *</label>
@@ -307,7 +307,7 @@ export function SettingsPageClient({ profile, email }: Props) {
           </div>
 
           {error && (
-            <p role="alert" className="text-sm text-red-600">{error}</p>
+            <p role="alert" className="text-sm text-error-text">{error}</p>
           )}
 
           <div className="flex items-center gap-3 pt-1">
@@ -322,19 +322,19 @@ export function SettingsPageClient({ profile, email }: Props) {
               {saving ? t('saving') : t('saveButton')}
             </button>
             {saved && (
-              <span role="status" className="text-sm text-emerald-600 font-medium">{t('savedStatus')}</span>
+              <span role="status" className="text-sm text-success-text font-medium">{t('savedStatus')}</span>
             )}
           </div>
         </form>
       </section>
 
       {/* Konto */}
-      <section aria-labelledby="account-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="account-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('accountSection')}</h2>
+      <section aria-labelledby="account-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h2 id="account-heading" className="text-base sm:text-lg font-semibold text-ink mb-5">{t('accountSection')}</h2>
         <dl className="space-y-4">
           <div>
             <dt className={labelClass}>{t('emailLabel')}</dt>
-            <dd className="text-sm text-slate-700 min-w-0 truncate">{email}</dd>
+            <dd className="text-sm text-ink-secondary min-w-0 truncate">{email}</dd>
           </div>
           <div>
             <dt className={labelClass}>{t('tierLabel')}</dt>
@@ -348,8 +348,8 @@ export function SettingsPageClient({ profile, email }: Props) {
       </section>
 
       {/* Sicherheit */}
-      <section aria-labelledby="security-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="security-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-5">{t('securitySection')}</h2>
+      <section aria-labelledby="security-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h2 id="security-heading" className="text-base sm:text-lg font-semibold text-ink mb-5">{t('securitySection')}</h2>
         <div className="space-y-4">
           <div>
             <label htmlFor="new-password" className={labelClass}>{t('newPasswordLabel')}</label>
@@ -364,7 +364,7 @@ export function SettingsPageClient({ profile, email }: Props) {
                   { ok: pwRules.uppercase, label: t('pwRuleUppercase') },
                   { ok: pwRules.number, label: t('pwRuleNumber') },
                 ] as { ok: boolean; label: string }[]).map(({ ok, label }) => (
-                  <li key={label} className={cn('text-xs flex items-center gap-1.5 transition-colors', ok ? 'text-emerald-600' : 'text-slate-400')}>
+                  <li key={label} className={cn('text-xs flex items-center gap-1.5 transition-colors', ok ? 'text-success-text' : 'text-ink-subtle')}>
                     <span aria-hidden="true">{ok ? '✓' : '○'}</span> {label}
                   </li>
                 ))}
@@ -379,11 +379,11 @@ export function SettingsPageClient({ profile, email }: Props) {
               className={cn(inputClass, confirmPassword.length > 0 && newPassword !== confirmPassword ? 'border-red-300 focus:ring-red-400' : '')}
               disabled={pwSaving} />
             {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">{t('pwMismatch')}</p>
+              <p className="text-xs text-error-text mt-1">{t('pwMismatch')}</p>
             )}
           </div>
-          {pwError && <p role="alert" className="text-sm text-red-600">{pwError}</p>}
-          {pwSaved && <p role="status" className="text-sm text-emerald-600 font-medium">{t('pwSavedMsg')}</p>}
+          {pwError && <p role="alert" className="text-sm text-error-text">{pwError}</p>}
+          {pwSaved && <p role="status" className="text-sm text-success-text font-medium">{t('pwSavedMsg')}</p>}
           <button type="button" onClick={handlePasswordChange} disabled={!pwValid || pwSaving}
             className="px-5 py-2 text-sm font-medium rounded-xl transition-colors whitespace-nowrap bg-primary text-white hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {pwSaving ? t('pwSaving') : t('changePassword')}
@@ -393,12 +393,12 @@ export function SettingsPageClient({ profile, email }: Props) {
 
       {/* Abrechnung — nur Pro/Enterprise */}
       {profile.tier !== 'free' && (
-        <section aria-labelledby="billing-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-          <h2 id="billing-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{t('billingSection')}</h2>
-          <p className="text-sm text-slate-500 mb-5">{t('billingDesc')}</p>
+        <section aria-labelledby="billing-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+          <h2 id="billing-heading" className="text-base sm:text-lg font-semibold text-ink mb-2">{t('billingSection')}</h2>
+          <p className="text-sm text-ink-muted mb-5">{t('billingDesc')}</p>
 
           {portalError && (
-            <p role="alert" className="text-sm text-red-600 mb-3">{portalError}</p>
+            <p role="alert" className="text-sm text-error-text mb-3">{portalError}</p>
           )}
 
           {hasBilling ? (
@@ -408,39 +408,39 @@ export function SettingsPageClient({ profile, email }: Props) {
               className={cn(
                 'px-5 py-2 text-sm font-medium rounded-xl border transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
                 portalLoading
-                  ? 'border-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                  ? 'border-line text-ink-subtle cursor-not-allowed'
+                  : 'border-line-strong text-ink-secondary hover:bg-surface-raised'
               )}
             >
               {portalLoading ? t('portalLoading') : t('openPortal')}
             </button>
           ) : (
-            <p className="text-sm text-slate-400">{t('stripeNotLinked')}</p>
+            <p className="text-sm text-ink-subtle">{t('stripeNotLinked')}</p>
           )}
         </section>
       )}
       {/* Assistent */}
-      <section aria-labelledby="wizard-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="wizard-heading" className="text-base sm:text-lg font-semibold text-slate-900 mb-1">{t('assistantSection')}</h2>
-        <p className="text-sm text-slate-500 mb-5">{t('pathSettingsDesc')}</p>
+      <section aria-labelledby="wizard-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h2 id="wizard-heading" className="text-base sm:text-lg font-semibold text-ink mb-1">{t('assistantSection')}</h2>
+        <p className="text-sm text-ink-muted mb-5">{t('pathSettingsDesc')}</p>
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-surface-raised rounded-xl border border-line">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-800">{t('resetPathTitle')}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{t('resetPathInfo')}</p>
+              <p className="text-sm font-medium text-ink">{t('resetPathTitle')}</p>
+              <p className="text-xs text-ink-muted mt-0.5">{t('resetPathInfo')}</p>
               {wizardResetAt && (
-                <p className="text-xs text-emerald-600 mt-1">
+                <p className="text-xs text-success-text mt-1">
                   {t('resetAtMsg', { date: new Date(wizardResetAt).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' }) })}
                 </p>
               )}
               {wizardResetError && (
-                <p role="alert" className="text-xs text-red-600 mt-1">{wizardResetError}</p>
+                <p role="alert" className="text-xs text-error-text mt-1">{wizardResetError}</p>
               )}
             </div>
             <button
               onClick={handleWizardReset}
               disabled={wizardResetting}
-              className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+              className="whitespace-nowrap px-4 py-2 text-sm font-medium rounded-xl border border-line-strong text-ink-secondary hover:bg-surface-input disabled:opacity-50 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
               {wizardResetting ? t('resetting') : t('resetPath')}
             </button>
@@ -449,12 +449,12 @@ export function SettingsPageClient({ profile, email }: Props) {
       </section>
 
       {/* Darstellung */}
-      <section aria-labelledby="display-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
+      <section aria-labelledby="display-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('darstellungSection')}</h2>
-          {themeSaving && <span className="text-xs text-slate-400">{t('themeSavingMsg')}</span>}
+          <h2 id="display-heading" className="text-base sm:text-lg font-semibold text-ink">{t('darstellungSection')}</h2>
+          {themeSaving && <span className="text-xs text-ink-subtle">{t('themeSavingMsg')}</span>}
         </div>
-        <p className="text-sm text-slate-500 mb-5">{t('themeDesc')}</p>
+        <p className="text-sm text-ink-muted mb-5">{t('themeDesc')}</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {THEMES.map(theme => (
             <button
@@ -464,7 +464,7 @@ export function SettingsPageClient({ profile, email }: Props) {
                 'flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
                 currentTheme === theme.id
                   ? 'border-primary bg-primary-soft'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
+                  : 'border-line hover:border-line-strong bg-surface'
               )}
               aria-pressed={currentTheme === theme.id}
               aria-label={t('themeActivateAriaLabel', { label: theme.label })}
@@ -474,7 +474,7 @@ export function SettingsPageClient({ profile, email }: Props) {
                 style={{ background: theme.swatch }}
                 aria-hidden="true"
               />
-              <span className="text-xs font-medium text-slate-700">{theme.label}</span>
+              <span className="text-xs font-medium text-ink-secondary">{theme.label}</span>
               {currentTheme === theme.id && (
                 <span className="text-[10px] text-primary font-semibold">{t('themeActive')}</span>
               )}
@@ -484,27 +484,27 @@ export function SettingsPageClient({ profile, email }: Props) {
       </section>
 
       {/* Architektur-Diagramm — Demnächst */}
-      <section aria-labelledby="diagram-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
+      <section aria-labelledby="diagram-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 opacity-60">
         <div className="flex items-center gap-2 mb-1">
-          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('archDiagramSection')}</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
+          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-ink">{t('archDiagramSection')}</h2>
+          <span className="text-xs bg-surface-input text-ink-muted px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
         </div>
-        <p className="text-sm text-slate-400">{t('archDiagramDesc')}</p>
+        <p className="text-sm text-ink-subtle">{t('archDiagramDesc')}</p>
       </section>
 
       {/* Geteilte Links — Demnächst */}
-      <section aria-labelledby="shared-heading" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 opacity-60">
+      <section aria-labelledby="shared-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 opacity-60">
         <div className="flex items-center gap-2 mb-1">
-          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-slate-900">{t('sharedLinksSection')}</h2>
-          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
+          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-ink">{t('sharedLinksSection')}</h2>
+          <span className="text-xs bg-surface-input text-ink-muted px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
         </div>
-        <p className="text-sm text-slate-400">{t('sharedLinksDesc')}</p>
+        <p className="text-sm text-ink-subtle">{t('sharedLinksDesc')}</p>
       </section>
 
       {/* Gefahrenzone */}
-      <section aria-labelledby="danger-heading" className="bg-white border border-red-200 rounded-2xl p-4 sm:p-6">
-        <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-red-600 mb-2">{t('dangerSection')}</h2>
-        <p className="text-sm text-slate-500 mb-4">{t('deleteDesc')}</p>
+      <section aria-labelledby="danger-heading" className="bg-surface border border-error-border rounded-2xl p-4 sm:p-6">
+        <h2 id="danger-heading" className="text-base sm:text-lg font-semibold text-error-text mb-2">{t('dangerSection')}</h2>
+        <p className="text-sm text-ink-muted mb-4">{t('deleteDesc')}</p>
         <div className="space-y-3">
           <div>
             <label htmlFor="delete-confirm" className={labelClass}>{t('deleteConfirmLabel')}</label>
@@ -518,7 +518,7 @@ export function SettingsPageClient({ profile, email }: Props) {
               disabled={deleting}
             />
           </div>
-          {deleteError && <p role="alert" className="text-sm text-red-600">{deleteError}</p>}
+          {deleteError && <p role="alert" className="text-sm text-error-text">{deleteError}</p>}
           <button
             onClick={handleDeleteAccount}
             disabled={deleteConfirm !== t('deleteConfirmWord') || deleting}
@@ -531,9 +531,9 @@ export function SettingsPageClient({ profile, email }: Props) {
 
       {/* Rechtliches */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 pb-1">
-        <Link href="/impressum" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('impressum')}</Link>
-        <Link href="/datenschutz" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('datenschutz')}</Link>
-        <Link href="/agb" target="_blank" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">{t('agb')}</Link>
+        <Link href="/impressum" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('impressum')}</Link>
+        <Link href="/datenschutz" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('datenschutz')}</Link>
+        <Link href="/agb" target="_blank" className="text-xs text-ink-subtle hover:text-ink-secondary transition-colors">{t('agb')}</Link>
       </div>
 
     </div>

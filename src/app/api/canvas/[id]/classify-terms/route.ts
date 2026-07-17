@@ -96,7 +96,7 @@ ${termList}
 
 Return ONLY a JSON array: [{"term":"...","class":"produkt|projekt_eigenname|capability|fuellwort|mehrdeutig","vendor":"SAP|null","confidence":0.9}]`
 
-  const { data: llmResult, meta } = await callLLM(prompt, Pass1ClassificationSchema, { model: 'haiku', maxTokens: 512 })
+  const { data: llmResult, meta } = await callLLM(prompt, Pass1ClassificationSchema, { model: 'haiku', maxTokens: 512, module: 'canvas' })
 
   if (!llmResult) {
     void trackServer(user.id, 'pass1_call', { module: 'canvas', success: false, candidates: toClassify.length })

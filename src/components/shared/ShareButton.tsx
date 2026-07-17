@@ -69,28 +69,28 @@ export function ShareButton({ module, entityId, tier }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+        className="px-4 py-2 text-sm font-medium border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
       >
         {t('shareButton')}
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" role="dialog" aria-modal="true" aria-label={t('dialogAriaLabel')}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900">{t('dialogTitle')}</h2>
+              <h2 className="text-base font-semibold text-ink">{t('dialogTitle')}</h2>
               <button
                 onClick={() => { setOpen(false); setUrl(null) }}
                 aria-label={t('closeDialogAriaLabel')}
-                className="text-slate-400 hover:text-slate-600 text-xl leading-none"
+                className="text-ink-subtle hover:text-ink-secondary text-xl leading-none"
               >×</button>
             </div>
 
             {!url ? (
               <>
-                <p className="text-sm text-slate-600 mb-4">{t('createLinkDesc')}</p>
+                <p className="text-sm text-ink-secondary mb-4">{t('createLinkDesc')}</p>
                 <div className="mb-5">
-                  <p className="text-xs font-medium text-slate-700 mb-2">{t('expiryLabel')}</p>
+                  <p className="text-xs font-medium text-ink-secondary mb-2">{t('expiryLabel')}</p>
                   <div className="flex gap-2">
                     {EXPIRY_OPTIONS.map(opt => (
                       <button
@@ -100,7 +100,7 @@ export function ShareButton({ module, entityId, tier }: Props) {
                           'flex-1 px-2 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap',
                           expiryDays === opt.days
                             ? 'bg-primary text-white border-primary'
-                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            : 'border-line text-ink-secondary hover:bg-surface-raised'
                         )}
                       >
                         {t(opt.key as Parameters<typeof t>[0])}
@@ -118,13 +118,13 @@ export function ShareButton({ module, entityId, tier }: Props) {
               </>
             ) : (
               <>
-                <p className="text-sm text-slate-600 mb-3">{t('linkCreated')}</p>
+                <p className="text-sm text-ink-secondary mb-3">{t('linkCreated')}</p>
                 <div className="flex gap-2">
                   <input
                     readOnly
                     value={url}
                     aria-label={t('shareLinkAriaLabel')}
-                    className="flex-1 min-w-0 text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none"
+                    className="flex-1 min-w-0 text-xs border border-line rounded-xl px-3 py-2 bg-surface-raised text-ink-secondary focus:outline-none"
                   />
                   <button
                     onClick={handleCopy}

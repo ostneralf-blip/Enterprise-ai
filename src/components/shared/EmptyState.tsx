@@ -108,8 +108,8 @@ export function EmptyState({ variant, title, description, cta, className }: Empt
       <div className="relative flex flex-col items-center gap-5">
         <Illustration />
         <div className="space-y-1.5 max-w-xs">
-          <h3 className="font-serif text-lg text-slate-800">{title}</h3>
-          <p className="text-sm text-slate-500">{description}</p>
+          <h3 className="font-serif text-lg text-ink">{title}</h3>
+          <p className="text-sm text-ink-muted">{description}</p>
         </div>
         <Link href={cta.href}
           className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">

@@ -123,6 +123,7 @@ export async function POST(req: Request) {
       // das Stripe parallel sendet und period_end enthält.
       console.info('[webhook]', { event_id: event.id, type: event.type, customer: customerId, subscription_status: 'past_due' })
       await updateProfile(supabase, profile.id, { subscription_status: 'past_due' })
+      void trackServer(profile.id, 'payment_failed', { customer: customerId })
       if (profile.email) await sendPaymentFailedEmail(profile.email)
       void trackServer(profile.id, 'payment_failed', { subscription_status: 'past_due' })
       break

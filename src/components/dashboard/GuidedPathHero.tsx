@@ -48,14 +48,14 @@ export function GuidedPathHero({ steps, tier }: Props) {
   const allDone = completedCount === steps.length
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
+    <div className="bg-surface border border-line rounded-xl p-5 mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-slate-700">{t('pathTitle')}</h2>
-        <span className="text-xs text-slate-400">{t('pathCompleted', { done: completedCount, total: steps.length })}</span>
+        <h2 className="text-sm font-semibold text-ink-secondary">{t('pathTitle')}</h2>
+        <span className="text-xs text-ink-subtle">{t('pathCompleted', { done: completedCount, total: steps.length })}</span>
       </div>
 
       {/* Fortschrittsbalken */}
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
+      <div className="h-2 bg-surface-input rounded-full overflow-hidden mb-4">
         <div
           className="h-full bg-primary rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none"
           style={{ width: mounted ? `${progressPct}%` : '0%' }}
@@ -85,10 +85,10 @@ export function GuidedPathHero({ steps, tier }: Props) {
                   'flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border transition-[transform,box-shadow] duration-150 text-center',
                   'hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none',
                   s.done
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    ? 'bg-success-subtle border-success-border text-success-text'
                     : isCurrent
                       ? 'bg-primary-soft border-primary-border text-primary ring-1 ring-primary-ring'
-                      : 'bg-slate-50 border-slate-200 text-slate-400',
+                      : 'bg-surface-raised border-line text-ink-subtle',
                 )}
               >
                 <span
@@ -128,11 +128,11 @@ export function GuidedPathHero({ steps, tier }: Props) {
       )}
 
       {allDone && (
-        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-3 bg-success-subtle border border-success-border rounded-lg px-4 py-3">
           <span className="text-xl" aria-hidden="true">✓</span>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-emerald-800">{t('pathAllDoneTitle')}</div>
-            <div className="text-xs text-emerald-600">{t('pathAllDoneDesc')}</div>
+            <div className="text-sm font-semibold text-success-text">{t('pathAllDoneTitle')}</div>
+            <div className="text-xs text-success-text">{t('pathAllDoneDesc')}</div>
           </div>
         </div>
       )}

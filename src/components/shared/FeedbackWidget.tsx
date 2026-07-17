@@ -45,23 +45,23 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
 
   if (submitted) {
     return (
-      <div className="text-center py-4 text-sm text-slate-500">
+      <div className="text-center py-4 text-sm text-ink-muted">
         {t('thanks')}
       </div>
     )
   }
 
   return (
-    <div className="border-t border-slate-200 pt-6 mt-6">
-      <p className="text-sm text-slate-500 mb-3 text-center">{t('question')}</p>
+    <div className="border-t border-line pt-6 mt-6">
+      <p className="text-sm text-ink-muted mb-3 text-center">{t('question')}</p>
       {!sentiment ? (
         <div className="flex justify-center gap-2 sm:gap-3">
           <button onClick={() => handleSubmit('positive')}
-            className={`${buttonBase} bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-400`}>
+            className={`${buttonBase} bg-success-subtle border border-success-border text-success-text hover:bg-success-border focus:ring-emerald-400`}>
             {t('positive')}
           </button>
           <button onClick={() => setSentiment('negative')}
-            className={`${buttonBase} bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 focus:ring-slate-400`}>
+            className={`${buttonBase} bg-surface-raised border border-line text-ink-secondary hover:bg-surface-input focus:ring-slate-400`}>
             {t('negative')}
           </button>
         </div>
@@ -70,7 +70,7 @@ export function FeedbackWidget({ module }: FeedbackWidgetProps) {
           <textarea value={comment} onChange={e => setComment(e.target.value)}
             placeholder={t('placeholder')}
             rows={3}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary-ring resize-none mb-2"
+            className="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink-secondary placeholder-slate-400 focus:outline-none focus:border-primary-ring resize-none mb-2"
           />
           <button onClick={() => submit('negative', comment)} disabled={loading}
             className={`${buttonBase} w-full bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500 disabled:opacity-60`}>
