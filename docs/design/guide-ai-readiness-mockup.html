@@ -11,7 +11,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-  /* Identische Tokens wie startseite/preise/guide-detail-mockup.html — keine neuen Farben */
   :root{
     --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
     --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
@@ -55,7 +54,6 @@
   article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
   article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
 
-  /* Karten-Grids — exakt die .card-Optik aus Startseite/Guide-Detail (weiß, Linie, Hover primär) */
   .dim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
   .scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0 4px}
   @media(max-width:700px){.dim-grid,.scan-grid{grid-template-columns:1fr}}
@@ -113,13 +111,13 @@
 <body>
 
 <header><div class="wrap hd">
-  <a class="logo" href="#"><div class="mark">N</div>AI Navigator</a>
-  <nav><a href="#">Leitfaden</a><a href="#">Tools</a><a href="#">Das Buch</a><a href="#">Preise</a></nav>
-  <a class="btn btn-primary" href="#">Kostenlos starten</a>
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Leitfaden</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">Das Buch</a><a href="preise-mockup.html">Preise</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Kostenlos starten</a>
 </div></header>
 
 <div class="wrap crumb">
-  <a href="#">Start</a><span>/</span><a href="#">Leitfaden</a><span>/</span>AI-Readiness
+  <a href="startseite-mockup.html">Start</a><span>/</span><a href="guide-hub-mockup.html">Leitfaden</a><span>/</span>AI-Readiness
 </div>
 
 <section class="hero"><div class="wrap">
@@ -209,7 +207,7 @@
 <section class="cta-band"><div class="wrap">
   <h2>Ihr Readiness-Profil in 10 Minuten</h2>
   <p>Das AI-Readiness Assessment ordnet Ihre Organisation allen sechs Dimensionen zu und zeigt, wo zuerst gehandelt werden sollte.</p>
-  <a class="btn btn-primary" href="#">Jetzt Quick Scan starten →</a>
+  <a class="btn btn-primary" href="preise-mockup.html">Jetzt Quick Scan starten →</a>
 </div></section>
 
 <section class="faq"><div class="wrap">
@@ -251,9 +249,9 @@
 <section class="related"><div class="wrap">
   <h2>Weiterlesen</h2>
   <div class="rcards">
-    <a class="card" href="#"><div class="n">Leitfaden 04</div><h3>AI-Reifegrad: Starter, Scaler, Transformer — Selbstdiagnose</h3></a>
-    <a class="card" href="#"><div class="n">Leitfaden 03</div><h3>Warum AI-Projekte wirklich scheitern</h3></a>
-    <a class="card" href="#"><div class="n">Glossar</div><h3>AI-Readiness, Clean Core &amp; weitere Begriffe</h3></a>
+    <a class="card" href="guide-ai-reifegrad-mockup.html"><div class="n">Leitfaden 04</div><h3>AI-Reifegrad: Starter, Scaler, Transformer — Selbstdiagnose</h3></a>
+    <a class="card" href="guide-warum-scheitern-mockup.html"><div class="n">Leitfaden 03</div><h3>Warum AI-Projekte wirklich scheitern</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossar</div><h3>AI-Readiness, Clean Core &amp; weitere Begriffe</h3></a>
   </div>
 </div></section>
 
