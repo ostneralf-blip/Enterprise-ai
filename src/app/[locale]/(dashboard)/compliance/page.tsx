@@ -49,7 +49,7 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
       .order('display_order', { ascending: true }),
     supabase
       .from('roles_catalog')
-      .select('role_name, role_category, description, responsibilities')
+      .select('role_name, role_category, description, description_en, responsibilities, responsibilities_en')
       .eq('is_active', true)
       .order('role_name'),
   ])
@@ -68,7 +68,7 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
       <CompliancePageClient
         initialChecks={(checks ?? []) as CheckRow[]}
         policyTemplates={policyTemplates ?? []}
-        rolesCatalog={(rolesCatalogRaw ?? []) as Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'responsibilities'>[]}
+        rolesCatalog={(rolesCatalogRaw ?? []) as Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'description_en' | 'responsibilities' | 'responsibilities_en'>[]}
         archUsedRoles={archUsedRoles}
         archTitle={archTitle}
       />

@@ -33,12 +33,12 @@ import type { CatalogRole } from '@/types'
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras' | 'roles'
 
 // Tab labels are resolved at render time via useTranslations — see getTabLabel() below
-const TAB_IDS: Tab[] = ['euaiact', 'dsgvo', 'matrix', 'summary', 'templates', 'extras', 'roles']
+const TAB_IDS: Tab[] = ['summary', 'euaiact', 'dsgvo', 'matrix', 'roles', 'templates', 'extras']
 
 const CONTENT_REVIEWED_AT = '2026-06-25'
 const COMPLIANCE_REVIEWED_DAYS = Math.floor((Date.now() - new Date(CONTENT_REVIEWED_AT).getTime()) / 86_400_000)
 
-type RoleCatalogItem = Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'responsibilities'>
+type RoleCatalogItem = Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'description_en' | 'responsibilities' | 'responsibilities_en'>
 
 interface Props {
   initialChecks: CheckRow[]
@@ -55,7 +55,7 @@ function makeKey(regulation: string, checkType: string) {
 export function CompliancePageClient({ initialChecks, policyTemplates = [], rolesCatalog = [], archUsedRoles = new Set(), archTitle = null }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
-  const [tab, setTab] = useState<Tab>('euaiact')
+  const [tab, setTab] = useState<Tab>('summary')
 
   const getTabLabel = (id: Tab): string => {
     if (id === 'euaiact')   return 'EU AI Act'
@@ -527,6 +527,23 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
               <p className="text-xs font-medium text-emerald-800">{t('compliance.noOpenItems')}</p>
             </div>
           )}
+
+          {/* Regulatory Watchlist */}
+          <div className="border border-warning-border rounded-xl bg-warning-subtle p-4 sm:p-6 space-y-3 mt-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold text-warning-text">{t('compliance.watchlistTitle')}</span>
+              <span className="px-2 py-0.5 text-xs bg-warning-border text-warning-text border border-warning-border rounded-full">
+                {t('compliance.watchlistBadge')}
+              </span>
+              <span className="text-xs text-warning-text ml-auto">({REGULATORY_WATCHLIST.length})</span>
+            </div>
+            <p className="text-xs text-warning-text">{t('compliance.watchlistNote')}</p>
+            <div className="space-y-2">
+              {REGULATORY_WATCHLIST.map(item => (
+                <WatchlistCard key={item.id} item={item} />
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -684,23 +701,6 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
         </div>
       )}
 
-      {/* Regulatorische Beobachtungsliste */}
-      <div className="border border-amber-200 rounded-xl bg-amber-50 p-4 sm:p-6 space-y-3 mt-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold text-amber-700">{t('compliance.watchlistTitle')}</span>
-          <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full">
-            {t('compliance.watchlistBadge')}
-          </span>
-          <span className="text-xs text-amber-600 ml-auto">({REGULATORY_WATCHLIST.length})</span>
-        </div>
-        <p className="text-xs text-amber-600">{t('compliance.watchlistNote')}</p>
-        <div className="space-y-2">
-          {REGULATORY_WATCHLIST.map(item => (
-            <WatchlistCard key={item.id} item={item} />
-          ))}
-        </div>
-      </div>
-
       {/* ── ROLLEN & VERANTWORTLICHKEITEN ── */}
       {tab === 'roles' && (
         <div role="tabpanel" id="panel-roles" aria-labelledby="tab-roles" className="space-y-4">
@@ -737,14 +737,16 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                         </span>
                       )}
                     </div>
-                    {role.description && (
-                      <p className="text-xs text-ink-secondary mb-2">{role.description}</p>
+                    {(locale === 'en' ? role.description_en : role.description) && (
+                      <p className="text-xs text-ink-secondary mb-2">
+                        {locale === 'en' ? role.description_en : role.description}
+                      </p>
                     )}
-                    {role.responsibilities && role.responsibilities.length > 0 && (
+                    {((locale === 'en' ? role.responsibilities_en : role.responsibilities) ?? []).length > 0 && (
                       <div>
                         <p className="text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-1">{t('compliance.rolesResponsibilities')}</p>
                         <ul className="list-disc list-inside space-y-0.5">
-                          {role.responsibilities.map((r, i) => (
+                          {(locale === 'en' ? role.responsibilities_en : role.responsibilities).map((r, i) => (
                             <li key={i} className="text-xs text-ink-secondary">{r}</li>
                           ))}
                         </ul>
