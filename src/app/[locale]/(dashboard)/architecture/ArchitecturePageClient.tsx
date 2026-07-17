@@ -56,10 +56,10 @@ const ARCHETYPE_LABELS: Record<string, string> = {
 }
 
 const GOVERNANCE_COLORS: Record<string, string> = {
-  approve: 'text-green-700 bg-green-50',
-  stop_dsgvo: 'text-red-700 bg-red-50',
-  stop_risk: 'text-red-700 bg-red-50',
-  improve: 'text-amber-700 bg-amber-50',
+  approve: 'text-success-text bg-success-subtle',
+  stop_dsgvo: 'text-error-text bg-error-subtle',
+  stop_risk: 'text-error-text bg-error-subtle',
+  improve: 'text-warning-text bg-warning-subtle',
 }
 
 interface SavedArchitecture {
@@ -98,18 +98,18 @@ interface RoleCatalogEntry {
 }
 
 const RACI_COLORS: Record<string, string> = {
-  R: 'bg-blue-100 text-blue-800 border-blue-200',
-  A: 'bg-amber-100 text-amber-800 border-amber-200',
+  R: 'bg-info-subtle text-info-text border-info-border',
+  A: 'bg-warning-subtle text-warning-text border-warning-border',
   C: 'bg-violet-100 text-violet-800 border-violet-200',
-  I: 'bg-slate-100 text-slate-600 border-slate-200',
+  I: 'bg-surface-raised text-ink-secondary border-line',
 }
 const RACI_LABEL: Record<string, string> = { R: 'Responsible', A: 'Accountable', C: 'Consulted', I: 'Informed' }
 
 const ROLE_CATEGORY_CLASS: Record<string, string> = {
-  strategic:   'bg-blue-50 border-blue-200 text-blue-800',
+  strategic:   'bg-info-subtle border-info-border text-info-text',
   technical:   'bg-violet-50 border-violet-200 text-violet-800',
-  governance:  'bg-amber-50 border-amber-200 text-amber-800',
-  operational: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+  governance:  'bg-warning-subtle border-warning-border text-warning-text',
+  operational: 'bg-success-subtle border-success-border text-success-text',
 }
 
 interface Props {
@@ -126,11 +126,11 @@ interface Props {
 
 
 const TAG_COLORS: Record<DetectedTag['type'], string> = {
-  score:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-  industry:   'bg-slate-100 text-slate-700 border-slate-200',
+  score:      'bg-success-subtle text-success-text border-success-border',
+  industry:   'bg-surface-raised text-ink-secondary border-line',
   usecase:    'bg-primary-soft text-primary-hover border-primary-border',
   platform:   'bg-violet-50 text-violet-700 border-violet-200',
-  compliance: 'bg-amber-50 text-amber-700 border-amber-200',
+  compliance: 'bg-warning-subtle text-warning-text border-warning-border',
 }
 
 interface UnifiedContextBannerProps {
@@ -224,7 +224,7 @@ function UnifiedContextBanner({
                 <div className="flex flex-wrap gap-1.5">
                   {assessmentContext?.archetype && (
                     <span
-                      className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-raised text-ink-secondary border border-line"
                       title={`Score: ${assessmentContext.total_score}`}
                     >
                       {ARCHETYPE_LABELS[assessmentContext.archetype] ?? assessmentContext.archetype}
@@ -233,18 +233,18 @@ function UnifiedContextBanner({
                   {governanceContext?.result && (
                     <span className={cn(
                       'text-[10px] font-medium px-2 py-0.5 rounded-full border border-transparent',
-                      GOVERNANCE_COLORS[governanceContext.result] ?? 'text-slate-700 bg-slate-100 border-slate-200'
+                      GOVERNANCE_COLORS[governanceContext.result] ?? 'text-ink-secondary bg-surface-raised border-line'
                     )}>
                       {governanceLabel[governanceContext.result] ?? governanceContext.result}
                     </span>
                   )}
                   {compliancePreset && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-warning-subtle text-warning-text border border-warning-border">
                       {complianceLabel[compliancePreset] ?? compliancePreset}
                     </span>
                   )}
                   {roadmapContext && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-raised text-ink-secondary border border-line"
                       title={roadmapContext.phasesCount > 0 ? t('architecture.phasesLabel', { count: roadmapContext.phasesCount }) : undefined}>
                       {roadmapContext.title}
                     </span>
@@ -284,31 +284,31 @@ function CostIndicationCard({ patternId, companySize, locale }: {
     ? `€${(v / 1_000_000).toFixed(1).replace('.0', '')}M`
     : `€${Math.round(v / 1_000)}k`
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.costTitle')}</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('architecture.costTitle')}</h3>
         <InfoHint title={t('architecture.costHintTitle')}>
           <p>{t('architecture.costHintBody')}</p>
         </InfoHint>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div className="text-center">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costSetup')}</p>
-          <p className="text-sm font-semibold text-slate-800">{fmt(est.setup.min)}–{fmt(est.setup.max)}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costOneTime')}</p>
+          <p className="text-[10px] text-ink-subtle uppercase tracking-wide mb-1">{t('architecture.costSetup')}</p>
+          <p className="text-sm font-semibold text-ink">{fmt(est.setup.min)}–{fmt(est.setup.max)}</p>
+          <p className="text-[10px] text-ink-subtle mt-0.5">{t('architecture.costOneTime')}</p>
         </div>
-        <div className="text-center border-x border-slate-100">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costMonthly')}</p>
-          <p className="text-sm font-semibold text-slate-800">{fmt(est.monthly.min)}–{fmt(est.monthly.max)}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costPerMonth')}</p>
+        <div className="text-center border-x border-line-subtle">
+          <p className="text-[10px] text-ink-subtle uppercase tracking-wide mb-1">{t('architecture.costMonthly')}</p>
+          <p className="text-sm font-semibold text-ink">{fmt(est.monthly.min)}–{fmt(est.monthly.max)}</p>
+          <p className="text-[10px] text-ink-subtle mt-0.5">{t('architecture.costPerMonth')}</p>
         </div>
         <div className="text-center">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">{t('architecture.costDuration')}</p>
-          <p className="text-sm font-semibold text-slate-800">{est.durationMonths.min}–{est.durationMonths.max}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">{t('architecture.costMonths')}</p>
+          <p className="text-[10px] text-ink-subtle uppercase tracking-wide mb-1">{t('architecture.costDuration')}</p>
+          <p className="text-sm font-semibold text-ink">{est.durationMonths.min}–{est.durationMonths.max}</p>
+          <p className="text-[10px] text-ink-subtle mt-0.5">{t('architecture.costMonths')}</p>
         </div>
       </div>
-      <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+      <p className="text-[10px] text-ink-subtle mt-3 leading-relaxed">
         {pick(base.note, locale)} {t('architecture.costDisclaimer')}
       </p>
     </div>
@@ -320,11 +320,11 @@ type View = 'list' | 'canvas-scope' | 'wizard' | 'component-picker' | 'result'
 
 function KpiCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
-    <div className="relative bg-white border border-slate-200 rounded-2xl p-4 overflow-hidden">
+    <div className="relative bg-surface border border-line rounded-2xl p-4 overflow-hidden">
       <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl', accent ? 'bg-amber-400' : 'bg-primary')} />
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-2">{label}</p>
-      <p className="text-base font-semibold text-slate-900 mt-1.5 pl-2">{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-0.5 pl-2">{sub}</p>}
+      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-subtle pl-2">{label}</p>
+      <p className="text-base font-semibold text-ink mt-1.5 pl-2">{value}</p>
+      {sub && <p className="text-xs text-ink-subtle mt-0.5 pl-2">{sub}</p>}
     </div>
   )
 }
@@ -347,9 +347,9 @@ function ExecKpiStrip({ result, answers }: { result: ArchitectureResult; answers
 function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
   const t = useTranslations('modules')
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5 [border-left-width:4px] border-l-primary">
-      <h3 className="text-sm font-semibold text-slate-900 mb-2">{t('architecture.execRecommendTitle')}</h3>
-      <p className="text-sm text-slate-700 leading-relaxed">{result.summary}</p>
+    <div className="bg-surface border border-line rounded-2xl p-5 [border-left-width:4px] border-l-primary">
+      <h3 className="text-sm font-semibold text-ink mb-2">{t('architecture.execRecommendTitle')}</h3>
+      <p className="text-sm text-ink-secondary leading-relaxed">{result.summary}</p>
     </div>
   )
 }
@@ -385,7 +385,7 @@ function NarrativeCard({
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <span className="text-[color:var(--color-ai)] font-black text-sm shrink-0" aria-hidden="true">◆</span>
-          <h3 className="font-serif text-sm font-semibold text-slate-900 whitespace-nowrap">{t('architecture.narrativeTitle')}</h3>
+          <h3 className="font-serif text-sm font-semibold text-ink whitespace-nowrap">{t('architecture.narrativeTitle')}</h3>
           {hasSummary && (
             <>
               <span className={cn(
@@ -407,7 +407,7 @@ function NarrativeCard({
                 </button>
               )}
               {isUnknownBasis && !isStale && (
-                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 whitespace-nowrap">
+                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-surface-raised border border-line text-ink-muted whitespace-nowrap">
                   {t('architecture.narrativeUnknownBasis')}
                 </span>
               )}
@@ -417,24 +417,24 @@ function NarrativeCard({
         <AIAnalysisButton tier={tier} onAnalyze={onAnalyze} usage={usage} size="sm" />
       </div>
       {!hasSummary && !savedId && tier !== 'free' && (
-        <p className="text-xs text-slate-500 mb-1">{t('architecture.narrativeSaveFirst')}</p>
+        <p className="text-xs text-ink-muted mb-1">{t('architecture.narrativeSaveFirst')}</p>
       )}
       {!hasSummary && (
-        <p className="text-xs text-slate-400 italic">{t('architecture.narrativePlaceholder')}</p>
+        <p className="text-xs text-ink-subtle italic">{t('architecture.narrativePlaceholder')}</p>
       )}
       {hasSummary && (
-        <p className={cn('text-sm text-slate-700 leading-relaxed', loading && 'opacity-60')}>{narrative!.summary}</p>
+        <p className={cn('text-sm text-ink-secondary leading-relaxed', loading && 'opacity-60')}>{narrative!.summary}</p>
       )}
-      {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+      {error && <p className="text-xs text-error-text mt-2">{error}</p>}
       {hasSummary && aiModel && (
         <div className="mt-3 pt-2 border-t border-purple-100 space-y-0.5">
-          <p className="text-[10px] font-mono text-slate-400 leading-relaxed">
+          <p className="text-[10px] font-mono text-ink-subtle leading-relaxed">
             {t('architecture.narrativeProvenance')}: {aiModel.replace(' (cached)', '')}
             {generatedAt ? ` · ${new Date(generatedAt).toLocaleDateString('de-DE')}` : ''}
           </p>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-ink-subtle">
             {t('architecture.narrativeCacheHit')}:{' '}
-            <span className={aiModel.includes('(cached)') ? 'text-green-600 font-medium' : ''}>
+            <span className={aiModel.includes('(cached)') ? 'text-success-text font-medium' : ''}>
               {aiModel.includes('(cached)') ? t('architecture.narrativeCacheHitYes') : t('architecture.narrativeCacheHitNo')}
             </span>
           </p>
@@ -474,18 +474,18 @@ function ResultBar({
     compliance: t('architecture.viewCompliance'),
   }
   return (
-    <div className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-white/95 border-b border-slate-200 py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
+    <div className="-mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 bg-surface/95 border-b border-line py-2.5 flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
       {/* SICHT */}
       <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">{t('architecture.viewLabel')}</span>
-        <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-ink-subtle whitespace-nowrap">{t('architecture.viewLabel')}</span>
+        <div className="flex border border-line rounded-lg overflow-hidden">
           {views.map(v => (
             <button
               key={v}
               onClick={() => onAudience(v)}
               className={cn(
                 'px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-ring',
-                audience === v ? 'bg-primary text-white' : 'text-slate-600 hover:bg-slate-50'
+                audience === v ? 'bg-primary text-white' : 'text-ink-secondary hover:bg-surface-raised'
               )}
             >
               {viewLabels[v]}
@@ -495,10 +495,10 @@ function ResultBar({
       </div>
       {/* TIEFE — immer sichtbar, in exec-Modus disabled */}
       <div className="flex items-center gap-2">
-        <span className={cn('text-[10px] font-bold uppercase tracking-widest whitespace-nowrap', execDisabled ? 'text-slate-300' : 'text-slate-400')}>
+        <span className={cn('text-[10px] font-bold uppercase tracking-widest whitespace-nowrap', execDisabled ? 'text-ink-subtle' : 'text-ink-subtle')}>
           {t('architecture.levelLabel')}
         </span>
-        <div className={cn('flex border rounded-lg overflow-hidden', execDisabled ? 'border-slate-100' : 'border-slate-200')}>
+        <div className={cn('flex border rounded-lg overflow-hidden', execDisabled ? 'border-line-subtle' : 'border-line')}>
           {([1, 2, 3] as const).map(l => (
             <button
               key={l}
@@ -508,10 +508,10 @@ function ResultBar({
               className={cn(
                 'w-10 py-1.5 text-xs font-mono font-semibold transition-colors focus:outline-none',
                 execDisabled
-                  ? 'text-slate-300 cursor-not-allowed bg-slate-50'
+                  ? 'text-ink-subtle cursor-not-allowed bg-surface-raised'
                   : level === l
                     ? 'bg-primary text-white focus:ring-2 focus:ring-inset focus:ring-primary-ring'
-                    : 'text-slate-600 hover:bg-slate-50 focus:ring-2 focus:ring-inset focus:ring-primary-ring'
+                    : 'text-ink-secondary hover:bg-surface-raised focus:ring-2 focus:ring-inset focus:ring-primary-ring'
               )}
             >
               L{l}
@@ -536,9 +536,9 @@ function ResultBar({
 }
 
 const DSGVO_BADGE: Record<string, string> = {
-  compliant:     'bg-emerald-50 text-emerald-700 border-emerald-200',
-  conditional:   'bg-amber-50 text-amber-700 border-amber-200',
-  non_compliant: 'bg-red-50 text-red-700 border-red-200',
+  compliant:     'bg-success-subtle text-success-text border-success-border',
+  conditional:   'bg-warning-subtle text-warning-text border-warning-border',
+  non_compliant: 'bg-error-subtle text-error-text border-error-border',
 }
 const DSGVO_LABEL: Record<string, string> = {
   compliant: 'DSGVO ✓', conditional: 'DSGVO ~', non_compliant: 'DSGVO ✗',
@@ -549,40 +549,40 @@ const LAYER_LABEL: Record<string, string> = {
 }
 
 const JOULE_DOMAIN_BADGE: Record<string, string> = {
-  Finance: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  Finance: 'bg-success-subtle text-success-text border-success-border',
   'Supply Chain': 'bg-primary-soft text-primary-hover border-primary-border',
   HR: 'bg-violet-50 text-violet-700 border-violet-200',
-  Procurement: 'bg-amber-50 text-amber-700 border-amber-200',
+  Procurement: 'bg-warning-subtle text-warning-text border-warning-border',
   CX: 'bg-pink-50 text-pink-700 border-pink-200',
-  Transformation: 'bg-slate-100 text-slate-700 border-slate-200',
+  Transformation: 'bg-surface-raised text-ink-secondary border-line',
 }
 
 function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
   const t = useTranslations('modules')
   if (useCases.length === 0) return null
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
+    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">SAP</span>
-        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.jouleTitle')}</h3>
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-raised text-ink-secondary">SAP</span>
+        <h3 className="text-sm font-semibold text-ink">{t('architecture.jouleTitle')}</h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {useCases.map(uc => (
-          <div key={uc.name} className="border border-slate-100 rounded-xl p-3">
+          <div key={uc.name} className="border border-line-subtle rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
-              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', JOULE_DOMAIN_BADGE[uc.domain] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', JOULE_DOMAIN_BADGE[uc.domain] ?? 'bg-surface-raised text-ink-secondary border-line')}>
                 {uc.domain}
               </span>
               <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', {
-                starter:     'bg-slate-50 text-slate-500 border-slate-200',
+                starter:     'bg-surface-raised text-ink-muted border-line',
                 scaler:      'bg-primary-soft text-primary border-primary-border',
                 transformer: 'bg-violet-50 text-violet-600 border-violet-200',
               }[uc.complexity])}>
                 {uc.complexity === 'starter' ? t('architecture.complexityStarter') : uc.complexity === 'scaler' ? t('architecture.complexityScaler') : t('architecture.complexityTransformer')}
               </span>
             </div>
-            <p className="text-xs font-semibold text-slate-800">{uc.name}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{uc.description}</p>
+            <p className="text-xs font-semibold text-ink">{uc.name}</p>
+            <p className="text-xs text-ink-muted mt-0.5 line-clamp-2">{uc.description}</p>
           </div>
         ))}
       </div>
@@ -648,7 +648,7 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
       <div
         {...attributes}
         {...listeners}
-        className="hidden md:flex absolute -left-5 top-3 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 select-none focus:outline-none"
+        className="hidden md:flex absolute -left-5 top-3 cursor-grab active:cursor-grabbing text-ink-subtle hover:text-ink-muted select-none focus:outline-none"
         aria-label="Abschnitt verschieben"
         role="button"
         tabIndex={0}
@@ -1062,7 +1062,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           roadmapContext={roadmapContext}
         />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-slate-900">{t('architecture.savedTitle', { count: architectures.length })}</h2>
+          <h2 className="text-sm font-semibold text-ink">{t('architecture.savedTitle', { count: architectures.length })}</h2>
           <button
             onClick={handleNewWizard}
             className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
@@ -1071,25 +1071,25 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </button>
         </div>
         {architectures.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-sm">
+          <div className="bg-surface border border-line rounded-2xl p-8 text-center text-ink-muted text-sm">
             {t('architecture.emptyList')}
           </div>
         ) : (
           <ul className="space-y-3" role="list">
             {architectures.map(arch => (
-              <li key={arch.id} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+              <li key={arch.id} className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3 min-w-0">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{arch.title ?? arch.result.pattern}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{arch.result.pattern}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-sm font-semibold text-ink truncate">{arch.title ?? arch.result.pattern}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">{arch.result.pattern}</p>
+                    <p className="text-xs text-ink-subtle mt-1">
                       {new Date(arch.updated_at).toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleViewSaved(arch)}
-                      className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+                      className="px-3 py-1.5 text-xs font-medium border border-line rounded-lg text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                     >
                       {t('architecture.viewButton')}
                     </button>
@@ -1097,7 +1097,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       onClick={() => handleDelete(arch.id)}
                       disabled={deletingId === arch.id}
                       aria-label={t('architecture.deleteAriaLabel', { title: arch.title ?? arch.result.pattern })}
-                      className="px-3 py-1.5 text-xs font-medium border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors whitespace-nowrap disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                      className="px-3 py-1.5 text-xs font-medium border border-error-border rounded-lg text-error-text hover:bg-error-subtle transition-colors whitespace-nowrap disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-error-border focus:ring-offset-1"
                     >
                       {deletingId === arch.id ? '…' : t('architecture.deleteButton')}
                     </button>
@@ -1359,7 +1359,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             </InfoHint>
                           )}
                         </div>
-                        <p className="text-sm text-slate-600">{result.summary}</p>
+                        <p className="text-sm text-ink-secondary">{result.summary}</p>
                       </div>
                     </SortableSection>
                   )
@@ -1419,9 +1419,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   return (
                     <SortableSection key="decisions" id="decisions">
                       <div className="space-y-4">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+                        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
                           <div className="flex items-center gap-2 mb-3">
-                            <h3 className="text-sm font-semibold text-slate-900">{t('architecture.keyDecisions')}</h3>
+                            <h3 className="text-sm font-semibold text-ink">{t('architecture.keyDecisions')}</h3>
                             {aiNarrative && <AIBadge />}
                           </div>
                           {(() => {
@@ -1431,8 +1431,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               <>
                                 <ul className="space-y-2.5" role="list">
                                   {visible.map((decision, i) => (
-                                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
-                                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">
+                                    <li key={i} className="flex gap-2.5 text-xs text-ink-secondary">
+                                      <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-warning-subtle text-warning-text rounded-full flex items-center justify-center font-semibold text-[10px]">
                                         {i + 1}
                                       </span>
                                       <span className="min-w-0">{pick(decision, locale)}</span>
@@ -1443,7 +1443,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                                   <button
                                     type="button"
                                     onClick={() => setShowAllDecisions(v => !v)}
-                                    className="mt-2 text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+                                    className="mt-2 text-[10px] text-ink-subtle hover:text-ink-secondary underline underline-offset-2 focus:outline-none"
                                   >
                                     {showAllDecisions ? t('architecture.showLess') : t('architecture.showAll', { count: allKeyDecisions.length - LIST_MAX })}
                                   </button>
@@ -1452,8 +1452,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             )
                           })()}
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-                          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('architecture.nextSteps')}</h3>
+                        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
+                          <h3 className="text-sm font-semibold text-ink mb-3">{t('architecture.nextSteps')}</h3>
                           {(() => {
                             const LIST_MAX = 7
                             const visible = showAllSteps ? allNextSteps : allNextSteps.slice(0, LIST_MAX)
@@ -1461,7 +1461,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                               <>
                                 <ul className="space-y-2.5" role="list">
                                   {visible.map((s, i) => (
-                                    <li key={i} className="flex gap-2.5 text-xs text-slate-600">
+                                    <li key={i} className="flex gap-2.5 text-xs text-ink-secondary">
                                       <span className="flex-shrink-0 mt-0.5 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">
                                         {i + 1}
                                       </span>
@@ -1473,7 +1473,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                                   <button
                                     type="button"
                                     onClick={() => setShowAllSteps(v => !v)}
-                                    className="mt-2 text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+                                    className="mt-2 text-[10px] text-ink-subtle hover:text-ink-secondary underline underline-offset-2 focus:outline-none"
                                   >
                                     {showAllSteps ? t('architecture.showLess') : t('architecture.showAll', { count: allNextSteps.length - LIST_MAX })}
                                   </button>
@@ -1494,12 +1494,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   const aiDecisionText = aiNarrative?.decision_recommendation ?? null
                   return (
                     <SortableSection key="decision" id="decision">
-                      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 space-y-3">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-slate-900">{t('architecture.decisionTitle')}</h3>
+                          <h3 className="text-sm font-semibold text-ink">{t('architecture.decisionTitle')}</h3>
                           {aiDecisionText && <AIBadge />}
                         </div>
-                        <div className="space-y-1 text-xs text-slate-500">
+                        <div className="space-y-1 text-xs text-ink-muted">
                           <p>{t('architecture.decisionSkeletonComponents', { rule: ruleComps, total: selStats.activeCount, add: addComps })}</p>
                           <p>
                             {openViolations === 0
@@ -1508,7 +1508,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                           </p>
                         </div>
                         {aiDecisionText ? (
-                          <p className="text-xs text-slate-700 leading-relaxed border-l-2 border-purple-200 pl-3">
+                          <p className="text-xs text-ink-secondary leading-relaxed border-l-2 border-purple-200 pl-3">
                             <span className="text-[color:var(--color-ai)] mr-1" aria-hidden="true">◆</span>
                             {aiDecisionText}
                           </p>
@@ -1594,7 +1594,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                                   </button>
                                 )}
                                 {rasicSuggestNoop && !rasicPreview && (
-                                  <p className="text-xs text-emerald-600 font-medium">
+                                  <p className="text-xs text-success-text font-medium">
                                     {t('architecture.rasicNoChanges')}
                                   </p>
                                 )}
@@ -1610,8 +1610,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             )}
                           </>
                         ) : (
-                          <div id="rasic-matrix" className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 text-center">
-                            <p className="text-sm text-slate-400">{t('architecture.rasicNotGenerated')}</p>
+                          <div id="rasic-matrix" className="bg-surface-raised border border-dashed border-line-strong rounded-2xl p-6 text-center">
+                            <p className="text-sm text-ink-subtle">{t('architecture.rasicNotGenerated')}</p>
                           </div>
                         )}
 
@@ -1630,7 +1630,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <div className="flex justify-end">
           <button
             onClick={() => setResultSectionOrder([...DEFAULT_RESULT_SECTIONS])}
-            className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 focus:outline-none"
+            className="text-xs text-ink-subtle hover:text-ink-secondary underline underline-offset-2 focus:outline-none"
           >
             {t('architecture.resetSectionOrder')}
           </button>
@@ -1665,7 +1665,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleNewWizard}
-            className="px-5 py-2 text-sm font-medium border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+            className="px-5 py-2 text-sm font-medium border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             {t('architecture.newGenerate')}
           </button>
@@ -1683,7 +1683,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             )
           })()}
           {saved && (
-            <span className="text-sm text-green-700 font-medium">{t('architecture.saved')}</span>
+            <span className="text-sm text-success-text font-medium">{t('architecture.saved')}</span>
           )}
           <a
             href={`/api/export/pdf?module=architecture&locale=${locale}`}
@@ -1707,7 +1707,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           {architectures.length > 0 && (
             <button
               onClick={() => setView('list')}
-              className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+              className="px-4 py-2 text-sm border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
             >
               {t('architecture.allArchitectures')}
             </button>
@@ -1771,7 +1771,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   // Component-Picker view
   if (view === 'component-picker') {
     if (!catalogRecs) {
-      return <div className="max-w-2xl py-12 text-center text-sm text-slate-400">{t('architecture.loadingCatalog')}</div>
+      return <div className="max-w-2xl py-12 text-center text-sm text-ink-subtle">{t('architecture.loadingCatalog')}</div>
     }
     const rejected = result?.rejected_suggestions ?? []
     const handleAcceptAI = (name: string) => {
@@ -1886,20 +1886,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
 
       {/* Progress */}
       <div className="mb-6" role="progressbar" aria-valuenow={currentStep + 1} aria-valuemin={1} aria-valuemax={totalSteps} aria-label={t('architecture.stepProgress', { step: currentStep + 1, total: totalSteps })}>
-        <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+        <div className="flex items-center justify-between text-xs text-ink-muted mb-2">
           <span>{t('architecture.stepProgress', { step: currentStep + 1, total: totalSteps })}</span>
           <span>{progress}%</span>
         </div>
-        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-line rounded-full overflow-hidden">
           <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       {/* Question card */}
-      <div id="wizard-question" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
+      <div id="wizard-question" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">{t('architecture.stepLabel', { step: step.step })}</p>
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(step.question, locale)}</h2>
-        <p className="text-sm text-slate-500 mb-5">{pick(step.context, locale)}</p>
+        <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">{pick(step.question, locale)}</h2>
+        <p className="text-sm text-ink-muted mb-5">{pick(step.context, locale)}</p>
 
         <fieldset>
           <legend className="sr-only">{pick(step.question, locale)}</legend>
@@ -1913,7 +1913,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     'flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-colors select-none',
                     isSelected
                       ? 'border-primary-ring bg-primary-soft'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      : 'border-line hover:border-line-strong hover:bg-surface-raised'
                   )}
                 >
                   <input
@@ -1925,8 +1925,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     className="mt-0.5 accent-blue-600 flex-shrink-0"
                   />
                   <div className="min-w-0">
-                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-slate-900')}>{pick(option.label, locale)}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{pick(option.description, locale)}</p>
+                    <p className={cn('text-sm font-medium', isSelected ? 'text-primary' : 'text-ink')}>{pick(option.label, locale)}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">{pick(option.description, locale)}</p>
                   </div>
                 </label>
               )
@@ -1940,14 +1940,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
         <button
           onClick={handleBack}
           disabled={currentStep === 0}
-          className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+          className="px-4 py-2 text-sm border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
         >
           {t('architecture.back')}
         </button>
         {architectures.length > 0 && (
           <button
             onClick={() => setView('list')}
-            className="px-4 py-2 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+            className="px-4 py-2 text-sm border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
           >
             {t('architecture.overview')}
           </button>
@@ -1978,20 +1978,20 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       <div className="relative bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-sm w-full">
         <div className="flex items-start justify-between gap-3 mb-4">
-          <h2 id="comp-modal-title" className="text-sm font-semibold text-slate-900 min-w-0">{comp.name}</h2>
+          <h2 id="comp-modal-title" className="text-sm font-semibold text-ink min-w-0">{comp.name}</h2>
           <button
             onClick={onClose}
             aria-label={tc('close')}
-            className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5"
+            className="flex-shrink-0 text-ink-subtle hover:text-ink-secondary focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5"
           >✕</button>
         </div>
         {comp.description && (
-          <p className="text-xs text-slate-600 mb-4 leading-relaxed">{comp.description}</p>
+          <p className="text-xs text-ink-secondary mb-4 leading-relaxed">{comp.description}</p>
         )}
         <dl className="space-y-2.5">
           {comp.dsgvo_status && (
             <div className="flex items-center gap-3">
-              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">DSGVO</dt>
+              <dt className="text-xs font-medium text-ink-muted w-24 flex-shrink-0">DSGVO</dt>
               <dd>
                 <span className={cn('text-xs px-2 py-0.5 rounded border font-medium', DSGVO_BADGE[comp.dsgvo_status])}>
                   {DSGVO_LABEL[comp.dsgvo_status]}
@@ -2001,19 +2001,19 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
           )}
           {comp.eu_ai_act_risk && (
             <div className="flex items-center gap-3">
-              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">EU AI Act</dt>
-              <dd className="text-xs text-slate-700">{comp.eu_ai_act_risk}</dd>
+              <dt className="text-xs font-medium text-ink-muted w-24 flex-shrink-0">EU AI Act</dt>
+              <dd className="text-xs text-ink-secondary">{comp.eu_ai_act_risk}</dd>
             </div>
           )}
           {comp.cloud_provider && (
             <div className="flex items-center gap-3">
-              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">Hosting</dt>
-              <dd className="text-xs text-slate-700">{comp.cloud_provider}</dd>
+              <dt className="text-xs font-medium text-ink-muted w-24 flex-shrink-0">Hosting</dt>
+              <dd className="text-xs text-ink-secondary">{comp.cloud_provider}</dd>
             </div>
           )}
           {comp.website_url && (
             <div className="flex items-center gap-3">
-              <dt className="text-xs font-medium text-slate-500 w-24 flex-shrink-0">Website</dt>
+              <dt className="text-xs font-medium text-ink-muted w-24 flex-shrink-0">Website</dt>
               <dd>
                 <a
                   href={comp.website_url}
@@ -2045,26 +2045,26 @@ function RoleDetailModal({ role, onClose, tc }: {
       <div className="relative bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h2 id="role-modal-title" className="text-sm font-semibold text-slate-900">{role.role_name}</h2>
+            <h2 id="role-modal-title" className="text-sm font-semibold text-ink">{role.role_name}</h2>
             {role.role_category && (
               <span className={cn('mt-1 inline-block text-[10px] font-medium px-2 py-0.5 border rounded-full', catClass)}>
                 {role.role_category}
               </span>
             )}
           </div>
-          <button onClick={onClose} aria-label={tc('close')} className="flex-shrink-0 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5">✕</button>
+          <button onClick={onClose} aria-label={tc('close')} className="flex-shrink-0 text-ink-subtle hover:text-ink-secondary focus:outline-none focus:ring-2 focus:ring-primary-ring rounded p-0.5">✕</button>
         </div>
 
         {role.description && (
-          <p className="text-xs text-slate-600 mb-4 leading-relaxed">{role.description}</p>
+          <p className="text-xs text-ink-secondary mb-4 leading-relaxed">{role.description}</p>
         )}
 
         {role.responsibilities && role.responsibilities.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-semibold text-slate-700 mb-2">{t('architecture.roleResponsibilitiesLabel')}</p>
+            <p className="text-xs font-semibold text-ink-secondary mb-2">{t('architecture.roleResponsibilitiesLabel')}</p>
             <ul className="space-y-1.5">
               {role.responsibilities.map((r, i) => (
-                <li key={i} className="flex gap-2 text-xs text-slate-600">
+                <li key={i} className="flex gap-2 text-xs text-ink-secondary">
                   <span className="flex-shrink-0 text-primary mt-0.5">•</span>
                   <span className="min-w-0">{r}</span>
                 </li>
@@ -2075,21 +2075,21 @@ function RoleDetailModal({ role, onClose, tc }: {
 
         {role.raci_activities && role.raci_activities.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-slate-700 mb-2">RACI</p>
+            <p className="text-xs font-semibold text-ink-secondary mb-2">RACI</p>
             <div className="space-y-1.5">
               {role.raci_activities.map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className={cn('flex-shrink-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold border rounded', RACI_COLORS[item.type] ?? 'bg-slate-100 text-slate-600 border-slate-200')}>
+                  <span className={cn('flex-shrink-0 w-5 h-5 flex items-center justify-center text-[10px] font-bold border rounded', RACI_COLORS[item.type] ?? 'bg-surface-raised text-ink-secondary border-line')}>
                     {item.type}
                   </span>
-                  <span className="text-xs text-slate-600 min-w-0">{item.activity}</span>
-                  <span className="text-[10px] text-slate-400 whitespace-nowrap">{RACI_LABEL[item.type]}</span>
+                  <span className="text-xs text-ink-secondary min-w-0">{item.activity}</span>
+                  <span className="text-[10px] text-ink-subtle whitespace-nowrap">{RACI_LABEL[item.type]}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+            <div className="mt-3 flex flex-wrap gap-2 border-t border-line-subtle pt-3">
               {Object.entries(RACI_LABEL).map(([k, v]) => (
-                <span key={k} className="flex items-center gap-1 text-[10px] text-slate-500">
+                <span key={k} className="flex items-center gap-1 text-[10px] text-ink-muted">
                   <span className={cn('w-4 h-4 flex items-center justify-center font-bold border rounded text-[9px]', RACI_COLORS[k])}>{k}</span>
                   {v}
                 </span>

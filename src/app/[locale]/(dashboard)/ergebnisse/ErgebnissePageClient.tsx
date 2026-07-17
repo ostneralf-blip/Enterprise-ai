@@ -31,10 +31,10 @@ const ARCHETYPES: Record<string, string> = {
   starter: 'AI Starter', scaler: 'AI Scaler', transformer: 'AI Transformer',
 }
 const VERDICT_COLORS: Record<string, string> = {
-  approve:    'text-emerald-700 bg-emerald-50 border-emerald-200',
-  stop_dsgvo: 'text-red-700 bg-red-50 border-red-200',
-  stop_risk:  'text-red-700 bg-red-50 border-red-200',
-  improve:    'text-amber-700 bg-amber-50 border-amber-200',
+  approve:    'text-success-text bg-success-subtle border-success-border',
+  stop_dsgvo: 'text-error-text bg-error-subtle border-error-border',
+  stop_risk:  'text-error-text bg-error-subtle border-error-border',
+  improve:    'text-warning-text bg-warning-subtle border-warning-border',
 }
 const PREF_KEY: Partial<Record<Tab, keyof Prefs>> = {
   assessment:   'primary_assessment_id',
@@ -67,7 +67,7 @@ function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCan
     <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
       {isPrimary
         ? (
-          <span className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 whitespace-nowrap">
+          <span className="flex items-center gap-1 text-xs font-medium text-warning-text bg-warning-subtle border border-warning-border rounded-md px-2 py-0.5 whitespace-nowrap">
             {t('primaryBadge')}
             <InfoHint title={t('primaryHintTitle')} side="bottom">
               <p>{t('primaryHintBody1')}</p>
@@ -77,7 +77,7 @@ function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCan
         )
         : (
           <span className="flex items-center gap-1">
-            <button onClick={onSetPrimary} className="text-xs text-slate-500 hover:text-primary border border-slate-200 hover:border-primary-border rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">{t('setPrimary')}</button>
+            <button onClick={onSetPrimary} className="text-xs text-ink-muted hover:text-primary border border-line hover:border-primary-border rounded-md px-2 py-0.5 transition-colors whitespace-nowrap">{t('setPrimary')}</button>
             <InfoHint title={t('primaryHintTitle')} side="bottom">
               <p>{t('primaryHintBody1')}</p>
               <p className="mt-1.5">{t('primaryHintBody2Other')}</p>
@@ -87,10 +87,10 @@ function RowActions({ isPrimary, isConfirmDelete, onSetPrimary, onConfirm, onCan
       }
       {isConfirmDelete
         ? <div className="flex gap-1">
-            <button onClick={onDelete}  className="text-xs text-red-600 border border-red-300 rounded-md px-2 py-0.5 hover:bg-red-50 whitespace-nowrap">{t('confirmDelete')}</button>
-            <button onClick={onCancel}  className="text-xs text-slate-500 border border-slate-200 rounded-md px-2 py-0.5 hover:bg-slate-50 whitespace-nowrap">{t('cancelDelete')}</button>
+            <button onClick={onDelete}  className="text-xs text-error-text border border-error-border rounded-md px-2 py-0.5 hover:bg-error-subtle whitespace-nowrap">{t('confirmDelete')}</button>
+            <button onClick={onCancel}  className="text-xs text-ink-muted border border-line rounded-md px-2 py-0.5 hover:bg-surface-raised whitespace-nowrap">{t('cancelDelete')}</button>
           </div>
-        : <button onClick={onConfirm} className="text-xs text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-300 rounded-md px-2 py-0.5 transition-colors">{t('delete')}</button>
+        : <button onClick={onConfirm} className="text-xs text-ink-subtle hover:text-error-text border border-line hover:border-error-border rounded-md px-2 py-0.5 transition-colors">{t('delete')}</button>
       }
     </div>
   )
@@ -188,18 +188,18 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
   return (
     <div>
-      <div className="relative mb-3 border-b border-slate-200">
+      <div className="relative mb-3 border-b border-line">
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
           {TABS.map(t => (
             <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setConfirmId(null); exitCompare() }}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-primary text-primary-hover' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${tab === t.key ? 'border-primary text-primary-hover' : 'border-transparent text-ink-muted hover:text-ink-secondary'}`}>
               {t.label}
-              {t.count > 0 && <span className="ml-1.5 text-xs bg-slate-100 text-slate-500 rounded-full px-1.5">{t.count}</span>}
+              {t.count > 0 && <span className="ml-1.5 text-xs bg-surface-raised text-ink-muted rounded-full px-1.5">{t.count}</span>}
             </button>
           ))}
         </div>
         {/* Fade-Indikator rechts */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-surface to-transparent" aria-hidden="true" />
       </div>
 
       {/* Vergleich-Button — unterhalb der Tabs, immer sichtbar wenn ≥ 2 Einträge */}
@@ -207,7 +207,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
         <div className="flex justify-end mb-3">
           {compareMode ? (
             <button onClick={exitCompare}
-              className="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+              className="px-3 py-1.5 text-xs font-medium text-ink-secondary border border-line rounded-lg hover:bg-surface-raised transition-colors whitespace-nowrap">
               {t('endCompare')}
             </button>
           ) : (
@@ -221,14 +221,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
 
       {/* Vergleich-Auswahlhinweis */}
       {compareMode && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-3">
-          <p className="text-xs text-amber-800 flex-1">
+        <div className="mb-4 bg-warning-subtle border border-warning-border rounded-lg px-3 py-2 flex items-center gap-3">
+          <p className="text-xs text-warning-text flex-1">
             {compareIds.length === 0 && t('compareHint0')}
             {compareIds.length === 1 && t('compareHint1')}
             {compareIds.length === 2 && t('compareHint2')}
           </p>
           {compareIds.length > 0 && (
-            <button onClick={() => setCompareIds([])} className="text-xs text-amber-700 hover:text-amber-900 font-medium whitespace-nowrap">
+            <button onClick={() => setCompareIds([])} className="text-xs text-warning-text hover:opacity-80 font-medium whitespace-nowrap">
               {t('resetSelection')}
             </button>
           )}
@@ -242,19 +242,19 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {assessments.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
-              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={a.id} className={cn('bg-surface border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-line')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={t('assessmentSelectAriaLabel', { date: fmt(a.created_at) })}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-line-strong text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-xs font-semibold text-slate-700 shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
-                    <span className="text-xs font-bold text-slate-900 shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a.total_score))}/5</span>
-                    <span className="text-xs text-slate-400 shrink-0">{fmt(a.created_at)}</span>
+                    <span className="text-xs font-semibold text-ink-secondary shrink-0">{ARCHETYPES[a.archetype] ?? a.archetype}</span>
+                    <span className="text-xs font-bold text-ink shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a.total_score))}/5</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{fmt(a.created_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_assessment_id === a.id} isConfirmDelete={confirmId === a.id}
@@ -265,12 +265,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === a.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 mb-3">
                       {Object.entries(a.dim_scores ?? {}).map(([dim, score]) => (
                         <div key={dim} className="text-xs flex justify-between">
-                          <span className="text-slate-500">{DIM_LABELS[dim] ?? dim}</span>
-                          <span className="font-semibold text-slate-800">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(score))}</span>
+                          <span className="text-ink-muted">{DIM_LABELS[dim] ?? dim}</span>
+                          <span className="font-semibold text-ink">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(score))}</span>
                         </div>
                       ))}
                     </div>
@@ -288,19 +288,19 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             if (!a1 || !a2) return null
             const dims = Object.keys(a1.dim_scores ?? {})
             return (
-              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">{t('compareAssessments')}</p>
+              <div className="mt-4 bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-raised border-b border-line-subtle">
+                  <p className="text-xs font-semibold text-ink-secondary">{t('compareAssessments')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('dimensionCol')}</div>
-                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-ink-muted border-b border-line-subtle">{t('dimensionCol')}</div>
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-line-subtle border-l">
                     {ARCHETYPES[a1.archetype] ?? a1.archetype} — {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a1.total_score))}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.created_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(a1.created_at)}</div>
                   </div>
-                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-success-text border-b border-line-subtle border-l">
                     {ARCHETYPES[a2.archetype] ?? a2.archetype} — {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(a2.total_score))}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.created_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(a2.created_at)}</div>
                   </div>
                   {dims.map(dim => {
                     const s1 = Number(a1.dim_scores?.[dim] ?? 0)
@@ -308,10 +308,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     const diff = s2 - s1
                     return (
                       <>
-                        <div key={`${dim}-label`} className="px-4 py-2 text-slate-500 border-t border-slate-100">{DIM_LABELS[dim] ?? dim}</div>
-                        <div key={`${dim}-s1`} className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(s1)}</div>
-                        <div key={`${dim}-s2`} className={cn('px-4 py-2 font-semibold border-t border-slate-100 border-l flex items-center gap-1',
-                          diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-red-600' : 'text-slate-800')}>
+                        <div key={`${dim}-label`} className="px-4 py-2 text-ink-muted border-t border-line-subtle">{DIM_LABELS[dim] ?? dim}</div>
+                        <div key={`${dim}-s1`} className="px-4 py-2 font-semibold text-ink border-t border-line-subtle border-l">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(s1)}</div>
+                        <div key={`${dim}-s2`} className={cn('px-4 py-2 font-semibold border-t border-line-subtle border-l flex items-center gap-1',
+                          diff > 0 ? 'text-success-text' : diff < 0 ? 'text-error-text' : 'text-ink')}>
                           {Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(s2)}
                           {diff !== 0 && <span className="text-[10px]">{diff > 0 ? '▲' : '▼'}{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.abs(diff))}</span>}
                         </div>
@@ -332,18 +332,18 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {architectures.map(a => {
             const isSelected = compareIds.includes(a.id)
             return (
-              <div key={a.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={a.id} className={cn('bg-surface border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-line')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(a.id) : toggle(a.id)}>
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(a.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={t('archSelectAriaLabel', { title: a.title })}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-line-strong text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm font-medium text-slate-700 truncate">{a.title}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{fmt(a.updated_at)}</span>
+                    <span className="text-sm font-medium text-ink-secondary truncate">{a.title}</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{fmt(a.updated_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_architecture_id === a.id} isConfirmDelete={confirmId === a.id}
@@ -354,9 +354,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === a.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500">{t('configFieldsSaved', { count: Object.keys(a.wizard_data ?? {}).length })}</p>
+                      <p className="text-xs text-ink-muted">{t('configFieldsSaved', { count: Object.keys(a.wizard_data ?? {}).length })}</p>
                       <Link href="/architecture" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInGenerator')}</Link>
                     </div>
                     <VersionsPanel
@@ -383,33 +383,33 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               ...(res2.layers ?? []).map(l => l.name),
             ]))
             return (
-              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">{t('compareArchitectures')}</p>
+              <div className="mt-4 bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-raised border-b border-line-subtle">
+                  <p className="text-xs font-semibold text-ink-secondary">{t('compareArchitectures')}</p>
                   <div className="flex flex-wrap gap-3 mt-1.5">
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-primary-soft border-primary-border" />{t('onlyInA1')}</span>
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-emerald-50 border-emerald-200" />{t('onlyInA2')}</span>
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500"><span className="inline-block w-2.5 h-2.5 rounded border bg-slate-50 border-slate-200" />{t('inBoth')}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-ink-muted"><span className="inline-block w-2.5 h-2.5 rounded border bg-primary-soft border-primary-border" />{t('onlyInA1')}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-ink-muted"><span className="inline-block w-2.5 h-2.5 rounded border bg-success-subtle border-success-border" />{t('onlyInA2')}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-ink-muted"><span className="inline-block w-2.5 h-2.5 rounded border bg-surface-raised border-line" />{t('inBoth')}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
-                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-ink-muted border-b border-line-subtle">{t('propertyCol')}</div>
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-line-subtle border-l">
                     {a1.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a1.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(a1.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-success-text border-b border-line-subtle border-l">
                     {a2.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(a2.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(a2.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('patternRow')}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res1.pattern ?? '—'}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{res2.pattern ?? '—'}</div>
+                  <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">{t('patternRow')}</div>
+                  <div className="px-4 py-2 font-semibold text-ink border-t border-line-subtle border-l">{res1.pattern ?? '—'}</div>
+                  <div className="px-4 py-2 font-semibold text-ink border-t border-line-subtle border-l">{res2.pattern ?? '—'}</div>
                   {res1.description || res2.description ? (
                     <Fragment key="arch-desc">
-                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('descriptionRow')}</div>
-                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res1.description ?? '—'}</div>
-                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l leading-relaxed">{res2.description ?? '—'}</div>
+                      <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">{t('descriptionRow')}</div>
+                      <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l leading-relaxed">{res1.description ?? '—'}</div>
+                      <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l leading-relaxed">{res2.description ?? '—'}</div>
                     </Fragment>
                   ) : null}
                   {allLayerNames.map(layerName => {
@@ -417,34 +417,34 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     const l2 = (res2.layers ?? []).find(l => l.name === layerName)
                     return (
                       <Fragment key={`layer-${layerName}`}>
-                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100 truncate">{layerName}</div>
-                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                        <div className="px-4 py-2 text-ink-muted border-t border-line-subtle truncate">{layerName}</div>
+                        <div className="px-4 py-2 border-t border-line-subtle border-l">
                           {l1 ? (
                             <div className="flex flex-wrap gap-1">
                               {(l1.components ?? []).map((c, ci) => (
                                 <span key={ci} className={cn('text-[10px] px-1.5 py-0.5 rounded border',
                                   (l2?.components ?? []).includes(c)
-                                    ? 'bg-slate-50 text-slate-600 border-slate-200'
+                                    ? 'bg-surface-raised text-ink-secondary border-line'
                                     : 'bg-primary-soft text-primary-hover border-primary-border'
                                 )}>{c}</span>
                               ))}
-                              {(l1.components ?? []).length === 0 && <span className="text-slate-300 text-sm">—</span>}
+                              {(l1.components ?? []).length === 0 && <span className="text-ink-subtle text-sm">—</span>}
                             </div>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-ink-subtle">—</span>}
                         </div>
-                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                        <div className="px-4 py-2 border-t border-line-subtle border-l">
                           {l2 ? (
                             <div className="flex flex-wrap gap-1">
                               {(l2.components ?? []).map((c, ci) => (
                                 <span key={ci} className={cn('text-[10px] px-1.5 py-0.5 rounded border',
                                   (l1?.components ?? []).includes(c)
-                                    ? 'bg-slate-50 text-slate-600 border-slate-200'
-                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    ? 'bg-surface-raised text-ink-secondary border-line'
+                                    : 'bg-success-subtle text-success-text border-success-border'
                                 )}>{c}</span>
                               ))}
-                              {(l2.components ?? []).length === 0 && <span className="text-slate-300 text-sm">—</span>}
+                              {(l2.components ?? []).length === 0 && <span className="text-ink-subtle text-sm">—</span>}
                             </div>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-ink-subtle">—</span>}
                         </div>
                       </Fragment>
                     )
@@ -461,22 +461,22 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
         <div className="space-y-2">
           {governance.length === 0 && <EmptyState variant="folder" title={t('emptyGovernanceTitle')} description={t('emptyGovernanceDesc')} cta={{ href: '/governance', label: t('emptyGovernanceCta') }} />}
           {governance.map(g => {
-            const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            const v = VERDICTS[g.result] ?? { label: g.result, color: 'text-ink-secondary bg-surface-raised border-line' }
             const isSelected = compareIds.includes(g.id)
             return (
-              <div key={g.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={g.id} className={cn('bg-surface border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-line')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(g.id) : toggle(g.id)}>
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(g.id)}
                       onClick={e => e.stopPropagation()}
                       aria-label={t('govSelectAriaLabel', { title: g.use_case_name ?? fmt(g.created_at) })}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-line-strong text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${v.color}`}>{v.label}</span>
-                    <span className="text-xs text-slate-600 truncate">{g.use_case_name ?? '—'}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{fmt(g.created_at)}</span>
+                    <span className="text-xs text-ink-secondary truncate">{g.use_case_name ?? '—'}</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{fmt(g.created_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_governance_id === g.id} isConfirmDelete={confirmId === g.id}
@@ -487,10 +487,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === g.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-3">
                     <div className="space-y-1">
-                      <p className="text-xs text-slate-600">{t('useCaseLabel')} <strong>{g.use_case_name ?? '—'}</strong></p>
-                      <p className="text-xs text-slate-600">{t('ergebnisLabel')} <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
+                      <p className="text-xs text-ink-secondary">{t('useCaseLabel')} <strong>{g.use_case_name ?? '—'}</strong></p>
+                      <p className="text-xs text-ink-secondary">{t('ergebnisLabel')} <span className={`font-semibold ${v.color.split(' ')[0]}`}>{v.label}</span></p>
                     </div>
                     <VersionsPanel module="governance" entityId={g.id} tier={tier} currentData={{ result: g.result, protocol: g.protocol } as Record<string, unknown>} />
                   </div>
@@ -503,36 +503,36 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const g1 = governance.find(g => g.id === compareIds[0])
             const g2 = governance.find(g => g.id === compareIds[1])
             if (!g1 || !g2) return null
-            const v1 = VERDICTS[g1.result] ?? { label: g1.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
-            const v2 = VERDICTS[g2.result] ?? { label: g2.result, color: 'text-slate-700 bg-slate-50 border-slate-200' }
+            const v1 = VERDICTS[g1.result] ?? { label: g1.result, color: 'text-ink-secondary bg-surface-raised border-line' }
+            const v2 = VERDICTS[g2.result] ?? { label: g2.result, color: 'text-ink-secondary bg-surface-raised border-line' }
             const protocolEntries = (g1.protocol ?? []).slice(0, 5)
             return (
-              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">{t('compareGovernance')}</p>
+              <div className="mt-4 bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-raised border-b border-line-subtle">
+                  <p className="text-xs font-semibold text-ink-secondary">{t('compareGovernance')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
-                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-ink-muted border-b border-line-subtle">{t('propertyCol')}</div>
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-line-subtle border-l">
                     {g1.use_case_name ?? '—'}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(g1.created_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(g1.created_at)}</div>
                   </div>
-                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-success-text border-b border-line-subtle border-l">
                     {g2.use_case_name ?? '—'}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(g2.created_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(g2.created_at)}</div>
                   </div>
                   {/* Row: Ergebnis */}
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('resultLabel')}</div>
-                  <div className="px-4 py-2 border-t border-slate-100 border-l">
+                  <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">{t('resultLabel')}</div>
+                  <div className="px-4 py-2 border-t border-line-subtle border-l">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v1.color}`}>{v1.label}</span>
                   </div>
-                  <div className="px-4 py-2 border-t border-slate-100 border-l">
+                  <div className="px-4 py-2 border-t border-line-subtle border-l">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${v2.color}`}>{v2.label}</span>
                   </div>
                   {/* Row: Use Case */}
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">Use Case</div>
-                  <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l truncate">{g1.use_case_name ?? '—'}</div>
-                  <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l truncate">{g2.use_case_name ?? '—'}</div>
+                  <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">Use Case</div>
+                  <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l truncate">{g1.use_case_name ?? '—'}</div>
+                  <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l truncate">{g2.use_case_name ?? '—'}</div>
                   {/* Rows: Protocol entries (up to 5) */}
                   {protocolEntries.map((entry, i) => {
                     const q = entry.question ?? entry.label ?? t('questionLabel', { number: i + 1 })
@@ -541,9 +541,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                     const a2 = g2entry ? (g2entry.answer ?? g2entry.value ?? '—') : '—'
                     return (
                       <Fragment key={`protocol-${i}`}>
-                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100 truncate">{q}</div>
-                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">{a1}</div>
-                        <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l">{a2}</div>
+                        <div className="px-4 py-2 text-ink-muted border-t border-line-subtle truncate">{q}</div>
+                        <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l">{a1}</div>
+                        <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l">{a2}</div>
                       </Fragment>
                     )
                   })}
@@ -561,18 +561,18 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {roadmaps.map(r => {
             const isSelected = compareIds.includes(r.id)
             return (
-              <div key={r.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={r.id} className={cn('bg-surface border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-line')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(r.id) : toggle(r.id)}>
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(r.id)}
                       onClick={e => e.stopPropagation()}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-line-strong text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm font-medium text-slate-700 truncate">{r.title}</span>
-                    <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[r.archetype] ?? r.archetype}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{fmt(r.updated_at)}</span>
+                    <span className="text-sm font-medium text-ink-secondary truncate">{r.title}</span>
+                    <span className="text-xs text-ink-muted shrink-0">{ARCHETYPES[r.archetype] ?? r.archetype}</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{fmt(r.updated_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_roadmap_id === r.id} isConfirmDelete={confirmId === r.id}
@@ -583,9 +583,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === r.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500">{t('phaseCount', { count: Array.isArray(r.phases) ? r.phases.length : 0 })}</p>
+                      <p className="text-xs text-ink-muted">{t('phaseCount', { count: Array.isArray(r.phases) ? r.phases.length : 0 })}</p>
                       <Link href="/roadmap" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInRoadmap')}</Link>
                     </div>
                     <VersionsPanel module="roadmap" entityId={r.id} tier={tier} currentData={{ title: r.title, archetype: r.archetype, phases: r.phases } as Record<string, unknown>} />
@@ -604,46 +604,46 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const phases2 = (Array.isArray(r2.phases) ? r2.phases : []) as Phase[]
             const maxPhases = Math.max(phases1.length, phases2.length)
             return (
-              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">{t('compareRoadmaps')}</p>
+              <div className="mt-4 bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-raised border-b border-line-subtle">
+                  <p className="text-xs font-semibold text-ink-secondary">{t('compareRoadmaps')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('propertyCol')}</div>
-                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-ink-muted border-b border-line-subtle">{t('propertyCol')}</div>
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-line-subtle border-l">
                     {r1.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(r1.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(r1.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-success-text border-b border-line-subtle border-l">
                     {r2.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(r2.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(r2.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('archetypeRow')}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r1.archetype] ?? r1.archetype}</div>
-                  <div className="px-4 py-2 font-semibold text-slate-800 border-t border-slate-100 border-l">{ARCHETYPES[r2.archetype] ?? r2.archetype}</div>
+                  <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">{t('archetypeRow')}</div>
+                  <div className="px-4 py-2 font-semibold text-ink border-t border-line-subtle border-l">{ARCHETYPES[r1.archetype] ?? r1.archetype}</div>
+                  <div className="px-4 py-2 font-semibold text-ink border-t border-line-subtle border-l">{ARCHETYPES[r2.archetype] ?? r2.archetype}</div>
                   {Array.from({ length: maxPhases }, (_, i) => {
                     const p1 = phases1[i]
                     const p2 = phases2[i]
                     return (
                       <Fragment key={`phase-${i}`}>
-                        <div className="px-4 py-2 text-slate-500 border-t border-slate-100">{t('phaseLabel', { number: i + 1 })}</div>
-                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                        <div className="px-4 py-2 text-ink-muted border-t border-line-subtle">{t('phaseLabel', { number: i + 1 })}</div>
+                        <div className="px-4 py-2 border-t border-line-subtle border-l">
                           {p1 ? (
                             <>
-                              <p className="font-semibold text-slate-800">{p1.title ?? '—'}</p>
-                              {p1.duration && <p className="text-slate-400">{p1.duration}</p>}
-                              {p1.focus && <p className="text-slate-500 mt-0.5">{p1.focus}</p>}
+                              <p className="font-semibold text-ink">{p1.title ?? '—'}</p>
+                              {p1.duration && <p className="text-ink-subtle">{p1.duration}</p>}
+                              {p1.focus && <p className="text-ink-muted mt-0.5">{p1.focus}</p>}
                             </>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-ink-subtle">—</span>}
                         </div>
-                        <div className="px-4 py-2 border-t border-slate-100 border-l">
+                        <div className="px-4 py-2 border-t border-line-subtle border-l">
                           {p2 ? (
                             <>
-                              <p className="font-semibold text-slate-800">{p2.title ?? '—'}</p>
-                              {p2.duration && <p className="text-slate-400">{p2.duration}</p>}
-                              {p2.focus && <p className="text-slate-500 mt-0.5">{p2.focus}</p>}
+                              <p className="font-semibold text-ink">{p2.title ?? '—'}</p>
+                              {p2.duration && <p className="text-ink-subtle">{p2.duration}</p>}
+                              {p2.focus && <p className="text-ink-muted mt-0.5">{p2.focus}</p>}
                             </>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-ink-subtle">—</span>}
                         </div>
                       </Fragment>
                     )
@@ -659,7 +659,7 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
       {tab === 'canvas' && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-3">
-            <p className="text-xs text-slate-500">{t('canvasIntro')}</p>
+            <p className="text-xs text-ink-muted">{t('canvasIntro')}</p>
             <InfoHint title={t('canvasHintTitle')} side="bottom">
               <p>{t('canvasHintBody1')}</p>
               <p className="mt-1.5">{t('canvasHintBody2')}</p>
@@ -672,20 +672,20 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             const isSelected = compareIds.includes(c.id)
             const filledFields = Object.values(c.data ?? {}).filter(v => v?.trim()).length
             return (
-              <div key={c.id} className={cn('bg-white border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-slate-200')}>
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={c.id} className={cn('bg-surface border rounded-xl overflow-hidden', isSelected ? 'border-primary-ring ring-1 ring-primary-ring' : 'border-line')}>
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => compareMode ? toggleCompare(c.id) : toggle(c.id)}>
                   {compareMode && (
                     <input type="checkbox" checked={isSelected} onChange={() => toggleCompare(c.id)}
                       onClick={e => e.stopPropagation()}
-                      className="shrink-0 w-4 h-4 rounded border-slate-300 text-primary cursor-pointer" />
+                      className="shrink-0 w-4 h-4 rounded border-line-strong text-primary cursor-pointer" />
                   )}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className="text-sm font-medium text-slate-700 truncate">{c.title}</span>
+                    <span className="text-sm font-medium text-ink-secondary truncate">{c.title}</span>
                     {c.archetype && (
-                      <span className="text-xs text-slate-500 shrink-0">{ARCHETYPES[c.archetype] ?? c.archetype}</span>
+                      <span className="text-xs text-ink-muted shrink-0">{ARCHETYPES[c.archetype] ?? c.archetype}</span>
                     )}
-                    <span className="text-xs text-slate-400 shrink-0">{t('fieldsCount', { filled: filledFields })} · {fmt(c.updated_at)}</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{t('fieldsCount', { filled: filledFields })} · {fmt(c.updated_at)}</span>
                   </div>
                   {!compareMode && (
                     <RowActions isPrimary={prefs.primary_canvas_id === c.id} isConfirmDelete={confirmId === c.id}
@@ -696,12 +696,12 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   )}
                 </div>
                 {!compareMode && expanded === c.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-3">
                     <div className="space-y-1.5">
                       {Object.entries(c.data ?? {}).filter(([, v]) => v?.trim()).map(([key, value]) => (
                         <div key={key} className="text-xs">
-                          <span className="font-medium text-slate-600 capitalize">{key}: </span>
-                          <span className="text-slate-500 line-clamp-2">{value}</span>
+                          <span className="font-medium text-ink-secondary capitalize">{key}: </span>
+                          <span className="text-ink-muted line-clamp-2">{value}</span>
                         </div>
                       ))}
                       <Link href="/canvas" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInCanvas')}</Link>
@@ -719,25 +719,25 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
             if (!c1 || !c2) return null
             const allKeys = [...new Set([...Object.keys(c1.data ?? {}), ...Object.keys(c2.data ?? {})])]
             return (
-              <div className="mt-4 bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-700">{t('compareCanvas')}</p>
+              <div className="mt-4 bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-raised border-b border-line-subtle">
+                  <p className="text-xs font-semibold text-ink-secondary">{t('compareCanvas')}</p>
                 </div>
                 <div className="grid grid-cols-3 text-xs">
-                  <div className="px-4 py-2 font-medium text-slate-500 border-b border-slate-100">{t('fieldCol')}</div>
-                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-ink-muted border-b border-line-subtle">{t('fieldCol')}</div>
+                  <div className="px-4 py-2 font-medium text-primary-hover border-b border-line-subtle border-l">
                     {c1.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(c1.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(c1.updated_at)}</div>
                   </div>
-                  <div className="px-4 py-2 font-medium text-emerald-700 border-b border-slate-100 border-l">
+                  <div className="px-4 py-2 font-medium text-success-text border-b border-line-subtle border-l">
                     {c2.title}
-                    <div className="text-[10px] text-slate-400 font-normal">{fmt(c2.updated_at)}</div>
+                    <div className="text-[10px] text-ink-subtle font-normal">{fmt(c2.updated_at)}</div>
                   </div>
                   {allKeys.map(key => (
                     <Fragment key={`canvas-${key}`}>
-                      <div className="px-4 py-2 text-slate-500 border-t border-slate-100 capitalize">{key}</div>
-                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l line-clamp-3">{c1.data?.[key] || '—'}</div>
-                      <div className="px-4 py-2 text-slate-700 border-t border-slate-100 border-l line-clamp-3">{c2.data?.[key] || '—'}</div>
+                      <div className="px-4 py-2 text-ink-muted border-t border-line-subtle capitalize">{key}</div>
+                      <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l line-clamp-3">{c1.data?.[key] || '—'}</div>
+                      <div className="px-4 py-2 text-ink-secondary border-t border-line-subtle border-l line-clamp-3">{c2.data?.[key] || '—'}</div>
                     </Fragment>
                   ))}
                 </div>
@@ -753,9 +753,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {complianceChecks.length === 0 && <EmptyState variant="folder" title={t('emptyComplianceTitle')} description={t('emptyComplianceDesc')} cta={{ href: '/compliance', label: t('emptyComplianceCta') }} />}
           {complianceChecks.map(cc => {
             const statusColor =
-              cc.status === 'compliant'     ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
-              cc.status === 'non_compliant' ? 'text-red-700 bg-red-50 border-red-200' :
-              'text-amber-700 bg-amber-50 border-amber-200'
+              cc.status === 'compliant'     ? 'text-success-text bg-success-subtle border-success-border' :
+              cc.status === 'non_compliant' ? 'text-error-text bg-error-subtle border-error-border' :
+              'text-warning-text bg-warning-subtle border-warning-border'
             const statusLabel =
               cc.status === 'compliant'     ? t('statusCompliant') :
               cc.status === 'non_compliant' ? t('statusNonCompliant') : t('statusOpen')
@@ -764,14 +764,14 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               cc.regulation === 'dsgvo'     ? t('regulationDsgvo') :
               cc.regulation
             return (
-              <div key={cc.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={cc.id} className="bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => toggle(cc.id)}>
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${statusColor}`}>{statusLabel}</span>
-                    <span className="text-sm font-medium text-slate-700 truncate">{regulationLabel}</span>
-                    <span className="text-xs text-slate-500 shrink-0">{cc.check_type}</span>
-                    <span className="text-xs text-slate-400 shrink-0">{fmt(cc.updated_at)}</span>
+                    <span className="text-sm font-medium text-ink-secondary truncate">{regulationLabel}</span>
+                    <span className="text-xs text-ink-muted shrink-0">{cc.check_type}</span>
+                    <span className="text-xs text-ink-subtle shrink-0">{fmt(cc.updated_at)}</span>
                   </div>
                   <RowActions
                     isPrimary={prefs.primary_compliance_id === cc.id}
@@ -783,8 +783,8 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   />
                 </div>
                 {expanded === cc.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
-                    {cc.notes && <p className="text-xs text-slate-600">{t('notesLabel', { text: cc.notes })}</p>}
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-1">
+                    {cc.notes && <p className="text-xs text-ink-secondary">{t('notesLabel', { text: cc.notes })}</p>}
                     <Link href="/compliance" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInCompliance')}</Link>
                     <VersionsPanel module="compliance" entityId={cc.id} tier={tier} currentData={{ regulation: cc.regulation, check_type: cc.check_type, status: cc.status, notes: cc.notes } as Record<string, unknown>} />
                   </div>
@@ -801,10 +801,10 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
           {useCases.length === 0 && <EmptyState variant="matrix" title={t('emptyUseCaseTitle')} description={t('emptyUseCaseDesc')} cta={{ href: '/usecase', label: t('emptyUseCaseCta') }} />}
           {useCases.map(uc => {
             const quadrantColor =
-              uc.quadrant === 'build'        ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
+              uc.quadrant === 'build'        ? 'text-success-text bg-success-subtle border-success-border' :
               uc.quadrant === 'pilot'        ? 'text-primary-hover bg-primary-soft border-primary-border' :
-              uc.quadrant === 'evaluate'     ? 'text-amber-700 bg-amber-50 border-amber-200' :
-              'text-slate-500 bg-slate-50 border-slate-200'
+              uc.quadrant === 'evaluate'     ? 'text-warning-text bg-warning-subtle border-warning-border' :
+              'text-ink-muted bg-surface-raised border-line'
             const quadrantLabel =
               uc.quadrant === 'build'        ? t('quadrantBuild') :
               uc.quadrant === 'pilot'        ? t('quadrantPilot') :
@@ -813,17 +813,17 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
               uc.quadrant ?? '—'
             const gov = uc.governance_result ? (VERDICTS[uc.governance_result] ?? null) : null
             return (
-              <div key={uc.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+              <div key={uc.id} className="bg-surface border border-line rounded-xl overflow-hidden">
+                <div className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-raised transition-colors cursor-pointer"
                   onClick={() => toggle(uc.id)}>
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     {uc.quadrant && (
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${quadrantColor}`}>{quadrantLabel}</span>
                     )}
-                    <span className="text-sm font-medium text-slate-700 truncate min-w-0">{uc.name}</span>
-                    {uc.domain && <span className="text-xs text-slate-500 shrink-0">{uc.domain}</span>}
+                    <span className="text-sm font-medium text-ink-secondary truncate min-w-0">{uc.name}</span>
+                    {uc.domain && <span className="text-xs text-ink-muted shrink-0">{uc.domain}</span>}
                     {uc.weighted_score != null && (
-                      <span className="text-xs text-slate-400 shrink-0">{t('scoreLabel', { score: Math.round(uc.weighted_score) })}</span>
+                      <span className="text-xs text-ink-subtle shrink-0">{t('scoreLabel', { score: Math.round(uc.weighted_score) })}</span>
                     )}
                   </div>
                   <RowActions
@@ -836,9 +836,9 @@ export function ErgebnissePageClient({ assessments: initA, architectures: initAr
                   />
                 </div>
                 {expanded === uc.id && (
-                  <div className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-1">
+                  <div className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-1">
                     {gov && (
-                      <p className="text-xs text-slate-600">{t('governanceLabel')} <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
+                      <p className="text-xs text-ink-secondary">{t('governanceLabel')} <span className={`font-semibold ${gov.color.split(' ')[0]}`}>{gov.label}</span></p>
                     )}
                     <Link href="/usecase" className="text-xs text-primary hover:underline mt-1 inline-block">{t('openInUseCases')}</Link>
                     <VersionsPanel module="usecase" entityId={uc.id} tier={tier} currentData={{ name: uc.name, domain: uc.domain, weighted_score: uc.weighted_score, quadrant: uc.quadrant } as Record<string, unknown>} />

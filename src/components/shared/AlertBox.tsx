@@ -3,9 +3,9 @@ import { cn } from '@/lib/utils'
 type AlertVariant = 'info' | 'warning' | 'error'
 
 const STYLES: Record<AlertVariant, { wrapper: string; icon: string }> = {
-  info:    { wrapper: 'bg-blue-50 border-blue-200 text-blue-800',   icon: 'ℹ' },
-  warning: { wrapper: 'bg-amber-50 border-amber-300 text-amber-800', icon: '⚠' },
-  error:   { wrapper: 'bg-red-50 border-red-300 text-red-800',       icon: '✕' },
+  info:    { wrapper: 'bg-info-subtle border-info-border text-info-text',       icon: 'ℹ' },
+  warning: { wrapper: 'bg-warning-subtle border-warning-border text-warning-text', icon: '⚠' },
+  error:   { wrapper: 'bg-error-subtle border-error-border text-error-text',    icon: '✕' },
 }
 
 interface AlertBoxProps {

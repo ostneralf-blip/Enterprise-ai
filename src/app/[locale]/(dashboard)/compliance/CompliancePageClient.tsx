@@ -190,8 +190,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       <div className={cn(
         'mb-4 flex items-center gap-2 text-xs px-3 py-2 rounded-lg border w-fit',
         COMPLIANCE_REVIEWED_DAYS > 90
-          ? 'bg-amber-50 border-amber-200 text-amber-700'
-          : 'bg-slate-50 border-slate-200 text-slate-500'
+          ? 'bg-warning-subtle border-warning-border text-warning-text'
+          : 'bg-surface-raised border-line text-ink-muted'
       )}>
         {COMPLIANCE_REVIEWED_DAYS > 90 ? '⚠' : '✓'}
         <span>
@@ -234,7 +234,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
             >
               {getTabLabel(id)}
               {id === 'summary' && allOpenItems.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">
+                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-error-subtle text-error-text">
                   {allOpenItems.length}
                 </span>
               )}
@@ -247,8 +247,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {tab === 'euaiact' && (
         <div role="tabpanel" id="panel-euaiact" aria-labelledby="tab-euaiact" className="space-y-6">
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-1">{t('compliance.step1Title')}</h2>
-            <p className="text-xs text-slate-400 mb-3">{t('compliance.step1Hint')}</p>
+            <h2 className="text-sm font-semibold text-ink-secondary mb-1">{t('compliance.step1Title')}</h2>
+            <p className="text-xs text-ink-subtle mb-3">{t('compliance.step1Hint')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {EU_AI_ACT_RISK_CLASSES.map(cls => {
                 const isSelected = riskClass === cls.id
@@ -261,22 +261,22 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                       'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isSelected
                         ? `${cls.color.bg} ${cls.color.border} ring-2 ring-primary-ring`
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                        : 'bg-surface border-line hover:border-line-strong'
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className={cn('text-xs font-semibold', isSelected ? cls.color.title : 'text-slate-700')}>
+                      <span className={cn('text-xs font-semibold', isSelected ? cls.color.title : 'text-ink-secondary')}>
                         {pick(cls.title, locale)}
                       </span>
-                      <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', isSelected ? cls.color.badge : 'bg-slate-100 text-slate-500')}>
+                      <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium', isSelected ? cls.color.badge : 'bg-surface-raised text-ink-muted')}>
                         {pick(cls.badge, locale)}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mb-1">{cls.articleRef}</p>
-                    <p className="text-xs text-slate-600 leading-relaxed">{pick(cls.summary, locale)}</p>
+                    <p className="text-xs text-ink-subtle mb-1">{cls.articleRef}</p>
+                    <p className="text-xs text-ink-secondary leading-relaxed">{pick(cls.summary, locale)}</p>
                     <ul className="mt-2 space-y-0.5">
                       {cls.examples.slice(0, 3).map((ex, i) => (
-                        <li key={i} className="text-xs text-slate-500 flex gap-1.5">
+                        <li key={i} className="text-xs text-ink-muted flex gap-1.5">
                           <span className="flex-shrink-0">·</span><span>{pick(ex, locale)}</span>
                         </li>
                       ))}
@@ -294,9 +294,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
           )}
 
           {riskClass === 'minimal' && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5">
-              <p className="text-sm font-semibold text-emerald-800 mb-1">{t('compliance.noObligations')}</p>
-              <p className="text-xs text-emerald-700">{t('compliance.noObligationsDesc')}</p>
+            <div className="bg-success-subtle border border-success-border rounded-2xl p-4 sm:p-5">
+              <p className="text-sm font-semibold text-success-text mb-1">{t('compliance.noObligations')}</p>
+              <p className="text-xs text-success-text">{t('compliance.noObligationsDesc')}</p>
             </div>
           )}
 
@@ -304,7 +304,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-slate-700">
+                  <h2 className="text-sm font-semibold text-ink-secondary">
                     {t('compliance.step2Title')} ({(() => { const cls = EU_AI_ACT_RISK_CLASSES.find(c => c.id === riskClass); return cls ? pick(cls.title, locale) : null })()})
                   </h2>
                   <InfoHint title={t('compliance.checklistHowTitle')}>
@@ -314,14 +314,14 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                     <p className="mt-1.5"><strong>✗</strong> {t('compliance.checklistHowFail')}</p>
                   </InfoHint>
                 </div>
-                <span className="text-xs text-slate-400 flex-shrink-0">
+                <span className="text-xs text-ink-subtle flex-shrink-0">
                   {t('compliance.countFulfilled', { done: euAiActDone, total: obligations.length })}
                   {euAiActNonCompliant > 0 && (
-                    <span className="ml-2 text-red-600 font-medium">{t('compliance.countOpen', { count: euAiActNonCompliant })}</span>
+                    <span className="ml-2 text-error-text font-medium">{t('compliance.countOpen', { count: euAiActNonCompliant })}</span>
                   )}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-4">
+              <div className="w-full h-1.5 bg-line rounded-full overflow-hidden mb-4">
                 <div
                   className="h-full bg-primary rounded-full transition-all"
                   style={{ width: `${(euAiActDone / obligations.length) * 100}%` }}
@@ -342,8 +342,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                       <div className={cn(
                         'flex items-start gap-3 p-3.5 rounded-xl border transition-colors',
                         status === 'compliant' ? 'bg-primary-soft border-primary-border' :
-                        status === 'non_compliant' ? 'bg-red-50 border-red-200' :
-                        'bg-white border-slate-200',
+                        status === 'non_compliant' ? 'bg-error-subtle border-error-border' :
+                        'bg-surface border-line',
                         isSaving && 'opacity-60'
                       )}>
                         <StatusIcon status={status} onClick={() => toggleItem('eu_ai_act', item.id)} disabled={isSaving} />
@@ -351,13 +351,13 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                           <p className="text-xs font-semibold text-primary mb-0.5">{item.article}</p>
                           <p className={cn('text-sm font-medium',
                             status === 'compliant' ? 'text-primary line-through' :
-                            status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                            status === 'non_compliant' ? 'text-error-text' : 'text-ink'
                           )}>
                             {pick(item.label, locale)}
                           </p>
-                          <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
+                          <p className="text-xs text-ink-subtle mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                           {item.relevance && (
-                            <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1.5">
+                            <p className="text-xs text-warning-text bg-warning-subtle rounded px-2 py-1 mt-1.5">
                               {t('compliance.whyRelevant')} {pick(item.relevance, locale)}
                             </p>
                           )}
@@ -371,7 +371,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
           )}
 
           {!riskClass && (
-            <p className="text-sm text-slate-400 text-center py-6">
+            <p className="text-sm text-ink-subtle text-center py-6">
               {t('compliance.noRiskClassSelected')}
             </p>
           )}
@@ -383,9 +383,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
         <div role="tabpanel" id="panel-dsgvo" aria-labelledby="tab-dsgvo">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 min-w-0">
-              <p className="text-sm text-slate-500 whitespace-nowrap">{t('compliance.countFulfilledOf', { done: dsgvoDone, total: DSGVO_CHECKLIST.length })}</p>
+              <p className="text-sm text-ink-muted whitespace-nowrap">{t('compliance.countFulfilledOf', { done: dsgvoDone, total: DSGVO_CHECKLIST.length })}</p>
               {dsgvoNonCompliant > 0 && (
-                <span className="text-xs text-red-600 font-medium whitespace-nowrap">{t('compliance.countNotFulfilled', { count: dsgvoNonCompliant })}</span>
+                <span className="text-xs text-error-text font-medium whitespace-nowrap">{t('compliance.countNotFulfilled', { count: dsgvoNonCompliant })}</span>
               )}
               <InfoHint title={t('compliance.dsgvoHowTitle')}>
                 <p>{t('compliance.dsgvoHowP1')}</p>
@@ -395,9 +395,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                 <p className="mt-2">{t('compliance.dsgvoHowSummary')}</p>
               </InfoHint>
             </div>
-            <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden flex-shrink-0">
+            <div className="w-32 h-1.5 bg-line rounded-full overflow-hidden flex-shrink-0">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
+                className="h-full bg-success-text rounded-full transition-all"
                 style={{ width: `${(dsgvoDone / DSGVO_CHECKLIST.length) * 100}%` }}
                 role="progressbar"
                 aria-valuenow={dsgvoDone}
@@ -416,21 +416,21 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                 <li key={item.id}>
                   <div className={cn(
                     'flex items-start gap-3 p-3.5 rounded-xl border transition-colors',
-                    status === 'compliant' ? 'bg-emerald-50 border-emerald-200' :
-                    status === 'non_compliant' ? 'bg-red-50 border-red-200' :
-                    'bg-white border-slate-200',
+                    status === 'compliant' ? 'bg-success-subtle border-success-border' :
+                    status === 'non_compliant' ? 'bg-error-subtle border-error-border' :
+                    'bg-surface border-line',
                     isSaving && 'opacity-60'
                   )}>
                     <StatusIcon status={status} onClick={() => toggleItem('dsgvo', item.id)} disabled={isSaving} />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-primary mb-0.5">{item.article}</p>
                       <p className={cn('text-sm font-medium',
-                        status === 'compliant' ? 'text-emerald-800 line-through' :
-                        status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                        status === 'compliant' ? 'text-success-text line-through' :
+                        status === 'non_compliant' ? 'text-error-text' : 'text-ink'
                       )}>
                         {pick(item.label, locale)}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
+                      <p className="text-xs text-ink-subtle mt-0.5">{item.description ? pick(item.description, locale) : null}</p>
                       {item.relevance && (
                         <p className="text-xs text-primary-hover bg-primary-soft rounded px-2 py-1 mt-1.5">
                           {t('compliance.aiRelevance')} {pick(item.relevance, locale)}
@@ -448,7 +448,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {/* ── RISIKOMATRIX ── */}
       {tab === 'matrix' && (
         <div role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix">
-          <p className="text-sm text-slate-500 mb-5">
+          <p className="text-sm text-ink-muted mb-5">
             {t('compliance.riskMatrixIntro')}
           </p>
           <RiskMatrixSelector
@@ -497,8 +497,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                     {t('compliance.summaryRiskLevel')} {pick(level.label, locale)}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-slate-800">{pick(level.action, locale)}</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-sm font-medium text-ink">{pick(level.action, locale)}</p>
+                <p className="text-xs text-ink-muted mt-0.5">
                   {t('compliance.summaryImpact')} {pick(RISK_MATRIX.impactLabels[pos.impact - 1], locale)} · {t('compliance.summaryProbability')} {pick(RISK_MATRIX.probabilityLabels[pos.probability - 1], locale)}
                 </p>
               </div>
@@ -507,9 +507,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
 
           {/* Offene Punkte */}
           {allOpenItems.length > 0 && (
-            <div className="border border-red-200 rounded-2xl p-4 sm:p-5 bg-red-50">
+            <div className="border border-error-border rounded-2xl p-4 sm:p-5 bg-error-subtle">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-sm font-semibold text-red-900">
+                <h3 className="text-sm font-semibold text-error-text">
                   {t('compliance.openItemsTitle')} ({allOpenItems.length})
                 </h3>
                 <InfoHint title={t('compliance.openItemsHintTitle')} side="bottom">
@@ -518,19 +518,19 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                   <p className="mt-1.5">{t('compliance.openItemsHintP3')}</p>
                 </InfoHint>
               </div>
-              <p className="text-xs text-red-700 mb-3">
+              <p className="text-xs text-error-text mb-3">
                 {t('compliance.openItemsDesc')}
               </p>
               <ul className="space-y-2">
                 {allOpenItems.map((item, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-xs">
                     <span
-                      className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-[10px]"
+                      className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-error-text flex items-center justify-center text-white font-bold text-[10px]"
                       aria-hidden="true"
                     >✗</span>
                     <span className="min-w-0">
-                      <span className="font-semibold text-red-800">{item.reg}:</span>
-                      <span className="text-red-700 ml-1">{item.label}</span>
+                      <span className="font-semibold text-error-text">{item.reg}:</span>
+                      <span className="text-error-text ml-1">{item.label}</span>
                     </span>
                   </li>
                 ))}
@@ -539,8 +539,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
           )}
 
           {allOpenItems.length === 0 && (dsgvoDone > 0 || euAiActDone > 0) && (
-            <div className="border border-emerald-200 rounded-xl p-3.5 bg-emerald-50">
-              <p className="text-xs font-medium text-emerald-800">{t('compliance.noOpenItems')}</p>
+            <div className="border border-success-border rounded-xl p-3.5 bg-success-subtle">
+              <p className="text-xs font-medium text-success-text">{t('compliance.noOpenItems')}</p>
             </div>
           )}
 
@@ -567,24 +567,24 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {tab === 'templates' && (
         <div role="tabpanel" id="panel-templates" aria-labelledby="tab-templates" className="space-y-4">
           {policyTemplates.length === 0 && (
-            <p className="text-sm text-slate-400 text-center py-8">{t('compliance.templatesEmpty')}</p>
+            <p className="text-sm text-ink-subtle text-center py-8">{t('compliance.templatesEmpty')}</p>
           )}
           {policyTemplates.map(tpl => (
-            <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+            <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
-                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-slate-900">{tpl.title}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">{tpl.subtitle}</p>
+                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-ink">{tpl.title}</h2>
+                  <p className="text-xs text-ink-subtle mt-0.5">{tpl.subtitle}</p>
                 </div>
                 <button
                   onClick={() => handleCopy(tpl.id, tpl.content)}
                   aria-label={t('compliance.copyAriaLabel', { title: tpl.title })}
-                  className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+                  className="flex-shrink-0 px-3 py-1.5 text-xs font-medium border border-line rounded-lg text-ink-secondary hover:bg-surface-raised whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
                 >
                   {copied === tpl.id ? t('compliance.copiedButton') : t('compliance.copyButton')}
                 </button>
               </div>
-              <pre className="text-xs text-slate-500 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
+              <pre className="text-xs text-ink-muted whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto border border-line-subtle rounded-xl p-3 bg-surface-raised">
                 {tpl.content}
               </pre>
             </section>
@@ -601,7 +601,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
 
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-sm font-semibold text-slate-700">{t('compliance.activateTitle')}</h2>
+              <h2 className="text-sm font-semibold text-ink-secondary">{t('compliance.activateTitle')}</h2>
               <InfoHint title={t('compliance.activateHintTitle')}>
                 <p>{t('compliance.activateHintP1')}</p>
                 <p className="mt-1"><strong>ISO 42001</strong> {t('compliance.activateHintISO42001')}</p>
@@ -623,20 +623,20 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                       'text-left rounded-2xl border p-4 transition-all focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                       isActive
                         ? 'bg-primary-soft border-primary-ring ring-1 ring-primary-ring'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                        : 'bg-surface border-line hover:border-line-strong'
                     )}
                   >
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600')}>
+                      <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', isActive ? 'bg-primary text-white' : 'bg-surface-raised text-ink-secondary')}>
                         {pick(reg.shortLabel, locale)}
                       </span>
-                      <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-slate-400')}>
+                      <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-ink-subtle')}>
                         {isActive ? t('compliance.activateActive') : t('compliance.activateButton')}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-800 mb-1 leading-snug">{pick(reg.label, locale)}</p>
-                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{pick(reg.description, locale)}</p>
-                    <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
+                    <p className="text-xs font-semibold text-ink mb-1 leading-snug">{pick(reg.label, locale)}</p>
+                    <p className="text-xs text-ink-muted leading-relaxed mb-2">{pick(reg.description, locale)}</p>
+                    <p className="text-xs text-warning-text bg-warning-subtle rounded px-2 py-1">
                       <strong>{t('compliance.appliesTo')}</strong> {pick(reg.applicability, locale)}
                     </p>
                   </button>
@@ -646,7 +646,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
           </div>
 
           {activeRegs.length === 0 && (
-            <p className="text-sm text-slate-400 text-center py-6">
+            <p className="text-sm text-ink-subtle text-center py-6">
               {t('compliance.extrasEmptyState')}
             </p>
           )}
@@ -655,23 +655,23 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
             const regDone = reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'compliant').length
             const regNonCompliant = reg.items.filter(i => getCheck(reg.id, i.id)?.status === 'non_compliant').length
             return (
-              <div key={reg.id} className="border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+              <div key={reg.id} className="border border-line rounded-2xl p-4 sm:p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <h3 className="text-sm font-semibold text-slate-800 truncate">{pick(reg.label, locale)}</h3>
+                    <h3 className="text-sm font-semibold text-ink truncate">{pick(reg.label, locale)}</h3>
                     <InfoHint title={pick(reg.label, locale)} side="bottom">
                       <p>{pick(reg.description, locale)}</p>
                       <p className="mt-1.5"><strong>{t('compliance.appliesTo')}</strong> {pick(reg.applicability, locale)}</p>
                     </InfoHint>
                   </div>
-                  <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                  <span className="text-xs text-ink-subtle flex-shrink-0 ml-2">
                     {t('compliance.regCountFulfilled', { done: regDone, total: reg.items.length })}
                     {regNonCompliant > 0 && (
-                      <span className="ml-1.5 text-red-600 font-medium">{t('compliance.regCountOpen', { count: regNonCompliant })}</span>
+                      <span className="ml-1.5 text-error-text font-medium">{t('compliance.regCountOpen', { count: regNonCompliant })}</span>
                     )}
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-line rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(regDone / reg.items.length) * 100}%` }}
@@ -692,8 +692,8 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                         <div className={cn(
                           'flex items-start gap-3 p-3 rounded-xl border transition-colors',
                           status === 'compliant' ? 'bg-primary-soft border-primary-border' :
-                          status === 'non_compliant' ? 'bg-red-50 border-red-200' :
-                          'bg-white border-slate-200',
+                          status === 'non_compliant' ? 'bg-error-subtle border-error-border' :
+                          'bg-surface border-line',
                           isSaving && 'opacity-60'
                         )}>
                           <StatusIcon status={status} onClick={() => toggleItem(reg.id, item.id)} disabled={isSaving} />
@@ -701,7 +701,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                             <p className="text-xs font-semibold text-primary mb-0.5">{item.category}</p>
                             <p className={cn('text-sm font-medium',
                               status === 'compliant' ? 'text-primary line-through' :
-                              status === 'non_compliant' ? 'text-red-800' : 'text-slate-800'
+                              status === 'non_compliant' ? 'text-error-text' : 'text-ink'
                             )}>
                               {pick(item.label, locale)}
                             </p>
@@ -748,7 +748,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                         </span>
                       )}
                       {used && archTitle && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white whitespace-nowrap">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-success-text text-white whitespace-nowrap">
                           {t('compliance.rolesUsedBadge', { title: archTitle })}
                         </span>
                       )}
@@ -777,7 +777,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       )}
 
       {/* Aktions-Leiste */}
-      <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
+      <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-line">
         <a
           href={`/api/export/pdf?module=compliance&locale=${locale}`}
           target="_blank"
@@ -811,7 +811,7 @@ function StatusIcon({
         onClick={onClick}
         disabled={disabled}
         aria-label={t('compliance.checkOpenAriaLabel')}
-        className={cn(base, 'border-slate-300 bg-white hover:border-primary-ring focus:ring-primary-ring')}
+        className={cn(base, 'border-line-strong bg-surface hover:border-primary-ring focus:ring-primary-ring')}
       />
     )
   }
@@ -822,7 +822,7 @@ function StatusIcon({
         onClick={onClick}
         disabled={disabled}
         aria-label={t('compliance.checkDoneAriaLabel')}
-        className={cn(base, 'border-emerald-500 bg-emerald-500 hover:bg-emerald-600 hover:border-emerald-600 focus:ring-emerald-500')}
+        className={cn(base, 'border-success-text bg-success-text hover:opacity-90 focus:ring-success-border')}
       >
         <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✓</span>
       </button>
@@ -834,7 +834,7 @@ function StatusIcon({
       onClick={onClick}
       disabled={disabled}
       aria-label={t('compliance.checkFailAriaLabel')}
-      className={cn(base, 'border-red-500 bg-red-500 hover:bg-red-600 hover:border-red-600 focus:ring-red-500')}
+      className={cn(base, 'border-error-text bg-error-text hover:opacity-90 focus:ring-error-border')}
     >
       <span className="text-white text-[10px] font-bold leading-none" aria-hidden="true">✗</span>
     </button>
@@ -856,12 +856,12 @@ function SummaryCard({
 }) {
   const t = useTranslations('modules')
   return (
-    <div className={cn('rounded-xl border p-4', done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200')}>
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className={cn('text-base font-semibold', done ? 'text-emerald-800' : 'text-slate-900')}>{value}</p>
-      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+    <div className={cn('rounded-xl border p-4', done ? 'bg-success-subtle border-success-border' : 'bg-surface border-line')}>
+      <p className="text-xs text-ink-muted mb-1">{label}</p>
+      <p className={cn('text-base font-semibold', done ? 'text-success-text' : 'text-ink')}>{value}</p>
+      {sub && <p className="text-xs text-ink-subtle mt-0.5">{sub}</p>}
       {issues != null && issues > 0 && (
-        <p className="text-xs text-red-600 mt-1 font-medium">✗ {t('compliance.countNotFulfilled', { count: issues })}</p>
+        <p className="text-xs text-error-text mt-1 font-medium">✗ {t('compliance.countNotFulfilled', { count: issues })}</p>
       )}
     </div>
   )
@@ -881,8 +881,8 @@ function RiskMatrixSelector({
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-2">
-          {t('compliance.riskMatrixImpactLabel')} <span className="font-normal text-slate-400">{t('compliance.riskMatrixImpactHint')}</span>
+        <label className="block text-xs font-semibold text-ink-secondary mb-2">
+          {t('compliance.riskMatrixImpactLabel')} <span className="font-normal text-ink-subtle">{t('compliance.riskMatrixImpactHint')}</span>
         </label>
         <div className="flex gap-2 flex-wrap">
           {RISK_MATRIX.impactLabels.map((label, i) => (
@@ -894,7 +894,7 @@ function RiskMatrixSelector({
                 'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.impact === i + 1
                   ? 'bg-primary text-white border-primary'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  : 'bg-surface text-ink-secondary border-line hover:border-line-strong'
               )}
             >
               {i + 1} — {pick(label, locale)}
@@ -904,8 +904,8 @@ function RiskMatrixSelector({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-2">
-          {t('compliance.riskMatrixProbLabel')} <span className="font-normal text-slate-400">{t('compliance.riskMatrixProbHint')}</span>
+        <label className="block text-xs font-semibold text-ink-secondary mb-2">
+          {t('compliance.riskMatrixProbLabel')} <span className="font-normal text-ink-subtle">{t('compliance.riskMatrixProbHint')}</span>
         </label>
         <div className="flex gap-2 flex-wrap">
           {RISK_MATRIX.probabilityLabels.map((label, i) => (
@@ -917,7 +917,7 @@ function RiskMatrixSelector({
                 'px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring',
                 value.probability === i + 1
                   ? 'bg-primary text-white border-primary'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  : 'bg-surface text-ink-secondary border-line hover:border-line-strong'
               )}
             >
               {i + 1} — {pick(label, locale)}
@@ -932,10 +932,10 @@ function RiskMatrixSelector({
             {pick(level.label, locale)}
           </span>
         </div>
-        <p className="text-sm font-semibold text-slate-800 mb-1">{pick(level.action, locale)}</p>
+        <p className="text-sm font-semibold text-ink mb-1">{pick(level.action, locale)}</p>
         <ul className="space-y-0.5">
           {level.examples.map((ex, i) => (
-            <li key={i} className="text-xs text-slate-500 flex gap-1.5">
+            <li key={i} className="text-xs text-ink-muted flex gap-1.5">
               <span className="flex-shrink-0">·</span><span>{pick(ex, locale)}</span>
             </li>
           ))}

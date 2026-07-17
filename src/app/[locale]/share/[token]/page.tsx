@@ -115,15 +115,15 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   const share = shareResult
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-surface-raised">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3">
+      <header className="bg-surface border-b border-line px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-white text-xs font-bold">N</div>
-            <span className="text-sm font-semibold text-slate-900">AI Navigator</span>
+            <div className="w-7 h-7 bg-ink rounded-lg flex items-center justify-center text-surface text-xs font-bold">N</div>
+            <span className="text-sm font-semibold text-ink">AI Navigator</span>
           </div>
-          <span className="text-xs text-slate-400">{t('readOnlyShared')}</span>
+          <span className="text-xs text-ink-subtle">{t('readOnlyShared')}</span>
         </div>
       </header>
 
@@ -172,9 +172,9 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           />
         )}
 
-        <p className="text-xs text-slate-400 text-center pt-4">
+        <p className="text-xs text-ink-subtle text-center pt-4">
           {t('createdWith')}{' '}
-          <a href="https://enterprise-ai.biz" className="underline hover:text-slate-600">AI Navigator</a>
+          <a href="https://enterprise-ai.biz" className="underline hover:text-ink-secondary">AI Navigator</a>
           {' '}· enterprise-ai.biz
         </p>
       </main>
@@ -198,8 +198,8 @@ function ArchitectureShareView({
     <>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{entity.title ?? result.pattern}</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h1 className="text-xl font-semibold text-ink">{entity.title ?? result.pattern}</h1>
+          <p className="text-xs text-ink-subtle mt-0.5">
             {t('architectureModule')} · {formatDate(entity.updated_at, locale)}
           </p>
         </div>
@@ -210,22 +210,22 @@ function ArchitectureShareView({
           {t('recommendedPattern')}
         </span>
         <h2 className={cn('text-base font-semibold mt-2 mb-1', result.color.title)}>{result.pattern}</h2>
-        <p className="text-sm text-slate-600">{result.summary}</p>
+        <p className="text-sm text-ink-secondary">{result.summary}</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">{t('architectureLayers')}</h3>
+      <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h3 className="text-sm font-semibold text-ink mb-4">{t('architectureLayers')}</h3>
         <div className="space-y-3">
           {result.layers.map((layer, i) => (
-            <div key={i} className="border border-slate-100 rounded-xl p-3.5">
+            <div key={i} className="border border-line-subtle rounded-xl p-3.5">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-slate-400 text-sm">{LAYER_ICONS[i]}</span>
-                <span className="text-sm font-semibold text-slate-800">{layer.name}</span>
+                <span className="text-ink-subtle text-sm">{LAYER_ICONS[i]}</span>
+                <span className="text-sm font-semibold text-ink">{layer.name}</span>
               </div>
-              <p className="text-xs text-slate-500 mb-2">{layer.role}</p>
+              <p className="text-xs text-ink-muted mb-2">{layer.role}</p>
               <div className="flex flex-wrap gap-1.5">
                 {layer.components.map((comp, j) => (
-                  <span key={j} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{(result.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</span>
+                  <span key={j} className="text-xs bg-surface-raised text-ink-secondary px-2 py-0.5 rounded-full">{(result.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</span>
                 ))}
               </div>
             </div>
@@ -234,22 +234,22 @@ function ArchitectureShareView({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white border border-slate-200 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('keyDecisions')}</h3>
+        <div className="bg-surface border border-line rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-ink mb-3">{t('keyDecisions')}</h3>
           <ul className="space-y-2">
             {result.keyDecisions.map((d, i) => (
-              <li key={i} className="flex gap-2 text-xs text-slate-600">
-                <span className="flex-shrink-0 w-4 h-4 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
+              <li key={i} className="flex gap-2 text-xs text-ink-secondary">
+                <span className="flex-shrink-0 w-4 h-4 bg-warning-subtle text-warning-text rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
                 <span className="min-w-0">{pick(d, locale)}</span>
               </li>
             ))}
           </ul>
         </div>
-        <div className="bg-white border border-slate-200 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">{t('nextSteps')}</h3>
+        <div className="bg-surface border border-line rounded-2xl p-4">
+          <h3 className="text-sm font-semibold text-ink mb-3">{t('nextSteps')}</h3>
           <ul className="space-y-2">
             {result.nextSteps.map((s, i) => (
-              <li key={i} className="flex gap-2 text-xs text-slate-600">
+              <li key={i} className="flex gap-2 text-xs text-ink-secondary">
                 <span className="flex-shrink-0 w-4 h-4 bg-primary-soft text-primary-hover rounded-full flex items-center justify-center font-semibold text-[10px]">{i + 1}</span>
                 <span className="min-w-0">{pick(s, locale)}</span>
               </li>
@@ -279,17 +279,17 @@ function AssessmentShareView({
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">AI-Readiness Assessment</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <h1 className="text-xl font-semibold text-ink">AI-Readiness Assessment</h1>
+        <p className="text-xs text-ink-subtle mt-0.5">
           {formatDate(entity.created_at, locale)}
         </p>
       </div>
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center">
-        <p className="text-xs text-slate-500 mb-1">{t('archetype')}</p>
-        <p className="text-2xl font-bold text-slate-900">{ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype}</p>
-        <p className="text-sm text-slate-500 mt-3">{t('maturityScore')}</p>
+      <div className="bg-surface border border-line rounded-2xl p-6 text-center">
+        <p className="text-xs text-ink-muted mb-1">{t('archetype')}</p>
+        <p className="text-2xl font-bold text-ink">{ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype}</p>
+        <p className="text-sm text-ink-muted mt-3">{t('maturityScore')}</p>
         <p className="text-4xl font-bold text-primary mt-1">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(entity.total_score)}</p>
-        <p className="text-xs text-slate-400 mt-1">{t('outOf50')}</p>
+        <p className="text-xs text-ink-subtle mt-1">{t('outOf50')}</p>
       </div>
     </>
   )
@@ -298,10 +298,10 @@ function AssessmentShareView({
 // ─── GOVERNANCE ──────────────────────────────────────────────────────────────
 
 const VERDICT_COLORS: Record<GovernanceVerdict, { bg: string; text: string; border: string }> = {
-  approve:    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-  improve:    { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200' },
-  stop_risk:  { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200' },
-  stop_dsgvo: { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200' },
+  approve:    { bg: 'bg-success-subtle', text: 'text-success-text', border: 'border-success-border' },
+  improve:    { bg: 'bg-warning-subtle', text: 'text-warning-text', border: 'border-warning-border' },
+  stop_risk:  { bg: 'bg-error-subtle',   text: 'text-error-text',   border: 'border-error-border' },
+  stop_dsgvo: { bg: 'bg-error-subtle',   text: 'text-error-text',   border: 'border-error-border' },
 }
 
 function verdictLabel(verdict: GovernanceVerdict, t: ShareT): string {
@@ -324,11 +324,11 @@ function GovernanceShareView({
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{entity.use_case_name ?? t('governanceModule')}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t('governanceModule')} · {formatDate(entity.created_at, locale)}</p>
+        <h1 className="text-xl font-semibold text-ink">{entity.use_case_name ?? t('governanceModule')}</h1>
+        <p className="text-xs text-ink-subtle mt-0.5">{t('governanceModule')} · {formatDate(entity.created_at, locale)}</p>
       </div>
       <div className={cn('rounded-2xl border p-6 text-center', colors.bg, colors.border)}>
-        <p className="text-xs text-slate-500 mb-2">{t('governanceVerdict')}</p>
+        <p className="text-xs text-ink-muted mb-2">{t('governanceVerdict')}</p>
         <p className={cn('text-2xl font-bold', colors.text)}>{verdictLabel(entity.result, t)}</p>
       </div>
     </>
@@ -359,33 +359,33 @@ function RoadmapShareView({
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{entity.title ?? t('roadmapModule')}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <h1 className="text-xl font-semibold text-ink">{entity.title ?? t('roadmapModule')}</h1>
+        <p className="text-xs text-ink-subtle mt-0.5">
           {t('roadmapModule')} · {ARCHETYPE_LABELS[entity.archetype] ?? entity.archetype} · {formatDate(entity.updated_at, locale)}
         </p>
       </div>
       <div className="space-y-4">
         {phases.map((phase, i) => (
-          <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
+          <div key={i} className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3 mb-2">
-              <h2 className="text-sm font-semibold text-slate-900 min-w-0">{pick(phase.title, locale)}</h2>
-              <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{pick(phase.duration, locale)}</span>
+              <h2 className="text-sm font-semibold text-ink min-w-0">{pick(phase.title, locale)}</h2>
+              <span className="text-xs text-ink-subtle whitespace-nowrap flex-shrink-0">{pick(phase.duration, locale)}</span>
             </div>
-            <p className="text-xs text-slate-500 mb-3">{pick(phase.focus, locale)}</p>
+            <p className="text-xs text-ink-muted mb-3">{pick(phase.focus, locale)}</p>
             {phase.kpis.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-slate-700 mb-1.5">{t('roadmapKpis')}</p>
+                <p className="text-xs font-medium text-ink-secondary mb-1.5">{t('roadmapKpis')}</p>
                 <ul className="space-y-1">
                   {phase.kpis.map((kpi, j) => (
-                    <li key={j} className="text-xs text-slate-600 flex gap-1.5">
-                      <span className="text-slate-300 flex-shrink-0">·</span>
+                    <li key={j} className="text-xs text-ink-secondary flex gap-1.5">
+                      <span className="text-ink-subtle flex-shrink-0">·</span>
                       <span className="min-w-0">{pick(kpi, locale)}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-            <p className="text-xs text-slate-400 mt-3">{t('roadmapBudget')}: {phase.budget}</p>
+            <p className="text-xs text-ink-subtle mt-3">{t('roadmapBudget')}: {phase.budget}</p>
           </div>
         ))}
       </div>
@@ -418,14 +418,14 @@ function CanvasShareView({
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{entity.title}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t('canvasModule')} · {formatDate(entity.updated_at, locale)}</p>
+        <h1 className="text-xl font-semibold text-ink">{entity.title}</h1>
+        <p className="text-xs text-ink-subtle mt-0.5">{t('canvasModule')} · {formatDate(entity.updated_at, locale)}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {fields.filter(([, v]) => v).map(([label, value]) => (
-          <div key={label} className="bg-white border border-slate-200 rounded-2xl p-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{label}</p>
-            <p className="text-sm text-slate-700 whitespace-pre-wrap">{value}</p>
+          <div key={label} className="bg-surface border border-line rounded-2xl p-4">
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">{label}</p>
+            <p className="text-sm text-ink-secondary whitespace-pre-wrap">{value}</p>
           </div>
         ))}
       </div>
@@ -436,10 +436,10 @@ function CanvasShareView({
 // ─── USE CASE SCORING ────────────────────────────────────────────────────────
 
 const QUADRANT_STYLES: Record<string, { bg: string; text: string }> = {
-  quick_win:         { bg: 'bg-emerald-100', text: 'text-emerald-700' },
-  strategic_bet:     { bg: 'bg-sky-100',     text: 'text-sky-700' },
-  low_hanging_fruit: { bg: 'bg-amber-100',   text: 'text-amber-700' },
-  avoid:             { bg: 'bg-red-100',      text: 'text-red-700' },
+  quick_win:         { bg: 'bg-success-subtle', text: 'text-success-text' },
+  strategic_bet:     { bg: 'bg-sky-100',        text: 'text-sky-700' },
+  low_hanging_fruit: { bg: 'bg-warning-subtle', text: 'text-warning-text' },
+  avoid:             { bg: 'bg-error-subtle',   text: 'text-error-text' },
 }
 
 function quadrantLabel(quadrant: string, t: ShareT): string {
@@ -464,27 +464,27 @@ function UseCaseShareView({
   return (
     <>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{entity.name}</h1>
-        <p className="text-xs text-slate-400 mt-0.5">{t('usecaseModule')} · {formatDate(entity.updated_at, locale)}</p>
+        <h1 className="text-xl font-semibold text-ink">{entity.name}</h1>
+        <p className="text-xs text-ink-subtle mt-0.5">{t('usecaseModule')} · {formatDate(entity.updated_at, locale)}</p>
       </div>
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="bg-surface border border-line rounded-2xl overflow-hidden">
         {entity.use_cases.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400 text-center">—</p>
+          <p className="p-6 text-sm text-ink-subtle text-center">—</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-line-subtle">
             {entity.use_cases.map((uc, i) => {
-              const qStyle = QUADRANT_STYLES[uc.quadrant] ?? { bg: 'bg-slate-100', text: 'text-slate-600' }
+              const qStyle = QUADRANT_STYLES[uc.quadrant] ?? { bg: 'bg-surface-raised', text: 'text-ink-secondary' }
               return (
                 <li key={i} className="p-4 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">{uc.name}</p>
-                    {uc.domain && <p className="text-xs text-slate-400">{uc.domain}</p>}
+                    <p className="text-sm font-medium text-ink truncate">{uc.name}</p>
+                    {uc.domain && <p className="text-xs text-ink-subtle">{uc.domain}</p>}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap', qStyle.bg, qStyle.text)}>
                       {quadrantLabel(uc.quadrant, t)}
                     </span>
-                    <span className="text-sm font-semibold text-slate-700 tabular-nums">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(uc.weighted_score)}</span>
+                    <span className="text-sm font-semibold text-ink-secondary tabular-nums">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(uc.weighted_score)}</span>
                   </div>
                 </li>
               )

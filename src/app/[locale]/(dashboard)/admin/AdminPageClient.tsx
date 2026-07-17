@@ -907,8 +907,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Admin-Panel</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Interne Verwaltung</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-ink">Admin-Panel</h1>
+        <p className="text-sm text-ink-muted mt-0.5">Interne Verwaltung</p>
       </div>
 
       {/* Tab bar — Mobile: select, Desktop: button row */}
@@ -933,7 +933,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           <div className="mb-6">
             {/* Mobile select (< md) */}
             <select
-              className="md:hidden w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              className="md:hidden w-full border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-ring"
               value={tab}
               onChange={e => handleTabClick(e.target.value as Tab)}
             >
@@ -942,7 +942,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               ))}
             </select>
             {/* Desktop tab list (≥ md) */}
-            <div className="hidden md:flex gap-1 border-b border-slate-200" role="tablist">
+            <div className="hidden md:flex gap-1 border-b border-line" role="tablist">
               {ADMIN_TABS.map(([id, label, count]) => (
                 <button
                   key={id}
@@ -953,11 +953,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1',
                     tab === id
                       ? 'border-primary text-primary-hover'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                      : 'border-transparent text-ink-muted hover:text-ink-secondary hover:border-line-strong'
                   )}
                 >
                   {label}
-                  <span className="ml-1.5 text-xs text-slate-400">({count})</span>
+                  <span className="ml-1.5 text-xs text-ink-subtle">({count})</span>
                 </button>
               ))}
             </div>
@@ -969,7 +969,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {tab === 'content' && (
         <div className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-slate-500">{entries.length} Einträge</p>
+            <p className="text-sm text-ink-muted">{entries.length} Einträge</p>
             <button
               onClick={openCreate}
               className="whitespace-nowrap px-4 py-2 bg-primary hover:bg-primary text-white text-sm font-semibold rounded-lg transition-colors"
@@ -989,7 +989,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   'px-3 py-1 rounded-full text-xs font-medium transition-colors',
                   filterModule === m
                     ? 'bg-primary text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-surface-raised text-ink-secondary hover:bg-line'
                 )}
               >
                 {m === 'all' ? 'Alle' : m}
@@ -1000,60 +1000,60 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           {/* Form */}
           {showForm && (
             <div role="dialog" aria-modal="true" aria-label={editing ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}
-              className="bg-white border border-slate-200 rounded-xl p-4 sm:p-6 shadow-sm space-y-4">
-              <h2 className="text-base sm:text-lg font-semibold text-slate-900">
+              className="bg-surface border border-line rounded-xl p-4 sm:p-6 shadow-sm space-y-4">
+              <h2 className="text-base sm:text-lg font-semibold text-ink">
                 {editing ? 'Eintrag bearbeiten' : 'Neuer Eintrag'}
               </h2>
               {error && <AlertBox variant="error">{error}</AlertBox>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="admin-module" className="block text-xs font-medium text-slate-700 mb-1">Modul</label>
+                  <label htmlFor="admin-module" className="block text-xs font-medium text-ink-secondary mb-1">Modul</label>
                   <select id="admin-module" value={form.module} onChange={e => setForm(f => ({ ...f, module: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
                     <option value="">— wählen —</option>
                     {MODULES.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="admin-category" className="block text-xs font-medium text-slate-700 mb-1">Kategorie</label>
+                  <label htmlFor="admin-category" className="block text-xs font-medium text-ink-secondary mb-1">Kategorie</label>
                   <input id="admin-category" type="text" value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                     placeholder={t('contentTagsPlaceholder')}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
               </div>
               <div>
-                <label htmlFor="admin-title" className="block text-xs font-medium text-slate-700 mb-1">Titel</label>
+                <label htmlFor="admin-title" className="block text-xs font-medium text-ink-secondary mb-1">Titel</label>
                 <input id="admin-title" type="text" value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                  className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
               </div>
               <div>
-                <label htmlFor="admin-content" className="block text-xs font-medium text-slate-700 mb-1">Inhalt</label>
+                <label htmlFor="admin-content" className="block text-xs font-medium text-ink-secondary mb-1">Inhalt</label>
                 <textarea id="admin-content" value={form.content} rows={5}
                   onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y" />
+                  className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="admin-source" className="block text-xs font-medium text-slate-700 mb-1">Quelle (optional)</label>
+                  <label htmlFor="admin-source" className="block text-xs font-medium text-ink-secondary mb-1">Quelle (optional)</label>
                   <input id="admin-source" type="text" value={form.source}
                     onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
                     placeholder={t('contentSourcePlaceholder')}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
                 <div>
-                  <label htmlFor="admin-tags" className="block text-xs font-medium text-slate-700 mb-1">Tags (kommagetrennt)</label>
+                  <label htmlFor="admin-tags" className="block text-xs font-medium text-ink-secondary mb-1">Tags (kommagetrennt)</label>
                   <input id="admin-tags" type="text" value={form.tags}
                     onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
                     placeholder={t('contentTagsListPlaceholder')}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </div>
                 <div>
-                  <label htmlFor="admin-min-tier" className="block text-xs font-medium text-slate-700 mb-1">Sichtbar ab Tier</label>
+                  <label htmlFor="admin-min-tier" className="block text-xs font-medium text-ink-secondary mb-1">Sichtbar ab Tier</label>
                   <select id="admin-min-tier" value={form.min_tier}
                     onChange={e => setForm(f => ({ ...f, min_tier: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
                     {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
@@ -1064,7 +1064,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   {saving ? 'Speichert…' : 'Speichern'}
                 </button>
                 <button onClick={cancel} disabled={saving}
-                  className="whitespace-nowrap px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-colors">
+                  className="whitespace-nowrap px-4 py-2 bg-surface-raised hover:bg-line text-ink-secondary text-sm font-semibold rounded-lg transition-colors">
                   Abbrechen
                 </button>
               </div>
@@ -1073,44 +1073,44 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Table */}
           {filtered.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 text-sm">
+            <div className="text-center py-16 text-ink-subtle text-sm">
               Noch keine Einträge {filterModule !== 'all' ? `für "${filterModule}"` : ''}
             </div>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="bg-surface border border-line rounded-xl overflow-hidden">
               <table className="w-full text-sm" aria-label={t('contentLibraryAriaLabel')}>
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-surface-raised border-b border-line">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Modul</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Kategorie</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs min-w-0">Titel</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden sm:table-cell">Tags</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Tier</th>
-                    <th className="text-right px-4 py-3 font-medium text-slate-600 text-xs"><span className="sr-only">Aktionen</span></th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Modul</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Kategorie</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs min-w-0">Titel</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden sm:table-cell">Tags</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden md:table-cell">Tier</th>
+                    <th className="text-right px-4 py-3 font-medium text-ink-secondary text-xs"><span className="sr-only">Aktionen</span></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line-subtle">
                   {filtered.map(entry => (
-                    <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{entry.module}</td>
-                      <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{entry.category}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 min-w-0">
+                    <tr key={entry.id} className="hover:bg-surface-raised transition-colors">
+                      <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap">{entry.module}</td>
+                      <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap">{entry.category}</td>
+                      <td className="px-4 py-3 font-medium text-ink min-w-0">
                         <div className="truncate max-w-xs">{entry.title}</div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <div className="flex gap-1 flex-wrap">
                           {entry.tags.map(tag => (
-                            <span key={tag} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">{tag}</span>
+                            <span key={tag} className="px-1.5 py-0.5 bg-surface-raised text-ink-secondary text-xs rounded">{tag}</span>
                           ))}
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
                         {(entry.min_tier ?? 'free') !== 'free' ? (
-                          <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                          <span className="text-xs font-semibold text-warning-text bg-warning-subtle border border-warning-border rounded-full px-2 py-0.5">
                             {entry.min_tier}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">free</span>
+                          <span className="text-xs text-ink-subtle">free</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -1121,7 +1121,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         </button>
                         <button onClick={() => handleDelete(entry)}
                           aria-label={`${entry.title} löschen`}
-                          className="text-xs text-red-600 hover:text-red-500 font-medium">
+                          className="text-xs text-error-text hover:text-error-text font-medium">
                           Löschen
                         </button>
                       </td>
@@ -1139,9 +1139,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         <div className="space-y-5">
 
           {/* Katalog-Quellen */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-slate-800">Katalog-Quellen ({sources.length})</h3>
+          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-line-subtle flex items-center justify-between gap-3 gap-3">
+              <h3 className="text-sm font-semibold text-ink">Katalog-Quellen ({sources.length})</h3>
               <button
                 onClick={openAddSource}
                 className="whitespace-nowrap px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
@@ -1152,28 +1152,28 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
             {/* "Neue Quelle" Formular */}
             {showAddSource && (
-              <div className="px-4 py-4 border-b border-slate-100 bg-slate-50 space-y-3">
-                <h4 className="text-xs font-semibold text-slate-700">Neue Datenquelle hinzufügen</h4>
+              <div className="px-4 py-4 border-b border-line-subtle bg-surface-raised space-y-3">
+                <h4 className="text-xs font-semibold text-ink-secondary">Neue Datenquelle hinzufügen</h4>
                 {addSourceError && (
-                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">{addSourceError}</p>
+                  <p className="text-xs text-error-text bg-error-subtle border border-error-border rounded px-2 py-1">{addSourceError}</p>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-medium text-slate-500 mb-1">Name (eindeutig)</label>
+                    <label className="block text-[10px] font-medium text-ink-muted mb-1">Name (eindeutig)</label>
                     <input
                       type="text"
                       value={newSourceForm.name}
                       onChange={e => setNewSourceForm(f => ({ ...f, name: e.target.value }))}
                       placeholder={t('sourceNamePlaceholder')}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                      className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-medium text-slate-500 mb-1">Typ</label>
+                    <label className="block text-[10px] font-medium text-ink-muted mb-1">Typ</label>
                     <select
                       value={newSourceForm.type}
                       onChange={e => changeNewSourceType(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                      className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                     >
                       {KNOWN_SOURCE_TYPES.map(t => (
                         <option key={t} value={t}>
@@ -1182,25 +1182,25 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       ))}
                     </select>
                     {SOURCE_TYPE_SCHEMAS[newSourceForm.type]?.description && (
-                      <p className="text-[10px] text-slate-400 mt-0.5">{SOURCE_TYPE_SCHEMAS[newSourceForm.type].description}</p>
+                      <p className="text-[10px] text-ink-subtle mt-0.5">{SOURCE_TYPE_SCHEMAS[newSourceForm.type].description}</p>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-medium text-slate-500 mb-1">Endpunkt-URL</label>
+                  <label className="block text-[10px] font-medium text-ink-muted mb-1">Endpunkt-URL</label>
                   <input
                     type="url"
                     value={newSourceForm.url}
                     onChange={e => setNewSourceForm(f => ({ ...f, url: e.target.value }))}
                     placeholder={t('urlPlaceholder')}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                    className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                   />
                 </div>
                 {(SOURCE_TYPE_SCHEMAS[newSourceForm.type]?.fields ?? []).map(field => (
                   <div key={field.key}>
-                    <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                    <label className="block text-[10px] font-medium text-ink-muted mb-1">
                       {field.label}
-                      {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                      {field.required && <span className="text-error-text ml-0.5">*</span>}
                       {field.helpUrl && (
                         <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-primary hover:underline">↗</a>
                       )}
@@ -1211,9 +1211,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       onChange={e => setNewSourceForm(f => ({ ...f, config: { ...f.config, [field.key]: e.target.value } }))}
                       placeholder={field.placeholder}
                       autoComplete="off"
-                      className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                      className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                     />
-                    {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
+                    {field.helpText && <p className="text-[10px] text-ink-subtle mt-0.5">{field.helpText}</p>}
                   </div>
                 ))}
                 <div className="flex gap-2 pt-1">
@@ -1226,7 +1226,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   </button>
                   <button
                     onClick={() => { setShowAddSource(false); setAddSourceError(null) }}
-                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-line text-ink-secondary hover:bg-surface-raised rounded-lg transition-colors"
                   >
                     Abbrechen
                   </button>
@@ -1235,9 +1235,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             )}
 
             {sources.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-slate-400">Noch keine Quellen — Neue Quelle hinzufügen.</p>
+              <p className="px-4 py-8 text-center text-sm text-ink-subtle">Noch keine Quellen — Neue Quelle hinzufügen.</p>
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-line-subtle">
                 {sources.map(src => {
                   const schema = SOURCE_TYPE_SCHEMAS[src.type]
                   const isSyncing = syncingId === src.id
@@ -1252,32 +1252,32 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <div className="flex flex-col sm:flex-row sm:items-start gap-2">
                         <div className="flex-1 min-w-0 space-y-0.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{src.name}</span>
+                            <span className="text-sm font-medium text-ink min-w-0 truncate">{src.name}</span>
                             {schema && (
                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-soft text-primary font-medium whitespace-nowrap">{schema.technology}</span>
                             )}
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono">{src.type}</span>
-                            {src.sync_status === 'success'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">✓ OK</span>}
-                            {src.sync_status === 'error'    && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700">✗ Fehler</span>}
-                            {src.sync_status === 'skipped'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">⚠ Key fehlt</span>}
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-raised text-ink-muted font-mono">{src.type}</span>
+                            {src.sync_status === 'success'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-success-subtle text-success-text">✓ OK</span>}
+                            {src.sync_status === 'error'    && <span className="text-[10px] px-1.5 py-0.5 rounded bg-error-subtle text-error-text">✗ Fehler</span>}
+                            {src.sync_status === 'skipped'  && <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-subtle text-warning-text">⚠ Key fehlt</span>}
                           </div>
                           {schema?.description && (
-                            <p className="text-[10px] text-slate-400">{schema.description}</p>
+                            <p className="text-[10px] text-ink-muted">{schema.description}</p>
                           )}
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-ink-subtle">
                             Letzter Sync: {lastSync}
                             {src.last_sync_added != null && src.last_sync_added > 0 && ` · ${src.last_sync_added} eingetragen`}
                           </p>
                           {src.last_sync_error && src.sync_status === 'error' && (
-                            <p className="text-xs text-red-600 truncate max-w-sm">{src.last_sync_error}</p>
+                            <p className="text-xs text-error-text truncate max-w-sm">{src.last_sync_error}</p>
                           )}
                           {msg && (
                             <p className={cn(
                               'text-xs font-medium',
-                              msg.startsWith('✓') ? 'text-emerald-700'
-                              : msg.startsWith('⚠') ? 'text-amber-700'
-                              : msg.startsWith('—') ? 'text-slate-500'
-                              : 'text-red-700'
+                              msg.startsWith('✓') ? 'text-success-text'
+                              : msg.startsWith('⚠') ? 'text-warning-text'
+                              : msg.startsWith('—') ? 'text-ink-muted'
+                              : 'text-error-text'
                             )}>
                               {msg}
                             </p>
@@ -1294,7 +1294,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           </button>
                           <button
                             onClick={() => handleDeleteSource(src.id, src.name)}
-                            className="whitespace-nowrap px-2 py-1.5 text-xs font-medium border border-slate-200 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="whitespace-nowrap px-2 py-1.5 text-xs font-medium border border-error-border text-error-text hover:bg-error-subtle rounded-lg transition-colors"
                             title="Quelle löschen"
                           >
                             ✕
@@ -1304,23 +1304,23 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
                       {/* URL + Konfiguration */}
                       {editingSourceId === src.id ? (
-                        <div className="space-y-2 border border-slate-200 rounded-lg p-3 bg-slate-50">
+                        <div className="space-y-2 border border-line rounded-lg p-3 bg-surface-raised">
                           <div>
-                            <label className="block text-[10px] font-medium text-slate-500 mb-1">Endpunkt-URL</label>
+                            <label className="block text-[10px] font-medium text-ink-muted mb-1">Endpunkt-URL</label>
                             <input
                               type="url"
                               value={editingSourceUrl}
                               onChange={e => setEditingSourceUrl(e.target.value)}
                               placeholder={t('urlPlaceholder')}
-                              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                              className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                             />
                           </div>
                           {/* Schema-gesteuerte Config-Felder */}
                           {(schema?.fields ?? []).map(field => (
                             <div key={field.key}>
-                              <label className="block text-[10px] font-medium text-slate-500 mb-1">
+                              <label className="block text-[10px] font-medium text-ink-muted mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-0.5">*</span>}
+                                {field.required && <span className="text-error-text ml-0.5">*</span>}
                                 {field.helpUrl && (
                                   <a href={field.helpUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-primary hover:underline">↗</a>
                                 )}
@@ -1331,9 +1331,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 onChange={e => setEditingSourceConfig(c => ({ ...c, [field.key]: e.target.value }))}
                                 placeholder={field.placeholder}
                                 autoComplete="off"
-                                className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                                className="w-full border border-line-strong rounded-lg px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface"
                               />
-                              {field.helpText && <p className="text-[10px] text-slate-400 mt-0.5">{field.helpText}</p>}
+                              {field.helpText && <p className="text-[10px] text-ink-subtle mt-0.5">{field.helpText}</p>}
                             </div>
                           ))}
                           <div className="flex gap-2 pt-1">
@@ -1346,7 +1346,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             </button>
                             <button
                               onClick={cancelEditUrl}
-                              className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                              className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-line text-ink-secondary hover:bg-surface-raised rounded-lg transition-colors"
                             >
                               Abbrechen
                             </button>
@@ -1355,8 +1355,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       ) : (
                         <div className="flex items-center gap-2">
                           <div className="flex-1 min-w-0">
-                            <span className="text-xs font-mono text-slate-400 truncate block">
-                              {src.url || <em className="not-italic text-amber-600">Keine URL konfiguriert</em>}
+                            <span className="text-xs font-mono text-ink-muted truncate block">
+                              {src.url || <em className="not-italic text-warning-text">Keine URL konfiguriert</em>}
                             </span>
                             {/* Config-Status für alle Quellen mit pflichtigen Feldern */}
                             {(schema?.fields ?? []).length > 0 && (
@@ -1364,7 +1364,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 {(schema?.fields ?? []).map(f => (
                                   <span key={f.key} className={cn(
                                     'text-[10px]',
-                                    src.config?.[f.key] ? 'text-emerald-600' : f.required ? 'text-amber-600 font-medium' : 'text-slate-400'
+                                    src.config?.[f.key] ? 'text-success-text' : f.required ? 'text-warning-text font-medium' : 'text-ink-muted'
                                   )}>
                                     {f.required ? '●' : '○'} {f.label}: {src.config?.[f.key] ? '✓' : f.required ? 'fehlt' : 'nicht gesetzt'}
                                   </span>
@@ -1389,7 +1389,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Actions row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               {filteredCatalog.length} von {components.length} Komponenten
               {components.length === 0 && componentCount > 0 && ` (${componentCount} in DB — Seite neu laden)`}
             </p>
@@ -1397,13 +1397,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               {seedResult && (
                 <span className={cn(
                   'text-xs font-medium',
-                  seedResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'
+                  seedResult.startsWith('✓') ? 'text-success-text' : 'text-error-text'
                 )}>{seedResult}</span>
               )}
               {seedBackup && seedBackup.length > 0 && (
                 <button
                   onClick={() => downloadBackupJson(seedBackup, 'katalog-seed')}
-                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-warning-border text-warning-text bg-warning-subtle hover:bg-warning-border/30 rounded-lg transition-colors"
                 >
                   ↓ Backup ({seedBackup.length})
                 </button>
@@ -1411,7 +1411,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <button
                 onClick={handleSeed}
                 disabled={seeding}
-                className="whitespace-nowrap px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="whitespace-nowrap px-4 py-2 bg-success-text hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
               >
                 {seeding ? 'Lädt…' : '↑ Seed-Daten einspielen'}
               </button>
@@ -1419,8 +1419,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {/* CSV / JSON Upload */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 space-y-3">
-            <p className="text-xs font-medium text-slate-700">CSV / JSON Import</p>
+          <div className="bg-surface-raised border border-line rounded-xl px-4 py-3 space-y-3">
+            <p className="text-xs font-medium text-ink-secondary">CSV / JSON Import</p>
 
             {/* File picker */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -1434,11 +1434,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   setUploadResult(null)
                   if (f) handlePreview(f)
                 }}
-                className="flex-1 block text-xs text-slate-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-hover hover:file:bg-primary-soft cursor-pointer"
+                className="flex-1 block text-xs text-ink-secondary file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-hover hover:file:bg-primary-soft cursor-pointer"
               />
-              {previewing && <span className="text-[10px] text-slate-400 animate-pulse whitespace-nowrap">Analysiere Datei…</span>}
+              {previewing && <span className="text-[10px] text-ink-muted animate-pulse whitespace-nowrap">Analysiere Datei…</span>}
             </div>
-            <p className="text-[10px] text-slate-400">Standard-Spalten: name, vendor, architecture_layer, … | SAP Discovery Center CSV wird automatisch erkannt</p>
+            <p className="text-[10px] text-ink-muted">Standard-Spalten: name, vendor, architecture_layer, … | SAP Discovery Center CSV wird automatisch erkannt</p>
 
             {/* Preview / Bestätigung */}
             {uploadPreview && (
@@ -1448,15 +1448,15 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <span className="text-xs font-semibold text-primary">{uploadPreview.formatLabel}</span>
                     <span className="text-xs text-primary">· {uploadPreview.row_count} Einträge</span>
                     {uploadPreview.ambiguous && (
-                      <span className="text-[10px] font-medium text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-medium text-warning-text bg-warning-subtle border border-warning-border px-1.5 py-0.5 rounded">
                         Layer unklar — bitte prüfen
                       </span>
                     )}
                   </div>
                   <span className={cn('text-[10px] font-medium', {
-                    'text-emerald-700': uploadPreview.layer_confidence === 'high',
-                    'text-amber-700':   uploadPreview.layer_confidence === 'medium',
-                    'text-red-700':     uploadPreview.layer_confidence === 'low',
+                    'text-success-text': uploadPreview.layer_confidence === 'high',
+                    'text-warning-text': uploadPreview.layer_confidence === 'medium',
+                    'text-error-text':   uploadPreview.layer_confidence === 'low',
                   })}>
                     {uploadPreview.layer_confidence === 'high'   && '● Hohe Erkennungssicherheit'}
                     {uploadPreview.layer_confidence === 'medium' && '● Mittlere Erkennungssicherheit'}
@@ -1472,22 +1472,22 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-medium text-slate-600 mb-1">Vendor (Override für alle)</label>
+                    <label className="block text-[10px] font-medium text-ink-secondary mb-1">Vendor (Override für alle)</label>
                     <select
                       value={uploadVendor}
                       onChange={e => setUploadVendor(e.target.value)}
-                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                      className="w-full border border-line rounded-md px-2 py-1.5 text-xs text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-ring"
                     >
                       <option value="">— Aus Datei übernehmen —</option>
                       {KNOWN_VENDORS.map(v => <option key={v} value={v}>{v}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-medium text-slate-600 mb-1">Architecture Layer (Override für alle)</label>
+                    <label className="block text-[10px] font-medium text-ink-secondary mb-1">Architecture Layer (Override für alle)</label>
                     <select
                       value={uploadLayer}
                       onChange={e => setUploadLayer(e.target.value)}
-                      className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                      className="w-full border border-line rounded-md px-2 py-1.5 text-xs text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-ring"
                     >
                       <option value="">— Aus Datei übernehmen —</option>
                       {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -1500,14 +1500,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             {/* Result + Button */}
             <div className="flex items-center gap-3 flex-wrap">
               {uploadResult && (
-                <span className={cn('text-xs font-medium', uploadResult.startsWith('✓') ? 'text-emerald-700' : 'text-red-700')}>
+                <span className={cn('text-xs font-medium', uploadResult.startsWith('✓') ? 'text-success-text' : 'text-error-text')}>
                   {uploadResult}
                 </span>
               )}
               {uploadBackup && uploadBackup.length > 0 && (
                 <button
                   onClick={() => downloadBackupJson(uploadBackup, 'katalog-upload')}
-                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
+                  className="whitespace-nowrap px-3 py-1.5 text-xs font-medium border border-warning-border text-warning-text bg-warning-subtle hover:bg-warning-border/30 rounded-lg transition-colors"
                 >
                   ↓ Backup ({uploadBackup.length})
                 </button>
@@ -1529,13 +1529,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               value={catalogSearch}
               onChange={e => setCatalogSearch(e.target.value)}
               placeholder={t('catalogSearchPlaceholder')}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-ring w-full sm:w-64"
+              className="border border-line rounded-lg px-3 py-1.5 text-sm text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-ring w-full sm:w-64"
             />
             <select
               value={catalogLayer}
               onChange={e => setCatalogLayer(e.target.value)}
               aria-label={t('filterLayerAriaLabel')}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              className="border border-line rounded-lg px-3 py-1.5 text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Layer</option>
               {ARCH_LAYERS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -1544,7 +1544,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               value={catalogCloud}
               onChange={e => setCatalogCloud(e.target.value)}
               aria-label={t('filterCloudAriaLabel')}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              className="border border-line rounded-lg px-3 py-1.5 text-sm text-ink-secondary focus:outline-none focus:ring-2 focus:ring-primary-ring"
             >
               <option value="all">Alle Provider</option>
               {CLOUD_PROVIDERS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -1553,47 +1553,47 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Table */}
           {filteredCatalog.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 text-sm">
+            <div className="text-center py-16 text-ink-subtle text-sm">
               {components.length === 0
                 ? 'Noch keine Komponenten in der DB — Seed-Daten einspielen, um zu starten.'
                 : 'Keine Komponenten für diese Filter.'}
             </div>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="bg-surface border border-line rounded-xl overflow-hidden">
               <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-sm" aria-label={t('catalogTableAriaLabel')}>
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="bg-surface-raised border-b border-line">
                     <tr>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Name</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden sm:table-cell">Vendor</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Layer</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden md:table-cell">Cloud</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">DSGVO</th>
-                      <th className="text-center px-4 py-3 font-medium text-slate-600 text-xs hidden lg:table-cell">SAP</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Tags</th>
-                      <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs hidden xl:table-cell">Abhängigkeiten</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Name</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden sm:table-cell">Vendor</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden md:table-cell">Layer</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden md:table-cell">Cloud</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden lg:table-cell">DSGVO</th>
+                      <th className="text-center px-4 py-3 font-medium text-ink-secondary text-xs hidden lg:table-cell">SAP</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Tags</th>
+                      <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs hidden xl:table-cell">Abhängigkeiten</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-line-subtle">
                     {filteredCatalog.map(c => (
-                      <tr key={c.id} className="hover:bg-slate-50 transition-colors align-top">
+                      <tr key={c.id} className="hover:bg-surface-raised transition-colors align-top">
                         <td className="px-4 py-3 min-w-0">
-                          <div className="font-medium text-slate-900 truncate max-w-[180px]">{c.name}</div>
+                          <div className="font-medium text-ink truncate max-w-[180px]">{c.name}</div>
                           {c.description && (
-                            <div className="text-xs text-slate-400 truncate max-w-[180px]">{c.description}</div>
+                            <div className="text-xs text-ink-subtle truncate max-w-[180px]">{c.description}</div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap hidden sm:table-cell">{c.vendor ?? '—'}</td>
+                        <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap hidden sm:table-cell">{c.vendor ?? '—'}</td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">{c.architecture_layer ?? '—'}</span>
+                          <span className="text-xs px-2 py-0.5 bg-surface-raised text-ink-secondary rounded-full">{c.architecture_layer ?? '—'}</span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap hidden md:table-cell">{c.cloud_provider ?? '—'}</td>
+                        <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap hidden md:table-cell">{c.cloud_provider ?? '—'}</td>
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <span className={cn(
                             'text-xs px-2 py-0.5 rounded-full font-medium',
-                            c.dsgvo_status === 'compliant'     ? 'bg-emerald-50 text-emerald-700' :
-                            c.dsgvo_status === 'conditional'   ? 'bg-amber-50 text-amber-700' :
-                            'bg-red-50 text-red-700'
+                            c.dsgvo_status === 'compliant'     ? 'bg-success-subtle text-success-text' :
+                            c.dsgvo_status === 'conditional'   ? 'bg-warning-subtle text-warning-text' :
+                            'bg-error-subtle text-error-text'
                           )}>
                             {c.dsgvo_status ?? '—'}
                           </span>
@@ -1605,13 +1605,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <td className="px-4 py-3 max-w-[260px]">
                           <div className="flex gap-1 flex-wrap">
                             {c.tags.map(tag => (
-                              <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                              <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-surface-raised text-ink-secondary text-xs rounded">
                                 {tag}
                                 <button
                                   onClick={() => removeTag(c.id, c.tags, tag)}
                                   disabled={tagSavingId === c.id}
                                   aria-label={`Tag "${tag}" entfernen`}
-                                  className="text-slate-400 hover:text-red-500 leading-none disabled:opacity-40 ml-0.5"
+                                  className="text-ink-muted hover:text-error-text leading-none disabled:opacity-40 ml-0.5"
                                 >×</button>
                               </span>
                             ))}
@@ -1622,7 +1622,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                               className="px-1.5 py-0.5 text-xs text-primary hover:text-primary hover:bg-primary-soft rounded border border-primary-border leading-none"
                             >+</button>
                             {tagSavingId === c.id && (
-                              <span className="text-[10px] text-slate-400 self-center">…</span>
+                              <span className="text-[10px] text-ink-muted self-center">…</span>
                             )}
                           </div>
                           {tagEditingId === c.id && (
@@ -1642,13 +1642,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           {depEditingId === c.id ? (
                             <div className="space-y-1.5 min-w-[220px]">
                               {([
-                                { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-red-200 focus:ring-red-400' },
+                                { key: 'incompatible_with' as const, label: '✗ Inkompatibel', color: 'border-error-border focus:ring-error-border' },
                                 { key: 'requires' as const, label: '⬆ Benötigt', color: 'border-primary-border focus:ring-primary-ring' },
-                                { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-emerald-200 focus:ring-emerald-400' },
-                                { key: 'aliases' as const, label: '🏷 Aliases', color: 'border-amber-200 focus:ring-amber-400' },
+                                { key: 'suggests' as const, label: '💡 Schlägt vor', color: 'border-success-border focus:ring-success-border' },
+                                { key: 'aliases' as const, label: '🏷 Aliases', color: 'border-warning-border focus:ring-warning-border' },
                               ] as const).map(({ key, label, color }) => (
                                 <div key={key}>
-                                  <label className="block text-[10px] font-medium text-slate-500 mb-0.5">{label}</label>
+                                  <label className="block text-[10px] font-medium text-ink-muted mb-0.5">{label}</label>
                                   <input
                                     type="text"
                                     value={depForm[key]}
@@ -1668,7 +1668,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 </button>
                                 <button
                                   onClick={() => setDepEditingId(null)}
-                                  className="px-2 py-1 text-[10px] font-medium border border-slate-200 text-slate-600 rounded"
+                                  className="px-2 py-1 text-[10px] font-medium border border-line text-ink-secondary rounded"
                                 >
                                   Abbrechen
                                 </button>
@@ -1677,17 +1677,17 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           ) : (
                             <div className="space-y-0.5 min-w-0">
                               {c.incompatible_with.length > 0 && (
-                                <p className="text-[10px] text-red-600 truncate max-w-[160px]">✗ {c.incompatible_with.join(', ')}</p>
+                                <p className="text-[10px] text-error-text truncate max-w-[160px]">✗ {c.incompatible_with.join(', ')}</p>
                               )}
                               {c.requires.length > 0 && (
                                 <p className="text-[10px] text-primary truncate max-w-[160px]">⬆ {c.requires.join(', ')}</p>
                               )}
                               {c.suggests.length > 0 && (
-                                <p className="text-[10px] text-emerald-600 truncate max-w-[160px]">💡 {c.suggests.join(', ')}</p>
+                                <p className="text-[10px] text-success-text truncate max-w-[160px]">💡 {c.suggests.join(', ')}</p>
                               )}
                               <button
                                 onClick={() => openDepEditor(c)}
-                                className="text-[10px] text-slate-400 hover:text-slate-700 font-medium"
+                                className="text-[10px] text-ink-muted hover:text-ink-secondary font-medium"
                               >
                                 {(c.incompatible_with.length + c.requires.length + c.suggests.length) > 0 ? '✎ Bearbeiten' : '+ Abhängigkeiten'}
                               </button>
@@ -1703,41 +1703,41 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           )}
 
           {/* Upload-Verlauf */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-slate-800">Upload-Verlauf</h3>
-              <span className="text-xs text-slate-400">{uploadLog.length} Einträge</span>
+          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-line-subtle flex items-center justify-between gap-3 gap-3">
+              <h3 className="text-sm font-semibold text-ink">Upload-Verlauf</h3>
+              <span className="text-xs text-ink-subtle">{uploadLog.length} Einträge</span>
             </div>
             {restoreMsg && (
               <div className={cn(
                 'px-4 py-2 text-xs font-medium border-b',
                 restoreMsg.startsWith('✓')
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                  : 'bg-red-50 text-red-700 border-red-100'
+                  ? 'bg-success-subtle text-success-text border-success-border'
+                  : 'bg-error-subtle text-error-text border-error-border'
               )}>
                 {restoreMsg}
               </div>
             )}
             {uploadLog.length === 0 ? (
-              <div className="text-center py-8 text-slate-400 text-xs">Noch keine Uploads oder Seed-Aktionen</div>
+              <div className="text-center py-8 text-ink-muted text-xs">Noch keine Uploads oder Seed-Aktionen</div>
             ) : (
               <div className="overflow-x-auto scrollbar-hidden">
                 <table className="w-full text-xs" aria-label={t('uploadLogAriaLabel')}>
-                  <thead className="bg-slate-50 border-b border-slate-100">
+                  <thead className="bg-surface-raised border-b border-line-subtle">
                     <tr>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500">Datei / Quelle</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden sm:table-cell">Format</th>
-                      <th className="text-right px-4 py-2 font-medium text-slate-500 hidden sm:table-cell">Einträge</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Vendor-Override</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500 hidden md:table-cell">Layer-Override</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500">Datum</th>
-                      <th className="text-left px-4 py-2 font-medium text-slate-500"></th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted">Datei / Quelle</th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted hidden sm:table-cell">Format</th>
+                      <th className="text-right px-4 py-2 font-medium text-ink-muted hidden sm:table-cell">Einträge</th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted hidden md:table-cell">Vendor-Override</th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted hidden md:table-cell">Layer-Override</th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted">Datum</th>
+                      <th className="text-left px-4 py-2 font-medium text-ink-muted"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-line-subtle">
                     {uploadLog.map(log => (
-                      <tr key={log.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-2 font-medium text-slate-700 max-w-[180px] truncate">
+                      <tr key={log.id} className="hover:bg-surface-raised">
+                        <td className="px-4 py-2 font-medium text-ink-secondary max-w-[180px] truncate">
                           <span className={cn(
                             'mr-1.5 px-1 py-0.5 rounded text-[10px] font-semibold',
                             log.source === 'seed' ? 'bg-purple-50 text-purple-700' : 'bg-primary-soft text-primary-hover'
@@ -1746,11 +1746,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           </span>
                           {log.filename}
                         </td>
-                        <td className="px-4 py-2 text-slate-500 hidden sm:table-cell">{log.format}</td>
-                        <td className="px-4 py-2 text-slate-700 text-right hidden sm:table-cell">{log.row_count}</td>
-                        <td className="px-4 py-2 text-slate-400 hidden md:table-cell">{log.vendor_override ?? '—'}</td>
-                        <td className="px-4 py-2 text-slate-400 hidden md:table-cell">{log.layer_override ?? '—'}</td>
-                        <td className="px-4 py-2 text-slate-400 whitespace-nowrap">
+                        <td className="px-4 py-2 text-ink-muted hidden sm:table-cell">{log.format}</td>
+                        <td className="px-4 py-2 text-ink-secondary text-right hidden sm:table-cell">{log.row_count}</td>
+                        <td className="px-4 py-2 text-ink-muted hidden md:table-cell">{log.vendor_override ?? '—'}</td>
+                        <td className="px-4 py-2 text-ink-muted hidden md:table-cell">{log.layer_override ?? '—'}</td>
+                        <td className="px-4 py-2 text-ink-muted whitespace-nowrap">
                           {new Date(log.uploaded_at).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap">
@@ -1758,12 +1758,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             <button
                               onClick={() => handleRestore(log.id, log.filename)}
                               disabled={restoringId === log.id}
-                              className="px-2 py-1 text-[10px] font-medium rounded border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+                              className="px-2 py-1 text-[10px] font-medium rounded border border-warning-border bg-warning-subtle text-warning-text hover:opacity-80 disabled:opacity-50 transition-colors"
                             >
                               {restoringId === log.id ? '…' : '↩ Wiederherstellen'}
                             </button>
                           ) : (
-                            <span className="text-slate-300 text-[10px]">kein Snapshot</span>
+                            <span className="text-line text-[10px]">kein Snapshot</span>
                           )}
                         </td>
                       </tr>
@@ -1788,12 +1788,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               placeholder={t('userSearchPlaceholder')}
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+              className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
             />
           </div>
 
           {filteredUsers.length === 0 ? (
-            <div className="text-center py-16 text-slate-400 text-sm">Keine Nutzer gefunden</div>
+            <div className="text-center py-16 text-ink-subtle text-sm">Keine Nutzer gefunden</div>
           ) : (
             <div className="space-y-3">
               {filteredUsers.map(u => {
@@ -1801,13 +1801,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 const isUpdating = updatingUserId === u.id
                 const flags = u.feature_flags ?? {}
                 return (
-                  <div key={u.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  <div key={u.id} className="bg-surface border border-line rounded-xl overflow-hidden">
                     {/* Row */}
                     <div className="flex flex-wrap items-center gap-3 px-4 py-3">
                       {/* Identity */}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 truncate">{u.full_name ?? '—'}</p>
-                        <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                        <p className="text-sm font-medium text-ink truncate">{u.full_name ?? '—'}</p>
+                        <p className="text-xs text-ink-muted truncate">{u.email}</p>
                       </div>
 
                       {/* Tier selector */}
@@ -1818,7 +1818,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           value={u.tier}
                           disabled={isUpdating}
                           onChange={e => patchUser(u.id, { tier: e.target.value as Tier })}
-                          className="border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-ring disabled:opacity-50"
+                          className="border border-line rounded-lg px-2 py-1 text-xs text-ink-secondary focus:outline-none focus:ring-2 focus:ring-primary-ring disabled:opacity-50"
                         >
                           {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -1832,8 +1832,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         className={cn(
                           'px-3 py-1 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap disabled:opacity-40',
                           u.is_banned
-                            ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
-                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            ? 'border-error-border bg-error-subtle text-error-text hover:opacity-80'
+                            : 'border-line text-ink-secondary hover:bg-surface-raised'
                         )}
                       >
                         {u.is_banned ? 'Gesperrt — entsperren' : 'Sperren'}
@@ -1844,7 +1844,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
                         aria-expanded={isExpanded}
                         aria-controls={`flags-${u.id}`}
-                        className="px-3 py-1 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap"
+                        className="px-3 py-1 text-xs font-medium border border-line rounded-lg text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap"
                       >
                         Features {isExpanded ? '▲' : '▼'}
                       </button>
@@ -1858,30 +1858,30 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
                     {/* Feature flags + subscription panel */}
                     {isExpanded && (
-                      <div id={`flags-${u.id}`} className="border-t border-slate-100 px-4 py-3 bg-slate-50 space-y-3">
+                      <div id={`flags-${u.id}`} className="border-t border-line-subtle px-4 py-3 bg-surface-raised space-y-3">
                         {/* Subscription info */}
                         <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1.5">Abo & Zahlung</p>
-                          <div className="text-xs text-slate-600 space-y-0.5">
+                          <p className="text-xs font-medium text-ink-muted mb-1.5">Abo & Zahlung</p>
+                          <div className="text-xs text-ink-secondary space-y-0.5">
                             <p>
-                              <span className="text-slate-400">Status:</span>{' '}
+                              <span className="text-ink-muted">Status:</span>{' '}
                               <span className={cn('font-medium', {
-                                'text-emerald-700': u.subscription_status === 'active',
-                                'text-amber-700': u.subscription_status === 'past_due' || u.subscription_status === 'trialing',
-                                'text-red-700': u.subscription_status === 'canceled' || u.subscription_status === 'unpaid',
-                                'text-slate-500': !u.subscription_status,
+                                'text-success-text': u.subscription_status === 'active',
+                                'text-warning-text': u.subscription_status === 'past_due' || u.subscription_status === 'trialing',
+                                'text-error-text': u.subscription_status === 'canceled' || u.subscription_status === 'unpaid',
+                                'text-ink-muted': !u.subscription_status,
                               })}>
                                 {u.subscription_status ?? 'Kein Abo'}
                               </span>
                             </p>
                             {u.subscription_period_end && (
                               <p>
-                                <span className="text-slate-400">Läuft bis:</span>{' '}
+                                <span className="text-ink-muted">Läuft bis:</span>{' '}
                                 {new Date(u.subscription_period_end).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                               </p>
                             )}
                             {u.stripe_customer_id && (
-                              <p className="font-mono text-[10px] text-slate-400 truncate">
+                              <p className="font-mono text-[10px] text-ink-muted truncate">
                                 Stripe: {u.stripe_customer_id}
                               </p>
                             )}
@@ -1890,7 +1890,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
                         {/* Feature flags */}
                         <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1.5">Feature-Flags</p>
+                          <p className="text-xs font-medium text-ink-muted mb-1.5">Feature-Flags</p>
                           <div className="flex flex-wrap gap-2">
                             {KNOWN_FLAGS.map(flag => {
                               const active = !!flags[flag]
@@ -1904,7 +1904,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                     'px-3 py-1 text-xs font-medium rounded-full border transition-colors disabled:opacity-50',
                                     active
                                       ? 'bg-primary border-primary text-white'
-                                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                      : 'bg-surface border-line text-ink-secondary hover:border-line-strong'
                                   )}
                                 >
                                   {flag}
@@ -1914,7 +1914,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           </div>
                         </div>
 
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-ink-subtle">
                           Registriert: {new Date(u.created_at).toLocaleDateString('de-DE')}
                           {u.company && ` · ${u.company}`}
                         </p>
@@ -1932,13 +1932,13 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {tab === 'synonyms' && (
         <div className="space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               Admin-konfigurierbare Erkennungsbegriffe für die Canvas-Texterkennung
             </p>
             <button
               onClick={loadSuggestions}
               disabled={suggestionsLoading}
-              className="px-4 py-2 text-sm font-medium border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="px-4 py-2 text-sm font-medium border border-line text-ink-secondary rounded-lg hover:bg-surface-raised transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               {suggestionsLoading ? 'Analysiere…' : '🔍 Canvas analysieren'}
             </button>
@@ -1946,41 +1946,41 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Learn suggestions */}
           {showSuggestions && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+            <div className="bg-warning-subtle border border-warning-border rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-amber-800">
+                <p className="text-sm font-medium text-warning-text">
                   Lern-Vorschläge aus Canvas-Daten
                 </p>
                 <button
                   onClick={() => setShowSuggestions(false)}
-                  className="text-xs text-amber-600 hover:text-amber-800"
+                  className="text-xs text-warning-text hover:opacity-80"
                 >
                   Schließen
                 </button>
               </div>
               {suggestionsLoading ? (
-                <p className="text-xs text-amber-600">Scanne Canvas-Einträge…</p>
+                <p className="text-xs text-warning-text">Scanne Canvas-Einträge…</p>
               ) : suggestions.length === 0 ? (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-warning-text">
                   Keine neuen unbekannten Begriffe gefunden (mind. 2 Canvases Threshold).
                 </p>
               ) : (
                 <>
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-warning-text">
                     {suggestions.length} unbekannte Begriffe gefunden. Term ausfüllen und anlegen:
                   </p>
-                  {synError && <p className="text-xs text-red-600">{synError}</p>}
+                  {synError && <p className="text-xs text-error-text">{synError}</p>}
                   <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                     {suggestions.map(s => {
                       const input = suggestionInputs[s.word] ?? { term: '', synonym_type: s.suggested_type }
                       return (
-                        <div key={s.word} className="bg-white border border-amber-100 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                        <div key={s.word} className="bg-surface border border-warning-border/30 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-sm font-medium text-slate-800">{s.word}</span>
-                              <span className="text-xs text-slate-400">{s.count}× in</span>
+                              <span className="font-mono text-sm font-medium text-ink">{s.word}</span>
+                              <span className="text-xs text-ink-subtle">{s.count}× in</span>
                               {s.fields.map(f => (
-                                <span key={f} className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded">{f}</span>
+                                <span key={f} className="px-1.5 py-0.5 bg-surface-raised text-ink-muted text-[10px] rounded">{f}</span>
                               ))}
                             </div>
                           </div>
@@ -1993,7 +1993,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 ...prev,
                                 [s.word]: { ...prev[s.word]!, term: e.target.value },
                               }))}
-                              className="border border-slate-200 rounded px-2 py-1 text-xs w-36 focus:outline-none focus:ring-1 focus:ring-primary-ring"
+                              className="border border-line rounded px-2 py-1 text-xs w-36 focus:outline-none focus:ring-1 focus:ring-primary-ring"
                             />
                             <select
                               value={input.synonym_type}
@@ -2001,7 +2001,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                                 ...prev,
                                 [s.word]: { ...prev[s.word]!, synonym_type: e.target.value as CanvasSynonym['synonym_type'] },
                               }))}
-                              className="border border-slate-200 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-primary-ring"
+                              className="border border-line rounded px-2 py-1 text-xs bg-surface focus:outline-none focus:ring-1 focus:ring-primary-ring"
                             >
                               <option value="vendor">vendor</option>
                               <option value="category">category</option>
@@ -2025,35 +2025,35 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           )}
 
           {/* Add form */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-            <p className="text-sm font-medium text-slate-700">Neues Synonym</p>
+          <div className="bg-white border border-line rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-ink-secondary">Neues Synonym</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Term (z.B. "Microsoft")</label>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">Term (z.B. "Microsoft")</label>
                 <input
                   type="text"
                   value={synForm.term}
                   onChange={e => setSynForm(f => ({ ...f, term: e.target.value }))}
                   placeholder={t('synonymSourcePlaceholder')}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  className="w-full border border-line rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Synonym (z.B. "navision")</label>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">Synonym (z.B. "navision")</label>
                 <input
                   type="text"
                   value={synForm.synonym}
                   onChange={e => setSynForm(f => ({ ...f, synonym: e.target.value }))}
                   placeholder={t('synonymCanonicalPlaceholder')}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  className="w-full border border-line rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Typ</label>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">Typ</label>
                 <select
                   value={synForm.synonym_type}
                   onChange={e => setSynForm(f => ({ ...f, synonym_type: e.target.value as CanvasSynonym['synonym_type'] }))}
-                  className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
+                  className="w-full border border-line rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white"
                 >
                   <option value="vendor">vendor (Hersteller-Alias)</option>
                   <option value="category">category (ERP/CRM/etc.)</option>
@@ -2061,7 +2061,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 </select>
               </div>
             </div>
-            {synError && <p className="text-xs text-red-600">{synError}</p>}
+            {synError && <p className="text-xs text-error-text">{synError}</p>}
             <button
               onClick={addSynonym}
               disabled={synSaving || !synForm.term.trim() || !synForm.synonym.trim()}
@@ -2073,28 +2073,28 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* List */}
           {/* ── Promotion-Queue ─────────────────────────────────────────────── */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-line-subtle">
               <div>
-                <p className="text-sm font-medium text-slate-700">Promotion-Queue</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-sm font-medium text-ink-secondary">Promotion-Queue</p>
+                <p className="text-xs text-ink-muted mt-0.5">
                   Client-Synonyme mit ≥ {promoThresholds.minClients} Clients und Konfidenz ≥ {(promoThresholds.minConfidence * 100).toFixed(0)} %
                 </p>
               </div>
               <button
                 onClick={() => { setPromoLoaded(false); void loadPromoQueue() }}
                 disabled={promoLoading}
-                className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+                className="px-3 py-1.5 text-xs font-medium border border-line text-ink-secondary rounded-lg hover:bg-surface-raised transition-colors disabled:opacity-50 whitespace-nowrap"
               >
                 {promoLoading ? 'Lade…' : 'Aktualisieren'}
               </button>
             </div>
             {promoLoading ? (
-              <p className="text-sm text-slate-400 py-6 text-center">Lade Queue…</p>
+              <p className="text-sm text-ink-muted py-6 text-center">Lade Queue…</p>
             ) : promoQueue.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">Keine Kandidaten — Schwellen noch nicht erreicht.</p>
+              <p className="text-sm text-ink-muted py-6 text-center">Keine Kandidaten — Schwellen noch nicht erreicht.</p>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-line-subtle">
                 {promoQueue.map(entry => {
                   const key = `${entry.term}::${entry.synonym}`
                   const busy = promoAction === key
@@ -2102,12 +2102,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 min-w-0">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono text-sm font-medium text-slate-800">{entry.synonym}</span>
-                          <span className="text-xs text-slate-400">→</span>
+                          <span className="font-mono text-sm font-medium text-ink">{entry.synonym}</span>
+                          <span className="text-xs text-ink-subtle">→</span>
                           <span className="px-2 py-0.5 bg-primary-soft text-primary text-xs rounded-full font-medium">{entry.term}</span>
-                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] rounded">{entry.synonym_type}</span>
+                          <span className="px-1.5 py-0.5 bg-surface-raised text-ink-muted text-[10px] rounded">{entry.synonym_type}</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-xs text-ink-subtle mt-0.5">
                           {entry.client_count} Clients · Ø {(entry.avg_confidence * 100).toFixed(0)} % Konfidenz · {entry.total_evidence}× gesehen
                         </p>
                       </div>
@@ -2115,21 +2115,21 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <button
                           onClick={() => void handlePromoAction(entry, 'approve')}
                           disabled={busy}
-                          className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+                          className="px-3 py-1.5 text-xs font-medium bg-success-text text-white rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 whitespace-nowrap"
                         >
                           {busy ? '…' : 'Übernehmen'}
                         </button>
                         <button
                           onClick={() => void handlePromoAction(entry, 'reject')}
                           disabled={busy}
-                          className="px-3 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 whitespace-nowrap"
+                          className="px-3 py-1.5 text-xs font-medium bg-surface-raised text-ink-secondary rounded-lg hover:bg-line transition-colors disabled:opacity-50 whitespace-nowrap"
                         >
                           Ablehnen
                         </button>
                         <button
                           onClick={() => void handlePromoAction(entry, 'block')}
                           disabled={busy}
-                          className="px-3 py-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50 whitespace-nowrap"
+                          className="px-3 py-1.5 text-xs font-medium bg-error-subtle text-error-text border border-error-border rounded-lg hover:opacity-80 transition-colors disabled:opacity-50 whitespace-nowrap"
                         >
                           Blocken
                         </button>
@@ -2142,33 +2142,33 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {synLoading ? (
-            <p className="text-sm text-slate-400 py-4 text-center">Lade…</p>
+            <p className="text-sm text-ink-muted py-4 text-center">Lade…</p>
           ) : synonyms.length === 0 ? (
-            <p className="text-sm text-slate-400 py-8 text-center">Noch keine Synonyme angelegt.</p>
+            <p className="text-sm text-ink-muted py-8 text-center">Noch keine Synonyme angelegt.</p>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="bg-surface border border-line rounded-xl overflow-hidden">
               <table className="w-full text-sm" aria-label={t('synonymTableAriaLabel')}>
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-surface-raised border-b border-line">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Term</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Synonym</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Typ</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Scope</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Belege</th>
-                    <th className="text-left px-4 py-3 font-medium text-slate-600 text-xs">Aktiv</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Term</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Synonym</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Typ</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Scope</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Belege</th>
+                    <th className="text-left px-4 py-3 font-medium text-ink-secondary text-xs">Aktiv</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line-subtle">
                   {synonyms.map(s => (
-                    <tr key={s.id} className={cn('hover:bg-slate-50 transition-colors', !s.is_active && 'opacity-50')}>
-                      <td className="px-4 py-3 font-medium text-slate-800">{s.term}</td>
-                      <td className="px-4 py-3 text-slate-600">{s.synonym}</td>
+                    <tr key={s.id} className={cn('hover:bg-surface-raised transition-colors', !s.is_active && 'opacity-50')}>
+                      <td className="px-4 py-3 font-medium text-ink">{s.term}</td>
+                      <td className="px-4 py-3 text-ink-secondary">{s.synonym}</td>
                       <td className="px-4 py-3">
                         <span className={cn(
                           'px-2 py-0.5 rounded-full text-xs font-medium',
                           s.synonym_type === 'vendor'   && 'bg-primary-soft text-primary',
-                          s.synonym_type === 'category' && 'bg-emerald-50 text-emerald-700',
+                          s.synonym_type === 'category' && 'bg-success-subtle text-success-text',
                           s.synonym_type === 'usecase'  && 'bg-purple-50 text-purple-700',
                         )}>
                           {s.synonym_type}
@@ -2177,12 +2177,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <td className="px-4 py-3">
                         <span className={cn(
                           'px-2 py-0.5 rounded text-[10px] font-medium',
-                          s.client_id ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500',
+                          s.client_id ? 'bg-warning-subtle text-warning-text' : 'bg-surface-raised text-ink-muted',
                         )}>
                           {s.client_id ? 'Client' : 'Global'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400">
+                      <td className="px-4 py-3 text-xs text-ink-subtle">
                         {s.evidence_count ?? '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -2192,8 +2192,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           className={cn(
                             'px-2 py-0.5 text-xs rounded border transition-colors',
                             s.is_active
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                              : 'bg-slate-50 border-slate-200 text-slate-500'
+                              ? 'bg-success-subtle border-success-border text-success-text'
+                              : 'bg-surface-raised border-line text-ink-muted'
                           )}
                         >
                           {s.is_active ? 'aktiv' : 'inaktiv'}
@@ -2203,7 +2203,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <button
                           onClick={() => deleteSynonym(s.id)}
                           aria-label={`${s.term}/${s.synonym} löschen`}
-                          className="text-red-400 hover:text-red-600 text-xs transition-colors"
+                          className="text-error-border hover:text-error-text text-xs transition-colors"
                         >
                           Löschen
                         </button>
@@ -2221,11 +2221,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {tab === 'scanner' && (
         <div className="space-y-5">
           {/* Quellen-Status-Panel */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-slate-100">
+          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-line-subtle">
               <div>
-                <p className="text-sm font-medium text-slate-700">Regulatorische Quellenüberwachung</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-sm font-medium text-ink-secondary">Regulatorische Quellenüberwachung</p>
+                <p className="text-xs text-ink-muted mt-0.5">
                   5 Primärquellen · Änderungserkennung per SHA-256-Hash · Nie automatisch publiziert.
                 </p>
               </div>
@@ -2237,11 +2237,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 {scanning ? 'Scanne…' : 'Quellen jetzt scannen'}
               </button>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-line-subtle">
               {sourceSnapshots.map(src => (
                 <div key={src.url} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
-                  <span className="text-sm text-slate-700 min-w-0 truncate flex-1">{src.label}</span>
-                  <span className="text-xs text-slate-400 flex-shrink-0">
+                  <span className="text-sm text-ink-secondary min-w-0 truncate flex-1">{src.label}</span>
+                  <span className="text-xs text-ink-subtle flex-shrink-0">
                     {src.fetched_at
                       ? new Date(src.fetched_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
                       : 'Noch nie gescannt'}
@@ -2262,23 +2262,23 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
           {/* Scan-Ergebnis + Log */}
           {scanResult && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden">
-              <div className="px-4 py-3 text-sm text-emerald-800 font-medium">
+            <div className="bg-success-subtle border border-success-border rounded-xl overflow-hidden">
+              <div className="px-4 py-3 text-sm text-success-text font-medium">
                 {scanResult.scanned} Quellen geprüft · {scanResult.changed} Änderungen gefunden · {scanResult.drafts_created} neue Entwürfe
               </div>
-              <div className="divide-y divide-emerald-100">
+              <div className="divide-y divide-success-border/30">
                 {scanResult.sources.map(src => (
                   <div key={src.url} className="flex items-center gap-2 px-4 py-2 min-w-0">
                     <span className={cn(
                       'flex-shrink-0 text-sm',
-                      src.status === 'changed'   && 'text-amber-600',
-                      src.status === 'unchanged' && 'text-emerald-600',
-                      src.status === 'error'     && 'text-red-500',
+                      src.status === 'changed'   && 'text-warning-text',
+                      src.status === 'unchanged' && 'text-success-text',
+                      src.status === 'error'     && 'text-error-text',
                     )}>
                       {src.status === 'changed' ? '⚠' : src.status === 'unchanged' ? '✓' : '✗'}
                     </span>
-                    <span className="text-xs text-slate-700 min-w-0 truncate flex-1">{src.label}</span>
-                    <span className="text-xs text-slate-400 flex-shrink-0">
+                    <span className="text-xs text-ink-secondary min-w-0 truncate flex-1">{src.label}</span>
+                    <span className="text-xs text-ink-subtle flex-shrink-0">
                       {src.status === 'changed' ? 'Geändert — Entwurf erstellt' : src.status === 'unchanged' ? 'Unverändert' : 'Fehler beim Abrufen'}
                     </span>
                   </div>
@@ -2293,36 +2293,36 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             return (
               <>
                 {pending.length === 0 ? (
-                  <p className="text-sm text-slate-400 py-6 text-center">Keine offenen Entwürfe.</p>
+                  <p className="text-sm text-ink-muted py-6 text-center">Keine offenen Entwürfe.</p>
                 ) : (
                   <div className="space-y-3">
                     {pending.map(draft => (
-                      <div key={draft.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                      <div key={draft.id} className="bg-white border border-line rounded-xl p-4 space-y-3">
                         <div className="flex flex-wrap items-start gap-2 min-w-0">
                           <span className={cn(
                             'px-2 py-0.5 text-xs font-medium border rounded-full flex-shrink-0',
-                            draft.status_estimate === 'final'   && 'bg-red-50 border-red-200 text-red-700',
-                            draft.status_estimate === 'entwurf' && 'bg-amber-50 border-amber-200 text-amber-700',
-                            draft.status_estimate === 'unklar'  && 'bg-slate-100 border-slate-200 text-slate-600',
+                            draft.status_estimate === 'final'   && 'bg-error-subtle border-error-border text-error-text',
+                            draft.status_estimate === 'entwurf' && 'bg-warning-subtle border-warning-border text-warning-text',
+                            draft.status_estimate === 'unklar'  && 'bg-surface-raised border-line text-ink-secondary',
                           )}>
                             {draft.status_estimate}
                           </span>
-                          <span className="text-sm font-medium text-slate-800 min-w-0">{draft.source_label}</span>
-                          <span className="text-xs text-slate-400 ml-auto flex-shrink-0">
+                          <span className="text-sm font-medium text-ink min-w-0">{draft.source_label}</span>
+                          <span className="text-xs text-ink-subtle ml-auto flex-shrink-0">
                             {new Date(draft.scanned_at).toLocaleDateString('de-DE')}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-600">{draft.summary}</p>
+                        <p className="text-sm text-ink-secondary">{draft.summary}</p>
                         <div className="flex gap-2">
                           <button
                             onClick={() => reviewDraft(draft.id, 'beruecksichtigt')}
-                            className="px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap"
+                            className="px-3 py-1.5 text-xs font-medium bg-success-text text-white rounded-lg hover:opacity-90 transition-colors whitespace-nowrap"
                           >
                             Berücksichtigt
                           </button>
                           <button
                             onClick={() => reviewDraft(draft.id, 'ignoriert')}
-                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
+                            className="px-3 py-1.5 text-xs font-medium border border-line text-ink-secondary rounded-lg hover:bg-surface-raised transition-colors whitespace-nowrap"
                           >
                             Ignorieren
                           </button>
@@ -2343,14 +2343,14 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   <div>
                     <button
                       onClick={() => setShowArchive(v => !v)}
-                      className="text-xs text-slate-400 hover:text-slate-600"
+                      className="text-xs text-ink-subtle hover:text-ink-secondary"
                     >
                       {showArchive ? '▲ Archiv verbergen' : `▼ Archiv anzeigen (${archived.length})`}
                     </button>
                     {showArchive && (
                       <div className="mt-2 space-y-2 opacity-60">
                         {archived.map(draft => (
-                          <div key={draft.id} className="bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-xs text-slate-500">
+                          <div key={draft.id} className="bg-surface-raised border border-line-subtle rounded-lg px-4 py-3 text-xs text-ink-muted">
                             <span className="font-medium">{draft.source_label}</span>
                             {' · '}
                             <span className="italic">{draft.review_status}</span>
@@ -2371,46 +2371,46 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {/* ─── Policy Templates tab ────────────────────────────────────────────── */}
       {tab === 'policy_templates' && (
         <div className="space-y-4">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-ink-subtle">
             {policyTemplates.length} Templates (DE + EN) · Klicken Sie auf &bdquo;Bearbeiten&ldquo;, um Inhalt zu ändern. Veröffentlichungsstatus toggelbar.
           </p>
           {ptError && (
-            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{ptError}</p>
+            <p className="text-xs text-error-text bg-error-subtle border border-error-border rounded-lg px-3 py-2">{ptError}</p>
           )}
 
           {['de', 'en'].map(loc => (
             <div key={loc}>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              <h3 className="text-xs font-semibold text-ink-muted uppercase tracking-wide mb-2">
                 {loc === 'de' ? 'Deutsch (DE)' : 'English (EN)'}
               </h3>
               <div className="space-y-2">
                 {policyTemplates.filter(t => t.locale === loc).sort((a, b) => a.display_order - b.display_order).map(tpl => (
-                  <div key={tpl.id} className="bg-white border border-slate-200 rounded-xl p-4">
+                  <div key={tpl.id} className="bg-white border border-line rounded-xl p-4">
                     {ptEditing?.id === tpl.id ? (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-1">Titel</label>
+                          <label className="block text-xs font-medium text-ink-secondary mb-1">Titel</label>
                           <input
                             value={ptEditing.title}
                             onChange={e => setPtEditing({ ...ptEditing, title: e.target.value })}
-                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                            className="w-full text-sm border border-line rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-1">Untertitel</label>
+                          <label className="block text-xs font-medium text-ink-secondary mb-1">Untertitel</label>
                           <input
                             value={ptEditing.subtitle}
                             onChange={e => setPtEditing({ ...ptEditing, subtitle: e.target.value })}
-                            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                            className="w-full text-sm border border-line rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-slate-600 mb-1">Inhalt (Markdown)</label>
+                          <label className="block text-xs font-medium text-ink-secondary mb-1">Inhalt (Markdown)</label>
                           <textarea
                             value={ptEditing.content}
                             onChange={e => setPtEditing({ ...ptEditing, content: e.target.value })}
                             rows={12}
-                            className="w-full text-xs font-mono border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                            className="w-full text-xs font-mono border border-line rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-ring"
                           />
                         </div>
                         <div className="flex gap-2">
@@ -2423,7 +2423,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                           </button>
                           <button
                             onClick={() => setPtEditing(null)}
-                            className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
+                            className="px-3 py-1.5 text-xs font-medium border border-line rounded-lg text-ink-secondary hover:bg-surface-raised"
                           >
                             Abbrechen
                           </button>
@@ -2433,23 +2433,23 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-[10px] font-mono text-slate-400">{tpl.slug}</span>
+                            <span className="text-[10px] font-mono text-ink-muted">{tpl.slug}</span>
                             <span className={cn(
                               'text-[10px] font-medium px-1.5 py-0.5 rounded-full border',
                               tpl.is_published
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-slate-50 text-slate-400 border-slate-200'
+                                ? 'bg-success-subtle text-success-text border-success-border'
+                                : 'bg-surface-raised text-ink-muted border-line'
                             )}>
                               {tpl.is_published ? '✓ Veröffentlicht' : '○ Entwurf'}
                             </span>
                           </div>
-                          <p className="text-sm font-semibold text-slate-900">{tpl.title}</p>
-                          <p className="text-xs text-slate-400">{tpl.subtitle}</p>
+                          <p className="text-sm font-semibold text-ink">{tpl.title}</p>
+                          <p className="text-xs text-ink-subtle">{tpl.subtitle}</p>
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
                           <button
                             onClick={() => togglePtPublished(tpl)}
-                            className="px-2.5 py-1 text-[10px] font-medium border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50"
+                            className="px-2.5 py-1 text-[10px] font-medium border border-line rounded-lg text-ink-muted hover:bg-surface-raised"
                           >
                             {tpl.is_published ? 'Verbergen' : 'Veröffentlichen'}
                           </button>
@@ -2475,36 +2475,36 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
         <div className="space-y-8 py-6">
 
           {/* Preiskonfiguration */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h2 className="text-base font-semibold text-slate-900 mb-1">Preiskonfiguration (Pro)</h2>
-            <p className="text-xs text-slate-500 mb-5">Änderungen hier steuern die Anzeige im UpgradeModal. Stripe-Preise manuell synchron halten.</p>
+          <div className="bg-white border border-line rounded-xl p-6">
+            <h2 className="text-base font-semibold text-ink mb-1">Preiskonfiguration (Pro)</h2>
+            <p className="text-xs text-ink-muted mb-5">Änderungen hier steuern die Anzeige im UpgradeModal. Stripe-Preise manuell synchron halten.</p>
             {priceCfg && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="text-xs font-medium text-slate-600">Monatspreis (€)</span>
+                  <span className="text-xs font-medium text-ink-secondary">Monatspreis (€)</span>
                   <input type="number" min="1" step="0.01" value={priceCfg.monthly_price}
                     onChange={e => setPriceCfg(c => c ? { ...c, monthly_price: Number(e.target.value) } : c)}
-                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium text-slate-600">Jahrespreis (€)</span>
+                  <span className="text-xs font-medium text-ink-secondary">Jahrespreis (€)</span>
                   <input type="number" min="1" step="0.01" value={priceCfg.yearly_price ?? ''}
                     onChange={e => setPriceCfg(c => c ? { ...c, yearly_price: e.target.value ? Number(e.target.value) : null } : c)}
-                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium text-slate-600">Stripe Price-ID (monatlich)</span>
+                  <span className="text-xs font-medium text-ink-secondary">Stripe Price-ID (monatlich)</span>
                   <input type="text" value={priceCfg.stripe_price_id ?? ''}
                     onChange={e => setPriceCfg(c => c ? { ...c, stripe_price_id: e.target.value || null } : c)}
                     placeholder="price_..."
-                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium text-slate-600">Stripe Price-ID (jährlich)</span>
+                  <span className="text-xs font-medium text-ink-secondary">Stripe Price-ID (jährlich)</span>
                   <input type="text" value={priceCfg.stripe_price_id_yearly ?? ''}
                     onChange={e => setPriceCfg(c => c ? { ...c, stripe_price_id_yearly: e.target.value || null } : c)}
                     placeholder="price_..."
-                    className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                    className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
                 </label>
               </div>
             )}
@@ -2515,11 +2515,11 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
 
           {/* Aktionen */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <div className="bg-white border border-line rounded-xl p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">Aktionen</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Aktive Aktion zeigt Badge + Aktionspreis im UpgradeModal.</p>
+                <h2 className="text-base font-semibold text-ink">Aktionen</h2>
+                <p className="text-xs text-ink-muted mt-0.5">Aktive Aktion zeigt Badge + Aktionspreis im UpgradeModal.</p>
               </div>
               {promoEditing === null && (
                 <button onClick={() => setPromoEditing('')}
@@ -2531,58 +2531,58 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
             {/* Formular */}
             {promoEditing !== null && (
-              <div className="border border-slate-200 rounded-xl p-4 mb-6 bg-slate-50 space-y-3">
-                <p className="text-xs font-semibold text-slate-700">{promoEditing ? 'Aktion bearbeiten' : 'Neue Aktion anlegen'}</p>
+              <div className="border border-line rounded-xl p-4 mb-6 bg-surface-raised space-y-3">
+                <p className="text-xs font-semibold text-ink-secondary">{promoEditing ? 'Aktion bearbeiten' : 'Neue Aktion anlegen'}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="block">
-                    <span className="text-xs text-slate-600">Name (intern)</span>
+                    <span className="text-xs text-ink-secondary">Name (intern)</span>
                     <input value={promoForm.name} onChange={e => setPromoForm(f => ({ ...f, name: e.target.value }))} placeholder="z.B. Launch-Aktion Juli"
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Badge-Text (sichtbar)</span>
+                    <span className="text-xs text-ink-secondary">Badge-Text (sichtbar)</span>
                     <input value={promoForm.badge_text} onChange={e => setPromoForm(f => ({ ...f, badge_text: e.target.value }))} placeholder="z.B. Launch-Angebot"
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block sm:col-span-2">
-                    <span className="text-xs text-slate-600">Beschreibung (optional, 1 Zeile im Modal)</span>
+                    <span className="text-xs text-ink-secondary">Beschreibung (optional, 1 Zeile im Modal)</span>
                     <input value={promoForm.description} onChange={e => setPromoForm(f => ({ ...f, description: e.target.value }))} placeholder="z.B. Nur diese Woche: 40% günstiger"
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Aktionspreis monatlich (€)</span>
+                    <span className="text-xs text-ink-secondary">Aktionspreis monatlich (€)</span>
                     <input type="number" min="0" step="0.01" value={promoForm.promo_price} onChange={e => setPromoForm(f => ({ ...f, promo_price: e.target.value }))}
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Aktionspreis jährlich (€, optional)</span>
+                    <span className="text-xs text-ink-secondary">Aktionspreis jährlich (€, optional)</span>
                     <input type="number" min="0" step="0.01" value={promoForm.promo_price_yearly} onChange={e => setPromoForm(f => ({ ...f, promo_price_yearly: e.target.value }))}
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Gültig ab (optional)</span>
+                    <span className="text-xs text-ink-secondary">Gültig ab (optional)</span>
                     <input type="date" value={promoForm.valid_from} onChange={e => setPromoForm(f => ({ ...f, valid_from: e.target.value }))}
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Gültig bis (optional)</span>
+                    <span className="text-xs text-ink-secondary">Gültig bis (optional)</span>
                     <input type="date" value={promoForm.valid_until} onChange={e => setPromoForm(f => ({ ...f, valid_until: e.target.value }))}
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Stripe Price-ID monatlich (optional)</span>
+                    <span className="text-xs text-ink-secondary">Stripe Price-ID monatlich (optional)</span>
                     <input value={promoForm.stripe_price_id} onChange={e => setPromoForm(f => ({ ...f, stripe_price_id: e.target.value }))} placeholder="price_..."
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface bg-surface" />
                   </label>
                   <label className="block">
-                    <span className="text-xs text-slate-600">Stripe Price-ID jährlich (optional)</span>
+                    <span className="text-xs text-ink-secondary">Stripe Price-ID jährlich (optional)</span>
                     <input value={promoForm.stripe_price_id_yearly} onChange={e => setPromoForm(f => ({ ...f, stripe_price_id_yearly: e.target.value }))} placeholder="price_..."
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-white" />
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface bg-surface" />
                   </label>
                 </div>
-                <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-ink-secondary cursor-pointer">
                   <input type="checkbox" checked={promoForm.is_active} onChange={e => setPromoForm(f => ({ ...f, is_active: e.target.checked }))}
-                    className="rounded border-slate-300" />
+                    className="rounded border-line-strong" />
                   Sofort aktiv schalten
                 </label>
                 <div className="flex gap-2 pt-1">
@@ -2591,7 +2591,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     {promoSaving ? 'Wird gespeichert…' : 'Speichern'}
                   </button>
                   <button onClick={() => { setPromoEditing(null); setPromoForm({ name: '', badge_text: '', description: '', promo_price: '', promo_price_yearly: '', valid_from: '', valid_until: '', stripe_price_id: '', stripe_price_id_yearly: '', is_active: false }) }}
-                    className="px-4 py-2 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50">
+                    className="px-4 py-2 text-xs font-medium border border-line rounded-lg text-ink-secondary hover:bg-surface-raised">
                     Abbrechen
                   </button>
                 </div>
@@ -2600,19 +2600,19 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
             {/* Aktionsliste */}
             <div className="space-y-3">
-              {promotions.length === 0 && <p className="text-sm text-slate-400">Noch keine Aktionen angelegt.</p>}
+              {promotions.length === 0 && <p className="text-sm text-ink-muted">Noch keine Aktionen angelegt.</p>}
               {promotions.map(p => (
-                <div key={p.id} className={cn('border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3', p.is_active ? 'border-amber-200 bg-amber-50' : 'border-slate-200')}>
+                <div key={p.id} className={cn('border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3', p.is_active ? 'border-warning-border bg-warning-subtle' : 'border-line')}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-slate-900">{p.name}</span>
-                      <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border', p.is_active ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')}>
+                      <span className="text-sm font-semibold text-ink">{p.name}</span>
+                      <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border', p.is_active ? 'bg-warning-border/20 text-warning-text border-warning-border' : 'bg-surface-raised text-ink-muted border-line')}>
                         {p.is_active ? '✦ Aktiv' : '○ Inaktiv'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">Badge: &ldquo;{p.badge_text}&rdquo; · Aktionspreis: €{p.promo_price}/Monat{p.promo_price_yearly ? ` · €${p.promo_price_yearly}/Jahr` : ''}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">Badge: &ldquo;{p.badge_text}&rdquo; · Aktionspreis: €{p.promo_price}/Monat{p.promo_price_yearly ? ` · €${p.promo_price_yearly}/Jahr` : ''}</p>
                     {(p.valid_from || p.valid_until) && (
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-ink-muted mt-0.5">
                         {p.valid_from ? `ab ${new Date(p.valid_from).toLocaleDateString('de-DE')}` : ''}
                         {p.valid_from && p.valid_until ? ' · ' : ''}
                         {p.valid_until ? `bis ${new Date(p.valid_until).toLocaleDateString('de-DE')}` : ''}
@@ -2621,7 +2621,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button onClick={() => togglePromoActive(p.id, !p.is_active)}
-                      className={cn('px-2.5 py-1 text-[10px] font-medium border rounded-lg', p.is_active ? 'border-amber-300 text-amber-800 hover:bg-amber-100' : 'border-slate-200 text-slate-500 hover:bg-slate-50')}>
+                      className={cn('px-2.5 py-1 text-[10px] font-medium border rounded-lg', p.is_active ? 'border-warning-border text-warning-text hover:opacity-80' : 'border-line text-ink-muted hover:bg-surface-raised')}>
                       {p.is_active ? 'Deaktivieren' : 'Aktivieren'}
                     </button>
                     <button onClick={() => editPromo(p)}
@@ -2629,7 +2629,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       Bearbeiten
                     </button>
                     <button onClick={() => deletePromo(p.id)}
-                      className="px-2.5 py-1 text-[10px] font-medium border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
+                      className="px-2.5 py-1 text-[10px] font-medium border border-error-border text-error-text rounded-lg hover:bg-error-subtle">
                       Löschen
                     </button>
                   </div>
@@ -2642,9 +2642,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {/* ─── App-Settings Tab ─────────────────────────────────────────────────── */}
       {tab === 'app_settings' && (
         <div className="space-y-8 py-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h2 className="text-base font-semibold text-slate-900 mb-1">AI-Nutzungslimits</h2>
-            <p className="text-xs text-slate-500 mb-5">Max. AI-Calls pro Tag je Tier. Wirksam nach nächstem Cold Start der Serverinstanz.</p>
+          <div className="bg-white border border-line rounded-xl p-6">
+            <h2 className="text-base font-semibold text-ink mb-1">AI-Nutzungslimits</h2>
+            <p className="text-xs text-ink-muted mb-5">Max. AI-Calls pro Tag je Tier. Wirksam nach nächstem Cold Start der Serverinstanz.</p>
             {appSettings && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {([
@@ -2653,12 +2653,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                   ['ai_limit_enterprise', 'Enterprise'] as const,
                 ]).map(([key, label]) => (
                   <label key={key} className="block">
-                    <span className="text-xs font-medium text-slate-600">{label}</span>
+                    <span className="text-xs font-medium text-ink-secondary">{label}</span>
                     <input
                       type="number" min="0" max="1000" step="1"
                       value={appSettings[key]}
                       onChange={e => setAppSettings(s => s ? { ...s, [key]: Number(e.target.value) } : s)}
-                      className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                      className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                     />
                   </label>
                 ))}
@@ -2666,32 +2666,32 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
-            <h2 className="text-base font-semibold text-slate-900 mb-1">Stripe Grace-Period</h2>
-            <p className="text-xs text-slate-500 mb-5">Tage bis Downgrade nach fehlgeschlagener Zahlung. 0 = sofortiger Downgrade.</p>
+          <div className="bg-white border border-line rounded-xl p-6">
+            <h2 className="text-base font-semibold text-ink mb-1">Stripe Grace-Period</h2>
+            <p className="text-xs text-ink-muted mb-5">Tage bis Downgrade nach fehlgeschlagener Zahlung. 0 = sofortiger Downgrade.</p>
             {appSettings && (
               <label className="block max-w-xs">
-                <span className="text-xs font-medium text-slate-600">Grace-Period (Tage)</span>
+                <span className="text-xs font-medium text-ink-secondary">Grace-Period (Tage)</span>
                 <input
                   type="number" min="0" max="90" step="1"
                   value={appSettings.stripe_grace_period_days}
                   onChange={e => setAppSettings(s => s ? { ...s, stripe_grace_period_days: Number(e.target.value) } : s)}
-                  className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  className="mt-1 w-full border border-line rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
                 />
               </label>
             )}
           </div>
 
-          <div className="border border-amber-200 bg-amber-50 rounded-xl p-6 space-y-3">
+          <div className="border border-warning-border bg-warning-subtle rounded-xl p-6 space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-base font-semibold text-amber-900">KI Direct-API Fallback</h2>
+                  <h2 className="text-base font-semibold text-warning-text">KI Direct-API Fallback</h2>
                   {appSettings?.ai_direct_fallback === 1 && (
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-400 text-white whitespace-nowrap">Aktiv (Nicht-EU)</span>
                   )}
                 </div>
-                <p className="text-xs text-amber-700">Direct API = keine vertragliche EU-Datenresidenz. Nur als temporärer Fallback aktivieren, solange Bedrock nicht verfügbar ist.</p>
+                <p className="text-xs text-warning-text">Direct API = keine vertragliche EU-Datenresidenz. Nur als temporärer Fallback aktivieren, solange Bedrock nicht verfügbar ist.</p>
               </div>
               {appSettings && (
                 <button
@@ -2701,7 +2701,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     'shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap',
                     appSettings.ai_direct_fallback === 1
                       ? 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      : 'bg-surface text-ink-secondary border-line hover:bg-surface-raised'
                   )}
                 >
                   {appSettings.ai_direct_fallback === 1 ? 'Deaktivieren' : 'Aktivieren'}
@@ -2711,28 +2711,28 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             {/* Key-Status — nur nach dem Laden anzeigen */}
             {aiConfig && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasAnthropicKey ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700 border border-red-200')}>
+                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasAnthropicKey ? 'bg-success-subtle text-success-text' : 'bg-error-subtle text-error-text border border-error-border')}>
                   <span>{aiConfig.hasAnthropicKey ? '✓' : '✗'}</span>
                   <span>ANTHROPIC_API_KEY {aiConfig.hasAnthropicKey ? 'gesetzt' : 'fehlt'}</span>
                 </div>
-                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasBedrockKeys ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700 border border-red-200')}>
+                <div className={cn('flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium', aiConfig.hasBedrockKeys ? 'bg-success-subtle text-success-text' : 'bg-error-subtle text-error-text border border-error-border')}>
                   <span>{aiConfig.hasBedrockKeys ? '✓' : '✗'}</span>
                   <span>AWS Bedrock Keys {aiConfig.hasBedrockKeys ? 'gesetzt' : 'fehlen'}</span>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium bg-slate-100 text-slate-600">
+                <div className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium bg-surface-raised text-ink-secondary">
                   <span>Region: {aiConfig.bedrockRegion}</span>
                 </div>
               </div>
             )}
             {appSettings?.ai_direct_fallback === 1 && aiConfig && !aiConfig.hasAnthropicKey && (
-              <p className="text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="text-xs font-semibold text-error-text bg-error-subtle border border-error-border rounded-lg px-3 py-2">
                 ⚠ Fallback aktiv, aber ANTHROPIC_API_KEY ist nicht konfiguriert — KI-Analyse schlägt trotz aktivem Toggle fehl (FALLBACK_NO_KEY).
               </p>
             )}
             {/* Modell-IDs konfigurieren */}
             {appSettings && (
-              <div className="border-t border-amber-200 pt-3 space-y-2">
-                <p className="text-[11px] font-semibold text-amber-800 uppercase tracking-wide">Modell-IDs (Priorität: Env-Var &gt; DB &gt; Code-Default)</p>
+              <div className="border-t border-warning-border pt-3 space-y-2">
+                <p className="text-[11px] font-semibold text-warning-text uppercase tracking-wide">Modell-IDs (Priorität: Env-Var &gt; DB &gt; Code-Default)</p>
                 <div className="space-y-2">
                   {([
                     { key: 'ai_model_bedrock_haiku',   label: 'Bedrock Haiku (EU Inference Profile ID)' },
@@ -2740,12 +2740,12 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     { key: 'ai_model_direct_fallback', label: 'Direct Fallback (Anthropic API Modell-ID)' },
                   ] as const).map(({ key, label }) => (
                     <div key={key}>
-                      <label className="block text-[10px] text-amber-700 mb-0.5">{label}</label>
+                      <label className="block text-[10px] text-warning-text mb-0.5">{label}</label>
                       <input
                         type="text"
                         value={appSettings[key]}
                         onChange={e => setAppSettings(s => s ? { ...s, [key]: e.target.value } : s)}
-                        className="w-full text-xs font-mono border border-amber-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        className="w-full text-xs font-mono border border-warning-border rounded-lg px-2 py-1.5 bg-surface focus:outline-none focus:ring-2 focus:ring-warning-border"
                         placeholder="z.B. eu.anthropic.claude-haiku-4-5-20251001-v1:0"
                       />
                     </div>
@@ -2755,25 +2755,25 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <div className="bg-white border border-line rounded-xl p-6">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-900 mb-1">{t('cacheCardTitle')}</h2>
-                <p className="text-xs text-slate-500">{t('cacheCardDesc')}</p>
+                <h2 className="text-base font-semibold text-ink mb-1">{t('cacheCardTitle')}</h2>
+                <p className="text-xs text-ink-muted">{t('cacheCardDesc')}</p>
               </div>
               <button
                 type="button"
                 onClick={handleCachePurge}
-                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors whitespace-nowrap"
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border border-line bg-surface text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap"
               >
                 {t('cachePurgeBtn')}
               </button>
             </div>
             {cachePurgeMsg && (
-              <p className="mb-3 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">{cachePurgeMsg}</p>
+              <p className="mb-3 text-xs font-medium text-success-text bg-success-subtle border border-success-border rounded-lg px-3 py-2">{cachePurgeMsg}</p>
             )}
             {!cacheStats ? (
-              <p className="text-xs text-slate-400">{t('cacheNoData')}</p>
+              <p className="text-xs text-ink-subtle">{t('cacheNoData')}</p>
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -2783,40 +2783,40 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     ['cacheActiveEntries',  String(cacheStats.active)],
                     ['cacheExpiredEntries', String(cacheStats.expired)],
                   ] as const).map(([key, val]) => (
-                    <div key={key} className="bg-slate-50 rounded-lg p-3 text-center">
-                      <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">{t(key)}</p>
-                      <p className="text-xl font-bold text-slate-900">{val}</p>
+                    <div key={key} className="bg-surface-raised rounded-lg p-3 text-center">
+                      <p className="text-[10px] text-ink-muted uppercase tracking-wide mb-1">{t(key)}</p>
+                      <p className="text-xl font-bold text-ink">{val}</p>
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-ink-secondary">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{t('cacheEstimatedSize')}:</span>
+                    <span className="text-ink-muted">{t('cacheEstimatedSize')}:</span>
                     <span className="font-medium">{cacheStats.estimatedBytes !== null ? `${(cacheStats.estimatedBytes / 1024).toFixed(1)} KB` : '—'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{t('cacheOldestEntry')}:</span>
+                    <span className="text-ink-muted">{t('cacheOldestEntry')}:</span>
                     <span className="font-medium">{cacheStats.oldest ? new Date(cacheStats.oldest).toLocaleDateString('de-DE') : '—'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{t('cacheNewestEntry')}:</span>
+                    <span className="text-ink-muted">{t('cacheNewestEntry')}:</span>
                     <span className="font-medium">{cacheStats.newest ? new Date(cacheStats.newest).toLocaleDateString('de-DE') : '—'}</span>
                   </div>
                 </div>
                 {cacheStats.topModules.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">{t('cacheTopModules')}</p>
+                    <p className="text-[10px] font-semibold text-ink-muted uppercase tracking-wide mb-2">{t('cacheTopModules')}</p>
                     <div className="space-y-1">
                       {cacheStats.topModules.map(m => (
                         <div key={m.module} className="flex items-center gap-2 text-xs">
-                          <span className="w-24 font-medium text-slate-700 capitalize">{m.module}</span>
-                          <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <span className="w-24 font-medium text-ink-secondary capitalize">{m.module}</span>
+                          <div className="flex-1 bg-surface-raised rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="h-full bg-emerald-400 rounded-full"
+                              className="h-full bg-success-border rounded-full"
                               style={{ width: `${m.total > 0 ? Math.round((m.hits / m.total) * 100) : 0}%` }}
                             />
                           </div>
-                          <span className="text-slate-500 w-16 text-right">{m.hits}H / {m.misses}M</span>
+                          <span className="text-ink-muted w-16 text-right">{m.hits}H / {m.misses}M</span>
                         </div>
                       ))}
                     </div>

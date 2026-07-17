@@ -34,21 +34,21 @@ export function AIPanelCard({ narrative, usage, aiModel, catalogComponents, reje
     <div className="bg-[color:var(--color-ai-soft)] border border-purple-200 rounded-2xl p-4 sm:p-5 space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-[color:var(--color-ai)] text-base" aria-hidden="true">◆</span>
-        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.aiPanelTitle')}</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('architecture.aiPanelTitle')}</h3>
       </div>
 
       {/* Usage Meter */}
       {usage && (
         <div>
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+          <div className="flex items-center justify-between text-xs text-ink-muted mb-1">
             <span>{t('architecture.aiPanelUsage')}</span>
-            <span className={usage.exceeded ? 'text-red-600 font-semibold' : ''}>
+            <span className={usage.exceeded ? 'text-error-text font-semibold' : ''}>
               {usage.exceeded ? t('architecture.aiPanelLimitReached') : `${usage.used} / ${usage.limit}`}
             </span>
           </div>
-          <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-line rounded-full overflow-hidden">
             <div
-              className={cn('h-full rounded-full transition-all', usage.exceeded ? 'bg-red-400' : 'bg-[color:var(--color-ai)]')}
+              className={cn('h-full rounded-full transition-all', usage.exceeded ? 'bg-error-text' : 'bg-[color:var(--color-ai)]')}
               style={{ width: `${Math.min(100, Math.round((usage.used / usage.limit) * 100))}%` }}
             />
           </div>
@@ -57,27 +57,27 @@ export function AIPanelCard({ narrative, usage, aiModel, catalogComponents, reje
 
       {/* Provenance */}
       {aiModel && (
-        <p className="text-[10px] text-slate-400">
+        <p className="text-[10px] text-ink-subtle">
           {t('architecture.aiPanelProvenance')}: <span className="font-mono">{aiModel}</span>
         </p>
       )}
 
       {/* Component Suggestions */}
       <div>
-        <p className="text-xs font-semibold text-slate-700 mb-1">{t('architecture.aiPanelSuggestionsTitle')}</p>
-        <p className="text-[10px] text-slate-400 mb-2">{t('architecture.aiPanelSuggestionsHint')}</p>
+        <p className="text-xs font-semibold text-ink-secondary mb-1">{t('architecture.aiPanelSuggestionsTitle')}</p>
+        <p className="text-[10px] text-ink-subtle mb-2">{t('architecture.aiPanelSuggestionsHint')}</p>
         {suggestions.length === 0 ? (
-          <p className="text-xs text-slate-400 italic">{t('architecture.aiPanelNoSuggestions')}</p>
+          <p className="text-xs text-ink-subtle italic">{t('architecture.aiPanelNoSuggestions')}</p>
         ) : (
           <ul className="space-y-1.5">
             {suggestions.map(name => {
               const comp = byName.get(name)
               return (
-                <li key={name} className="flex items-center gap-2 bg-white border border-purple-100 rounded-xl px-3 py-2">
+                <li key={name} className="flex items-center gap-2 bg-surface border border-purple-100 rounded-xl px-3 py-2">
                   <span className="text-[color:var(--color-ai)] text-[10px]" aria-hidden="true">◆</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-slate-800 truncate">{name}</p>
-                    {comp?.category && <p className="text-[10px] text-slate-400">{comp.category}</p>}
+                    <p className="text-xs font-semibold text-ink truncate">{name}</p>
+                    {comp?.category && <p className="text-[10px] text-ink-subtle">{comp.category}</p>}
                   </div>
                   <div className="flex gap-1.5 shrink-0">
                     <button
@@ -88,7 +88,7 @@ export function AIPanelCard({ narrative, usage, aiModel, catalogComponents, reje
                     </button>
                     <button
                       onClick={() => { onReject(name); (window as Window & { posthog?: { capture: (e: string, p?: object) => void } }).posthog?.capture('ai_suggestion_rejected', { component: name }) }}
-                      className="px-2 py-1 text-[10px] font-semibold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      className="px-2 py-1 text-[10px] font-semibold border border-line text-ink-muted rounded-lg hover:bg-surface-raised transition-colors focus:outline-none focus:ring-2 focus:ring-line-strong"
                     >
                       {t('architecture.aiPanelReject')}
                     </button>
@@ -107,11 +107,11 @@ const RASIC_CYCLE: RasicValue[] = ['R', 'A', 'S', 'I', 'C', '']
 
 const RASIC_CELL_STYLE: Record<string, string> = {
   R: 'bg-primary-soft text-primary-hover border-primary-border font-bold',
-  A: 'bg-amber-100 text-amber-800 border-amber-300 font-bold',
-  S: 'bg-slate-100 text-slate-700 border-slate-300 font-semibold',
+  A: 'bg-warning-subtle text-warning-text border-warning-border font-bold',
+  S: 'bg-surface-raised text-ink-secondary border-line-strong font-semibold',
   I: 'bg-violet-50 text-violet-700 border-violet-200 font-semibold',
-  C: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold',
-  '': 'bg-white text-slate-300 border-slate-100',
+  C: 'bg-success-subtle text-success-text border-success-border font-semibold',
+  '': 'bg-surface text-ink-subtle border-line-subtle',
 }
 
 const RASIC_TOOLTIP: Record<string, { de: string; en: string }> = {
@@ -157,17 +157,17 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
   }
 
   return (
-    <div id="rasic-matrix" className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
+    <div id="rasic-matrix" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-slate-900">{t('architecture.rasicTitle')}</h3>
-        <p className="text-xs text-slate-500 leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
-        {!readOnly && !preview && <p className="text-xs text-slate-400 mt-0.5">{t('architecture.rasicHint')}</p>}
+        <h3 className="text-sm font-semibold text-ink">{t('architecture.rasicTitle')}</h3>
+        <p className="text-xs text-ink-muted leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
+        {!readOnly && !preview && <p className="text-xs text-ink-subtle mt-0.5">{t('architecture.rasicHint')}</p>}
       </div>
       {/* Preview-Banner ÜBER der Tabelle — sofort sichtbar ohne Scrollen */}
       {preview && onPreviewConfirm && onPreviewCancel && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-2">
-          <p className="text-xs font-semibold text-amber-800">{t('architecture.rasicPreviewTitle')}</p>
-          <p className="text-xs text-amber-700">{t('architecture.rasicPreviewDesc')}</p>
+        <div className="bg-warning-subtle border border-warning-border rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-warning-text">{t('architecture.rasicPreviewTitle')}</p>
+          <p className="text-xs text-warning-text">{t('architecture.rasicPreviewDesc')}</p>
           <div className="flex gap-2">
             <button
               type="button"
@@ -179,7 +179,7 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
             <button
               type="button"
               onClick={onPreviewCancel}
-              className="px-3 py-1.5 text-xs font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+              className="px-3 py-1.5 text-xs font-semibold border border-line text-ink-secondary rounded-lg hover:bg-surface-raised transition-colors focus:outline-none focus:ring-2 focus:ring-line-strong"
             >
               {t('architecture.rasicPreviewCancel')}
             </button>
@@ -190,18 +190,18 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
         <table className="w-full text-xs border-collapse min-w-[480px]">
           <thead>
             <tr>
-              <th className="text-left py-2 px-3 text-slate-500 font-medium w-40">{t('architecture.rasicRoleColumn')}</th>
+              <th className="text-left py-2 px-3 text-ink-muted font-medium w-40">{t('architecture.rasicRoleColumn')}</th>
               {(rasic.phases as RasicPhase[]).map(phase => (
-                <th key={phase} className="text-center py-2 px-2 text-slate-500 font-medium whitespace-nowrap">
+                <th key={phase} className="text-center py-2 px-2 text-ink-muted font-medium whitespace-nowrap">
                   {phaseLabel[phase]}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-line-subtle">
             {rasic.entries.map(entry => (
-              <tr key={entry.role} className="hover:bg-slate-50 transition-colors">
-                <td className="py-2 px-3 font-medium text-slate-700 truncate max-w-[160px]" title={entry.role}>
+              <tr key={entry.role} className="hover:bg-surface-raised transition-colors">
+                <td className="py-2 px-3 font-medium text-ink-secondary truncate max-w-[160px]" title={entry.role}>
                   {entry.role}
                 </td>
                 {(rasic.phases as RasicPhase[]).map(phase => {
@@ -214,7 +214,7 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
                     <td key={phase} className="py-1.5 px-2 text-center">
                       {hasDiff ? (
                         <span className="inline-flex flex-col items-center gap-0.5">
-                          <span className="text-[10px] text-slate-400 line-through">{val || '·'}</span>
+                          <span className="text-[10px] text-ink-subtle line-through">{val || '·'}</span>
                           <span className={cn('w-8 h-8 rounded-lg border text-[11px] inline-flex items-center justify-center ring-2 ring-amber-400', RASIC_CELL_STYLE[previewVal] ?? RASIC_CELL_STYLE[''])}>
                             {previewVal || '·'}
                           </span>
@@ -247,12 +247,12 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
         const assigned = Object.entries(componentOwners ?? {}).filter(([, r]) => r)
         if (assigned.length === 0) return null
         return (
-          <div className="pt-3 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-500 mb-2">{t('architecture.rasicComponentOwnerTitle')}</p>
+          <div className="pt-3 border-t border-line-subtle">
+            <p className="text-xs font-medium text-ink-muted mb-2">{t('architecture.rasicComponentOwnerTitle')}</p>
             <div className="space-y-1">
               {assigned.map(([name, role]) => (
                 <div key={name} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-slate-700 truncate min-w-0">{name}</span>
+                  <span className="text-ink-secondary truncate min-w-0">{name}</span>
                   <span className="shrink-0 rounded bg-primary-soft px-2 py-0.5 text-primary-hover font-medium whitespace-nowrap">{role}</span>
                 </div>
               ))}
@@ -278,20 +278,19 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
 
   const openViolations = results.filter(r => !r.passed && !overrides[r.ruleId])
   const acceptedCount = results.filter(r => !r.passed && overrides[r.ruleId]).length
-  const allPassed = openViolations.length === 0
 
   const statusColor = openViolations.length > 0
-    ? 'border-l-red-500'
+    ? 'border-l-error-text'
     : acceptedCount > 0
-      ? 'border-l-amber-500'
-      : 'border-l-emerald-500'
+      ? 'border-l-warning-text'
+      : 'border-l-success-text'
 
   const headerIcon = openViolations.length > 0 ? '✕' : acceptedCount > 0 ? '⚠' : '✓'
   const headerColorClass = openViolations.length > 0
-    ? 'text-red-700'
+    ? 'text-error-text'
     : acceptedCount > 0
-      ? 'text-amber-700'
-      : 'text-emerald-700'
+      ? 'text-warning-text'
+      : 'text-success-text'
 
   const headerStatus = openViolations.length > 0
     ? t('architecture.eamStatusInvalid', { count: openViolations.length })
@@ -307,7 +306,7 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
   }
 
   return (
-    <div className={cn('bg-white border border-slate-200 border-l-[3px] rounded-2xl p-4 sm:p-5 space-y-3', statusColor)}>
+    <div className={cn('bg-surface border border-line border-l-[3px] rounded-2xl p-4 sm:p-5 space-y-3', statusColor)}>
       {/* Header */}
       <div className="flex items-center gap-2">
         <span className={cn('text-base shrink-0', headerColorClass)} aria-hidden="true">{headerIcon}</span>
@@ -326,7 +325,7 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
 
           if (r.passed) {
             return (
-              <li key={r.ruleId} className="flex items-center gap-2 text-xs text-emerald-700">
+              <li key={r.ruleId} className="flex items-center gap-2 text-xs text-success-text">
                 <span className="shrink-0 w-4 text-center" aria-hidden="true">✓</span>
                 <span className="min-w-0">{pick(r.message, locale)}</span>
               </li>
@@ -336,7 +335,7 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
           if (override) {
             return (
               <li key={r.ruleId} className="space-y-1">
-                <div className="flex items-center gap-2 text-xs text-amber-700">
+                <div className="flex items-center gap-2 text-xs text-warning-text">
                   <span className="shrink-0 w-4 text-center" aria-hidden="true">⚠</span>
                   <span className="min-w-0 flex-1">
                     <span className="font-semibold">{t('architecture.eamAcceptedLabel')}</span>
@@ -347,20 +346,20 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
                     <button
                       type="button"
                       onClick={() => onOverride(r.ruleId, null)}
-                      className="shrink-0 text-[10px] font-medium text-amber-600 hover:text-amber-800 underline focus:outline-none focus:ring-1 focus:ring-amber-500 rounded"
+                      className="shrink-0 text-[10px] font-medium text-warning-text underline focus:outline-none focus:ring-1 focus:ring-warning-border rounded"
                     >
                       {t('architecture.eamRevokeButton')}
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 pl-6 italic">{override.reason}</p>
+                <p className="text-[10px] text-ink-subtle pl-6 italic">{override.reason}</p>
               </li>
             )
           }
 
           return (
             <li key={r.ruleId} className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-red-700">
+              <div className="flex items-center gap-2 text-xs text-error-text">
                 <span className="shrink-0 w-4 text-center" aria-hidden="true">✕</span>
                 <span className="min-w-0 flex-1">{pick(r.message, locale)}</span>
                 <div className="flex gap-1.5 shrink-0">
@@ -368,7 +367,7 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
                     <button
                       type="button"
                       onClick={() => { setDialogOpen(r.ruleId); setReasonInput('') }}
-                      className="text-[10px] font-semibold px-2 py-1 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
+                      className="text-[10px] font-semibold px-2 py-1 border border-error-border text-error-text rounded-lg hover:bg-error-subtle transition-colors focus:outline-none focus:ring-2 focus:ring-error-border"
                     >
                       {t('architecture.eamAcceptButton')}
                     </button>
@@ -384,16 +383,16 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
               </div>
 
               {isOpen && (
-                <div className="ml-6 bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-                  <p className="text-[10px] font-semibold text-slate-700">{t('architecture.eamWaiverTitle')}</p>
+                <div className="ml-6 bg-surface-raised border border-line rounded-xl p-3 space-y-2">
+                  <p className="text-[10px] font-semibold text-ink-secondary">{t('architecture.eamWaiverTitle')}</p>
                   <textarea
                     value={reasonInput}
                     onChange={e => setReasonInput(e.target.value.slice(0, 200))}
                     placeholder={t('architecture.eamWaiverPlaceholder')}
                     rows={2}
-                    className="w-full text-xs border border-slate-300 rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                    className="w-full text-xs border border-line-strong rounded-lg px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-ring bg-surface text-ink"
                   />
-                  <p className="text-[10px] text-slate-400 text-right">{reasonInput.length}/200</p>
+                  <p className="text-[10px] text-ink-subtle text-right">{reasonInput.length}/200</p>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -406,7 +405,7 @@ export function EamValidationBanner({ results, overrides = {}, onOverride }: Eam
                     <button
                       type="button"
                       onClick={() => { setDialogOpen(null); setReasonInput('') }}
-                      className="px-3 py-1.5 text-[10px] font-semibold border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      className="px-3 py-1.5 text-[10px] font-semibold border border-line text-ink-secondary rounded-lg hover:bg-surface-raised transition-colors focus:outline-none focus:ring-2 focus:ring-line-strong"
                     >
                       {t('architecture.eamWaiverCancel')}
                     </button>
@@ -439,18 +438,18 @@ export function ComplianceControlTable({ activeComponents, rasic }: ComplianceCo
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 space-y-4">
-      <h3 className="text-sm font-semibold text-slate-900">{t('architecture.complianceControlTitle')}</h3>
+    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
+      <h3 className="text-sm font-semibold text-ink">{t('architecture.complianceControlTitle')}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
-            <tr className="border-b border-slate-200">
-              <th className="text-left py-2 pr-4 text-slate-500 font-medium">{t('architecture.complianceControlComponent')}</th>
-              <th className="text-left py-2 pr-4 text-slate-500 font-medium">{t('architecture.complianceControlRequirement')}</th>
-              <th className="text-left py-2 text-slate-500 font-medium">{t('architecture.complianceControlOwner')}</th>
+            <tr className="border-b border-line">
+              <th className="text-left py-2 pr-4 text-ink-muted font-medium">{t('architecture.complianceControlComponent')}</th>
+              <th className="text-left py-2 pr-4 text-ink-muted font-medium">{t('architecture.complianceControlRequirement')}</th>
+              <th className="text-left py-2 text-ink-muted font-medium">{t('architecture.complianceControlOwner')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-line-subtle">
             {riskComps.map(c => {
               const req = c.dsgvo_status === 'conditional'
                 ? 'DSGVO AVV erforderlich'
@@ -458,10 +457,10 @@ export function ComplianceControlTable({ activeComponents, rasic }: ComplianceCo
                   ? 'EU AI Act — Hochrisiko: Dok. + Risk Assessment'
                   : 'EU AI Act — Eingeschränkt: Transparenzpflicht'
               return (
-                <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="py-2 pr-4 font-medium text-slate-800">{c.name}</td>
-                  <td className="py-2 pr-4 text-slate-600">{req}</td>
-                  <td className="py-2 text-slate-600">{getOwner('daten')}</td>
+                <tr key={c.id} className="hover:bg-surface-raised">
+                  <td className="py-2 pr-4 font-medium text-ink">{c.name}</td>
+                  <td className="py-2 pr-4 text-ink-secondary">{req}</td>
+                  <td className="py-2 text-ink-secondary">{getOwner('daten')}</td>
                 </tr>
               )
             })}
