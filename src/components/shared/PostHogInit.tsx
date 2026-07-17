@@ -15,6 +15,9 @@ interface PostHogInitProps {
 export function PostHogInit({ userId, email, tier }: PostHogInitProps) {
   const pathname = usePathname()
   const initialized = useRef(false)
+  // capture_pageview: true lässt PostHog das initiale $pageview intern feuern.
+  // Dieser Flag überspringt den ersten Pathname-Effekt, damit kein Duplikat entsteht.
+  const skipFirst = useRef(true)
 
   useEffect(() => {
     if (initialized.current) return
@@ -25,10 +28,9 @@ export function PostHogInit({ userId, email, tier }: PostHogInitProps) {
   }, [userId, email, tier])
 
   useEffect(() => {
-    // App-Router ändert pathname client-seitig ohne vollständigen Page-Load →
-    // $pageview manuell capturen. posthog.__loaded ist nach initPostHog() (Effect 1)
-    // synchron true — kein separater Guard nötig.
-    if (typeof window === 'undefined' || !posthog.__loaded) return
+    // Erster Aufruf überspringen — initPostHog() mit capture_pageview: true
+    // hat das initiale $pageview bereits intern gefeuert.
+    if (skipFirst.current) { skipFirst.current = false; return }
     posthog.capture('$pageview')
   }, [pathname])
 
