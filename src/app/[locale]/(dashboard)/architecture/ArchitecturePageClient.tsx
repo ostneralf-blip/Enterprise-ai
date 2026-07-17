@@ -401,7 +401,7 @@ function NarrativeCard({
                 <button
                   type="button"
                   onClick={() => void onAnalyze()}
-                  className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-700 whitespace-nowrap hover:bg-amber-200 transition-colors focus:outline-none focus:ring-1 focus:ring-amber-400"
+                  className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-warning-subtle border border-warning-border text-warning-text whitespace-nowrap hover:bg-warning-subtle/80 transition-colors focus:outline-none focus:ring-1 focus:ring-warning-border"
                 >
                   ⟳ {t('architecture.narrativeStale')}
                 </button>
