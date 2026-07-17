@@ -1,6 +1,6 @@
 # AI Navigator — CLAUDE.md
 ## Projekt-Konventionen für Claude Code
-_Zuletzt inhaltlich gegen Repo + GitHub abgeglichen: 07.07.2026. Diese Datei aktualisiert
+_Zuletzt inhaltlich gegen Repo + GitHub abgeglichen: 17.07.2026. Diese Datei aktualisiert
 sich nicht automatisch — nach größeren Sprints manuell nachziehen (siehe Hinweis in der
 Feature-Lücken-Analyse unten)._
 
@@ -250,11 +250,9 @@ verifizieren, dass Local/Remote für alle Migrationen bis `20260705122836` synch
 - ~~#66 DSGVO-Warnung mit Bestätigung im Architektur-Generator~~ → CLOSED, commit `0e238a0`.
 - ~~#72 Canvas-Komponentenerkennung (SAP-Alias/Cluster-Bonus)~~ → CLOSED, commit `897578f`.
 - ~~#69/#70 SAP-Komponenten-Suggests + Architektur-UI~~ → CLOSED.
-- **#65 Governance↔UseCase-Verknüpfung + Roadmap-Badges** — Code ist committet (`ed3eb92`,
-  heute erweitert um Multi-Use-Case-Auswahl in `975396a`), Issue aber weiterhin OPEN auf
-  GitHub (kein "Closes #65" im Commit). Zusätzlich: **funktioniert aktuell nicht**, siehe Bug
-  unten (`use_case_portfolios`). Issue korrekterweise offen lassen, bis der Bug behoben UND
-  verifiziert ist.
+- **#65 Governance↔UseCase-Verknüpfung + Roadmap-Badges** — Code committet, Issue OPEN.
+  Bug `use_case_portfolios` → `uc_portfolios` ist bereits behoben (verifiziert 17.07.2026:
+  governance/page.tsx und roadmap/page.tsx verwenden bereits `uc_portfolios`).
 - **#67 Compliance als globale Annahme** — Code committet (`ac6fa63`), Issue weiterhin OPEN
   (kein Closes-Keyword). Funktional wirkt es vollständig umgesetzt (Banner in UseCase +
   Governance + Zusammenfassung) — sollte nach Verifikation geschlossen werden.
@@ -348,8 +346,8 @@ Ob alle in #37 genannten Detailanforderungen (Executive Summary immer ausführba
 100%-Abschluss, PDF-Export zählt nicht zur Fortschritts-Berechnung) exakt so umgesetzt sind,
 wurde in dieser Runde nicht zeilengenau nachverifiziert.
 
-### Priorisierte Gesamt-Roadmap (Stand 07.07.2026 — gegen Repo + GitHub abgeglichen)
-**Status: 0 offene GitHub Issues. Sprint 14 + Sprint 15 vollständig geliefert.**
+### Priorisierte Gesamt-Roadmap (Stand 17.07.2026 — gegen Repo + GitHub abgeglichen)
+**Status: Sprint 14 + Sprint 15 + Sprint 32 vollständig geliefert.**
 
 **ERLEDIGT — Sprint 14 (Design-Refresh + Produkt-Lücken, CLOSED 06.07.2026):**
 - ~~#68 Versions-UI auf Roadmap/Governance/Canvas~~ → DONE (`4bf0af3`)
@@ -369,12 +367,25 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   **Hinweis:** Kein separates Preismodell nötig — Admins schalten `min_tier` pro Block im
   Content-Library-Editor. Entscheidung: `free` als Default, Admin kann auf `pro` stellen.
 
+**ERLEDIGT — Sprint 32 (Arch-V2 Korrekturen #155 + #156, 17.07.2026):**
+- ~~#156 aria-expanded, Konflikt-Badge, onConfirm sources in ComponentSelectionStep~~ → DONE
+- ~~#155 componentSources in ArchitectureResult persistieren~~ → DONE
+- ~~#155 EamMap.tsx — 5-Band-Architektur-Landkarte~~ → DONE (inkl. Hosting-Filter)
+- ~~#155 ◆-Marker in PDF-Export + Share-View~~ → DONE
+- ~~#155 PostHog arch_view_switched + eam_validation Events~~ → DONE
+- GitHub-Kommentare auf #155/#156 müssen manuell gepostet werden (API 403)
+
+**ERLEDIGT — PostHog Analytics (17.07.2026):**
+- ~~PostHog $pageview + $pageleave tracking~~ → DONE (commits `797ff75`, `06fd37a`, `90ee85f`)
+- Root Causes behoben: proxy.ts Middleware fing /ingest/* ab; /ingest/array/* falsch geroutet;
+  PostHog-Bot-PR (instrumentation-client.ts + skipTrailingSlashRedirect) entfernt.
+
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
-- Rechtstexte (Impressum/Datenschutz/AGB): Routen existieren, Inhalt ist Platzhalter.
-  **ZURÜCKGESTELLT:** externer Support nötig (eRecht24/Anwalt). Kein Code-Task.
-- Sentry Error-Tracking: `sentry.*.config.ts` vorhanden, Produktions-Aktivierung nicht verifiziert.
-- Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling).
-- `/trust`-Seite: Route existiert (`src/app/trust`), Inhalt nicht geprüft.
+- Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.
+  Bei Go-Live nochmals auf rechtliche Vollständigkeit prüfen (eRecht24/Anwalt).
+- ~~Sentry Error-Tracking~~ → Daniel bestätigt: läuft (17.07.2026).
+- ~~`/trust`-Seite~~ → Daniel bestätigt: Inhalt vorhanden (17.07.2026).
+- Abo-Lebenszyklus-Kanten (Zahlung fehlgeschlagen, Kündigung, Downgrade-Datenhandling) — noch offen.
 
 **BEWUSST ZURÜCKGESTELLT:**
 - Team-/Mandantenfunktion — bis konkrete Enterprise-Kundenanfrage
