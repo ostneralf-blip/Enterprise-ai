@@ -347,7 +347,7 @@ Ob alle in #37 genannten Detailanforderungen (Executive Summary immer ausführba
 wurde in dieser Runde nicht zeilengenau nachverifiziert.
 
 ### Priorisierte Gesamt-Roadmap (Stand 17.07.2026 — gegen Repo + GitHub abgeglichen)
-**Status: Sprint 14 + Sprint 15 + Sprint 32 vollständig geliefert.**
+**Status: Sprints 14, 15, 32, 35 Wave 1–3, #215/#217/#218 implementiert.**
 
 **ERLEDIGT — Sprint 14 (Design-Refresh + Produkt-Lücken, CLOSED 06.07.2026):**
 - ~~#68 Versions-UI auf Roadmap/Governance/Canvas~~ → DONE (`4bf0af3`)
@@ -375,10 +375,21 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~#155 PostHog arch_view_switched + eam_validation Events~~ → DONE
 - GitHub-Kommentare auf #155/#156 müssen manuell gepostet werden (API 403)
 
-**ERLEDIGT — PostHog Analytics (17.07.2026):**
+**ERLEDIGT — PostHog Analytics + #215 (17.07.2026):**
 - ~~PostHog $pageview + $pageleave tracking~~ → DONE (commits `797ff75`, `06fd37a`, `90ee85f`)
+- ~~#215 EU-Reverse-Proxy (/ingest/*), share_created Event, Stripe Lifecycle Events~~ → DONE (`bf3ef4f`, `c16f0ec`)
 - Root Causes behoben: proxy.ts Middleware fing /ingest/* ab; /ingest/array/* falsch geroutet;
   PostHog-Bot-PR (instrumentation-client.ts + skipTrailingSlashRedirect) entfernt.
+
+**ERLEDIGT — #201 Wave 1–3 (17.07.2026):**
+- ~~Wave 1 Shared/Layout (12 Dateien)~~ → DONE (`7d94c40`)
+- ~~Wave 2 Dashboard/Settings/Feedback (6 Dateien)~~ → DONE (`fd68228`)
+- ~~Wave 3 zusammenfassung/page.tsx~~ → DONE (`6463b88`)
+- Wave 4 große Module (AdminPageClient, ErgebnissePageClient, ArchitecturePageClient etc.) — noch offen
+
+**IMPLEMENTIERT — Akzeptanz-Gate ausstehend (Freigabe Daniel vor GitHub-Close):**
+- **#217** Tab-Leisten ohne Scrollbar (`783b940`): Compliance + Admin → Mobile Select + Fade-Kante; UseCaseTable scrollbar-hidden. Screenshot 1440+375 + Daniels Freigabe ausstehend.
+- **#218** KI-Ergebnis-Autosave (`d60718f`): `lib/ai/draft-store.ts` (TTL 7d) + `AiDraftBanner` in Architektur + Canvas. GIF-Nachweis + Daniels Freigabe ausstehend.
 
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
 - Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.
@@ -391,6 +402,11 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - Team-/Mandantenfunktion — bis konkrete Enterprise-Kundenanfrage
 - Google OAuth — kein Blocker
 - Compliance-Scanner Cron-Job — gestrichen (07.07.2026), manueller Trigger reicht
+
+**Offene GitHub Issues (aktiv, kein Blocker):**
+- **#201** Zentrales Theme-System — Wave 4 noch offen (große Module: AdminPageClient ~323 Hits, ErgebnissePageClient ~162, ArchitecturePageClient ~123, CompliancePageClient ~79, RasicSection ~45, share/[token]/page.tsx). Modulweise + Screenshot-Gate laut Issue-Spec.
+- **#205** Einheitliche Grundelemente (InfoHints, Wissensbasis-Komponente, Textelement-Hierarchie, Hinweis-Boxen) — noch kein Code, neu angelegt 16.07.2026. Größeres Design-Querschnittsthema.
+- **#217 / #218** — implementiert, warten auf Daniels Screenshot-Freigabe (siehe oben).
 
 **Feature-Backlog (für zukünftige Sprints):**
 - Compliance-Quellen: Admin kann neue URLs zur Überwachung eintragen (aktuell hardcodiert in `scanner.ts`)
