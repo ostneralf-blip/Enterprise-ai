@@ -9,6 +9,7 @@ export function initPostHog() {
   posthog.init(key, {
     api_host: '/ingest',
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com',
+    defaults: '2026-05-30',    // PostHog-Defaults auf dieses Datum pinnen → kein unerwartetes Verhalten bei SDK-Updates
     person_profiles: 'identified_only',
     capture_pageview: false,   // manuell via usePathname-Hook
     capture_pageleave: true,
