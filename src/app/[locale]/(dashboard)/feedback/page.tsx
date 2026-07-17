@@ -91,38 +91,38 @@ export default function FeedbackPage() {
     <div className="max-w-xl space-y-10">
       <div>
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">{t('title')}</h1>
-        <p className="text-sm text-slate-500 mt-1">{t('subtitlePage')}</p>
+        <h1 className="text-xl sm:text-2xl font-semibold font-serif text-ink">{t('title')}</h1>
+        <p className="text-sm text-ink-muted mt-1">{t('subtitlePage')}</p>
       </div>
 
       {sent ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center space-y-3">
+        <div className="bg-success-subtle border border-success-border rounded-xl p-6 text-center space-y-3">
           <div className="text-3xl">✓</div>
-          <p className="text-sm font-semibold text-emerald-800">{t('successMessage')}</p>
-          <p className="text-xs text-emerald-700">{t('successDesc')}</p>
+          <p className="text-sm font-semibold text-success-text">{t('successMessage')}</p>
+          <p className="text-xs text-success-text">{t('successDesc')}</p>
           <button
             onClick={() => { setSent(false); setMessage(''); setCategory('frage'); setAttachment(null) }}
-            className="text-xs text-emerald-700 hover:text-emerald-900 underline"
+            className="text-xs text-success-text hover:text-ink-secondary underline"
           >
             {t('sendAnother')}
           </button>
           <div>
             <button
               onClick={() => router.back()}
-              className="mt-2 px-4 py-2 text-sm font-medium bg-white border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors"
+              className="mt-2 px-4 py-2 text-sm font-medium bg-surface border border-success-border text-success-text rounded-lg hover:bg-success-subtle transition-colors"
             >
               {tc('back')}
             </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
           {error && (
             <AlertBox variant="error">{error}</AlertBox>
           )}
 
           <div>
-            <label htmlFor="fb-category" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="fb-category" className="block text-sm font-medium text-ink-secondary mb-1.5">
               {t('categoryLabel')}
             </label>
             <div className="flex flex-wrap gap-2" role="group" aria-label={t('categoryAria')}>
@@ -135,7 +135,7 @@ export default function FeedbackPage() {
                   className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                     category === c.value
                       ? 'bg-primary border-primary text-white font-medium'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      : 'border-line text-ink-secondary hover:border-line-strong hover:bg-surface-raised'
                   }`}
                 >
                   {c.label}
@@ -145,7 +145,7 @@ export default function FeedbackPage() {
           </div>
 
           <div>
-            <label htmlFor="fb-message" className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor="fb-message" className="block text-sm font-medium text-ink-secondary mb-1.5">
               {t('messageLabel')}
             </label>
             <textarea
@@ -154,14 +154,14 @@ export default function FeedbackPage() {
               onChange={e => setMessage(e.target.value)}
               rows={6}
               placeholder={placeholder}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y"
+              className="w-full border border-line rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-y"
             />
           </div>
 
           {/* Screenshot-Anhang */}
           <div>
-            <p className="text-sm font-medium text-slate-700 mb-1.5">
-              {t('screenshotLabel')} <span className="text-slate-400 font-normal">{t('screenshotOptional')}</span>
+            <p className="text-sm font-medium text-ink-secondary mb-1.5">
+              {t('screenshotLabel')} <span className="text-ink-subtle font-normal">{t('screenshotOptional')}</span>
             </p>
             <input
               ref={fileInputRef}
@@ -172,14 +172,14 @@ export default function FeedbackPage() {
               id="fb-attachment"
             />
             {attachment ? (
-              <div className="flex items-center gap-3 p-2 border border-slate-200 rounded-lg bg-slate-50">
+              <div className="flex items-center gap-3 p-2 border border-line rounded-lg bg-surface-raised">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={attachment.previewUrl} alt={t('screenshotPreviewAlt')} className="h-12 w-12 object-cover rounded border border-slate-200 shrink-0" />
-                <span className="text-sm text-slate-600 min-w-0 truncate">{attachment.filename}</span>
+                <img src={attachment.previewUrl} alt={t('screenshotPreviewAlt')} className="h-12 w-12 object-cover rounded border border-line shrink-0" />
+                <span className="text-sm text-ink-secondary min-w-0 truncate">{attachment.filename}</span>
                 <button
                   type="button"
                   onClick={removeAttachment}
-                  className="ml-auto shrink-0 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  className="ml-auto shrink-0 text-xs text-ink-subtle hover:text-error-text transition-colors"
                   aria-label={t('screenshotRemoveAria')}
                 >
                   ✕
@@ -188,13 +188,13 @@ export default function FeedbackPage() {
             ) : (
               <label
                 htmlFor="fb-attachment"
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-line rounded-lg text-ink-secondary hover:bg-surface-raised cursor-pointer transition-colors"
               >
                 <span aria-hidden="true">📎</span> {t('screenshotSelectLabel')}
               </label>
             )}
             {fileError && (
-              <p role="alert" className="mt-1.5 text-xs text-red-600">{fileError}</p>
+              <p role="alert" className="mt-1.5 text-xs text-error-text">{fileError}</p>
             )}
           </div>
 
@@ -209,7 +209,7 @@ export default function FeedbackPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="whitespace-nowrap px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+              className="whitespace-nowrap px-5 py-2.5 border border-line text-ink-secondary text-sm font-semibold rounded-lg hover:bg-surface-raised transition-colors"
             >
               {tc('cancel')}
             </button>
@@ -221,52 +221,52 @@ export default function FeedbackPage() {
       {/* ── Versions-Changelog ── */}
       <div>
         <div className="mb-4">
-          <h2 className="text-base sm:text-lg font-semibold text-slate-900">{t('changelogTitle')}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t('changelogSubtitle')}</p>
+          <h2 className="text-base sm:text-lg font-semibold text-ink">{t('changelogTitle')}</h2>
+          <p className="text-sm text-ink-muted mt-1">{t('changelogSubtitle')}</p>
         </div>
         <div className="space-y-2">
           {CHANGELOG.map(entry => {
             const isOpen = expandedVersion === entry.version
             return (
-              <div key={entry.version} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <div key={entry.version} className="bg-surface border border-line rounded-xl overflow-hidden">
                 <button
                   onClick={() => setExpandedVersion(isOpen ? null : entry.version)}
                   aria-expanded={isOpen}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-raised transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xs font-mono font-semibold text-primary-hover bg-primary-soft border border-primary-border rounded px-1.5 py-0.5 shrink-0">
                       v{entry.version}
                     </span>
-                    <span className="text-sm font-medium text-slate-800 min-w-0 truncate">{pick(entry.label, locale)}</span>
-                    <span className="text-xs text-slate-400 hidden sm:block shrink-0">{pick(entry.date, locale)}</span>
+                    <span className="text-sm font-medium text-ink min-w-0 truncate">{pick(entry.label, locale)}</span>
+                    <span className="text-xs text-ink-subtle hidden sm:block shrink-0">{pick(entry.date, locale)}</span>
                   </div>
-                  <span className="text-slate-400 shrink-0 ml-2" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+                  <span className="text-ink-subtle shrink-0 ml-2" aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+                  <div className="border-t border-line-subtle px-4 py-3 space-y-2">
                     {entry.features.map(feature => {
                       const featureKey = `${entry.version}:${feature.title.de}`
                       const featureOpen = expandedFeature === featureKey
                       return (
-                        <div key={feature.title.de} className="rounded-lg border border-slate-100 overflow-hidden">
+                        <div key={feature.title.de} className="rounded-lg border border-line-subtle overflow-hidden">
                           <button
                             onClick={() => setExpandedFeature(featureOpen ? null : featureKey)}
                             aria-expanded={featureOpen}
-                            className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-surface-raised transition-colors"
                           >
-                            <span className="text-sm font-medium text-slate-700">{pick(feature.title, locale)}</span>
-                            <span className="text-xs text-slate-400 shrink-0 ml-2" aria-hidden="true">
+                            <span className="text-sm font-medium text-ink-secondary">{pick(feature.title, locale)}</span>
+                            <span className="text-xs text-ink-subtle shrink-0 ml-2" aria-hidden="true">
                               {featureOpen ? '−' : '+'}
                             </span>
                           </button>
                           {featureOpen && (
-                            <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
-                              <p className="text-sm text-slate-600">{pick(feature.description, locale)}</p>
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                                <p className="text-xs font-semibold text-amber-800 mb-1">{t('changelogBookSource')}</p>
-                                <p className="text-xs text-amber-900 leading-relaxed">{pick(feature.bookContext, locale)}</p>
+                            <div className="px-3 pb-3 space-y-3 border-t border-line-subtle pt-3">
+                              <p className="text-sm text-ink-secondary">{pick(feature.description, locale)}</p>
+                              <div className="bg-warning-subtle border border-warning-border rounded-lg px-3 py-2.5">
+                                <p className="text-xs font-semibold text-warning-text mb-1">{t('changelogBookSource')}</p>
+                                <p className="text-xs text-warning-text leading-relaxed">{pick(feature.bookContext, locale)}</p>
                               </div>
                             </div>
                           )}

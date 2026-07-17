@@ -19,9 +19,9 @@ export const metadata: Metadata = { title: 'Dashboard' }
 const NOW = Date.now()
 
 const ARCHETYPE_LABELS: Record<string, { label: string; color: string }> = {
-  starter:     { label: 'AI Starter',     color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  starter:     { label: 'AI Starter',     color: 'text-warning-text bg-warning-subtle border-warning-border' },
   scaler:      { label: 'AI Scaler',      color: 'text-sky-700 bg-sky-100 border-sky-200' },
-  transformer: { label: 'AI Transformer', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  transformer: { label: 'AI Transformer', color: 'text-success-text bg-success-subtle border-success-border' },
 }
 
 
@@ -148,10 +148,10 @@ export default async function DashboardPage() {
   return (
     <div>
       {isPastDue && (
-        <div className="mb-5 bg-red-50 border border-red-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="mb-5 bg-error-subtle border border-error-border rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-red-800">Zahlung fehlgeschlagen</p>
-            <p className="text-xs text-red-700 mt-0.5">Ihre letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihren Pro-Zugang zu behalten.</p>
+            <p className="text-sm font-semibold text-error-text">Zahlung fehlgeschlagen</p>
+            <p className="text-xs text-error-text mt-0.5">Ihre letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihren Pro-Zugang zu behalten.</p>
           </div>
           <a href="/einstellungen" className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors whitespace-nowrap">
             Zahlungsmethode aktualisieren
@@ -165,23 +165,23 @@ export default async function DashboardPage() {
           <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">
             {t('eyebrow')}
           </p>
-          <h1 className="text-xl sm:text-2xl font-serif text-slate-900">
+          <h1 className="text-xl sm:text-2xl font-serif text-ink">
             {firstName ? t('greetingWithName', { name: firstName }) : t('greeting')} 👋
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">{subtitleText}</p>
+          <p className="text-sm text-ink-muted mt-0.5">{subtitleText}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {latestAssessment && (
-            <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${archetypeInfo?.color ?? 'text-slate-700 bg-slate-50 border-slate-200'}`}>
+            <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${archetypeInfo?.color ?? 'text-ink-secondary bg-surface-raised border-line'}`}>
               {archetypeInfo?.label ?? String(latestAssessment.archetype)}
             </span>
           )}
           {latestAssessment && (
-            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border text-slate-700 bg-slate-50 border-slate-200">
+            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border text-ink-secondary bg-surface-raised border-line">
               {t('scoreLabel', { score: latestAssessment.total_score })}
             </span>
           )}
-          <Link href="/ergebnisse" className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:border-primary-border hover:bg-primary-soft transition-colors text-slate-600 hover:text-primary whitespace-nowrap">
+          <Link href="/ergebnisse" className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-line bg-surface hover:border-primary-border hover:bg-primary-soft transition-colors text-ink-secondary hover:text-primary whitespace-nowrap">
             <CountUp value={savedCount} />
             <span>&nbsp;{t('savedResultsLabel')}</span>
           </Link>
@@ -195,10 +195,10 @@ export default async function DashboardPage() {
 
       {/* Quarterly Review Reminder */}
       {latestAssessment && assessmentDaysSince >= 90 && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="mb-6 bg-warning-subtle border border-warning-border rounded-xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-900">{t('reviewTitle')}</p>
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-sm font-semibold text-warning-text">{t('reviewTitle')}</p>
+            <p className="text-xs text-warning-text mt-0.5">
               {t('reviewDesc', { weeks: assessmentWeeksSince })}
             </p>
           </div>
@@ -212,19 +212,19 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6"
            data-reveal style={{ '--i': '2' } as React.CSSProperties}>
         {/* Karte A: AI-Profil */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
+        <div className="bg-surface border border-line rounded-xl p-4 flex flex-col">
           <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">{t('aiProfile')}</p>
           {latestAssessment && (latestAssessment as { dim_scores?: Record<string, number> }).dim_scores ? (
             <>
-              <p className="text-[10px] text-slate-400 mb-3">
+              <p className="text-[10px] text-ink-subtle mb-3">
                 {t('lastAssessment', { date: formatDate(latestAssessment.created_at as string, locale) })}
               </p>
               <RadarChart dimScores={(latestAssessment as { dim_scores: Record<string, number> }).dim_scores} />
               <div className="mt-3 text-center">
-                <span className="font-serif text-2xl font-semibold text-slate-900">
+                <span className="font-serif text-2xl font-semibold text-ink">
                   {new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(latestAssessment.total_score))}
                 </span>
-                <span className="text-slate-400 text-sm"> / 5</span>
+                <span className="text-ink-subtle text-sm"> / 5</span>
               </div>
               {archetypeInfo && (
                 <div className="mt-2 flex justify-center">
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 py-8 gap-3">
-              <p className="text-sm text-slate-400 text-center">{t('noAssessment')}</p>
+              <p className="text-sm text-ink-subtle text-center">{t('noAssessment')}</p>
               <Link href="/assessment" className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors">
                 {t('startAssessment')}
               </Link>
@@ -245,11 +245,11 @@ export default async function DashboardPage() {
         </div>
 
         {/* Karte B: Use-Case-Portfolio */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col">
+        <div className="bg-surface border border-line rounded-xl p-4 flex flex-col">
           <p className="text-[10px] font-semibold text-primary tracking-widest uppercase mb-1">{t('portfolio')}</p>
           {usecaseCount > 0 ? (
             <>
-              <p className="text-[10px] text-slate-400 mb-3">
+              <p className="text-[10px] text-ink-subtle mb-3">
                 {usecaseCount} {portfolioCountLabel}
                 {lastUseCaseDate ? ` · ${t('portfolioLast', { date: formatDate(lastUseCaseDate, locale) })}` : ''}
               </p>
@@ -260,7 +260,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 py-4 gap-3">
               <MiniPortfolioMatrix useCases={[]} />
-              <p className="text-sm text-slate-400 text-center">{t('noPortfolio')}</p>
+              <p className="text-sm text-ink-subtle text-center">{t('noPortfolio')}</p>
             </div>
           )}
           <div className="mt-3 text-center">
@@ -273,7 +273,7 @@ export default async function DashboardPage() {
 
       {/* Alle Tools */}
       <div className="mb-4">
-        <h2 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">{t('allTools')}</h2>
+        <h2 className="text-[10px] font-semibold text-ink-subtle uppercase tracking-widest">{t('allTools')}</h2>
       </div>
 
       <div data-reveal style={{ '--i': '3' } as React.CSSProperties}>
@@ -293,7 +293,7 @@ export default async function DashboardPage() {
         <div className="mt-8 bg-primary-soft border border-primary-border rounded-xl p-5 sm:p-6 flex items-center justify-between gap-4">
           <div>
             <div className="text-primary font-semibold mb-1">{t('upgradeBannerTitle')}</div>
-            <div className="text-slate-600 text-sm">{t('upgradeBannerDesc')}</div>
+            <div className="text-ink-secondary text-sm">{t('upgradeBannerDesc')}</div>
           </div>
           <Link href="/upgrade"
             className="bg-primary hover:bg-primary-hover text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors shrink-0 whitespace-nowrap">
