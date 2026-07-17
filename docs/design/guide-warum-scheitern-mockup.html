@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warum scheitern die meisten AI-Projekte wirklich? — AI Navigator Leitfaden</title>
+<link rel="canonical" href="https://enterprise-ai.biz/de/leitfaden/warum-ai-projekte-scheitern">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/warum-ai-projekte-scheitern">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/why-ai-projects-fail">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/why-ai-projects-fail">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* Identische Tokens wie startseite/preise/guide-detail-mockup.html — keine neuen Farben */
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+  .meta-row{margin-top:22px;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .meta-row .dot{width:3px;height:3px;border-radius:50%;background:#C6CFDA}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  /* Ursachen-Karten — exakt die .card-Optik aus Startseite/Guide-Detail */
+  .cause-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:700px){.cause-grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
+  .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
+  .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
+  .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+
+  /* Stat-Strip — große Zahlen, kompakt, aus dem Marktkapitel */
+  .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 20px}
+  @media(max-width:700px){.stat-strip{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 14px;text-align:center}
+  .stat .n{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink)}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+  /* Technik-Stack-Karten — 5 Bausteine der AI-Core-Schicht */
+  .stack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:700px){.stack-grid{grid-template-columns:1fr}}
+
+  /* Markt-Fakten — schlichte Zeilen, wie Timeline in Guide 1 */
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:90px 1fr;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="#"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="#">Leitfaden</a><a href="#">Tools</a><a href="#">Das Buch</a><a href="#">Preise</a></nav>
+  <a class="btn btn-primary" href="#">Kostenlos starten</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="#">Start</a><span>/</span><a href="#">Leitfaden</a><span>/</span>Warum AI-Projekte scheitern
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Leitfaden · Readiness</div>
+  <h1>Warum scheitern die meisten AI-Projekte wirklich?</h1>
+  <div class="meta-row">
+    <span>Daniel Ostner</span><span class="dot"></span>
+    <span>6 Min. Lesezeit</span><span class="dot"></span>
+    <span>Zuletzt geprüft: 18.07.2026</span>
+  </div>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Kurzantwort</span>
+  <p>88 % der Unternehmen setzen KI produktiv ein, nur <strong>5,5 % erzielen messbaren finanziellen Rückfluss</strong>. Das liegt fast nie am Modell: fehlende Datenbasis, fehlendes Workflow-Redesign und fehlende Governance sind die drei eigentlichen Ursachen. Der stärkste einzelne Erfolgsprädiktor ist laut McKinsey nicht die Technologie, sondern das Workflow-Redesign vor der Einführung.</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>Was steckt hinter der Scheiternsrate wirklich?</h2>
+  <p class="lead">88 % der Unternehmen setzen KI in mindestens einer Funktion ein, nur 5,5 % erzielen messbaren finanziellen Rückfluss. Das ist kein Widerspruch, sondern der Stand der Enterprise-AI 2026. Und es ist kein Technologieproblem — es ist ein Führungsproblem, das sich in drei konkreten Ursachen zeigt.</p>
+
+  <div class="cause-grid">
+    <div class="card is-relevant">
+      <span class="lvl">Fehlende Datenbasis</span>
+      <h3>60 % der Projekte abgebrochen</h3>
+      <p>Jahrzehnte gewachsene Systeme und Silos — Daten existieren, sind aber nicht zugreifbar, nicht sauber, nicht semantisch verbunden.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Kein Workflow-Redesign</span>
+      <h3>Nur 25 % liefern erwarteten ROI</h3>
+      <p>AI wird auf bestehende Prozesse gelegt statt Prozesse neu zu gestalten. Workflow-Redesign schlägt Technologieauswahl.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Fehlende Governance</span>
+      <h3>46 % aller PoCs verworfen</h3>
+      <p>Kein klares Ownership, keine Risikobewertung. Projekte enden nicht sichtbar — sie verdampfen in Zuständigkeitslücken.</p>
+    </div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-Pattern</span>
+    <p>Das teuerste Missverständnis: AI ist kein IT-Projekt. Es ist ein Business-Transformationsprojekt mit technologischer Komponente. Unternehmen, die es als IT-Projekt behandeln, bauen die Infrastruktur — aber realisieren nie den Wert.</p>
+  </div>
+
+  <h2>Wie sieht der Markt 2026 tatsächlich aus?</h2>
+  <p class="lead">AI hat die Experimentierphase verlassen: Die globalen Investitionen haben 2026 die 300-Milliarden-Dollar-Marke überschritten, Budgets verschieben sich von Experiment zu Linienkosten. Die Frage ist nicht mehr, ob AI Wert schafft, sondern wie schnell — und wie stabil dieser Wert über mehrere Change-Zyklen bleibt.</p>
+
+  <div class="stat-strip">
+    <div class="stat"><div class="n">301 Mrd. $</div><div class="l">Globale AI-Investitionen 2026</div></div>
+    <div class="stat"><div class="n">88 %</div><div class="l">Unternehmen nutzen AI produktiv</div></div>
+    <div class="stat"><div class="n">Nur 28 %</div><div class="l">bezeichnen ihre Adoption als „reif"</div></div>
+    <div class="stat"><div class="n">5,8×</div><div class="l">Ø ROI nach 14 Monaten Produktion</div></div>
+  </div>
+
+  <p class="body">Die Zahlen erzählen zwei parallele Geschichten: eine breite Adoption ohne Tiefe — und eine schmale Gruppe, die AI systematisch skaliert und damit einen strukturellen, kaum kopierbaren Vorteil aufbaut.</p>
+
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">70–85 %</div><div class="f-body"><p>der AI-Projekte scheitern insgesamt — Technologie ist dabei selten das Problem.</p></div></div>
+    <div class="f-item"><div class="f-stat">Nur 12 %</div><div class="f-body"><p>der Unternehmen haben tatsächlich AI-ready Daten. Datenstrategie ist Voraussetzung, kein Begleitthema.</p></div></div>
+    <div class="f-item"><div class="f-stat">47 %</div><div class="f-body"><p>der Mitarbeiter erwarten AI-Einsatz für über 30 % ihrer Arbeit — Kompetenzaufbau ist dringlicher als Tool-Auswahl.</p></div></div>
+  </div>
+
+  <p class="body">Was die 5,5 % gemeinsam haben, ist selten die bessere Technologiewahl. Es ist die Reihenfolge: Erst wird geklärt, welche Daten überhaupt verlässlich verfügbar sind, dann wird der Workflow neu gedacht — nicht das alte Formular digitalisiert, sondern der ganze Prozessschritt hinterfragt — und erst danach folgt die Modellauswahl. Governance läuft dabei nicht hinterher, sondern von Anfang an mit: Ownership, Risikoeinstufung und Freigabeweg stehen fest, bevor der erste Prototyp entsteht. Genau diese Reihenfolge unterscheidet ein Projekt, das nach zwölf Monaten produktiv läuft, von einem, das im „Pilot Purgatory" verschwindet — jenem Zwischenzustand, in dem zwei Drittel aller AI-Initiativen stecken bleiben: technisch funktionsfähig, aber nie skaliert.</p>
+
+  <h2>Welche technischen Bausteine braucht eine produktionsreife AI-Architektur?</h2>
+  <p class="lead">Scheitern hat auch eine technische Seite: Wer die fünf Kernbausteine der AI-Schicht nicht sauber trennt, produziert Halluzinationen und Systeme, die niemand mehr sicher austauschen kann. Die gute Nachricht — die Architektur ist vendor-neutral aufbaubar, kein Anbieter ist dabei zwingend vorgeschrieben.</p>
+
+  <div class="stat-strip">
+    <div class="stat"><div class="n">2–3</div><div class="l">Modelle im Schnitt pro Produktivsystem im Einsatz</div></div>
+    <div class="stat"><div class="n">~6 Monate</div><div class="l">bis sich die Modell-Rangliste neu sortiert</div></div>
+    <div class="stat"><div class="n">Dutzende</div><div class="l">produktionsreife Foundation-Modelle, proprietär und Open-Source</div></div>
+    <div class="stat"><div class="n">5 Bausteine</div><div class="l">bilden die AI-Core-Schicht einer Plattform</div></div>
+  </div>
+
+  <p class="body">Kein Modell dominiert branchenübergreifend, und die Rangliste verschiebt sich laufend — was im Januar Stand der Technik ist, kann im Sommer bereits Mittelfeld sein. Deshalb koppeln reife Architekturen die Anwendungslogik nie fest an ein einzelnes Modell, sondern über einen Model Router mit Fallback-Option.</p>
+
+  <div class="stack-grid">
+    <div class="card">
+      <span class="lvl">Baustein 1</span>
+      <h3>LLM Runtime</h3>
+      <p>Führt das Sprachmodell aus. Ohne Model Router entsteht eine Single-Model-Abhängigkeit ohne Fallback bei Ausfall oder Kostenspitzen.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Baustein 2</span>
+      <h3>RAG-Pipeline</h3>
+      <p>Reichert Modellantworten mit unternehmenseigenen Fakten an. Reduziert Halluzinationen, erhöht Aktualität und Domänenpräzision.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Baustein 3</span>
+      <h3>Vector Store</h3>
+      <p>Speichert Embeddings für die semantische Suche. Ermöglicht Millisekunden-Retrieval auch bei Millionen von Dokumenten.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Baustein 4</span>
+      <h3>Prompt Engine</h3>
+      <p>Versioniert System-Prompts und trennt sie sauber vom Anwendungscode — Grundlage für nachvollziehbares, wartbares Verhalten.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">Baustein 5</span>
+      <h3>Eval &amp; Monitoring</h3>
+      <p>Erkennt Halluzinationen und Modell-Drift kontinuierlich, nicht erst wenn Endnutzer sie in Produktion melden.</p>
+    </div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-Pattern</span>
+    <p>Fehlkonfigurationen genau an diesen fünf Schnittstellen sind die häufigste technische Ursache für Halluzinationen und inkonsistente Modellantworten — nicht die Wahl des Modells selbst. Wer Eval &amp; Monitoring als Nachgedanke behandelt, entdeckt Qualitätsprobleme erst durch Beschwerden aus dem Fachbereich.</p>
+  </div>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">Pilot Purgatory</a>
+    <a class="gchip" href="#">Workflow-Redesign</a>
+    <a class="gchip" href="#">RAG</a>
+    <a class="gchip" href="#">Vector Store</a>
+    <a class="gchip" href="#">Model Router</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Nicht wissen, wo Sie anfangen sollen? Wir zeigen es.</h2>
+  <p>Der geführte Pfad nimmt Sie Schritt für Schritt durch Readiness, Use Case und Governance — in der Reihenfolge, die Scheitern verhindert.</p>
+  <a class="btn btn-primary" href="#">Geführten Pfad starten →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Häufige Fragen</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>Liegt das Scheitern wirklich nicht an der KI-Technologie selbst?</summary>
+      <p>Kaum. Die drei häufigsten Ursachen sind fehlende Datenbasis, fehlendes Workflow-Redesign und fehlende Governance — nicht die Modellqualität.</p>
+    </details>
+    <details>
+      <summary>Was unterscheidet die 5,5 %, die messbaren ROI erzielen?</summary>
+      <p>Sie behandeln AI als Business-Transformationsprojekt, nicht als IT-Projekt — und gestalten Workflows neu, bevor sie Technologie auswählen.</p>
+    </details>
+    <details>
+      <summary>Wie groß ist das Risiko, im „Pilot Purgatory" stecken zu bleiben?</summary>
+      <p>Hoch: Zwei Drittel aller AI-Initiativen bleiben in Pilotprojekten hängen, die nie zur Produktion skalieren.</p>
+    </details>
+    <details>
+      <summary>Reicht es, jetzt einfach mehr zu investieren?</summary>
+      <p>Nein — die globalen Investitionen haben 2026 bereits 301 Milliarden Dollar überschritten, während nur 28 % ihre Adoption als „reif" bezeichnen. Geld allein löst das Problem nicht.</p>
+    </details>
+    <details>
+      <summary>Wie viele KI-Modelle sollte ein Unternehmen produktiv einsetzen?</summary>
+      <p>Die meisten Produktivsysteme kombinieren 2–3 Modelle für unterschiedliche Rollen — etwa Reasoning, Kosten-Effizienz und lange Kontextfenster. Ein einzelnes Modell ohne Model Router ist ein Single-Point-of-Failure.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Autor, „Enterprise AI Leitfaden" · Entwickler AI Navigator</div>
+        <p>Dieser Guide basiert auf Kapitel 1 des „Enterprise AI Leitfadens" (eigene Rechte), für die Web-Lektüre aufbereitet.</p>
+        <a href="#">Mehr über das Buch →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Weiterlesen</h2>
+  <div class="rcards">
+    <a class="card" href="#"><div class="n">Leitfaden 02</div><h3>AI-Readiness: Die 6 Dimensionen im 10-Minuten-Quick-Scan</h3></a>
+    <a class="card" href="#"><div class="n">Leitfaden 04</div><h3>AI-Reifegrad: Starter, Scaler, Transformer — Selbstdiagnose</h3></a>
+    <a class="card" href="#"><div class="n">Glossar</div><h3>Pilot Purgatory, Workflow-Redesign &amp; weitere Begriffe</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU-Hosting · DSGVO · Cookieless</div>
+  <div><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Start","item":"https://enterprise-ai.biz/de"},
+    {"@type":"ListItem","position":2,"name":"Leitfaden","item":"https://enterprise-ai.biz/de/leitfaden"},
+    {"@type":"ListItem","position":3,"name":"Warum AI-Projekte scheitern","item":"https://enterprise-ai.biz/de/leitfaden/warum-ai-projekte-scheitern"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Liegt das Scheitern wirklich nicht an der KI-Technologie selbst?","acceptedAnswer":{"@type":"Answer","text":"Kaum — die drei häufigsten Ursachen sind fehlende Datenbasis, fehlendes Workflow-Redesign und fehlende Governance, nicht die Modellqualität."}},
+    {"@type":"Question","name":"Was unterscheidet die 5,5 %, die messbaren ROI erzielen?","acceptedAnswer":{"@type":"Answer","text":"Sie behandeln AI als Business-Transformationsprojekt, nicht als IT-Projekt, und gestalten Workflows neu, bevor sie Technologie auswählen."}},
+    {"@type":"Question","name":"Wie groß ist das Risiko, im Pilot Purgatory stecken zu bleiben?","acceptedAnswer":{"@type":"Answer","text":"Hoch — zwei Drittel aller AI-Initiativen bleiben in Pilotprojekten hängen, die nie zur Produktion skalieren."}},
+    {"@type":"Question","name":"Reicht es, jetzt einfach mehr zu investieren?","acceptedAnswer":{"@type":"Answer","text":"Nein — die globalen Investitionen überschritten 2026 bereits 301 Milliarden Dollar, während nur 28 % ihre Adoption als reif bezeichnen."}},
+    {"@type":"Question","name":"Wie viele KI-Modelle sollte ein Unternehmen produktiv einsetzen?","acceptedAnswer":{"@type":"Answer","text":"Die meisten Produktivsysteme kombinieren 2–3 Modelle für unterschiedliche Rollen. Ein einzelnes Modell ohne Model Router ist ein Single-Point-of-Failure."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Autor, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
