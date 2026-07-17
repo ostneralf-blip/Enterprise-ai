@@ -1,21 +1,25 @@
 'use client'
 import posthog from 'posthog-js'
 
-export function initPostHog() {
+export function initPostHog(onLoaded?: () => void) {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  if (typeof window === 'undefined' || posthog.__loaded || !key) return posthog
-  // Dev-Guard: kein Tracking in der lokalen Entwicklung
+  if (typeof window === 'undefined' || !key) return posthog
   if (process.env.NODE_ENV === 'development') return posthog
+  if (posthog.__loaded) {
+    onLoaded?.()
+    return posthog
+  }
   posthog.init(key, {
     api_host: '/ingest',
     ui_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com',
-    defaults: '2026-05-30',    // PostHog-Defaults auf dieses Datum pinnen → kein unerwartetes Verhalten bei SDK-Updates
+    defaults: '2026-05-30',
     person_profiles: 'identified_only',
-    capture_pageview: false,   // manuell via PostHogPageView im Root-Layout
+    capture_pageview: false,
     capture_pageleave: true,
-    autocapture: false,        // nur manuelle Events (DSGVO)
-    persistence: 'memory',     // kein Cookie vor Consent
+    autocapture: false,
+    persistence: 'memory',
     disable_session_recording: true,
+    loaded: () => onLoaded?.(),
   })
   return posthog
 }
