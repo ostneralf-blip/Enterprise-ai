@@ -9,6 +9,7 @@ import { buildSharedContext, buildSectionBlocks } from '@/lib/ai/analysis'
 import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { resolveToKnownName } from '@/lib/architecture/selection'
+import { enrichCatalogSuggestion } from '@/lib/ai/catalog-enrichment'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 
@@ -135,12 +136,43 @@ export async function POST(
     const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known) === null)
     if (unmatched.length > 0) {
       createAdminClient().then(async admin => {
-        await Promise.all(unmatched.map(({ section, name }) =>
-          admin.rpc('log_catalog_suggestion', {
+        // Nur für WIRKLICH neue Vorschläge (noch nicht "pending") wird die
+        // Produktanreicherung ausgelöst — bei jeder Wiederholung eines bereits
+        // bekannten Vorschlags reicht das occurrence_count-Increment, sonst
+        // würde derselbe Sonnet-Call bei jeder erneuten Analyse erneut laufen.
+        const { data: pendingRows } = await admin.from('catalog_suggestions').select('suggested_name').eq('status', 'pending')
+        const pendingKeys = new Set((pendingRows ?? []).map(r => r.suggested_name.toLowerCase().trim()))
+        const seenThisBatch = new Set<string>()
+        const suggestionContext = {
+          architecture_id: id, locale, archetype: archetype ?? null,
+          compliance: compliance ?? null, canvas_quadrant: canvas_quadrant ?? null,
+        }
+
+        await Promise.all(unmatched.map(async ({ section, name }) => {
+          const key = name.toLowerCase().trim()
+          const isNew = !pendingKeys.has(key) && !seenThisBatch.has(key)
+          if (isNew) seenThisBatch.add(key)
+
+          await admin.rpc('log_catalog_suggestion', {
             p_name: name, p_module: 'architecture', p_section: section,
-            p_context: { architecture_id: id, locale, archetype: archetype ?? null },
+            p_context: suggestionContext,
           })
-        ))
+
+          if (isNew) {
+            const { data: row } = await admin
+              .from('catalog_suggestions')
+              .select('id')
+              .eq('status', 'pending')
+              .eq('suggested_name', name)
+              .maybeSingle()
+            if (row?.id) {
+              void enrichCatalogSuggestion({
+                suggestionId: row.id, name, module: 'architecture', section,
+                context: suggestionContext,
+              })
+            }
+          }
+        }))
       }).catch(() => { /* Logging ist best-effort, darf die Analyse nicht blockieren */ })
     }
   }

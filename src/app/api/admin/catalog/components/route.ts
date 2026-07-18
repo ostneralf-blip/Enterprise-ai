@@ -18,6 +18,9 @@ const CreateSchema = z.object({
   tags:               z.array(z.string().min(1).max(50)).max(30).optional(),
   description:        z.string().max(2000).optional(),
   sap_compatible:     z.boolean().optional(),
+  dsgvo_status:       z.enum(['compliant', 'conditional', 'non_compliant']).optional(),
+  eu_ai_act_risk:     z.enum(['minimal', 'limited', 'high', 'prohibited']).optional(),
+  website_url:        z.string().max(300).optional(),
 })
 
 export async function POST(request: Request) {
@@ -49,6 +52,9 @@ export async function POST(request: Request) {
       tags:               parsed.data.tags ?? [],
       description:        parsed.data.description ?? null,
       sap_compatible:     parsed.data.sap_compatible ?? false,
+      dsgvo_status:       parsed.data.dsgvo_status ?? null,
+      eu_ai_act_risk:     parsed.data.eu_ai_act_risk ?? null,
+      website_url:        parsed.data.website_url ?? null,
       source:             'manual',
       is_active:          true,
     })

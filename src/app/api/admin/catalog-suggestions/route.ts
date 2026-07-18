@@ -13,7 +13,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('catalog_suggestions')
-    .select('id, suggested_name, module, section, context, occurrence_count, created_at, last_seen_at')
+    .select('id, suggested_name, module, section, context, occurrence_count, created_at, last_seen_at, enrichment, enrichment_status')
     .eq('status', 'pending')
     .order('occurrence_count', { ascending: false })
     .order('last_seen_at', { ascending: false })
