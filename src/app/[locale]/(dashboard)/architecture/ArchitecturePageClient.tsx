@@ -8,7 +8,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
-import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
@@ -549,48 +549,6 @@ const LAYER_LABEL: Record<string, string> = {
   governance: 'Governance', security: 'Security', application: 'Anwendung',
 }
 
-const JOULE_DOMAIN_BADGE: Record<string, string> = {
-  Finance: 'bg-success-subtle text-success-text border-success-border',
-  'Supply Chain': 'bg-primary-soft text-primary-hover border-primary-border',
-  HR: 'bg-violet-50 text-violet-700 border-violet-200',
-  Procurement: 'bg-warning-subtle text-warning-text border-warning-border',
-  CX: 'bg-pink-50 text-pink-700 border-pink-200',
-  Transformation: 'bg-surface-raised text-ink-secondary border-line',
-}
-
-function JouleUseCasesCard({ useCases }: { useCases: JouleUseCase[] }) {
-  const t = useTranslations('modules')
-  if (useCases.length === 0) return null
-  return (
-    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-raised text-ink-secondary">SAP</span>
-        <h3 className="text-sm font-semibold text-ink">{t('architecture.jouleTitle')}</h3>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        {useCases.map(uc => (
-          <div key={uc.name} className="border border-line-subtle rounded-xl p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', JOULE_DOMAIN_BADGE[uc.domain] ?? 'bg-surface-raised text-ink-secondary border-line')}>
-                {uc.domain}
-              </span>
-              <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded border', {
-                starter:     'bg-surface-raised text-ink-muted border-line',
-                scaler:      'bg-primary-soft text-primary border-primary-border',
-                transformer: 'bg-violet-50 text-violet-600 border-violet-200',
-              }[uc.complexity])}>
-                {uc.complexity === 'starter' ? t('architecture.complexityStarter') : uc.complexity === 'scaler' ? t('architecture.complexityScaler') : t('architecture.complexityTransformer')}
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-ink">{uc.name}</p>
-            <p className="text-xs text-ink-muted mt-0.5 line-clamp-2">{uc.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 
 const RASIC_ROLE_DEFAULTS: Record<string, Partial<Record<RasicPhase, RasicValue>>> = {
   'AI Product Owner':          { konzeption: 'A', daten: 'I', build: 'I', freigabe: 'A', betrieb: 'I' },
@@ -661,7 +619,7 @@ function SortableSection({ id, children }: { id: string; children: React.ReactNo
   )
 }
 
-const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'joule', 'rasic', 'decisions', 'decision'] as const
+const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'rasic', 'decisions', 'decision'] as const
 type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
 const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
 
@@ -716,7 +674,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
   const [componentSources, setComponentSources] = useState<Record<string, 'rule' | 'ai' | 'manual'>>({})
   const [resultShowAltFor, setResultShowAltFor] = useState<Set<string>>(new Set())
-  const [jouleUseCases, setJouleUseCases] = useState<JouleUseCase[]>([])
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
   const aiNarrative = aiNarrativeByAudience[resultAudience] ?? null
@@ -823,12 +780,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       recs = recommendFromWizard(wizardAnswers)
       setCatalogRecs(recs)
     }
-    applySelection(new Set(recs.layers.flatMap(lr => lr.componentNames)))
-    setJouleUseCases(recommendJouleUseCases(
-      wizardAnswers,
-      assessmentContext?.archetype ?? null,
-      canvasCtx?.wizard_prefill?.industry ?? null
-    ))
+    // Fertige AI-Anwendungen (category: 'packaged_app', z. B. SAP Joule Use Cases)
+    // fließen direkt in die Auto-Auswahl ein statt in eine separate Kachel — sie
+    // sind jetzt echte Katalog-Komponenten (auswählbar, konflikt-geprüft, PDF/EAM-fähig).
+    const packagedAppNames = recommendPackagedApps(
+      wizardAnswers, catalog, assessmentContext?.archetype ?? null, canvasCtx?.wizard_prefill?.industry ?? null
+    ).map(c => c.name)
+    applySelection(new Set([...recs.layers.flatMap(lr => lr.componentNames), ...packagedAppNames]))
     // Generate RASIC from roleNames — use saved version if available
     if (savedRasic !== undefined) {
       setRasic(savedRasic ?? null)
@@ -843,6 +801,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           const loaded = data ?? []
           setRecComponents(loaded)
           const catalogResult = recommendFromCatalog(wizardAnswers, loaded)
+          const loadedPackagedAppNames = recommendPackagedApps(
+            wizardAnswers, loaded, assessmentContext?.archetype ?? null, canvasCtx?.wizard_prefill?.industry ?? null
+          ).map(c => c.name)
           if (isSAP(wizardAnswers)) {
             // SAP-Kontext: Phase-1-Wizard-Recs stabil halten — Katalog nur für Vorschläge.
             // Wenn der Katalog gar keine SAP-Komponenten hat, Wizard-Recs explizit setzen.
@@ -852,12 +813,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             if (!hasSAPLayer) {
               const fallbackRecs = recommendFromWizard(wizardAnswers)
               setCatalogRecs(fallbackRecs)
-              applySelection(new Set(fallbackRecs.layers.flatMap(lr => lr.componentNames)))
+              applySelection(new Set([...fallbackRecs.layers.flatMap(lr => lr.componentNames), ...loadedPackagedAppNames]))
             }
             // hasSAPLayer=true → Phase-1-Recs bleiben unverändert (kein setCatalogRecs)
           } else {
             setCatalogRecs(catalogResult)
-            applySelection(new Set(catalogResult.layers.flatMap(lr => lr.componentNames)))
+            applySelection(new Set([...catalogResult.layers.flatMap(lr => lr.componentNames), ...loadedPackagedAppNames]))
           }
           if (canvasContext) {
             setCanvasCtx(extractCanvasContext(canvasContext.canvas, canvasContext.useCase, loaded, synonyms))
@@ -896,7 +857,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setSavedId(null)
     setCatalogRecs(null)
     setActiveComponentNames(new Set())
-    setJouleUseCases([])
     setCanvasCtx(null)
     setShowCanvasBanner(false)
     setSelectedCanvasIds([])
@@ -1339,7 +1299,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           </AlertBox>
         )}
 
-        {/* Drag&Drop Sektionen — vollständig umsortierbar (#166): Pattern, EAM-Karte, Kosten, Joule, RASIC, Key Decisions */}
+        {/* Drag&Drop Sektionen — vollständig umsortierbar (#166): Pattern, EAM-Karte, Kosten, RASIC, Key Decisions */}
         <DndContext
           sensors={dndSensors}
           collisionDetection={closestCenter}
@@ -1437,13 +1397,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     )
                   }
                   return null
-                }
-                if (sectionId === 'joule') {
-                  return resultAudience !== 'exec' ? (
-                    <SortableSection key="joule" id="joule">
-                      <JouleUseCasesCard useCases={jouleUseCases} />
-                    </SortableSection>
-                  ) : null
                 }
                 if (sectionId === 'decisions') {
                   return (

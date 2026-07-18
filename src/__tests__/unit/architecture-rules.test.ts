@@ -1,4 +1,4 @@
-import { recommendFromWizard, recommendJouleUseCases, scoreComponentAgainstAnswers, recommendFromCatalog } from '@/config/architecture-rules'
+import { recommendFromWizard, recommendPackagedApps, scoreComponentAgainstAnswers, recommendFromCatalog } from '@/config/architecture-rules'
 import type { CatalogComponent } from '@/types'
 
 const mkComp = (overrides: Partial<CatalogComponent>): CatalogComponent => ({
@@ -211,38 +211,60 @@ describe('architecture-rules: recommendFromCatalog (#59)', () => {
     expect(azureRecs.layers.flatMap(l => l.componentNames)).toContain('MLflow')
     expect(sapRecs.layers.flatMap(l => l.componentNames)).toContain('MLflow')
   })
+
+  it('packaged_app-Einträge verdrängen keine regulären Layer-Empfehlungen (eigene Auswahl via recommendPackagedApps)', () => {
+    const withPackagedApp = [
+      ...catalog,
+      mkComp({ id: 'joule-x', name: 'SAP Joule — Receipt Analysis', architecture_layer: 'application', category: 'packaged_app', cloud_provider: 'sap', use_case_types: ['automation'], sap_compatible: true }),
+    ]
+    const recs = recommendFromCatalog({ cloud_provider_hint: 'sap_btp', sap_landscape: 'full', usecase: 'generative' }, withPackagedApp)
+    expect(recs.layers.flatMap(l => l.componentNames)).not.toContain('SAP Joule — Receipt Analysis')
+  })
 })
 
-describe('architecture-rules: recommendJouleUseCases', () => {
-  it('kein SAP → leere Liste', () => {
-    expect(recommendJouleUseCases({ sap_landscape: 'none' })).toHaveLength(0)
-    expect(recommendJouleUseCases({ infra: 'cloud' })).toHaveLength(0)
+// Ersetzt SEED_JOULE_USE_CASES / recommendJouleUseCases (18.07.2026, Katalog-
+// Migration): fertige AI-Anwendungen sind jetzt category: 'packaged_app' im
+// echten Katalog, domain/complexity stecken als 'domain:'/'complexity:'-Tags.
+describe('architecture-rules: recommendPackagedApps', () => {
+  const packagedAppCatalog: CatalogComponent[] = [
+    mkComp({ id: 'p1', name: 'SAP Joule — Receipt Analysis', vendor: 'SAP', category: 'packaged_app', tags: ['domain:finance', 'complexity:starter'] }),
+    mkComp({ id: 'p2', name: 'SAP Joule — Cash Management AI', vendor: 'SAP', category: 'packaged_app', tags: ['domain:finance', 'complexity:transformer'] }),
+    mkComp({ id: 'p3', name: 'SAP Joule — Field Service Dispatcher', vendor: 'SAP', category: 'packaged_app', tags: ['domain:supply_chain', 'complexity:scaler'] }),
+    // Vendor-neutral: nicht-SAP-Hersteller sind nicht an SAP-Kontext gebunden.
+    mkComp({ id: 'p4', name: 'Acme Vision Inspector', vendor: 'Acme', category: 'packaged_app', tags: ['domain:supply_chain', 'complexity:scaler'] }),
+  ]
+
+  it('leerer Katalog → leere Liste', () => {
+    expect(recommendPackagedApps({ sap_landscape: 'full' }, [])).toHaveLength(0)
   })
 
-  it('SAP full → Use Cases zurückgegeben', () => {
-    const ucs = recommendJouleUseCases({ sap_landscape: 'full' })
-    expect(ucs.length).toBeGreaterThan(0)
-    expect(ucs.length).toBeLessThanOrEqual(6)
+  it('kein SAP-Kontext → SAP-Apps ausgeblendet, vendor-neutrale App bleibt', () => {
+    const apps = recommendPackagedApps({ sap_landscape: 'none' }, packagedAppCatalog)
+    const names = apps.map(a => a.name)
+    expect(names).not.toContain('SAP Joule — Receipt Analysis')
+    expect(names).toContain('Acme Vision Inspector')
   })
 
-  it('Finance-Branche → Finance/Procurement-Use-Cases', () => {
-    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'finance' })
-    expect(ucs.every(uc => ['Finance', 'Procurement'].includes(uc.domain))).toBe(true)
+  it('SAP full → SAP-Apps zurückgegeben', () => {
+    const apps = recommendPackagedApps({ sap_landscape: 'full' }, packagedAppCatalog)
+    expect(apps.map(a => a.name)).toContain('SAP Joule — Receipt Analysis')
+    expect(apps.length).toBeLessThanOrEqual(6)
   })
 
-  it('Manufacturing-Branche → Supply Chain/Finance-Use-Cases', () => {
-    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'manufacturing' })
-    expect(ucs.every(uc => ['Supply Chain', 'Finance'].includes(uc.domain))).toBe(true)
+  it('Finance-Branche → nur Finance/Procurement-Domain-Apps', () => {
+    const apps = recommendPackagedApps({ sap_landscape: 'full', industry: 'finance' }, packagedAppCatalog)
+    expect(apps.every(a => a.tags.includes('domain:finance') || a.tags.includes('domain:procurement'))).toBe(true)
+    expect(apps.map(a => a.name)).not.toContain('SAP Joule — Field Service Dispatcher')
   })
 
-  it('cloud_provider_hint=sap_btp → Use Cases auch ohne sap_landscape', () => {
-    const ucs = recommendJouleUseCases({ cloud_provider_hint: 'sap_btp', industry: 'retail_consumer' })
-    expect(ucs.length).toBeGreaterThan(0)
-    expect(ucs.every(uc => ['CX', 'Procurement', 'Supply Chain'].includes(uc.domain))).toBe(true)
+  it('cloud_provider_hint=sap_btp → Apps auch ohne sap_landscape', () => {
+    const apps = recommendPackagedApps({ cloud_provider_hint: 'sap_btp', industry: 'retail_consumer' }, packagedAppCatalog)
+    expect(apps.length).toBeGreaterThan(0)
+    expect(apps.every(a => ['domain:cx', 'domain:procurement', 'domain:supply_chain'].some(d => a.tags.includes(d)))).toBe(true)
   })
 
-  it('max 6 Use Cases zurückgegeben', () => {
-    const ucs = recommendJouleUseCases({ sap_landscape: 'full', industry: 'other' })
-    expect(ucs.length).toBeLessThanOrEqual(6)
+  it('max 6 Apps zurückgegeben', () => {
+    const apps = recommendPackagedApps({ sap_landscape: 'full', industry: 'other' }, packagedAppCatalog)
+    expect(apps.length).toBeLessThanOrEqual(6)
   })
 })

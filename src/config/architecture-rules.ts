@@ -1,8 +1,5 @@
 import type { WizardAnswers } from './architecture-data'
 import type { ArchLayer, CatalogComponent, RasicMatrix, RasicPhase } from '@/types'
-import { SEED_JOULE_USE_CASES, type JouleUseCase } from './catalog-seed'
-
-export type { JouleUseCase }
 
 export interface LayerRecommendation {
   layer: ArchLayer
@@ -32,37 +29,63 @@ function isAWS(a: WizardAnswers) {
 function isOnprem(a: WizardAnswers){ return a.infra === 'onprem' }
 function isHybrid(a: WizardAnswers){ return a.infra === 'hybrid' }
 
-const INDUSTRY_DOMAINS: Record<string, string[]> = {
-  finance:            ['Finance', 'Procurement'],
-  manufacturing:      ['Supply Chain', 'Finance'],
-  healthcare_public:  ['HR', 'Finance'],
-  retail_consumer:    ['CX', 'Procurement', 'Supply Chain'],
-  other:              ['Finance', 'Supply Chain', 'HR', 'Procurement', 'CX', 'Transformation'],
+// Geschäftsbereich (domain:<slug>) je Branche — vendor-neutral, gilt für JEDEN
+// Hersteller mit packaged_app-Katalogeinträgen, nicht nur SAP.
+const PACKAGED_APP_INDUSTRY_DOMAINS: Record<string, string[]> = {
+  finance:            ['finance', 'procurement'],
+  manufacturing:      ['supply_chain', 'finance'],
+  healthcare_public:  ['hr', 'finance'],
+  retail_consumer:    ['cx', 'procurement', 'supply_chain'],
+  other:              ['finance', 'supply_chain', 'hr', 'procurement', 'cx', 'transformation'],
 }
 
-const COMPLEXITY_GATE: Record<string, Set<JouleUseCase['complexity']>> = {
+type PackagedAppComplexity = 'starter' | 'scaler' | 'transformer'
+const COMPLEXITY_GATE: Record<string, Set<PackagedAppComplexity>> = {
   starter:     new Set(['starter']),
   scaler:      new Set(['starter', 'scaler']),
   transformer: new Set(['starter', 'scaler', 'transformer']),
 }
 
-export function recommendJouleUseCases(
+function tagValue(tags: string[], prefix: string): string | undefined {
+  return tags.find(t => t.startsWith(prefix))?.slice(prefix.length)
+}
+
+// Ersetzt das ehemalige recommendJouleUseCases() / SEED_JOULE_USE_CASES (#71) —
+// fertige AI-Anwendungen (category: 'packaged_app', z. B. SAP Joule Use Cases)
+// leben jetzt als echte Katalog-Einträge und stehen damit automatisch auch dem
+// AI Use Case Canvas (Textscoring in canvas-context.ts durchsucht den ganzen
+// Katalog) und dem KI-Vorschlags-Panel (getSelectionStats-Katalogabgleich) zur
+// Verfügung — nicht mehr nur einer isolierten, SAP-exklusiven Kachel. SAP-
+// Herkunft wird weiterhin nur bei SAP-Kontext vorgeschlagen; andere Hersteller
+// sind vendor-neutral gegen dieselbe Branchen-/Komplexitäts-Logik gematcht.
+export function recommendPackagedApps(
   answers: WizardAnswers,
+  catalog: CatalogComponent[],
   archetype?: string | null,
   canvasIndustry?: string | null
-): JouleUseCase[] {
-  if (!isSAP(answers) || answers.sap_landscape === 'none') return []
+): CatalogComponent[] {
+  const packagedApps = catalog.filter(c => c.category === 'packaged_app')
+  if (packagedApps.length === 0) return []
 
-  const primaryDomains = answers.industry ? INDUSTRY_DOMAINS[answers.industry] : INDUSTRY_DOMAINS.other
-  const canvasDomains  = canvasIndustry ? (INDUSTRY_DOMAINS[canvasIndustry] ?? []) : []
-  const allDomains     = [...new Set([...primaryDomains, ...canvasDomains])]
+  const primaryDomains = answers.industry ? PACKAGED_APP_INDUSTRY_DOMAINS[answers.industry] : PACKAGED_APP_INDUSTRY_DOMAINS.other
+  const canvasDomains  = canvasIndustry ? (PACKAGED_APP_INDUSTRY_DOMAINS[canvasIndustry] ?? []) : []
+  const allDomains     = new Set([...primaryDomains, ...canvasDomains])
 
-  const candidates = SEED_JOULE_USE_CASES.filter(uc => allDomains.includes(uc.domain))
+  const candidates = packagedApps.filter(c => {
+    if (c.vendor === 'SAP' && (!isSAP(answers) || answers.sap_landscape === 'none')) return false
+    const domain = tagValue(c.tags, 'domain:')
+    return domain ? allDomains.has(domain) : true
+  })
+
   if (!archetype || !COMPLEXITY_GATE[archetype]) return candidates.slice(0, 6)
 
   const allowed = COMPLEXITY_GATE[archetype]
   return candidates
-    .sort((a, b) => (allowed.has(a.complexity) ? 0 : 1) - (allowed.has(b.complexity) ? 0 : 1))
+    .sort((a, b) => {
+      const aOk = allowed.has(tagValue(a.tags, 'complexity:') as PackagedAppComplexity)
+      const bOk = allowed.has(tagValue(b.tags, 'complexity:') as PackagedAppComplexity)
+      return (aOk ? 0 : 1) - (bOk ? 0 : 1)
+    })
     .slice(0, 6)
 }
 
@@ -286,7 +309,9 @@ export function recommendFromCatalog(
 
   const layers: LayerRecommendation[] = ARCH_LAYERS_ORDERED.map(layer => {
     const scored = catalog
-      .filter(c => c.architecture_layer === layer)
+      // packaged_app (fertige AI-Anwendungen wie SAP Joule Use Cases) konkurriert
+      // nicht um die generischen Infra-Slots — eigene Auswahl via recommendPackagedApps().
+      .filter(c => c.architecture_layer === layer && c.category !== 'packaged_app')
       .map(c => ({ name: c.name, score: scoreComponentAgainstAnswers(c, answers) }))
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
