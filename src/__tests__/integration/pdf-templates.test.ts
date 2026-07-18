@@ -1,4 +1,4 @@
-import { renderAssessmentPdf, renderExecutiveSummaryPdf } from '@/lib/pdf/templates'
+import { renderAssessmentPdf, renderExecutiveSummaryPdf, renderRoadmapPdf, renderGovernancePdf } from '@/lib/pdf/templates'
 import { renderPdf } from '@/lib/pdf/generate'
 import { normalizeArchitectureResult } from '@/lib/pdf/normalize-architecture'
 
@@ -117,5 +117,88 @@ describe('Integration: PDF-Template Rendering', () => {
       },
     })
     await expect(renderPdf({ document: doc, filename: 'test.pdf' })).rejects.toThrow(/Objects are not valid as a React child/)
+  }, 15000)
+
+  // Regression (18.07.2026, zweiter Fund nach dem nextSteps/description-Fix):
+  // governance_sessions.protocol speichert question/answer/label/value teils als
+  // rohes { de, en }-Objekt (governance-data.ts: question ist LocaleString) statt
+  // als String — identischer React-error-#31-Crash, nur in einem anderen Modul.
+  // Betrifft sowohl den eigenständigen Governance-Export als auch den
+  // Governance-Abschnitt im Executive-Summary-Export.
+  it('rendert Governance-PDF mit rohen { de, en }-Objekten in protocol.question/answer', async () => {
+    const doc = renderGovernancePdf({
+      useCaseName: 'Chatbot Kundenservice',
+      result: 'approve',
+      protocol: [
+        { question: { de: 'Rechtsgrundlage geprüft?', en: 'Legal basis checked?' } as unknown as string, answer: { de: 'Ja', en: 'Yes' } as unknown as string },
+      ],
+    })
+    const buf = await renderPdf({ document: doc, filename: 'test.pdf' })
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
+  }, 15000)
+
+  it('rendert Executive Summary mit rohen { de, en }-Objekten im Governance-Protokoll', async () => {
+    const doc = renderExecutiveSummaryPdf({
+      companyName: 'Musterfirma GmbH',
+      completedModules: 7,
+      totalModules: 7,
+      moduleStatus: [{ label: 'Governance-Check', done: true }],
+      useCaseCount: 0,
+      topUseCases: [],
+      governance: {
+        useCaseName: 'Chatbot Kundenservice',
+        result: 'approve',
+        protocol: [
+          { question: { de: 'Rechtsgrundlage geprüft?', en: 'Legal basis checked?' } as unknown as string, answer: { de: 'Ja', en: 'Yes' } as unknown as string },
+        ],
+      },
+    })
+    const buf = await renderPdf({ document: doc, filename: 'test.pdf' })
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
+  }, 15000)
+
+  // Regression (18.07.2026): RoadmapPageClient.tsx speichert Phasen IMMER mit der
+  // rohen { de, en }-Struktur aus roadmap-data.ts (title/duration/focus/actions[].label/
+  // kpis sind dort LocaleString) — nicht nur bei Alt-Datensätzen wie bei Architektur/
+  // Governance. Betrifft den eigenständigen Roadmap-Export UND den Roadmap-Abschnitt
+  // im Executive-Summary-Export.
+  it('rendert Roadmap-PDF mit rohen { de, en }-Objekten in title/duration/focus/actions/kpis', async () => {
+    const doc = renderRoadmapPdf({
+      title: 'Meine Roadmap',
+      archetype: 'scaler',
+      phases: [{
+        title: { de: 'Fundament legen', en: 'Build the foundation' } as unknown as string,
+        duration: { de: '0-3 Monate', en: '0-3 months' } as unknown as string,
+        focus: { de: 'Use Cases identifizieren', en: 'Identify use cases' } as unknown as string,
+        actions: [{ label: { de: 'Assessment durchführen', en: 'Conduct assessment' } as unknown as string }],
+        kpis: [{ de: 'Score verbessert', en: 'Score improved' } as unknown as string],
+      }],
+    })
+    const buf = await renderPdf({ document: doc, filename: 'test.pdf' })
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
+  }, 15000)
+
+  it('rendert Executive Summary mit rohen { de, en }-Objekten im Roadmap-Abschnitt', async () => {
+    const doc = renderExecutiveSummaryPdf({
+      companyName: 'Musterfirma GmbH',
+      completedModules: 7,
+      totalModules: 7,
+      moduleStatus: [{ label: 'Roadmap-Generator', done: true }],
+      useCaseCount: 0,
+      topUseCases: [],
+      roadmap: {
+        title: 'Meine Roadmap',
+        archetype: 'scaler',
+        phases: [{
+          title: { de: 'Fundament legen', en: 'Build the foundation' } as unknown as string,
+          duration: { de: '0-3 Monate', en: '0-3 months' } as unknown as string,
+          focus: { de: 'Use Cases identifizieren', en: 'Identify use cases' } as unknown as string,
+          actions: [{ label: { de: 'Assessment durchführen', en: 'Conduct assessment' } as unknown as string }],
+          kpis: [{ de: 'Score verbessert', en: 'Score improved' } as unknown as string],
+        }],
+      },
+    })
+    const buf = await renderPdf({ document: doc, filename: 'test.pdf' })
+    expect(buf.slice(0, 4).toString()).toBe('%PDF')
   }, 15000)
 })

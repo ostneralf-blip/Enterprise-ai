@@ -52,23 +52,26 @@ export default async function RoadmapPage() {
 
   // Als "primär" markierte Architektur bevorzugen (siehe Ergebnisse-Übersicht) —
   // vorher wurde hier immer nur die zuletzt aktualisierte Architektur gelesen,
-  // wodurch "auf primär setzen" ohne jede Wirkung auf diese Seite blieb.
+  // wodurch "auf primär setzen" ohne jede Wirkung auf diese Seite blieb. Zusätzlicher
+  // Fallback auf die zuletzt aktualisierte Architektur auch dann, wenn die primäre
+  // zwar existiert, aber (z. B. als Alt-Datensatz vor Einführung von keyDecisions)
+  // keine Entscheidungen enthält — sonst würde "auf primär setzen" eine vorher
+  // sichtbare Liste zum Verschwinden bringen statt sie zu ersetzen.
   type ArchResultRow = { result: { keyDecisions?: { de: string; en: string }[] } }
-  let latestArch: ArchResultRow | null = null
+  let archKeyDecisions: { de: string; en: string }[] = []
   if (prefs?.primary_architecture_id) {
     const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
       .eq('id', prefs.primary_architecture_id).maybeSingle() as { data: ArchResultRow | null }
-    latestArch = data
+    archKeyDecisions = data?.result?.keyDecisions ?? []
   }
-  if (!latestArch) {
+  if (archKeyDecisions.length === 0) {
     const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
       .order('updated_at', { ascending: false }).limit(1).maybeSingle() as { data: ArchResultRow | null }
-    latestArch = data
+    archKeyDecisions = data?.result?.keyDecisions ?? []
   }
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
   const tier = (profileData?.tier ?? 'free') as Tier
-  const archKeyDecisions = (latestArch?.result?.keyDecisions ?? []) as { de: string; en: string }[]
 
   // Lade den Canvas des Top-Use-Cases, falls verknüpft
   type LinkedCanvas = { id: string; title: string; archetype: string | null; data: Record<string, string> }

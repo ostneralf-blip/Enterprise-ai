@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-data'
 import { EU_AI_ACT_RISK_CLASSES, EU_AI_ACT_OBLIGATIONS, DSGVO_CHECKLIST, RISK_MATRIX, getRiskLevel } from '@/config/compliance-data'
 import { formatDate } from '@/lib/utils'
+import { resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 
 // ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
 const C = {
@@ -379,7 +380,7 @@ export function renderAssessmentPdf(data: AssessmentPdfData, locale = 'de'): Rea
 interface GovernancePdfData {
   useCaseName: string | null
   result: 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve' | null
-  protocol: Array<{ question?: string; answer?: string; label?: string; value?: string }> | null
+  protocol: Array<{ question?: MaybeLocale; answer?: MaybeLocale; label?: MaybeLocale; value?: MaybeLocale }> | null
   companyName?: string
 }
 
@@ -496,8 +497,8 @@ export function renderGovernancePdf(data: GovernancePdfData, locale = 'de'): Rea
             </View>
             {rows.map((item, i) => (
               <View key={i} wrap={false} style={[s.row, { backgroundColor: i % 2 === 1 ? C.light : 'white' }]}>
-                <Text style={[s.td, { flex: 3 }]}>{item.question ?? item.label ?? ''}</Text>
-                <Text style={[s.td, { flex: 2 }]}>{item.answer ?? item.value ?? ''}</Text>
+                <Text style={[s.td, { flex: 3 }]}>{resolveLocaleField(item.question, locale) ?? resolveLocaleField(item.label, locale) ?? ''}</Text>
+                <Text style={[s.td, { flex: 2 }]}>{resolveLocaleField(item.answer, locale) ?? resolveLocaleField(item.value, locale) ?? ''}</Text>
               </View>
             ))}
           </>
@@ -524,9 +525,15 @@ export function renderGovernancePdf(data: GovernancePdfData, locale = 'de'): Rea
 }
 
 // ─── ROADMAP ─────────────────────────────────────────────────────────────────
+// title/duration/focus/actions[].label/kpis kommen aus roadmaps.phases (DB) —
+// RoadmapPageClient.tsx speichert dort die rohe { de, en }-Struktur aus
+// roadmap-data.ts (RoadmapPhase ist dort vollständig LocaleString-basiert),
+// nie einen bereits aufgelösten String. resolveLocaleField() löst sie beim
+// PDF-Rendern auf, sonst crasht react-pdf mit React error #31.
+type MaybeLocale = string | { de: string; en: string }
 interface RoadmapPhaseData {
-  title: string; duration?: string; focus?: string
-  actions?: Array<{ label: string; priority?: string }>; kpis?: string[]; budget?: string
+  title: MaybeLocale; duration?: MaybeLocale; focus?: MaybeLocale
+  actions?: Array<{ label: MaybeLocale; priority?: string }>; kpis?: MaybeLocale[]; budget?: string
 }
 
 interface RoadmapPdfData {
@@ -628,33 +635,38 @@ export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElem
         {data.phases.length === 0 && (
           <Text style={{ fontSize: 10, color: C.gray }}>{pt('no_phases', locale)}</Text>
         )}
-        {data.phases.map((phase, idx) => (
-          <View key={idx} wrap={false} style={{ borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[idx] ?? C.brand, paddingLeft: 12, marginBottom: 16 }}>
-            <View style={[s.row, { justifyContent: 'space-between', marginBottom: 4 }]}>
-              <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{phase.title}</Text>
-              {phase.duration && <Text style={{ fontSize: 9, color: C.gray }}>{phase.duration}</Text>}
+        {data.phases.map((phase, idx) => {
+          const title = resolveLocaleField(phase.title, locale) ?? ''
+          const duration = resolveLocaleField(phase.duration, locale)
+          const focus = resolveLocaleField(phase.focus, locale)
+          return (
+            <View key={idx} wrap={false} style={{ borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[idx] ?? C.brand, paddingLeft: 12, marginBottom: 16 }}>
+              <View style={[s.row, { justifyContent: 'space-between', marginBottom: 4 }]}>
+                <Text style={{ fontSize: 13, fontWeight: 'bold' }}>{title}</Text>
+                {duration && <Text style={{ fontSize: 9, color: C.gray }}>{duration}</Text>}
+              </View>
+              {focus && <Text style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{focus}</Text>}
+              {(phase.actions ?? []).map((a, ai) => (
+                <View key={ai} style={[s.row, { marginBottom: 3, alignItems: 'flex-start' }]}>
+                  <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.brand, marginRight: 7, marginTop: 3 }} />
+                  <Text style={{ flex: 1, fontSize: 10 }}>{resolveLocaleField(a.label, locale)}</Text>
+                </View>
+              ))}
+              {(phase.kpis ?? []).length > 0 && (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
+                  {(phase.kpis ?? []).map((k, ki) => (
+                    <View key={ki} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 3 }}>
+                      <Text style={{ fontSize: 9, color: C.brand }}>{resolveLocaleField(k, locale)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {phase.budget && (
+                <Text style={{ fontSize: 9, color: C.gray2, marginTop: 5 }}>{pt('budget_guideline', locale)} {phase.budget}</Text>
+              )}
             </View>
-            {phase.focus && <Text style={{ fontSize: 10, color: '#475569', marginBottom: 6 }}>{phase.focus}</Text>}
-            {(phase.actions ?? []).map((a, ai) => (
-              <View key={ai} style={[s.row, { marginBottom: 3, alignItems: 'flex-start' }]}>
-                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.brand, marginRight: 7, marginTop: 3 }} />
-                <Text style={{ flex: 1, fontSize: 10 }}>{a.label}</Text>
-              </View>
-            ))}
-            {(phase.kpis ?? []).length > 0 && (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 6 }}>
-                {(phase.kpis ?? []).map((k, ki) => (
-                  <View key={ki} style={{ backgroundColor: '#eff6ff', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 3 }}>
-                    <Text style={{ fontSize: 9, color: C.brand }}>{k}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {phase.budget && (
-              <Text style={{ fontSize: 9, color: C.gray2, marginTop: 5 }}>{pt('budget_guideline', locale)} {phase.budget}</Text>
-            )}
-          </View>
-        ))}
+          )
+        })}
 
         <PdfFooterEs company={data.companyName} locale={locale} />
       </Page>
@@ -675,12 +687,12 @@ export function renderRoadmapPdf(data: RoadmapPdfData, locale = 'de'): ReactElem
           <>
             <Text style={s.h2}>{pt('first_phase_focus', locale)}</Text>
             <View wrap={false} style={[s.card, { borderLeftWidth: 3, borderLeftColor: PHASE_COLORS[0] }]}>
-              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>{data.phases[0].title}</Text>
-              {data.phases[0].focus && <Text style={{ fontSize: 10, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{data.phases[0].focus}</Text>}
+              <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.dark, marginBottom: 4 }}>{resolveLocaleField(data.phases[0].title, locale)}</Text>
+              {data.phases[0].focus && <Text style={{ fontSize: 10, color: C.gray, marginBottom: 6, lineHeight: 1.4 }}>{resolveLocaleField(data.phases[0].focus, locale)}</Text>}
               {(data.phases[0].actions ?? []).slice(0, 4).map((a, i) => (
                 <View key={i} style={[s.row, { marginBottom: 3 }]}>
                   <Text style={{ fontSize: 9, color: C.brand, marginRight: 4 }}>{'>'}</Text>
-                  <Text style={{ flex: 1, fontSize: 10 }}>{a.label}</Text>
+                  <Text style={{ flex: 1, fontSize: 10 }}>{resolveLocaleField(a.label, locale)}</Text>
                 </View>
               ))}
             </View>
@@ -1140,8 +1152,8 @@ const CANVAS_LABELS_ES: Record<string, string> = {
 const CANVAS_FIELD_ORDER = ['problem', 'solution', 'data_sources', 'stakeholders', 'kpis', 'risks', 'architecture', 'next_steps']
 
 interface ESPhaseData {
-  title: string; duration?: string; focus?: string
-  actions?: Array<{ label: string }>; kpis?: string[]
+  title: MaybeLocale; duration?: MaybeLocale; focus?: MaybeLocale
+  actions?: Array<{ label: MaybeLocale }>; kpis?: MaybeLocale[]
 }
 
 interface ExecutiveSummaryPdfData {
@@ -1152,7 +1164,7 @@ interface ExecutiveSummaryPdfData {
   assessment?: { archetype: string; totalScore: number; dimScores: Record<string, number> }
   useCaseCount: number
   topUseCases: Array<{ name: string; weightedScore: number | null; quadrant: string | null; domain?: string | null }>
-  governance?: { useCaseName: string | null; result: string; protocol?: Array<{ question?: string; answer?: string; label?: string; value?: string }> }
+  governance?: { useCaseName: string | null; result: string; protocol?: Array<{ question?: MaybeLocale; answer?: MaybeLocale; label?: MaybeLocale; value?: MaybeLocale }> }
   roadmap?: { title: string; archetype: string | null; phases: ESPhaseData[] }
   canvas?: { title: string; data: Record<string, string> }
   architecture?: { title: string; result: { pattern: string; description?: string; layers: Array<{ name: string; role: string; components: string[] }>; nextSteps?: string[] } }
@@ -1583,8 +1595,15 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData, locale 
 
             <Text style={s.h2}>{pt('review_protocol', locale)}</Text>
             {(() => {
+              // Ältere governance_sessions.protocol-Datensätze enthalten question/answer
+              // (bzw. label/value) noch als rohes { de, en }-Objekt statt String (siehe
+              // governance-data.ts: question ist dort vom Typ LocaleString) — direkt als
+              // Text-Kind gerendert crasht react-pdf mit React error #31.
               const steps = (data.governance!.protocol ?? [])
-                .map(step => ({ q: step.question ?? step.label ?? '', a: step.answer ?? step.value ?? '' }))
+                .map(step => ({
+                  q: resolveLocaleField(step.question, locale) ?? resolveLocaleField(step.label, locale) ?? '',
+                  a: resolveLocaleField(step.answer, locale) ?? resolveLocaleField(step.value, locale) ?? '',
+                }))
                 .filter(({ q, a }) => q || a)
                 .slice(0, 14)
               return steps.length > 0 ? (
@@ -1618,30 +1637,36 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData, locale 
               <Text style={{ fontSize: 12, fontWeight: 'bold', color: C.dark, marginBottom: 3 }}>{data.roadmap.title}</Text>
               <Text style={{ fontSize: 9, color: C.gray }}>
                 {data.roadmap.archetype ? (ARCHETYPE_LABELS[data.roadmap.archetype] ?? data.roadmap.archetype) : ''}
-                {data.roadmap.phases[0]?.duration ? ` · Startphase: ${data.roadmap.phases[0].duration}` : ''}
+                {data.roadmap.phases[0]?.duration ? ` · Startphase: ${resolveLocaleField(data.roadmap.phases[0].duration, locale)}` : ''}
               </Text>
             </View>
           </View>
 
-          {data.roadmap.phases.map((phase, i) => (
-            <View key={i} wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, flex: 1 }}>Phase {i + 1}: {phase.title}</Text>
-                {phase.duration ? <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold', marginLeft: 8 }}>{phase.duration}</Text> : null}
+          {data.roadmap.phases.map((phase, i) => {
+            const title = resolveLocaleField(phase.title, locale)
+            const duration = resolveLocaleField(phase.duration, locale)
+            const focus = resolveLocaleField(phase.focus, locale)
+            const kpis = (phase.kpis ?? []).map(k => resolveLocaleField(k, locale)).filter(Boolean)
+            return (
+              <View key={i} wrap={false} style={{ borderWidth: 1, borderColor: C.border, borderLeftWidth: 3, borderLeftColor: C.brand, borderRadius: 6, backgroundColor: C.light, padding: 10, marginBottom: 7 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark, flex: 1 }}>Phase {i + 1}: {title}</Text>
+                  {duration ? <Text style={{ fontSize: 9, color: C.brand, fontWeight: 'bold', marginLeft: 8 }}>{duration}</Text> : null}
+                </View>
+                {focus ? <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4, marginBottom: 4 }}>{focus}</Text> : null}
+                {phase.actions && phase.actions.length > 0 ?
+                  phase.actions.slice(0, 4).map((a, j) => (
+                    <View key={j} style={{ flexDirection: 'row', marginBottom: 2 }}>
+                      <Text style={{ fontSize: 9, color: C.brand, marginRight: 4 }}>▸</Text>
+                      <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{resolveLocaleField(a.label, locale)}</Text>
+                    </View>
+                  )) : null}
+                {kpis.length > 0 ? (
+                  <Text style={{ fontSize: 8, color: C.gray, marginTop: 3 }}>KPIs: {kpis.slice(0, 3).join(' · ')}</Text>
+                ) : null}
               </View>
-              {phase.focus ? <Text style={{ fontSize: 9, color: C.gray, lineHeight: 1.4, marginBottom: 4 }}>{phase.focus}</Text> : null}
-              {phase.actions && phase.actions.length > 0 ?
-                phase.actions.slice(0, 4).map((a, j) => (
-                  <View key={j} style={{ flexDirection: 'row', marginBottom: 2 }}>
-                    <Text style={{ fontSize: 9, color: C.brand, marginRight: 4 }}>▸</Text>
-                    <Text style={{ fontSize: 9, color: C.dark, flex: 1 }}>{a.label}</Text>
-                  </View>
-                )) : null}
-              {phase.kpis && phase.kpis.length > 0 ? (
-                <Text style={{ fontSize: 8, color: C.gray, marginTop: 3 }}>KPIs: {phase.kpis.slice(0, 3).join(' · ')}</Text>
-              ) : null}
-            </View>
-          ))}
+            )
+          })}
 
           <PdfFooterEs company={data.companyName} locale={locale} />
         </Page>

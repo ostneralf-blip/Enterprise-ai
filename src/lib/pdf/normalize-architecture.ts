@@ -14,7 +14,9 @@ export interface NormalizedArchitectureResult {
   [key: string]: unknown
 }
 
-function resolveLocaleField(value: string | { de: string; en: string } | undefined, locale: string): string | undefined {
+// Wiederverwendet von templates.tsx für andere Module (z. B. Governance-Protokoll),
+// die denselben Bug-Typ haben können: Alt-Datensätze mit rohem { de, en } statt String.
+export function resolveLocaleField(value: string | { de: string; en: string } | undefined, locale: string): string | undefined {
   if (value == null) return undefined
   return typeof value === 'string' ? value : (locale === 'en' ? value.en : value.de)
 }
