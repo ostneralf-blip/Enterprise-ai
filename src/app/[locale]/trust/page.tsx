@@ -12,7 +12,7 @@ export async function generateMetadata({
   const isEn = locale === 'en'
   const canonical = isEn ? `${BASE}/en/trust` : `${BASE}/trust`
   return {
-    title: isEn ? 'Security & Trust — AI Navigator' : 'Sicherheit & Vertrauen — AI Navigator',
+    title: isEn ? 'Security & Trust' : 'Sicherheit & Vertrauen',
     description: isEn
       ? 'EU hosting in Frankfurt, GDPR compliance, data security, and transparency.'
       : 'EU-Hosting in Frankfurt, DSGVO-Konformität, Datensicherheit und Transparenz.',
