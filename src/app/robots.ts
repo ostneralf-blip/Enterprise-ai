@@ -15,6 +15,26 @@ const PRIVATE_TOOL_ROUTES = [
   'architecture',
 ]
 
+// AI-Crawler (Training + AI-Suche) sind bewusst ERLAUBT: Sichtbarkeit in
+// ChatGPT-, Claude- und Perplexity-Antworten ist für ein SaaS-Produkt wertvoll.
+// Sie erhalten eine explizite Regel mit denselben Disallows wie alle anderen,
+// damit private Bereiche auch dann geschützt bleiben, wenn die '*'-Regel
+// später einmal geändert wird.
+const AI_CRAWLERS = [
+  'GPTBot',
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'ClaudeBot',
+  'Claude-User',
+  'Claude-SearchBot',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Google-Extended',
+  'Applebot-Extended',
+  'CCBot',
+  'meta-externalagent',
+]
+
 export default function robots(): MetadataRoute.Robots {
   const disallow = [
     '/api/',
@@ -38,6 +58,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
+        allow: '/',
+        disallow,
+      },
+      {
+        userAgent: AI_CRAWLERS,
         allow: '/',
         disallow,
       },
