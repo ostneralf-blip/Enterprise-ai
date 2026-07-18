@@ -1712,7 +1712,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             const needsDsgvoConfirm = recComponents.some(c => c.dsgvo_status === 'conditional') && !dsgvoConfirmed
             return (
               <button
-                onClick={handleSave}
+                onClick={() => void handleSave()}
                 disabled={saving || needsDsgvoConfirm}
                 title={needsDsgvoConfirm ? t('architecture.dsgvoConfirmTitle') : undefined}
                 className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"

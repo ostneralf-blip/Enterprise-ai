@@ -88,6 +88,42 @@ describe('getSelectionStats — Gate D „Eine Zahl, eine Quelle" (#182)', () =>
     expect(after.visibleSuggestions).toEqual(['Apache Kafka', 'Grafana'])
   })
 
+  // Regression 18.07.2026: Vercel-Log bestätigte, dass die KI trotz Prompt-Vorgabe
+  // ("nur der bloße Name") gelegentlich eine Begründung anhängt, z.B.
+  // "SAP Analytics Cloud — for business stakeholder dashboards...". Ein reiner
+  // Exact-Match verwarf solche Vorschläge komplett lautlos ("No further
+  // suggestions", obwohl die KI etwas Sinnvolles vorgeschlagen hatte).
+  it('erkennt KI-Vorschläge mit angehängter Begründung trotz fehlendem Exact-Match', () => {
+    const stats = getSelectionStats({
+      activeComponentNames: new Set(['MLflow']),
+      components: catalog,
+      aiSuggestions: [
+        'Grafana — for observability across the ML pipeline',
+        'HashiCorp Vault (for secrets management)',
+        'Apache Kafka - for event streaming',
+      ],
+    })
+    expect(stats.visibleSuggestions.sort()).toEqual(['Apache Kafka', 'Grafana', 'HashiCorp Vault'])
+  })
+
+  it('lässt bereits saubere KI-Vorschläge (ohne Begründung) unverändert', () => {
+    const stats = getSelectionStats({
+      activeComponentNames: new Set(['MLflow']),
+      components: catalog,
+      aiSuggestions: ['Grafana', 'Apache Kafka'],
+    })
+    expect(stats.visibleSuggestions.sort()).toEqual(['Apache Kafka', 'Grafana'])
+  })
+
+  it('verwirft Vorschläge, die auch nach Bereinigung nicht im Katalog stehen', () => {
+    const stats = getSelectionStats({
+      activeComponentNames: new Set(['MLflow']),
+      components: catalog,
+      aiSuggestions: ['Völlig unbekanntes Tool — with a long explanation'],
+    })
+    expect(stats.visibleSuggestions).toEqual([])
+  })
+
   it('meldet Konflikte aus incompatible_with', () => {
     const conflicting = [
       mkComp({ id: 'x', name: 'A', incompatible_with: ['B'] }),
