@@ -13,19 +13,21 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'landing' })
   const isEn = locale === 'en'
   const canonical = isEn ? `${BASE}/en` : BASE
   return {
     title: isEn
       ? 'AI Navigator — Enterprise AI. Navigated with structure.'
       : 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
-    description: t('heroP1'),
+    description: isEn
+      ? 'A structured path to productive enterprise AI: readiness assessment, use-case prioritization, governance and EU AI Act compliance in one tool.'
+      : 'Strukturiert zu produktiver Enterprise-KI: AI-Readiness-Assessment, Use-Case-Priorisierung, Governance und EU-AI-Act-Compliance in einem Tool.',
     openGraph: {
       type: 'website',
       locale: isEn ? 'en_GB' : 'de_DE',
       siteName: 'AI Navigator',
       url: canonical,
+      images: [{ url: `${BASE}/opengraph-image`, width: 1200, height: 630 }],
     },
     alternates: {
       canonical,
