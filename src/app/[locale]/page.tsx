@@ -16,9 +16,11 @@ export async function generateMetadata({
   const isEn = locale === 'en'
   const canonical = isEn ? `${BASE}/en` : BASE
   return {
-    title: isEn
-      ? 'AI Navigator — Enterprise AI. Navigated with structure.'
-      : 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
+    title: {
+      absolute: isEn
+        ? 'AI Navigator — Enterprise AI. Navigated with structure.'
+        : 'AI Navigator — Enterprise AI. Strukturiert navigiert.',
+    },
     description: isEn
       ? 'A structured path to productive enterprise AI: readiness assessment, use-case prioritization, governance and EU AI Act compliance in one tool.'
       : 'Strukturiert zu produktiver Enterprise-KI: AI-Readiness-Assessment, Use-Case-Priorisierung, Governance und EU-AI-Act-Compliance in einem Tool.',
