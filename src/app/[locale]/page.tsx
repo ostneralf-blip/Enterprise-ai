@@ -37,6 +37,21 @@ export async function generateMetadata({
   }
 }
 
+const softwareApplicationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'AI Navigator',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: BASE,
+  description: 'Enterprise AI. Structured navigation. Strategic frameworks for AI readiness, governance and use-case prioritization.',
+  offers: [
+    { '@type': 'Offer', name: 'Explorer', price: '0', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Professional', price: '49.00', priceCurrency: 'EUR' },
+  ],
+  author: { '@type': 'Person', name: 'Daniel Ostner' },
+}
+
 export default async function LandingPage({
   params,
 }: {
@@ -61,6 +76,11 @@ export default async function LandingPage({
 
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
+      />
       <PaperNoise />
       {/* Nav */}
       <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">

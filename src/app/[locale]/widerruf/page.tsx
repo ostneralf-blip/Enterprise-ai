@@ -1,7 +1,31 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Widerrufsbelehrung' }
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en/widerruf` : `${BASE}/widerruf`
+  return {
+    title: 'Widerrufsbelehrung',
+    description: isEn
+      ? 'Right of withdrawal notice and sample withdrawal form for consumers (German consumer law).'
+      : 'Widerrufsbelehrung und Muster-Widerrufsformular für Verbraucher.',
+    alternates: {
+      canonical,
+      languages: {
+        de: `${BASE}/widerruf`,
+        en: `${BASE}/en/widerruf`,
+        'x-default': `${BASE}/widerruf`,
+      },
+    },
+  }
+}
 
 export default function WiderrufPage() {
   return (

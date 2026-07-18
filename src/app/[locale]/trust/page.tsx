@@ -1,9 +1,30 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'Sicherheit & Vertrauen — AI Navigator',
-  description: 'EU-Hosting in Frankfurt, DSGVO-Konformität, Datensicherheit und Transparenz.',
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en/trust` : `${BASE}/trust`
+  return {
+    title: isEn ? 'Security & Trust — AI Navigator' : 'Sicherheit & Vertrauen — AI Navigator',
+    description: isEn
+      ? 'EU hosting in Frankfurt, GDPR compliance, data security, and transparency.'
+      : 'EU-Hosting in Frankfurt, DSGVO-Konformität, Datensicherheit und Transparenz.',
+    alternates: {
+      canonical,
+      languages: {
+        de: `${BASE}/trust`,
+        en: `${BASE}/en/trust`,
+        'x-default': `${BASE}/trust`,
+      },
+    },
+  }
 }
 
 const TRUST_ITEMS = [
@@ -52,7 +73,6 @@ export default function TrustPage() {
           </p>
         </div>
 
-        {/* Trust-Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10">
           {[
             { icon: '🇩🇪', label: 'Hosting: Frankfurt EU' },
@@ -69,7 +89,6 @@ export default function TrustPage() {
           ))}
         </div>
 
-        {/* Detail-Sektionen */}
         <div className="space-y-4">
           {TRUST_ITEMS.map(item => (
             <section key={item.title} className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6">
@@ -82,7 +101,6 @@ export default function TrustPage() {
           ))}
         </div>
 
-        {/* Kontakt */}
         <div className="mt-8 bg-slate-800 text-white rounded-2xl p-5 sm:p-6">
           <h2 className="text-base font-semibold mb-2">Fragen zu Datenschutz & Sicherheit?</h2>
           <p className="text-sm text-slate-300 mb-4 leading-relaxed">

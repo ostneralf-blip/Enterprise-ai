@@ -3,10 +3,27 @@ import type { Metadata } from 'next'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en/datenschutz` : `${BASE}/datenschutz`
   return {
     title: 'Datenschutzerklärung',
-    alternates: { canonical: `${BASE}/datenschutz` },
+    description: isEn
+      ? 'Privacy policy: what data AI Navigator processes, under which legal basis, and for how long.'
+      : 'Datenschutzerklärung: welche Daten AI Navigator verarbeitet, auf welcher Rechtsgrundlage und wie lange.',
+    alternates: {
+      canonical,
+      languages: {
+        de: `${BASE}/datenschutz`,
+        en: `${BASE}/en/datenschutz`,
+        'x-default': `${BASE}/datenschutz`,
+      },
+    },
   }
 }
 
