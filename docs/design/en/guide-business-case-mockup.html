@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Do You Build an AI Business Case the Board Will Approve? — AI Navigator Guide</title>
+<link rel="canonical" href="https://enterprise-ai.biz/en/guide/ai-business-case">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/ai-business-case">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/ai-business-case">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/ai-business-case">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  .section-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:600px){.section-grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
+  .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
+  .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
+  .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+
+  .stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 20px}
+  @media(max-width:700px){.stat-strip{grid-template-columns:1fr}}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 14px;text-align:center}
+  .stat .n{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--ink)}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:140px 1fr;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Guide</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">The Book</a><a href="preise-mockup.html">Pricing</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Start for free</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="startseite-mockup.html">Home</a><span>/</span><a href="guide-hub-mockup.html">Guide</a><span>/</span>The AI Business Case
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Guide · Business Value</div>
+  <h1>How Do You Build an AI Business Case the Board Will Approve?</h1>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Short answer</span>
+  <p>An AI business case for the board answers four questions in a fixed order: Why now? What's the payoff? Can we execute? What does it cost, and when do we see results? <strong>Only 6% of companies see AI ROI within a year</strong> — promising six months anyway is the fastest way to lose credibility at the next budget request.</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>What four sections does the board expect?</h2>
+  <p class="lead">An AI business case follows a different logic than a classic project proposal. It answers four questions in this order — and no other: strategic imperative, business value projection, readiness &amp; risk, investment &amp; roadmap.</p>
+
+  <div class="section-grid">
+    <div class="card is-relevant">
+      <span class="lvl">1 · Strategic Imperative · ½ page</span>
+      <h3>Why now, not later?</h3>
+      <p>Market data, competitive landscape, the current window of competence — the frame that justifies urgency.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">2 · Business Value Projection · 1 page</span>
+      <h3>What's the concrete payoff?</h3>
+      <p>Value drivers, KPI targets, ROI model, and benchmarks — in numbers the board can check for itself.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">3 · Readiness &amp; Risk · ½ page</span>
+      <h3>Can we actually execute this?</h3>
+      <p>Readiness score, the three biggest risks, and their mitigations — honest, not dressed up.</p>
+    </div>
+    <div class="card">
+      <span class="lvl">4 · Investment &amp; Roadmap · 1 page</span>
+      <h3>What does it cost, when do we see results?</h3>
+      <p>Investment plan, milestones, quick wins, and a realistic ROI time horizon.</p>
+    </div>
+  </div>
+
+  <h2>Which KPIs fit which archetype?</h2>
+  <p class="lead">A KPI framework that's the same for everyone is right for no one. AI Starters primarily measure readiness — whether the foundation holds. AI Scalers measure leading indicators — whether scaling is on track. AI Transformers measure lagging indicators — whether AI measurably contributes to results.</p>
+
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">Readiness KPIs</div><div class="f-body"><p>Starter: data-quality score, governance bootstrap. Scaler: API coverage, MLOps maturity. Transformer: knowledge-graph quality, agent governance maturity.</p></div></div>
+    <div class="f-item"><div class="f-stat">Leading KPIs</div><div class="f-body"><p>Starter: first use case live, readiness score. Scaler: use cases in production, adoption rate. Transformer: use cases enterprise-wide, automation level.</p></div></div>
+    <div class="f-item"><div class="f-stat">Lagging KPIs</div><div class="f-body"><p>Starter: EBIT impact, cost reduction. Scaler: ROI per use case, time-to-value. Transformer: revenue lift, market share.</p></div></div>
+  </div>
+
+  <p class="body">Two design rules apply regardless of archetype: every KPI needs a baseline value — no measurement without a before-value. And a maximum of five active KPIs per use case — more creates reporting overhead, not insight. Readiness KPIs are reviewed weekly, leading KPIs monthly, lagging KPIs quarterly.</p>
+
+  <div class="stat-strip">
+    <div class="stat"><div class="n">Only 6%</div><div class="l">see AI ROI within 12 months</div></div>
+    <div class="stat"><div class="n">13%</div><div class="l">achieve ROI within 12 months</div></div>
+    <div class="stat"><div class="n">2–4 years</div><div class="l">is what most expect until full ROI</div></div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-pattern</span>
+    <p>Board rule: communicate the ROI time horizon honestly. A business case that promises payback in six months loses credibility — and with it, the next budget request. An honest time horizon with clearly named quick wins convinces a board more reliably than an optimistic projection that gets disproven at the first quarterly review.</p>
+  </div>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">Lagging Indicator</a>
+    <a class="gchip" href="#">Leading Indicator</a>
+    <a class="gchip" href="#">AI Value Canvas</a>
+    <a class="gchip" href="#">Business Case</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Fill out the business case in a template</h2>
+  <p>The AI Value Canvas in the product walks you through all four sections and automatically maps KPIs to your archetype.</p>
+  <a class="btn btn-primary" href="preise-mockup.html">Open AI Value Canvas →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Frequently asked questions</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>How long should an AI business case be for the board?</summary>
+      <p>Three pages total: half a page imperative, one page business value, half a page readiness &amp; risk, one page investment &amp; roadmap. Longer is rarely read.</p>
+    </details>
+    <details>
+      <summary>What if ROI really won't show up for 3 years?</summary>
+      <p>Say so honestly — and back it up with concrete quick wins in year one. Most companies need 2 to 4 years for full ROI; that's the normal case, not a warning sign.</p>
+    </details>
+    <details>
+      <summary>Do the KPIs change when a company moves from Starter to Scaler?</summary>
+      <p>Yes, deliberately. Readiness KPIs fade into the background, leading KPIs move into focus — the framework grows with the archetype, not the other way around.</p>
+    </details>
+    <details>
+      <summary>How many KPIs should a single use case show in the business case?</summary>
+      <p>A maximum of five active KPIs. More KPIs per use case mainly create reporting overhead, not more insight for the decision.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Author, „Enterprise AI Leitfaden“ · Developer of AI Navigator</div>
+        <p>This guide is based on Chapter 3 of the German-language book „Enterprise AI Leitfaden“ (own rights), adapted for the web.</p>
+        <a href="https://www.amazon.de/dp/B0H6GN7LJQ" target="_blank" rel="noopener noreferrer">More about the book →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Keep reading</h2>
+  <div class="rcards">
+    <a class="card" href="guide-ai-reifegrad-mockup.html"><div class="n">Guide 04</div><h3>AI Maturity: Starter, Scaler, Transformer — Self-Diagnosis</h3></a>
+    <a class="card" href="guide-governance-mockup.html"><div class="n">Guide 05</div><h3>Building AI Governance: 3 Levels, 5 Roles, 6 Decisions</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossary</div><h3>Lagging Indicator, AI Value Canvas &amp; more terms</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU Hosting · GDPR · Cookieless</div>
+  <div><a href="#">Legal Notice</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://enterprise-ai.biz/en"},
+    {"@type":"ListItem","position":2,"name":"Guide","item":"https://enterprise-ai.biz/en/guide"},
+    {"@type":"ListItem","position":3,"name":"The AI Business Case","item":"https://enterprise-ai.biz/en/guide/ai-business-case"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"How long should an AI business case be for the board?","acceptedAnswer":{"@type":"Answer","text":"About three pages total, split across the four sections: imperative, business value, readiness/risk, and investment/roadmap."}},
+    {"@type":"Question","name":"What if ROI really won't show up for 3 years?","acceptedAnswer":{"@type":"Answer","text":"Say so honestly and back it up with concrete quick wins in year one — 2 to 4 years for full ROI is the normal case."}},
+    {"@type":"Question","name":"Do the KPIs change from Starter to Scaler?","acceptedAnswer":{"@type":"Answer","text":"Yes — readiness KPIs fade into the background, leading KPIs move into focus, the framework grows with the archetype."}},
+    {"@type":"Question","name":"How many KPIs should a use case show in the business case?","acceptedAnswer":{"@type":"Answer","text":"A maximum of five active KPIs — more creates reporting overhead rather than additional insight."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Author, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
