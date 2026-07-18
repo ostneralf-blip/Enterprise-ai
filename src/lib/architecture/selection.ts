@@ -48,6 +48,21 @@ const norm = (n: string) => n.toLowerCase().trim()
 // Katalog-Abgleich zusätzlich den Teil vor gängigen Erklärungs-Trennern probieren.
 const EXPLANATION_SEPARATORS = [' — ', ' – ', ' - ', ' (']
 
+// Reiner String-Transform ohne Katalog-Kenntnis — exportiert, damit Aufrufer
+// (z. B. die Analyse-Route) Kandidaten-Schlüssel für eine GEZIELTE DB-Abfrage
+// bilden können, statt erst den kompletten Katalog laden zu müssen, um
+// überhaupt zu wissen, wonach sie suchen sollen (Lessons Learned 19.07.2026:
+// "SELECT * ohne WHERE" auf wachsenden Tabellen ist der eigentliche
+// Bug-Klasse-Auslöser, nicht nur eine fehlende Pagination-Notlösung).
+export function stripExplanationSuffix(raw: string): string | null {
+  let cleaned = raw
+  for (const sep of EXPLANATION_SEPARATORS) {
+    const idx = cleaned.indexOf(sep)
+    if (idx > 0) cleaned = cleaned.slice(0, idx).trim()
+  }
+  return cleaned !== raw ? cleaned : null
+}
+
 // Case-/Whitespace-unempfindlicher Katalog-Abgleich als Fallback (Bug-Report
 // Daniel, 18.07.2026): ein bereits im Katalog vorhandener Name mit
 // abweichender Groß-/Kleinschreibung oder Leerraum wurde bisher als
@@ -76,12 +91,8 @@ export function resolveToKnownName(raw: string, known: Set<string>, aliasMap?: M
   const aliasHit = aliasMap?.get(norm(raw))
   if (aliasHit) return aliasHit
 
-  let cleaned = raw
-  for (const sep of EXPLANATION_SEPARATORS) {
-    const idx = cleaned.indexOf(sep)
-    if (idx > 0) cleaned = cleaned.slice(0, idx).trim()
-  }
-  if (cleaned === raw) return null
+  const cleaned = stripExplanationSuffix(raw)
+  if (!cleaned) return null
   if (known.has(cleaned)) return cleaned
   const cleanedNormalizedMatch = findByNormalizedName(cleaned, known)
   if (cleanedNormalizedMatch) return cleanedNormalizedMatch

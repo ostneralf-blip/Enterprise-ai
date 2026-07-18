@@ -317,6 +317,46 @@ wurde nicht als Next.js gebaut.
 **Lehre:** Bei neuem Vercel-Projekt-Setup IMMER zuerst Framework Preset prüfen,
 besonders bei sehr neuen Next.js-Versionen, wo die Auto-Erkennung versagen kann.
 
+### Datenbank-Lektion: PostgREST max_rows und wachstumssicheres Query-Design (19.07.2026)
+**Symptom:** Drei unabhängige Bugs am selben Tag (18.–19.07.2026): Admin-Katalogliste
+zeigte SAP-Joule-Einträge nicht, `/api/catalog/components` lieferte unvollständige
+Ergebnisse, und die Architektur-Analyse markierte bereits im Katalog vorhandene
+Komponenten (u. a. „Databricks", exakter Namenstreffer!) wiederholt als „neu" —
+jedes Mal ohne jeden Fehler, rein stillschweigend falsches Ergebnis.
+**Ursache:** `component_catalog` wuchs im Laufe der Sprints auf >1450 aktive Zeilen.
+PostgREST kappt JEDE Antwort hart bei `api.max_rows = 1000` (`supabase/config.toml`)
+— unabhängig vom angeforderten Range und ohne Fehlermeldung. Mehrere Stellen im Code
+luden „den kompletten aktiven Katalog" per einfachem `.select().eq('is_active', true)`,
+um danach in JS gegen ein paar Namen zu prüfen — bei >1000 Zeilen ohne definiertes
+`.order()` fehlten dabei zufällige Zeilen im Ergebnis, nicht notwendigerweise die
+zuletzt hinzugefügten.
+**Fix (zwei Ebenen):**
+1. **Kurzfristig behoben:** Betroffene Stellen (`admin/page.tsx`, `/api/catalog/components`,
+   `/api/admin/users`, Analyse-Route-Backup im Seed-Endpoint) paginieren jetzt vollständig
+   via `.range()`-Schleife statt einer einzelnen `.select()`.
+2. **Architektonisch richtig (wo möglich vorzuziehen):** die Analyse-Route wurde von
+   „kompletten Katalog laden" auf eine GEZIELTE Abfrage umgestellt — `.in('name_key', …)`
+   (nutzt den bestehenden UNIQUE-Index) plus `.overlaps('aliases', …)` (nutzt den
+   bestehenden GIN-Index) liefern nur die tatsächlich relevanten ~5–15 Zeilen statt der
+   ganzen Tabelle. Skaliert dadurch unabhängig davon, wie groß der Katalog wird.
+**Lehre — verbindlich für neue Queries auf wachsenden Tabellen** (`component_catalog`,
+`profiles`, `architectures`, `catalog_suggestions`, `canvases`, `content_library`,
+`catalog_upload_log`, `ai_prompt_cache`, …):
+- Niemals „ganze Tabelle laden, dann in JS filtern", wenn eine gezielte `WHERE`-Bedingung
+  (`.eq()`, `.in()`, `.overlaps()`, Volltextsuche) das Gleiche mit einer kleinen,
+  von der Tabellengröße unabhängigen Ergebnismenge erreichen kann — das ist zugleich
+  performanter UND wachstumssicher, nicht nur ein Workaround für das 1000-Zeilen-Limit.
+- Wo ein echter „alles auflisten"-Fall unvermeidbar ist (z. B. Admin-Exportfunktionen,
+  Backups vor Überschreiben): explizit über `.range()` in 1000er-Seiten paginieren, nie
+  auf eine einzelne `.select()` ohne Limit verlassen.
+- Neue Filterspalten, die absehbar für Lookups gebraucht werden (z. B. normalisierte
+  Namens-Keys, Alias-Arrays), bekommen von Anfang an einen passenden Index (`UNIQUE`
+  bei Eindeutigkeit, `GIN` bei Array-/Volltextsuche) — component_catalog hat das über
+  `name_key` und `aliases` bereits vorbildlich.
+- Bei Verdacht auf dieses Muster: `supabase/config.toml` → `api.max_rows` prüfen und
+  die betroffene Tabellengröße gegenrechnen, bevor tiefer nach anderen Ursachen gesucht
+  wird — spart Zeit gegenüber dem Nachverfolgen einzelner Symptome.
+
 ### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026) — Status 05.07.2026
 
 **BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar** → ERLEDIGT (GitHub Issue #4, CLOSED
@@ -407,3 +447,9 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - Compliance-Fristen-Timer: Countdown zu Stichtagen in WatchlistCard
 - Versions-Diff-Ansicht: Änderungen zwischen zwei gespeicherten Versionen anzeigen
 - Externe Sync-Quellen für AI-Katalog (CNCF Landscape, Hugging Face, SAP API Hub) — noch kein konkreter Bedarf
+- Weitere unpaginierte `.select()`-Volltabellen-Ladungen auf wachsenden Tabellen prüfen/
+  paginieren (siehe „Datenbank-Lektion" oben, Audit vom 19.07.2026 — Risiko aktuell gering,
+  da kleine Zeilenzahlen, aber ohne Schutz): `/api/admin/synonyms/learn` (`canvases`,
+  `canvas_synonyms` — global, nicht user-gescoped), `/api/admin/synonyms` (`canvas_synonyms`),
+  `/api/admin/content` (`content_library`), `/api/admin/promotions`, `/api/admin/compliance/drafts`,
+  `/api/admin/policy-templates`, `/api/canvas/[id]/classify-terms` (`detection_blocklist`)

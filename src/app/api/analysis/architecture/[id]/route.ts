@@ -8,7 +8,7 @@ import { trackServer } from '@/lib/posthog/server'
 import { buildSharedContext, buildSectionBlocks } from '@/lib/ai/analysis'
 import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { resolveToKnownName } from '@/lib/architecture/selection'
+import { resolveToKnownName, stripExplanationSuffix } from '@/lib/architecture/selection'
 import { enrichCatalogSuggestion } from '@/lib/ai/catalog-enrichment'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
@@ -131,34 +131,36 @@ export async function POST(
       return names.map(name => ({ section, name }))
     })
   if (suggestionsBySection.length > 0) {
-    // PostgREST kappt jede Antwort hart bei api.max_rows=1000 (supabase/config.toml).
-    // Der Katalog liegt inzwischen bei >1450 aktiven Einträgen — ein einfaches
-    // .select() lieferte damit nur einen unvollständigen Ausschnitt, wodurch
-    // tatsächlich vorhandene Katalog-Einträge (u. a. "Databricks", exakter
-    // Namenstreffer!) fälschlich als "unbekannt" galten und immer wieder neu
-    // vorgeschlagen wurden (Bug-Report Daniel, 19.07.2026). Analog zu
-    // /api/catalog/components seitenweise paginieren.
-    const CATALOG_PAGE_SIZE = 1000
-    const catalogRows: { name: string; aliases: string[] | null }[] = []
-    for (let page = 0; ; page++) {
-      const from = page * CATALOG_PAGE_SIZE
-      const { data } = await supabase
-        .from('component_catalog')
-        .select('name, aliases')
-        .eq('is_active', true)
-        .range(from, from + CATALOG_PAGE_SIZE - 1)
-      catalogRows.push(...(data ?? []))
-      if (!data || data.length < CATALOG_PAGE_SIZE) break
-    }
-    const known = new Set(catalogRows.map(c => c.name))
-    // Bug-Report Daniel (18.07.2026): "Zum Katalog hinzufügen" legt Komponenten
-    // unter ihrem angereicherten Namen an (z. B. "Databricks Data Intelligence
-    // Platform"), während die KI im nächsten Wizard-Lauf oft wieder den kurzen
-    // Namen ("Databricks") nennt — ohne Alias-Abgleich galt das erneut als
-    // unbekannt und die Komponente kam als "neuer" Vorschlag zurück, obwohl
-    // sie längst im Katalog war. aliases wird beim Anlegen entsprechend befüllt.
+    // Lessons Learned (19.07.2026): "kompletten Katalog laden, um ein paar
+    // Namen zu prüfen" ist die eigentliche Bug-Klasse, nicht nur eine fehlende
+    // Pagination-Notlösung — bei >1450 aktiven Einträgen kollidierte das
+    // wiederholt mit PostgREST's hartem api.max_rows=1000 (supabase/config.toml),
+    // wodurch tatsächlich vorhandene Einträge (u. a. "Databricks", exakter
+    // Namenstreffer!) fälschlich als "unbekannt" galten. Statt zu paginieren,
+    // gezielt NUR nach den ~5-15 vorgeschlagenen Namen fragen — die
+    // Ergebnismenge bleibt dadurch unabhängig von der Katalog-Größe klein,
+    // und der Cut greift nie wieder, egal wie groß der Katalog wird.
+    // name_key (UNIQUE-Index) und aliases (GIN-Index) tragen bereits.
+    const rawNames = suggestionsBySection.map(s => s.name)
+    const candidateNames = [...new Set(rawNames.flatMap(n => {
+      const cleaned = stripExplanationSuffix(n)
+      return cleaned ? [n, cleaned] : [n]
+    }))]
+    const candidateKeys = candidateNames.map(n => n.toLowerCase().trim())
+
+    const [byNameKey, byAlias] = await Promise.all([
+      supabase.from('component_catalog').select('name, aliases').eq('is_active', true).in('name_key', candidateKeys),
+      supabase.from('component_catalog').select('name, aliases').eq('is_active', true).overlaps('aliases', candidateNames),
+    ])
+    const known = new Set<string>()
     const aliasMap = new Map<string, string>()
-    for (const row of catalogRows ?? []) {
+    for (const row of [...(byNameKey.data ?? []), ...(byAlias.data ?? [])]) {
+      known.add(row.name)
+      // Bug-Report Daniel (18.07.2026): "Zum Katalog hinzufügen" legt
+      // Komponenten unter ihrem angereicherten Namen an (z. B. "Databricks
+      // Data Intelligence Platform"), während die KI oft wieder den kurzen
+      // Namen ("Databricks") nennt — aliases wird beim Anlegen entsprechend
+      // befüllt und hier für den Abgleich mit einbezogen.
       for (const alias of row.aliases ?? []) aliasMap.set(alias.toLowerCase().trim(), row.name)
     }
     const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known, aliasMap) === null)
