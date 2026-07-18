@@ -1582,21 +1582,22 @@ export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData, locale 
             </View>
 
             <Text style={s.h2}>{pt('review_protocol', locale)}</Text>
-            {data.governance!.protocol && data.governance!.protocol.length > 0 ? (
-              data.governance!.protocol.slice(0, 14).map((step, i) => {
-                const q = step.question ?? step.label ?? ''
-                const a = step.answer ?? step.value ?? ''
-                if (!q && !a) return null
-                return (
+            {(() => {
+              const steps = (data.governance!.protocol ?? [])
+                .map(step => ({ q: step.question ?? step.label ?? '', a: step.answer ?? step.value ?? '' }))
+                .filter(({ q, a }) => q || a)
+                .slice(0, 14)
+              return steps.length > 0 ? (
+                steps.map((step, i) => (
                   <View key={i} wrap={false} style={{ borderLeftWidth: 2, borderLeftColor: C.border, paddingLeft: 9, marginBottom: 7 }}>
-                    {q ? <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>{q}</Text> : null}
-                    {a ? <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{a}</Text> : null}
+                    {step.q ? <Text style={{ fontSize: 8, color: C.gray, marginBottom: 2 }}>{step.q}</Text> : null}
+                    {step.a ? <Text style={{ fontSize: 10, fontWeight: 'bold', color: C.dark }}>{step.a}</Text> : null}
                   </View>
-                )
-              })
-            ) : (
-              <Text style={{ fontSize: 9, color: C.gray }}>{pt('gov_no_protocol', locale)}</Text>
-            )}
+                ))
+              ) : (
+                <Text style={{ fontSize: 9, color: C.gray }}>{pt('gov_no_protocol', locale)}</Text>
+              )
+            })()}
 
             <PdfFooterEs company={data.companyName} locale={locale} />
           </Page>
