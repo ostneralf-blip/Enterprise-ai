@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { GUIDES, HUB_CATEGORIES, HUB_GLOSSARY, getGuide, type Bi } from '@/config/leitfaden-data'
+import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -78,15 +79,7 @@ export default async function LeitfadenHubPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
 
-      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <Link href={`${prefix}/`} className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm text-white">N</div>
-          <span className="font-semibold">AI Navigator</span>
-        </Link>
-        <Link href={`${prefix}/register`} className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-          {isEn ? 'Start free' : 'Kostenlos starten'}
-        </Link>
-      </nav>
+      <PublicNav locale={locale} />
 
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-10 text-center">
         <div className="inline-block bg-primary-soft border border-primary-border text-primary tracking-widest text-xs font-semibold uppercase px-3 py-1 rounded-full mb-6">

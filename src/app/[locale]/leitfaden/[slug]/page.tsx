@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { GUIDES, getGuide, AMAZON_BOOK_URL, type Bi } from '@/config/leitfaden-data'
+import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -93,18 +94,13 @@ export default async function GuidePage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
 
-      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-4xl mx-auto">
-        <Link href={`${prefix}/`} className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm text-white">N</div>
-          <span className="font-semibold">AI Navigator</span>
-        </Link>
+      <PublicNav locale={locale} />
+
+      <article className="max-w-3xl mx-auto px-6 py-12">
         <Link href={`${prefix}/leitfaden`} className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
           {isEn ? '← All guides' : '← Alle Leitfäden'}
         </Link>
-      </nav>
-
-      <article className="max-w-3xl mx-auto px-6 py-12">
-        <div className="text-xs text-primary font-semibold uppercase tracking-wide mb-3">{p(guide.eyebrow)}</div>
+        <div className="text-xs text-primary font-semibold uppercase tracking-wide mb-3 mt-6">{p(guide.eyebrow)}</div>
         <h1 className="text-3xl sm:text-4xl font-semibold font-serif leading-tight mb-6">{p(guide.title)}</h1>
 
         {/* Kurzantwort / answer band */}

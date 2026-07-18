@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { PaperNoise } from '@/components/shared/PaperNoise'
 import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 import { getTranslations } from 'next-intl/server'
-import { AMAZON_BOOK_URL } from '@/config/leitfaden-data'
+import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -92,26 +92,7 @@ export default async function LandingPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
       />
       <PaperNoise />
-
-      {/* Nav */}
-      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm text-white">N</div>
-          <span className="font-semibold">AI Navigator</span>
-        </div>
-        <div className="hidden md:flex items-center gap-6 text-sm text-slate-600">
-          <Link href={`${prefix}/leitfaden`} className="hover:text-slate-900 transition-colors">{t('navLeitfaden')}</Link>
-          <a href="#tools" className="hover:text-slate-900 transition-colors">{t('navTools')}</a>
-          <a href={AMAZON_BOOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">{t('navBuch')}</a>
-          <Link href={`${prefix}/preise`} className="hover:text-slate-900 transition-colors">{t('navPreise')}</Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href={`${prefix}/login`} className="hidden sm:inline text-slate-500 hover:text-slate-900 text-sm transition-colors">{t('cta2')}</Link>
-          <Link href={`${prefix}/register`} className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            {t('navStart')}
-          </Link>
-        </div>
-      </nav>
+      <PublicNav locale={locale} />
 
       {/* Hero */}
       <div className="relative overflow-hidden">

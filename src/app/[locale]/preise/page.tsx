@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PRICING_GROUPS, type Bi, type PricingRow } from '@/config/leitfaden-data'
 import { TIER_CONFIG } from '@/config/tiers'
+import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -69,15 +70,7 @@ export default async function PreisePage({
 
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
-      <nav className="border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-5xl mx-auto">
-        <Link href={`${prefix}/`} className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm text-white">N</div>
-          <span className="font-semibold">AI Navigator</span>
-        </Link>
-        <Link href={`${prefix}/register`} className="bg-primary hover:bg-primary-hover text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-          {isEn ? 'Start free' : 'Kostenlos starten'}
-        </Link>
-      </nav>
+      <PublicNav locale={locale} />
 
       <div className="max-w-3xl mx-auto px-6 pt-16 pb-10 text-center">
         <h1 className="text-4xl font-semibold font-serif leading-tight mb-4">
