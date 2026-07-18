@@ -43,7 +43,10 @@ describe('validateRasicAccountability', () => {
   test('fails when multiple A in same phase', () => {
     const result = validateRasicAccountability(doubleARasic)
     expect(result.passed).toBe(false)
-    expect(result.message.de).toMatch(/konzeption/)
+    // Übersetzte Phase-Labels statt rohem internem Key (Bug-Report 18.07.2026:
+    // englische Meldung zeigte "daten, build, betrieb" statt "Data, Build, Operations")
+    expect(result.message.de).toMatch(/Konzeption/)
+    expect(result.message.en).toMatch(/Conception/)
   })
 
   test('fails when phase has no A', () => {

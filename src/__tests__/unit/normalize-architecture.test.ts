@@ -40,4 +40,33 @@ describe('normalizeArchitectureResult', () => {
     expect(result.nextSteps).toEqual([])
     expect(result.layers[0].components).toEqual([])
   })
+
+  // Regression 18.07.2026: description ist kein Feld des aktuellen ArchitectureResult-
+  // Typs mehr, ältere DB-Datensätze können es aber noch als { de, en } enthalten —
+  // exakt derselbe React-error-#31-Crash wie bei nextSteps, nur an einer anderen Stelle.
+  it('löst { de, en }-Objekte in description auf die aktuelle Sprache auf', () => {
+    const result = normalizeArchitectureResult({
+      pattern: 'Layered',
+      layers: [],
+      description: { de: 'Beschreibung', en: 'Description' },
+    }, 'en')
+    expect(result.description).toBe('Description')
+  })
+
+  it('lässt bereits aufgelöste String-description unverändert', () => {
+    const result = normalizeArchitectureResult({
+      pattern: 'Layered',
+      layers: [],
+      description: 'Bereits ein String',
+    }, 'de')
+    expect(result.description).toBe('Bereits ein String')
+  })
+
+  it('lässt fehlende description undefined statt einen leeren Objekt-Rest zu erzeugen', () => {
+    const result = normalizeArchitectureResult({
+      pattern: 'Layered',
+      layers: [],
+    }, 'de')
+    expect(result.description).toBeUndefined()
+  })
 })

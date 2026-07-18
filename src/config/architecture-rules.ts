@@ -385,6 +385,14 @@ export interface EamValidationResult {
 
 const CROSS_CUTTING_KEYWORDS = ['monitor', 'gateway', 'hitl', 'audit', 'grafana', 'evidently', 'kong', 'observ']
 
+const PHASE_LABEL: Record<RasicPhase, { de: string; en: string }> = {
+  konzeption: { de: 'Konzeption', en: 'Conception' },
+  daten:      { de: 'Daten', en: 'Data' },
+  build:      { de: 'Build', en: 'Build' },
+  freigabe:   { de: 'Freigabe', en: 'Release' },
+  betrieb:    { de: 'Betrieb', en: 'Operations' },
+}
+
 export function validateRasicAccountability(rasic: RasicMatrix | undefined): EamValidationResult {
   const ruleId = 'r1'; const anchor = 'rasic-matrix'
   if (!rasic) return { ruleId, anchor, passed: false, message: { de: 'RASIC-Matrix nicht generiert', en: 'RASIC matrix not generated' } }
@@ -398,7 +406,10 @@ export function validateRasicAccountability(rasic: RasicMatrix | undefined): Eam
     ruleId, anchor, passed: violations.length === 0,
     message: violations.length === 0
       ? { de: 'Genau eine Verantwortung (A) pro Phase', en: 'Exactly one accountable (A) per phase' }
-      : { de: `Fehlende/doppelte Verantwortung (A) in: ${violations.join(', ')}`, en: `Missing or duplicate accountable (A) in: ${violations.join(', ')}` },
+      : {
+          de: `Fehlende/doppelte Verantwortung (A) in: ${violations.map(p => PHASE_LABEL[p].de).join(', ')}`,
+          en: `Missing or duplicate accountable (A) in: ${violations.map(p => PHASE_LABEL[p].en).join(', ')}`,
+        },
   }
 }
 

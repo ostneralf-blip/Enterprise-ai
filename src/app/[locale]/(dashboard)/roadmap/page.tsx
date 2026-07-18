@@ -16,7 +16,7 @@ export default async function RoadmapPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: latestResult }, { data: profileData }, { data: topUseCases }, { data: latestRoadmap }, { data: latestArch }] = await Promise.all([
+  const [{ data: latestResult }, { data: profileData }, { data: topUseCases }, { data: latestRoadmap }, { data: prefs }] = await Promise.all([
     supabase
       .from('assessment_sessions')
       .select('archetype')
@@ -44,13 +44,27 @@ export default async function RoadmapPage() {
       .limit(1)
       .maybeSingle() as unknown as Promise<{ data: { id: string; archetype: string; phases: unknown[] } | null }>,
     supabase
-      .from('architectures')
-      .select('result')
+      .from('user_preferences')
+      .select('primary_architecture_id')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle() as unknown as Promise<{ data: { result: { keyDecisions?: { de: string; en: string }[] } } | null }>,
+      .maybeSingle() as unknown as Promise<{ data: { primary_architecture_id: string | null } | null }>,
   ])
+
+  // Als "primär" markierte Architektur bevorzugen (siehe Ergebnisse-Übersicht) —
+  // vorher wurde hier immer nur die zuletzt aktualisierte Architektur gelesen,
+  // wodurch "auf primär setzen" ohne jede Wirkung auf diese Seite blieb.
+  type ArchResultRow = { result: { keyDecisions?: { de: string; en: string }[] } }
+  let latestArch: ArchResultRow | null = null
+  if (prefs?.primary_architecture_id) {
+    const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
+      .eq('id', prefs.primary_architecture_id).maybeSingle() as { data: ArchResultRow | null }
+    latestArch = data
+  }
+  if (!latestArch) {
+    const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
+      .order('updated_at', { ascending: false }).limit(1).maybeSingle() as { data: ArchResultRow | null }
+    latestArch = data
+  }
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
   const tier = (profileData?.tier ?? 'free') as Tier
