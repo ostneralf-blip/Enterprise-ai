@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { invalidateSettingsCache } from '@/lib/app-settings'
+import { invalidateSettingsCache, unwrapJsonString } from '@/lib/app-settings'
 import { z } from 'zod'
 
 const ALLOWED_KEYS = ['ai_limit_free', 'ai_limit_pro', 'ai_limit_enterprise', 'stripe_grace_period_days', 'ai_direct_fallback', 'ai_model_bedrock_haiku', 'ai_model_bedrock_sonnet', 'ai_model_direct_fallback'] as const
@@ -57,7 +57,13 @@ export async function GET() {
     const k = row.key as SettingKey
     if (!ALLOWED_KEYS.includes(k)) continue
     if (STRING_KEYS.has(k)) {
-      (result as unknown as Record<string, string>)[k] = row.value ?? ''
+      // value-Spalte enthält JSON-kodierten Text (siehe getStringSetting) —
+      // ungeparst zeigte das Admin-Panel bisher die rohen Anführungszeichen
+      // an, was bei erneutem Speichern zu doppelt kodierten, für Bedrock
+      // ungültigen Modell-IDs führte (#Bedrock-ValidationException-Bug).
+      let parsed: unknown = row.value
+      try { parsed = unwrapJsonString(JSON.parse(row.value)) } catch { /* Rohwert als Fallback behalten */ }
+      (result as unknown as Record<string, string>)[k] = typeof parsed === 'string' ? parsed : (row.value ?? '')
     } else {
       (result as unknown as Record<string, number>)[k] = Number(row.value)
     }

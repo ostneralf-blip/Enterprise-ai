@@ -49,13 +49,33 @@ export function invalidateSettingsCache() {
 
 const _strCache = new Map<string, string>()
 
+// Entfernt beliebig viele überflüssige JSON-Kodierungsebenen (z.B. wenn ein
+// bereits kodierter Anzeige-Wert versehentlich erneut gespeichert und dabei
+// nochmal JSON.stringify'd wurde — siehe #Bedrock-ValidationException-Bug
+// vom 18.07.: "eu.anthropic...v1:0" wurde zu "\"eu.anthropic...v1:0\"" und
+// war damit als Model-ID für AWS ungültig). Bricht ab, sobald der Wert kein
+// weiteres JSON-String-Literal mehr ist.
+export function unwrapJsonString(raw: unknown, maxDepth = 5): unknown {
+  let value = raw
+  for (let i = 0; i < maxDepth && typeof value === 'string'; i++) {
+    const trimmed = value.trim()
+    if (trimmed.length < 2 || trimmed[0] !== '"' || trimmed[trimmed.length - 1] !== '"') break
+    try {
+      value = JSON.parse(trimmed)
+    } catch {
+      break
+    }
+  }
+  return value
+}
+
 async function getStringSetting(key: string, fallback: string): Promise<string> {
   if (_strCache.has(key)) return _strCache.get(key)!
   try {
     const supabase = await createAdminClient()
     const { data } = await supabase.from('app_settings').select('value').eq('key', key).maybeSingle()
     // value-Spalte ist JSON → JSON.parse liefert den Rohwert (string, number, …)
-    const parsed = data?.value != null ? JSON.parse(data.value) : null
+    const parsed = data?.value != null ? unwrapJsonString(JSON.parse(data.value)) : null
     const result = typeof parsed === 'string' && parsed.trim() ? parsed.trim() : fallback
     _strCache.set(key, result)
     return result
