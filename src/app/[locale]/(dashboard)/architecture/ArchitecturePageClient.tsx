@@ -1043,14 +1043,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     try {
       const dateStr = new Date().toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
       const title = `${result.pattern} — ${dateStr}`
-      const res = await fetch('/api/architecture', {
-        method: 'POST',
+      const payload = { title, wizard_data: answers, result: { ...result, rasic: rasic ?? result.rasic, selectedComponents: [...activeComponentNames], componentSources, componentOwners, componentOpsNotes } }
+      // Bereits gespeicherte Architektur aktualisieren (PATCH) statt bei jedem
+      // "Speichern"-Klick einen neuen Datensatz anzulegen (POST) — sonst landen
+      // KI-Analyse-Ergebnisse (an die ursprüngliche savedId gebunden) an einem
+      // Duplikat, das die Liste danach nie mehr öffnet.
+      const [url, method] = savedId ? [`/api/architecture/${savedId}`, 'PATCH'] : ['/api/architecture', 'POST']
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, wizard_data: answers, result: { ...result, rasic: rasic ?? result.rasic, selectedComponents: [...activeComponentNames], componentSources, componentOwners, componentOpsNotes } }),
+        body: JSON.stringify(payload),
       })
       if (res.ok) {
         const { data } = await res.json()
-        setArchitectures(prev => [data, ...prev])
+        setArchitectures(prev => savedId ? prev.map(a => a.id === data.id ? data : a) : [data, ...prev])
         setSaved(true)
         setSavedId(data.id)
         clearDraft('architecture', data.id)
