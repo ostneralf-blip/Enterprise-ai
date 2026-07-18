@@ -3,10 +3,27 @@ import type { Metadata } from 'next'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en/agb` : `${BASE}/agb`
   return {
     title: 'Allgemeine Geschäftsbedingungen',
-    alternates: { canonical: `${BASE}/agb` },
+    description: isEn
+      ? 'Terms and conditions for using AI Navigator (German-language contract terms).'
+      : 'Allgemeine Geschäftsbedingungen für die Nutzung des AI Navigator.',
+    alternates: {
+      canonical,
+      languages: {
+        de: `${BASE}/agb`,
+        en: `${BASE}/en/agb`,
+        'x-default': `${BASE}/agb`,
+      },
+    },
   }
 }
 

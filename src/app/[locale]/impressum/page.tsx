@@ -3,16 +3,46 @@ import type { Metadata } from 'next'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const isEn = locale === 'en'
+  const canonical = isEn ? `${BASE}/en/impressum` : `${BASE}/impressum`
   return {
     title: 'Impressum',
-    alternates: { canonical: `${BASE}/impressum` },
+    description: isEn
+      ? 'Legal notice (Impressum) for the AI Navigator enterprise AI platform under German law (§ 5 DDG).'
+      : 'Impressum der AI Navigator Enterprise-AI-Plattform gemäß § 5 DDG.',
+    alternates: {
+      canonical,
+      languages: {
+        de: `${BASE}/impressum`,
+        en: `${BASE}/en/impressum`,
+        'x-default': `${BASE}/impressum`,
+      },
+    },
   }
+}
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Daniel Ostner',
+  jobTitle: 'Inhaber, AI Navigator · Autor, Enterprise AI Leitfaden',
+  url: `${BASE}/impressum`,
 }
 
 export default function ImpressumPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <div className="max-w-2xl mx-auto px-4 py-12">
         <Link href="/" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">
           ← Zurück
