@@ -1,0 +1,1 @@
+export const CANVAS_P3 = 'aP5UlFAH/9k='
