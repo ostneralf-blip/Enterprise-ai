@@ -96,6 +96,26 @@ function classifyBedrockError(err: unknown): string {
   return 'UnknownError'
 }
 
+// Bug (aufgefallen 18.07.2026 im Canvas-Modul): die bisherige Extraktion
+// (/\{[\s\S]*\}/) griff nur den ersten "{" bis zum letzten "}" — bei Prompts,
+// die explizit ein JSON-ARRAY anfordern (z. B. classify-terms:
+// "Return ONLY a JSON array: [{...}]"), wurde damit nur der erste bis letzte
+// Objekt-Body OHNE die umschließenden "[" "]" extrahiert. Bei mehr als einem
+// Array-Element ergab das mehrere durch Komma getrennte Objekte auf oberster
+// Ebene — kein valides JSON mehr ("Unexpected non-whitespace character after
+// JSON"). Jetzt wird das zuerst auftretende Klammerpaar (Objekt ODER Array)
+// erkannt und bis zur letzten passenden Schlussklammer extrahiert.
+function extractJson(content: string): string | null {
+  const firstBrace   = content.indexOf('{')
+  const firstBracket = content.indexOf('[')
+  if (firstBrace === -1 && firstBracket === -1) return null
+  const arrayFirst = firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)
+  const start = arrayFirst ? firstBracket : firstBrace
+  const end   = content.lastIndexOf(arrayFirst ? ']' : '}')
+  if (end === -1 || end < start) return null
+  return content.slice(start, end + 1)
+}
+
 export async function callLLM<T>(
   userPrompt: string,
   schema: z.ZodType<T>,
@@ -181,13 +201,13 @@ export async function callLLM<T>(
         const text     = new TextDecoder().decode(res.body)
         const raw      = JSON.parse(text)
         const content  = raw?.content?.[0]?.text ?? ''
-        const jsonMatch = content.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) {
+        const jsonStr = extractJson(content)
+        if (!jsonStr) {
           console.error('[ai/client] Bedrock: kein JSON in Antwort gefunden', { module: moduleName, content: content.slice(0, 300) })
           return noData('bedrock', 'NO_JSON')
         }
 
-        const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
+        const parsed = schema.safeParse(JSON.parse(jsonStr))
         if (!parsed.success) {
           // path.join(): verschachtelte Arrays werden von Node/Vercels Log-Viewer
           // sonst ab einer gewissen Tiefe zu "[Array]" zusammengeklappt.
@@ -282,12 +302,12 @@ export async function callLLM<T>(
     const json     = await res.json()
     const content  = json?.content?.[0]?.text ?? ''
     const promptCachedTokens = (json?.usage?.cache_read_input_tokens as number | undefined) ?? 0
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
+    const jsonStr = extractJson(content)
+    if (!jsonStr) {
       console.error('[ai/client] Anthropic: kein JSON in Antwort gefunden', content.slice(0, 200))
       return noData('direct', 'NO_JSON')
     }
-    const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
+    const parsed = schema.safeParse(JSON.parse(jsonStr))
     if (!parsed.success) {
       console.error('[ai/client] Anthropic: Zod-Parse fehlgeschlagen', parsed.error.issues)
       return noData('direct', 'ZOD_PARSE')
