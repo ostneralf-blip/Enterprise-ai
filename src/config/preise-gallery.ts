@@ -1,13 +1,13 @@
 import type { Bi } from '@/config/leitfaden-data'
-import { DASHBOARD_B64 } from '@/config/gallery/dashboard'
-import { CANVAS_B64 } from '@/config/gallery/canvas'
-import { COMPLIANCE_B64 } from '@/config/gallery/compliance'
-import { COMPLIANCELAWS_B64 } from '@/config/gallery/complianceLaws'
-import { KNOWLEDGE_B64 } from '@/config/gallery/knowledge'
-import { ARCHITEKTUR_B64 } from '@/config/gallery/architektur'
-import { ARCHCOMPARE_B64 } from '@/config/gallery/archCompare'
-import { SCENARIO_B64 } from '@/config/gallery/scenario'
-import { CATALOG_B64 } from '@/config/gallery/catalog'
+import dashboardImg from '@/config/gallery/dashboard.jpg'
+import canvasImg from '@/config/gallery/canvas.jpg'
+import complianceImg from '@/config/gallery/compliance.jpg'
+import complianceLawsImg from '@/config/gallery/complianceLaws.jpg'
+import knowledgeImg from '@/config/gallery/knowledge.jpg'
+import architekturImg from '@/config/gallery/architektur.jpg'
+import archCompareImg from '@/config/gallery/archCompare.jpg'
+import scenarioImg from '@/config/gallery/scenario.jpg'
+import catalogImg from '@/config/gallery/catalog.jpg'
 
 export type GalleryImage = {
   key: string
@@ -21,7 +21,7 @@ export type GalleryImage = {
 export const PREISE_GALLERY: GalleryImage[] = [
   {
     key: 'dashboard',
-    src: DASHBOARD_B64,
+    src: dashboardImg.src,
     alt: { de: 'AI Navigator Dashboard', en: 'AI Navigator dashboard' },
     caption: {
       de: 'Ihr persönliches Dashboard: Fortschritt, AI-Profil und Use-Case-Portfolio auf einen Blick',
@@ -31,7 +31,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'canvas',
-    src: CANVAS_B64,
+    src: canvasImg.src,
     alt: { de: 'AI Use-Case Canvas', en: 'AI Use-Case Canvas' },
     caption: {
       de: 'AI Use-Case Canvas – Anwendungsfälle strukturiert erfassen und bewerten',
@@ -41,7 +41,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'compliance',
-    src: COMPLIANCE_B64,
+    src: complianceImg.src,
     alt: { de: 'Compliance Center Zusammenfassung', en: 'Compliance Center summary' },
     caption: {
       de: 'Compliance Center – Zusammenfassung aller relevanten Regularien',
@@ -51,7 +51,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'complianceLaws',
-    src: COMPLIANCELAWS_B64,
+    src: complianceLawsImg.src,
     alt: { de: 'Compliance Center weitere Gesetze', en: 'Compliance Center additional laws' },
     caption: {
       de: 'Compliance Center – weitere Gesetze wie ISO 42001, NIS-2, ISO 27001, BAIT und LkSG',
@@ -61,7 +61,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'knowledge',
-    src: KNOWLEDGE_B64,
+    src: knowledgeImg.src,
     alt: { de: 'Wissensbasis', en: 'Knowledge base' },
     caption: {
       de: 'Wissensbasis – Ihre Dokumente und Quellen zentral verwaltet',
@@ -71,7 +71,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'architektur',
-    src: ARCHITEKTUR_B64,
+    src: architekturImg.src,
     alt: { de: 'Architektur-Generator', en: 'Architecture generator' },
     caption: {
       de: 'Architektur-Generator mit KI-gestützter Analyse',
@@ -81,7 +81,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'archCompare',
-    src: ARCHCOMPARE_B64,
+    src: archCompareImg.src,
     alt: { de: 'Architekturvergleich', en: 'Architecture comparison' },
     caption: {
       de: 'Zwei Architekturen direkt gegenüberstellen',
@@ -91,7 +91,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'scenario',
-    src: SCENARIO_B64,
+    src: scenarioImg.src,
     alt: { de: 'Szenario-Vergleich', en: 'Scenario comparison' },
     caption: {
       de: 'Szenario-Vergleich für Compliance-Entscheidungen',
@@ -101,7 +101,7 @@ export const PREISE_GALLERY: GalleryImage[] = [
   },
   {
     key: 'catalog',
-    src: CATALOG_B64,
+    src: catalogImg.src,
     alt: { de: 'Technical Architecture Workbench Katalog', en: 'Technical Architecture Workbench catalog' },
     caption: {
       de: 'Technical Architecture Workbench – Katalog verfügbarer Bausteine',
