@@ -1772,6 +1772,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               const next = new Set(activeComponentNames)
               next.delete(name)
               setActiveComponentNames(next)
+              // Aus aiAccepted entfernen, sonst bleibt die Komponente im Panel als
+              // "Übernommen" hängen, obwohl sie gerade aus der aktiven Auswahl entfernt
+              // wurde (Bug-Report 18.07.2026: übernommene KI-Vorschläge ließen sich
+              // nicht mehr entfernen).
+              setAiAccepted(prev => prev.filter(n => n !== name))
               // Konflikt-Lösung sofort persistieren, wenn bereits gespeichert — sonst
               // geht sie beim Verlassen der Seite (z. B. Wechsel zu Roadmap und zurück)
               // wortlos verloren, weil der Reload wieder von der zuletzt gespeicherten,

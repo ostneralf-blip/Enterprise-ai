@@ -815,6 +815,7 @@
       "aiPanelReject": "Dismiss",
       "aiPanelNoSuggestions": "No further suggestions",
       "aiPanelAccepted": "Accepted",
+      "aiPanelRemoveAccepted": "Remove",
       "aiPanelLimitReached": "Daily limit reached",
       "aiPanelProChip": "Pro",
       "aiPanelAcceptAll": "Accept all",

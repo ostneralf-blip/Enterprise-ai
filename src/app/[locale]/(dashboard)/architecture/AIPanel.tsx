@@ -217,7 +217,18 @@ export function AIPanel({
                       {comp?.category && <p className="text-[10px] text-slate-400">{comp.category}</p>}
                     </div>
                     {isAccepted ? (
-                      <span className="text-[10px] font-semibold text-emerald-600 shrink-0">{t('architecture.aiPanelAccepted')}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[10px] font-semibold text-emerald-600">{t('architecture.aiPanelAccepted')}</span>
+                        {onRemoveComponent && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveComponent(name)}
+                            className="text-[10px] font-semibold text-slate-400 border border-slate-200 rounded-lg px-2 py-1 hover:bg-slate-50 hover:text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                          >
+                            {t('architecture.aiPanelRemoveAccepted')}
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex gap-1.5 shrink-0">
                         <button

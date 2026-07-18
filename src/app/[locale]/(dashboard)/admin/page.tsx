@@ -21,6 +21,30 @@ export default async function AdminPage() {
 
   // Service-role client bypasses RLS to load all user profiles
   const adminClient = await createAdminClient()
+
+  // PostgREST kappt jede Antwort hart bei api.max_rows=1000 (supabase/config.toml),
+  // der Katalog liegt aber inzwischen bei >1400 aktiven Einträgen — ein einfaches
+  // .select() (früher zusätzlich mit .limit(100) verschärft) ließ Einträge aus dem
+  // zuletzt sortierten Bereich (u.a. den Layer 'application', SAP-Joule-Komponenten)
+  // in der Admin-Katalogliste komplett verschwinden. Analog zu /api/catalog/components
+  // seitenweise paginieren, bis eine Seite < PAGE_SIZE liefert.
+  const CATALOG_PAGE_SIZE = 1000
+  async function fetchAllComponents() {
+    const rows: CatalogComponent[] = []
+    for (let page = 0; ; page++) {
+      const from = page * CATALOG_PAGE_SIZE
+      const { data } = await adminClient
+        .from('component_catalog')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true })
+        .range(from, from + CATALOG_PAGE_SIZE - 1)
+      rows.push(...((data ?? []) as CatalogComponent[]))
+      if (!data || data.length < CATALOG_PAGE_SIZE) break
+    }
+    return { data: rows }
+  }
+
   const [{ data: entries }, { data: users }, { data: components }, { count: componentCount }, { data: sources }, { data: uploadLog }, { data: drafts }, { data: snapshots }, { data: policyTemplates }] = await Promise.all([
     adminClient
       .from('content_library')
@@ -31,12 +55,7 @@ export default async function AdminPage() {
       .from('profiles')
       .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, stripe_customer_id, subscription_status, subscription_period_end, created_at')
       .order('created_at', { ascending: false }),
-    adminClient
-      .from('component_catalog')
-      .select('*')
-      .eq('is_active', true)
-      .order('name', { ascending: true })
-      .limit(100),
+    fetchAllComponents(),
     adminClient
       .from('component_catalog')
       .select('*', { count: 'exact', head: true })

@@ -42,6 +42,29 @@ export function TechnicalArchitectureOptimisation({
   const conflicts = findConflicts(effective, byName)
   const openSuggestions = aiSuggestions.filter(s => !effective.has(s))
 
+  // Bug-Report 18.07.2026: aktive Komponenten, die nicht Teil der ursprünglich
+  // berechneten catalogRecs.layers sind (z. B. per KI "Übernehmen" nachträglich
+  // hinzugefügt, oder aus einer gespeicherten Auswahl geladen, deren Empfehlung
+  // sich seither geändert hat), wurden hier nirgendwo gerendert — dadurch weder
+  // sichtbar noch abwählbar, obwohl sie in effective/effective.size mitzählten.
+  // Layer-Buckets deshalb um alle aktiven Komponenten ergänzen, die per
+  // architecture_layer einer Sektion zuzuordnen sind, statt strikt bei den
+  // ursprünglichen Empfehlungs-Buckets zu bleiben.
+  const mergedLayers: { layer: string; componentNames: string[] }[] =
+    catalogRecs.layers.map(lr => ({ layer: lr.layer, componentNames: [...lr.componentNames] }))
+  const layerIndex = new Map(mergedLayers.map((lr, i) => [lr.layer, i]))
+  for (const name of effective) {
+    const comp = byName[name]
+    if (!comp?.architecture_layer) continue
+    const idx = layerIndex.get(comp.architecture_layer)
+    if (idx === undefined) {
+      layerIndex.set(comp.architecture_layer, mergedLayers.length)
+      mergedLayers.push({ layer: comp.architecture_layer, componentNames: [name] })
+    } else if (!mergedLayers[idx].componentNames.includes(name)) {
+      mergedLayers[idx].componentNames.push(name)
+    }
+  }
+
   const hasIssues = conflicts.length > 0 || openSuggestions.length > 0
 
   const layerLabel = (layer: string): string => ({
@@ -63,7 +86,7 @@ export function TechnicalArchitectureOptimisation({
   const content = (
         <div className={cn('space-y-4', !embedded && 'border-t border-slate-100 px-4 py-4')}>
           {/* Layer blocks */}
-          {catalogRecs.layers.map(layer => {
+          {mergedLayers.map(layer => {
             const layerComps = layer.componentNames.map(n => byName[n]).filter(Boolean)
             const selectedInLayer = layerComps.filter(c => effective.has(c.name)).length
             return (
