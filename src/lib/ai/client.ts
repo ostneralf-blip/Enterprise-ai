@@ -171,7 +171,10 @@ export async function callLLM<T>(
 
     const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
     if (!parsed.success) {
-      console.error('[ai/client] Bedrock: Zod-Parse fehlgeschlagen', { module, issues: parsed.error.issues })
+      // path.join(): verschachtelte Arrays werden von Node/Vercels Log-Viewer
+      // sonst ab einer gewissen Tiefe zu "[Array]" zusammengeklappt.
+      const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`)
+      console.error('[ai/client] Bedrock: Zod-Parse fehlgeschlagen', module, issues)
       return noData('bedrock', 'ZOD_PARSE')
     }
 
