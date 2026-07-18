@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import { PRICING_GROUPS, type Bi, type PricingRow } from '@/config/leitfaden-data'
 import { TIER_CONFIG } from '@/config/tiers'
 import { PublicNav } from '@/components/shared/PublicNav'
-import { PREISE_SCREENSHOTS } from '@/config/preise-images'
+import { PREISE_GALLERY } from '@/config/preise-gallery'
+import { ProductGallery } from '@/components/shared/ProductGallery'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -119,30 +120,9 @@ export default async function PreisePage({
           {isEn ? 'A look inside AI Navigator' : 'Ein Blick in den AI Navigator'}
         </h2>
         <p className="text-center text-sm text-slate-500 mb-8">
-          {isEn ? 'Click any screenshot to open it full-size' : 'Screenshot anklicken, um es in voller Größe zu öffnen'}
+          {isEn ? 'Click any screenshot to enlarge it' : 'Screenshot anklicken, um es zu vergrößern'}
         </p>
-        <div className="grid sm:grid-cols-3 gap-6">
-          {Object.values(PREISE_SCREENSHOTS).map((shot) => (
-            <div key={shot.src} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-              <a
-                href={shot.src}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block cursor-zoom-in group relative"
-                aria-label={isEn ? 'Open full-size image' : 'Bild in voller Größe öffnen'}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={shot.src} alt={p(shot.alt)} className="w-full h-auto block transition-transform duration-200 group-hover:scale-[1.03]" width={620} height={309} loading="lazy" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 text-slate-800 text-xs font-medium px-3 py-1.5 rounded-full shadow">
-                    {isEn ? 'View full size ↗' : 'Vollbild ansehen ↗'}
-                  </span>
-                </div>
-              </a>
-              <p className="text-center text-sm font-medium text-slate-700 py-3">{p(shot.label)}</p>
-            </div>
-          ))}
-        </div>
+        <ProductGallery images={PREISE_GALLERY} locale={locale} />
       </div>
 
       {/* Feature comparison */}
