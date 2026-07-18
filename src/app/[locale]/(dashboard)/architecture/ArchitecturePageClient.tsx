@@ -1133,6 +1133,18 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       setComponentSources(prev => ({ ...prev, [name]: 'ai' as const }))
       setAiAccepted(prev => prev.includes(name) ? prev : [...prev, name])
       setResult(prev => prev ? { ...prev, rejected_suggestions: rejected.filter(n => n !== name) } : prev)
+      // Bug-Report 18.07.2026: obiges mutiert nur die Fallback-Empfehlungsliste
+      // (catalogRecs), die laut getSelectionStats bei einer bereits gespeicherten
+      // Architektur ignoriert wird (activeComponentNames hat Vorrang, sobald
+      // nicht leer). Der Vorschlag wurde dadurch nur optisch als "Übernommen"
+      // markiert, tauchte nie in der Landkarte auf und kam nach jedem erneuten
+      // Öffnen zurück, weil er nie in die aktive Auswahl gelangte oder gespeichert
+      // wurde. Analog zu onRemoveComponent hier ebenfalls in activeComponentNames
+      // aufnehmen und bei bereits gespeicherter Architektur sofort persistieren.
+      const next = new Set(activeComponentNames)
+      next.add(name)
+      setActiveComponentNames(next)
+      if (saved) void handleSave(next)
     }
     const handleReject = (name: string) => {
       setResult(prev => prev ? { ...prev, rejected_suggestions: [...(prev.rejected_suggestions ?? []), name] } : prev)
@@ -1159,6 +1171,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       })
       if (toAccept.length > 0) setAiAccepted(prev => [...prev, ...toAccept.filter(n => !prev.includes(n))])
       setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
+      if (toAccept.length > 0) {
+        const next = new Set(activeComponentNames)
+        toAccept.forEach(n => next.add(n))
+        setActiveComponentNames(next)
+        if (saved) void handleSave(next)
+      }
     }
     // Gate D (#182): EINE Selektor-Instanz für den gesamten Ergebnis-Screen —
     // Validierung, Workbench, Panel, Landkarte und DSGVO-Warnung lesen dieselbe Quelle.
