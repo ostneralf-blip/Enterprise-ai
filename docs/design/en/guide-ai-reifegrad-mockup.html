@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which AI Archetype Is Your Company — Starter, Scaler, or Transformer? — AI Navigator Guide</title>
+<link rel="canonical" href="https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer">
+<link rel="alternate" hreflang="de" href="https://enterprise-ai.biz/de/leitfaden/ai-reifegrad-starter-scaler-transformer">
+<link rel="alternate" hreflang="en" href="https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer">
+<link rel="alternate" hreflang="x-default" href="https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDFDFB; --soft:#F4F6F8; --ink:#0F1B2D; --muted:#5B6B7E;
+    --primary:#2563EB; --primary-soft:#EAF1FE; --ai:#7C3AED; --ai-soft:#F3EEFC;
+    --line:#E3E8EE; --sap:#FFF7E6;
+    --serif:'Lora',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',monospace;
+  }
+  *{margin:0;box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  .col{max-width:720px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
+  header{border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+  .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;text-decoration:none;color:var(--ink)}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:15px}
+  nav{display:flex;gap:28px}
+  nav a{color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
+  nav a:hover{color:var(--primary)}
+  .btn{display:inline-block;padding:12px 22px;border-radius:12px;font-size:14.5px;font-weight:500;text-decoration:none;transition:.15s;border:none;cursor:pointer}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  @media(max-width:760px){nav{display:none}}
+
+  .crumb{padding:14px 0;font-size:13px;color:var(--muted)}
+  .crumb a{text-decoration:none;color:var(--muted)}
+  .crumb a:hover{color:var(--primary)}
+  .crumb span{margin:0 6px;color:#C6CFDA}
+
+  .hero{padding:56px 0 40px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,42px);line-height:1.22;margin:20px auto 0;max-width:760px}
+
+  .answer-band{background:var(--soft);padding:40px 0}
+  .answer-band .tag{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;text-align:center;margin-bottom:12px}
+  .answer-band p{font-size:17px;line-height:1.65;color:var(--ink);max-width:680px;margin:0 auto;text-align:center}
+
+  article{padding:56px 0}
+  article h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:44px 0 14px;line-height:1.3}
+  article h2:first-child{margin-top:0}
+  article p.lead{font-size:16px;line-height:1.7;color:var(--ink);margin:0 0 14px}
+  article p.body{font-size:15.5px;line-height:1.75;color:var(--muted);margin:0 0 16px}
+  article p.body strong, article p.lead strong{color:var(--ink);font-weight:500}
+
+  .arch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 4px}
+  @media(max-width:700px){.arch-grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;transition:.15s}
+  .card:hover{border-color:var(--primary);box-shadow:0 8px 30px rgba(37,99,235,.08);transform:translateY(-2px)}
+  .card.is-relevant{background:var(--primary-soft);border-color:#CFE0FC}
+  .card .lvl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .card h3{font-family:var(--serif);font-size:15.5px;font-weight:600;margin-bottom:6px;line-height:1.35}
+  .card p{font-size:13px;line-height:1.55;color:var(--muted)}
+  .card .qw{display:block;margin-top:10px;font-size:11.5px;font-family:var(--mono);color:var(--primary)}
+
+  .fact-list{margin:8px 0 4px}
+  .f-item{display:grid;grid-template-columns:110px 1fr;gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+  .f-item:first-child{border-top:none}
+  .f-stat{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink)}
+  .f-body p{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+  .pattern-box{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:28px 0}
+  .pattern-box .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+  .pattern-box p{font-size:14.5px;line-height:1.65;color:var(--ink)}
+
+  .glossary-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 4px}
+  .gchip{font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 13px;text-decoration:none;color:var(--muted);font-family:var(--mono)}
+  .gchip:hover{border-color:var(--primary);color:var(--primary)}
+
+  .cta-band{background:var(--ink);color:#FAFAF6;padding:56px 0;text-align:center}
+  .cta-band h2{font-family:var(--serif);font-size:26px;font-weight:600;max-width:600px;margin:0 auto}
+  .cta-band p{font-size:15px;color:#C6CFDA;max-width:480px;margin:14px auto 26px;line-height:1.6}
+
+  .faq{padding:64px 0}
+  .faq h2{font-family:var(--serif);font-size:28px;font-weight:600;text-align:center;margin-bottom:0}
+  .faq-list{max-width:720px;margin:32px auto 0;display:flex;flex-direction:column;gap:10px}
+  details{background:var(--soft);border-radius:12px;padding:0 22px}
+  details[open]{background:#fff;border:1px solid var(--line)}
+  summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-weight:500;font-size:15px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:19px;font-weight:400}
+  details[open] summary::after{content:'–'}
+  details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+  .author-box{display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .author-box .pic{width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--ink);display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:17px;flex-shrink:0}
+  .author-box h4{font-size:15px;font-weight:600}
+  .author-box .role{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .author-box p{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .author-box a{color:var(--primary);font-weight:500;text-decoration:none;font-size:13px}
+
+  .related{background:var(--soft);padding:56px 0}
+  .related h2{font-family:var(--serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:28px}
+  .rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .rcards a{text-decoration:none;color:var(--ink)}
+  .rcards .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  footer{background:var(--soft);border-top:1px solid var(--line);padding:26px 0}
+  .ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+  .ft a{color:var(--muted);text-decoration:none;margin-left:20px}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hd">
+  <a class="logo" href="startseite-mockup.html"><div class="mark">N</div>AI Navigator</a>
+  <nav><a href="guide-hub-mockup.html">Guide</a><a href="startseite-mockup.html#tools">Tools</a><a href="startseite-mockup.html#buch">The Book</a><a href="preise-mockup.html">Pricing</a></nav>
+  <a class="btn btn-primary" href="preise-mockup.html">Start for free</a>
+</div></header>
+
+<div class="wrap crumb">
+  <a href="startseite-mockup.html">Home</a><span>/</span><a href="guide-hub-mockup.html">Guide</a><span>/</span>AI Maturity
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="eyebrow">Guide · Readiness</div>
+  <h1>Which AI Archetype Is Your Company — Starter, Scaler, or Transformer?</h1>
+</div></section>
+
+<section class="answer-band"><div class="wrap">
+  <span class="tag">Short answer</span>
+  <p>Three archetypes sum up AI maturity: <strong>AI Starter</strong> (no production use case), <strong>AI Scaler</strong> (1–3 use cases, scaling still open) and <strong>AI Transformer</strong> (5+ use cases, strategically differentiating). No archetype is “better” — each has different priorities. The decisive test for Level 3: does the use case still run without its core people?</p>
+</div></section>
+
+<article><div class="col">
+
+  <h2>What actually distinguishes the three archetypes?</h2>
+  <p class="lead">An archetype describes company type and AI maturity in simplified but reliable terms — it helps prioritize recommendations without re-explaining every context. The three types differ mainly in the number of production use cases, data strategy, and governance maturity.</p>
+
+  <div class="arch-grid">
+    <div class="card">
+      <span class="lvl">AI Starter</span>
+      <h3>No production use case</h3>
+      <p>Usually just one PoC in-house. Data sits in silos, there's no AI-specific governance. Main question: where to start, what to prioritize?</p>
+      <span class="qw">Quick win: readiness assessment + 1 use case</span>
+    </div>
+    <div class="card is-relevant">
+      <span class="lvl">AI Scaler</span>
+      <h3>1–3 use cases live</h3>
+      <p>Scaling is still pending. Data strategy is being built, governance is rudimentary and project-based. Main question: how do I scale what I've achieved?</p>
+      <span class="qw">Quick win: PromptOps + use case canvas</span>
+    </div>
+    <div class="card">
+      <span class="lvl">AI Transformer</span>
+      <h3>5+ use cases, enterprise-wide</h3>
+      <p>AI runs in critical processes. A governed data fabric exists, enterprise AI governance is established. Main question: how do I differentiate strategically?</p>
+      <span class="qw">Quick win: agent orchestration</span>
+    </div>
+  </div>
+
+  <h2>How do I assess maturity precisely — beyond the three archetypes?</h2>
+  <p class="lead">Maturity models often fail when Level 3 becomes a catch-all for everything mediocre. The following 5-level model defines each stage through measurable criteria instead of gut feeling — from zero production use cases to strategic differentiation that shows up measurably in EBIT.</p>
+
+  <div class="fact-list">
+    <div class="f-item"><div class="f-stat">L1 · Awareness</div><div class="f-body"><p>No active AI project, AI is being watched, not prioritized. No budget, no owner, no data strategy. Measurable: 0 production use cases, 0 AI roles.</p></div></div>
+    <div class="f-item"><div class="f-stat">L2 · Exploration</div><div class="f-body"><p>A PoC is running or has finished, no production use. Pilots don't scale due to governance gaps — “pilot purgatory.” Measurable: 0–1 use case, data readiness below 30%.</p></div></div>
+    <div class="f-item"><div class="f-stat">L3 · Production</div><div class="f-body"><p>At least 1 use case live, but limited scaling. Sharpening test: does it run without its core people? No means Level 2. Measurable: RACI in place, data-quality KPIs defined.</p></div></div>
+    <div class="f-item"><div class="f-stat">L4 · Scaling</div><div class="f-body"><p>3 or more use cases live, MLOps established, governance works operationally. AI is reproducible, no longer dependent on individuals. Measurable: ROI measurable.</p></div></div>
+    <div class="f-item"><div class="f-stat">L5 · Transformation</div><div class="f-body"><p>AI is no longer a project — it's the operating model. Agents orchestrate end-to-end, data is trustworthy. Measurable: AI as a KPI driver, EBIT impact.</p></div></div>
+  </div>
+
+  <div class="pattern-box">
+    <span class="tag">Anti-pattern</span>
+    <p>Maturity models fail when Level 3 becomes a catch-all for everything mediocre — the sharpening test is simple: does the use case run without its core people? If not, it's Level 2, not Level 3. Just as dangerous is the average score: a company with high infrastructure maturity and low governance maturity has a fundamentally different problem than one at a medium level across all dimensions. Always act on the weakest dimension — not the average.</p>
+  </div>
+
+  <div class="glossary-row">
+    <a class="gchip" href="#">Archetype</a>
+    <a class="gchip" href="#">Pilot Purgatory</a>
+    <a class="gchip" href="#">Gap Analysis</a>
+    <a class="gchip" href="#">RACI</a>
+  </div>
+
+</div></article>
+
+<section class="cta-band"><div class="wrap">
+  <h2>Where does your company actually stand? We'll show you in 10 minutes.</h2>
+  <p>The maturity assessment assigns you an archetype and shows which dimension needs attention first — before you invest in scaling.</p>
+  <a class="btn btn-primary" href="preise-mockup.html">Start maturity assessment →</a>
+</div></section>
+
+<section class="faq"><div class="wrap">
+  <h2>Frequently asked questions</h2>
+  <div class="faq-list">
+    <details open>
+      <summary>Is an AI archetype a value judgment — is Transformer automatically better?</summary>
+      <p>No. Each archetype has different priorities, quick wins, and risks. A Starter trying to act like a Transformer typically fails due to a missing foundation.</p>
+    </details>
+    <details>
+      <summary>How do I know if a use case has really reached Level 3?</summary>
+      <p>By the sharpening test: does it keep running without its core people? If not, it's still Level 2 — a pilot stuck in pilot purgatory.</p>
+    </details>
+    <details>
+      <summary>What's the most common mistake in self-assessing maturity?</summary>
+      <p>Forming an average score across all dimensions. High infrastructure maturity with low governance maturity is a different problem than a medium level everywhere — act on the weakest dimension.</p>
+    </details>
+    <details>
+      <summary>Do I need to develop all six dimensions equally to scale?</summary>
+      <p>No, but the weakest dimension limits overall pace. Scaling to Level 4 requires that no dimension lags critically behind.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap" style="padding-bottom:8px">
+  <div class="col" style="padding:0">
+    <div class="author-box">
+      <div class="pic">DO</div>
+      <div>
+        <h4>Daniel Ostner</h4>
+        <div class="role">Author, „Enterprise AI Leitfaden“ · Developer of AI Navigator</div>
+        <p>This guide is based on Chapters 1 and 2 of the German-language book „Enterprise AI Leitfaden“ (own rights), adapted for the web.</p>
+        <a href="https://www.amazon.de/dp/B0H6GN7LJQ" target="_blank" rel="noopener noreferrer">More about the book →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="related"><div class="wrap">
+  <h2>Keep reading</h2>
+  <div class="rcards">
+    <a class="card" href="guide-warum-scheitern-mockup.html"><div class="n">Guide 01</div><h3>Why Do Most AI Projects Really Fail?</h3></a>
+    <a class="card" href="guide-ai-readiness-mockup.html"><div class="n">Guide 02</div><h3>AI Readiness: The 6 Dimensions in a 10-Minute Quick Scan</h3></a>
+    <a class="card" href="guide-hub-mockup.html"><div class="n">Glossary</div><h3>Archetype, Pilot Purgatory &amp; more terms</h3></a>
+  </div>
+</div></section>
+
+<footer><div class="wrap ft">
+  <div>© 2026 AI Navigator · EU Hosting · GDPR · Cookieless</div>
+  <div><a href="#">Legal Notice</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
+</div></footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":"https://enterprise-ai.biz/en"},
+    {"@type":"ListItem","position":2,"name":"Guide","item":"https://enterprise-ai.biz/en/guide"},
+    {"@type":"ListItem","position":3,"name":"AI Maturity","item":"https://enterprise-ai.biz/en/guide/ai-maturity-starter-scaler-transformer"}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Is an AI archetype a value judgment — is Transformer automatically better?","acceptedAnswer":{"@type":"Answer","text":"No — each archetype has different priorities, quick wins, and risks. A Starter trying to act like a Transformer typically fails due to a missing foundation."}},
+    {"@type":"Question","name":"How do I know if a use case has really reached Level 3?","acceptedAnswer":{"@type":"Answer","text":"By the sharpening test: does it keep running without its core people? If not, it's still Level 2, a pilot stuck in pilot purgatory."}},
+    {"@type":"Question","name":"What's the most common mistake in self-assessing maturity?","acceptedAnswer":{"@type":"Answer","text":"Forming an average score across all dimensions instead of acting on the weakest dimension."}},
+    {"@type":"Question","name":"Do I need to develop all six dimensions equally to scale?","acceptedAnswer":{"@type":"Answer","text":"No, but the weakest dimension limits overall pace. Scaling to Level 4 requires that no dimension lags critically behind."}}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Ostner",
+  "jobTitle": "Author, Enterprise AI Leitfaden",
+  "url": "https://enterprise-ai.biz/de/buch"
+}
+</script>
+
+</body>
+</html>
