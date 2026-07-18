@@ -808,6 +808,7 @@
       "complianceControlRequirement": "Anforderung",
       "complianceControlOwner": "Verantwortlich (R/A)",
       "aiPanelTitle": "KI-Analyse",
+      "aiPanelConflictLabel": "Konflikt",
       "aiPanelUsage": "Analysen heute",
       "aiPanelProvenance": "Modell",
       "aiPanelReanalyze": "Neu analysieren",

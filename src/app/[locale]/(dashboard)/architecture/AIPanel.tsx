@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { AlertBox } from '@/components/shared/AlertBox'
 import type { CatalogComponent } from '@/types'
 import { getSelectionStats } from '@/lib/architecture/selection'
+import { explainConflict } from '@/lib/utils/catalog-compatibility'
 
 interface CanvasEnrichment {
   use_case_type?: string
@@ -18,6 +19,7 @@ interface Props {
   aiModel: string | null
   generatedAt: string | null
   tier: string
+  locale: string
   catalogComponents: CatalogComponent[]
   rejectedSuggestions: string[]
   canvasEnrichment?: CanvasEnrichment | null
@@ -35,7 +37,7 @@ interface Props {
 }
 
 export function AIPanel({
-  narrative, usage, aiModel, generatedAt, tier,
+  narrative, usage, aiModel, generatedAt, tier, locale,
   catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze,
   loading = false,
@@ -45,10 +47,11 @@ export function AIPanel({
   const [reanalyzing, setReanalyzing] = useState(false)
   const isPro = tier === 'pro' || tier === 'enterprise'
   const byName = new Map(catalogComponents.map(c => [c.name, c]))
+  const byNameRecord = Object.fromEntries(byName)
   const accepted = new Set(acceptedSuggestions ?? [])
   // Gate D (#182): Zählen ausschließlich über den zentralen Selektor —
   // Panel-Kopf, Workbench-Header und Validierung lesen dieselbe Quelle.
-  const { visibleSuggestions: suggestions, openSuggestions } = getSelectionStats({
+  const { visibleSuggestions: suggestions, openSuggestions, conflicts } = getSelectionStats({
     activeComponentNames: activeComponentNames ?? new Set<string>(),
     components: catalogComponents,
     aiSuggestions: narrative?.component_suggestions,
@@ -82,6 +85,24 @@ export function AIPanel({
           </span>
         </div>
       </div>
+
+      {/* 1b. Konflikte — ganz oben, wie die Empfehlungen unten aufgelistet */}
+      {conflicts.length > 0 && (
+        <ul className="space-y-1.5">
+          {conflicts.map(c => {
+            const explanation = explainConflict(c.a, c.b, byNameRecord)
+            return (
+              <li key={`${c.a}|${c.b}`} className="flex items-start gap-2 bg-error-subtle border border-error-border rounded-xl px-3 py-2">
+                <span className="text-[10px] text-error-text shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-error-text mb-0.5">{t('architecture.aiPanelConflictLabel')}</p>
+                  <p className="text-xs text-error-text leading-relaxed">{locale === 'en' ? explanation.en : explanation.de}</p>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       {/* 2. Usage-Bar */}
       {usage && (

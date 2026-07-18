@@ -808,6 +808,7 @@
       "complianceControlRequirement": "Requirement",
       "complianceControlOwner": "Responsible (R/A)",
       "aiPanelTitle": "AI Analysis",
+      "aiPanelConflictLabel": "Conflict",
       "aiPanelUsage": "Analyses today",
       "aiPanelProvenance": "Model",
       "aiPanelReanalyze": "Re-analyze",

@@ -1,4 +1,5 @@
 'use client'
+import type { MouseEvent } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
@@ -149,8 +150,20 @@ function NavItem({ href, icon, label, active, locked, onNavigate }: {
   href: string; icon: string; label: string; active: boolean; locked?: boolean; onNavigate?: () => void
 }) {
   const t = useTranslations('common')
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    onNavigate?.()
+    // Next.js navigiert nicht neu, wenn die Ziel-URL mit der aktuellen
+    // übereinstimmt — interner Sicht-State von Modulen mit mehreren Ansichten
+    // (z.B. Architektur: Liste/Wizard/Ergebnis) blieb dadurch beim erneuten
+    // Klick auf den bereits aktiven Menüpunkt hängen. Ein echter Reload
+    // erzwingt den Reset auf die Standardansicht.
+    if (active && !locked) {
+      e.preventDefault()
+      window.location.href = href
+    }
+  }
   return (
-    <Link href={locked ? '/upgrade' : href} onClick={onNavigate}
+    <Link href={locked ? '/upgrade' : href} onClick={handleClick}
       aria-current={active ? 'page' : undefined}
       className={cn(
         'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
