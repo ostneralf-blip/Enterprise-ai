@@ -91,6 +91,14 @@ interface EnrichInput {
   context: Record<string, unknown>
 }
 
+// Bug-Report 18.07.2026 (Daniel): Sonnet lieferte für "Databricks" nur
+// resolved_name + 4 Felder, vendor/description/website_url fehlten KOMPLETT
+// (nicht mal als null) — obwohl bei einem bekannten Hersteller trivial
+// beantwortbar. Ursache: der Prompt beschrieb die Felder nur in Prosa, ohne
+// festes JSON-Schema — das Modell wählte eigene Feldreihenfolge und ließ
+// Felder aus, statt sie explizit auf null zu setzen. Ein konkretes
+// Beispiel-Objekt mit ALLEN Schlüsseln ankert das Modell zuverlässiger
+// (bewährtes Muster für strukturierte LLM-Ausgaben) als reine Prosa-Vorgaben.
 function buildPrompt({ name, module, section, context }: EnrichInput): string {
   return `Ein KI-Assistent in einem Enterprise-AI-Architektur-Tool hat die Komponente "${name}" vorgeschlagen. Sie existiert nicht im bestehenden Komponenten-Katalog.
 
@@ -98,7 +106,22 @@ Kontext des Vorschlags:
 - Modul/Sektion: ${module}${section ? ` / ${section}` : ''}
 - Weitere Details: ${JSON.stringify(context)}
 
-Aufgabe: Identifiziere das GENAU gemeinte, konkrete Produkt bzw. Angebot — nicht nur die Herstellerfirma. Beispiel: "Databricks" ist mehrdeutig (Data Intelligence Platform, Mosaic AI, Unity Catalog, ...) — wähle anhand des Kontexts das wahrscheinlichste konkrete Produkt und nenne es in resolved_name. Liefere anschließend strukturierte Katalog-Metadaten für dieses Produkt: Hersteller, Kategorie, Architektur-Layer, Cloud-Provider, Hosting-Optionen, DSGVO-Status, EU-AI-Act-Risikoklasse, eine kurze deutsche Beschreibung (max. 2 Sätze) und die offizielle Hersteller-Website-URL. Wenn ein Feld nicht zuverlässig bestimmbar ist, liefere null statt zu raten.`
+Aufgabe: Identifiziere das GENAU gemeinte, konkrete Produkt bzw. Angebot — nicht nur die Herstellerfirma. Beispiel: "Databricks" ist mehrdeutig (Data Intelligence Platform, Mosaic AI, Unity Catalog, ...) — wähle anhand des Kontexts das wahrscheinlichste konkrete Produkt und nenne es in resolved_name.
+
+Antworte AUSSCHLIESSLICH mit einem JSON-Objekt in GENAU diesem Format — ALLE zehn Schlüssel müssen vorhanden sein, auch wenn der Wert null ist (kein Schlüssel darf fehlen):
+{
+  "resolved_name": "das konkrete Produkt, z. B. Databricks Data Intelligence Platform",
+  "vendor": "Herstellerfirma, z. B. Databricks — oder null",
+  "category": "kurze Kategorie, z. B. Data Analytics Platform — oder null",
+  "architecture_layer": "einer von data|model|serving|mlops|application|governance|security — oder null",
+  "cloud_provider": "z. B. AWS, Azure, GCP, SAP, Multi-Cloud, independent — oder null",
+  "hosting": ["eu", "us", "onprem", "hybrid"] oder [],
+  "dsgvo_status": "einer von compliant|conditional|non_compliant — oder null",
+  "eu_ai_act_risk": "einer von minimal|limited|high|prohibited — oder null",
+  "description": "1-2 deutsche Sätze Kurzbeschreibung — oder null",
+  "website_url": "https://... offizielle Hersteller-Website — oder null"
+}
+Setze ein Feld nur dann auf null, wenn es für DIESES konkrete Produkt wirklich nicht zuverlässig bestimmbar ist — vendor, category, description und website_url sind bei bekannten Produkten praktisch immer bestimmbar und sollten NICHT null sein.`
 }
 
 export async function enrichCatalogSuggestion(input: EnrichInput): Promise<void> {
@@ -108,7 +131,7 @@ export async function enrichCatalogSuggestion(input: EnrichInput): Promise<void>
 
     const { data } = await callLLM(buildPrompt(input), EnrichmentSchema, {
       model: 'sonnet',
-      maxTokens: 700,
+      maxTokens: 1024,
       timeoutMs: 15000,
       module: 'catalog_enrichment',
     })
