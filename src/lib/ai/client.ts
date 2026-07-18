@@ -96,11 +96,11 @@ export async function callLLM<T>(
   const maxTokens = opts.maxTokens ?? 1024
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
   const t0        = Date.now()
-  const module    = opts.module ?? 'unknown'
+  const moduleName = opts.module ?? 'unknown'
 
   function trackCacheStats(hit: boolean) {
     createAdminClient().then(async sb => {
-      await sb.rpc('increment_cache_stat', { p_module: module, p_hit: hit })
+      await sb.rpc('increment_cache_stat', { p_module: moduleName, p_hit: hit })
     }).catch(() => {})
   }
 
@@ -146,58 +146,71 @@ export async function callLLM<T>(
   if (!hasBedrockCreds || breakerOpen) {
     bedrockErrorCode = hasBedrockCreds ? 'CIRCUIT_OPEN' : 'NO_BEDROCK_CREDS'
     console.info('[ai/client] Bedrock übersprungen:', bedrockErrorCode)
-  } else try {
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), timeoutMs)
+  } else {
+    // Ein Retry speziell bei Timeout: vereinzelte Bedrock-Antworten brauchen
+    // etwas länger als das Timeout-Budget, ohne dass Bedrock selbst ein
+    // Problem hat — ein zweiter Versuch bleibt komplett innerhalb von
+    // Bedrock/EU (keine Compliance-Frage wie beim Non-EU-Direct-Fallback)
+    // und macht parallele Sektions-Calls spürbar stabiler.
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), timeoutMs)
 
-    const command = new InvokeModelCommand({
-      modelId,
-      contentType: 'application/json',
-      accept:      'application/json',
-      body:        Buffer.from(body),
-    })
+        const command = new InvokeModelCommand({
+          modelId,
+          contentType: 'application/json',
+          accept:      'application/json',
+          body:        Buffer.from(body),
+        })
 
-    const res  = await getBedrockClient().send(command, { abortSignal: controller.signal })
-    clearTimeout(timer)
-    _bedrockFailureAt = null // Bedrock erreichbar — Breaker schließen
+        const res  = await getBedrockClient().send(command, { abortSignal: controller.signal })
+        clearTimeout(timer)
+        _bedrockFailureAt = null // Bedrock erreichbar — Breaker schließen
 
-    const text     = new TextDecoder().decode(res.body)
-    const raw      = JSON.parse(text)
-    const content  = raw?.content?.[0]?.text ?? ''
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      console.error('[ai/client] Bedrock: kein JSON in Antwort gefunden', { module, content: content.slice(0, 300) })
-      return noData('bedrock', 'NO_JSON')
+        const text     = new TextDecoder().decode(res.body)
+        const raw      = JSON.parse(text)
+        const content  = raw?.content?.[0]?.text ?? ''
+        const jsonMatch = content.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) {
+          console.error('[ai/client] Bedrock: kein JSON in Antwort gefunden', { module: moduleName, content: content.slice(0, 300) })
+          return noData('bedrock', 'NO_JSON')
+        }
+
+        const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
+        if (!parsed.success) {
+          // path.join(): verschachtelte Arrays werden von Node/Vercels Log-Viewer
+          // sonst ab einer gewissen Tiefe zu "[Array]" zusammengeklappt.
+          const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`)
+          console.error('[ai/client] Bedrock: Zod-Parse fehlgeschlagen', moduleName, issues)
+          return noData('bedrock', 'ZOD_PARSE')
+        }
+
+        // Cache 24h schreiben + Miss verfolgen (fire-and-forget)
+        createAdminClient().then(async sb => {
+          const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
+          await sb.from('ai_prompt_cache').upsert(
+            { cache_key: cacheKey, response: parsed.data, expires_at: expiresAt },
+            { onConflict: 'cache_key' }
+          )
+        }).catch(() => {})
+        trackCacheStats(false)
+
+        return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
+      } catch (err) {
+        bedrockErrorCode = classifyBedrockError(err)
+        if (bedrockErrorCode === 'Timeout' && attempt === 1) {
+          console.warn('[ai/client] Bedrock-Timeout, Retry-Versuch 2/2', moduleName)
+          continue
+        }
+        _bedrockFailureAt = Date.now() // Breaker öffnen — nächste Calls überspringen Bedrock (#180)
+        Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': bedrockErrorCode, region: REGION, attempt } })
+        if (bedrockErrorCode === 'ValidationException') {
+          console.error('[ai/client] ValidationException — wahrscheinlich falsche Model-ID. Env-Var BEDROCK_MODEL_HAIKU/SONNET prüfen. Aktuell:', modelId)
+        }
+        console.error('[ai/client] Bedrock-Fehler:', bedrockErrorCode, err)
+      }
     }
-
-    const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
-    if (!parsed.success) {
-      // path.join(): verschachtelte Arrays werden von Node/Vercels Log-Viewer
-      // sonst ab einer gewissen Tiefe zu "[Array]" zusammengeklappt.
-      const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`)
-      console.error('[ai/client] Bedrock: Zod-Parse fehlgeschlagen', module, issues)
-      return noData('bedrock', 'ZOD_PARSE')
-    }
-
-    // Cache 24h schreiben + Miss verfolgen (fire-and-forget)
-    createAdminClient().then(async sb => {
-      const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
-      await sb.from('ai_prompt_cache').upsert(
-        { cache_key: cacheKey, response: parsed.data, expires_at: expiresAt },
-        { onConflict: 'cache_key' }
-      )
-    }).catch(() => {})
-    trackCacheStats(false)
-
-    return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
-  } catch (err) {
-    _bedrockFailureAt = Date.now() // Breaker öffnen — nächste Calls überspringen Bedrock (#180)
-    bedrockErrorCode = classifyBedrockError(err)
-    Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': bedrockErrorCode, region: REGION } })
-    if (bedrockErrorCode === 'ValidationException') {
-      console.error('[ai/client] ValidationException — wahrscheinlich falsche Model-ID. Env-Var BEDROCK_MODEL_HAIKU/SONNET prüfen. Aktuell:', modelId)
-    }
-    console.error('[ai/client] Bedrock-Fehler:', bedrockErrorCode, err)
   }
 
   // Fallback-Gating — gilt auch für den Skip-Pfad, nicht nur für Bedrock-Exceptions (#180)

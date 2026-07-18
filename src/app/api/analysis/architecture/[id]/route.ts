@@ -89,7 +89,7 @@ export async function POST(
     const { data: wrapped, meta, errorCode } = await callLLM(
       buildSectionBlocks([section]),
       wrapperSchema,
-      { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
+      { model: 'haiku', maxTokens: 2048, timeoutMs: 10000, module: 'architecture', cacheControlPrefix: sharedContext },
     )
     const data = wrapped ? (wrapped as Record<string, unknown>)[section] : null
     return { section, data, meta, errorCode }
