@@ -127,11 +127,20 @@ export function CatalogSuggestionsPanel() {
     setBusyId(s.id)
     try {
       const e = s.enrichment
+      const finalName = e?.resolved_name || s.suggested_name
+      // Bug-Report Daniel (18.07.2026): die KI nennt beim nächsten Wizard-Lauf
+      // oft wieder den kurzen Original-Namen (z. B. "Databricks") statt den
+      // angereicherten (z. B. "Databricks Data Intelligence Platform") — als
+      // Alias mitgeben, damit resolveToKnownName() ihn künftig erkennt statt
+      // erneut als "neuer" Vorschlag zu loggen.
+      const aliases = finalName.trim().toLowerCase() !== s.suggested_name.trim().toLowerCase()
+        ? [s.suggested_name]
+        : undefined
       const createRes = await fetch('/api/admin/catalog/components', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: e?.resolved_name || s.suggested_name,
+          name: finalName,
           vendor: form.vendor || undefined,
           category: form.category || undefined,
           architecture_layer: form.architecture_layer || undefined,
@@ -141,6 +150,7 @@ export function CatalogSuggestionsPanel() {
           dsgvo_status: e?.dsgvo_status ?? undefined,
           eu_ai_act_risk: e?.eu_ai_act_risk ?? undefined,
           website_url: e?.website_url ?? undefined,
+          aliases,
         }),
       })
       if (!createRes.ok) throw new Error()

@@ -21,6 +21,7 @@ const CreateSchema = z.object({
   dsgvo_status:       z.enum(['compliant', 'conditional', 'non_compliant']).optional(),
   eu_ai_act_risk:     z.enum(['minimal', 'limited', 'high', 'prohibited']).optional(),
   website_url:        z.string().max(300).optional(),
+  aliases:            z.array(z.string().min(1).max(100)).max(10).optional(),
 })
 
 export async function POST(request: Request) {
@@ -47,12 +48,27 @@ export async function POST(request: Request) {
   // component_catalog_name_key_unique scheitern (roher 500er). Stattdessen:
   // existierenden aktiven Eintrag finden und zurückgeben, statt zu duplizieren.
   const nameKey = parsed.data.name.toLowerCase().trim()
+  const newAliases = parsed.data.aliases ?? []
+
+  // Fehlende Aliase in einen bestehenden Eintrag nachtragen, statt sie zu
+  // verwerfen — sonst würde derselbe kurze KI-Name (z. B. "Databricks") beim
+  // nächsten Wizard-Lauf erneut nicht erkannt (Bug-Report Daniel, 18.07.2026).
+  async function mergeAliasesInto(component: { id: string; aliases?: string[] | null }) {
+    const existingAliases = component.aliases ?? []
+    const merged = [...new Set([...existingAliases, ...newAliases])]
+    if (merged.length === existingAliases.length) return
+    await supabase.from('component_catalog').update({ aliases: merged, updated_at: new Date().toISOString() }).eq('id', component.id)
+  }
+
   const { data: existing } = await supabase
     .from('component_catalog')
-    .select('id, name, vendor, category, architecture_layer')
+    .select('id, name, vendor, category, architecture_layer, aliases')
     .eq('name_key', nameKey)
     .maybeSingle()
-  if (existing) return NextResponse.json({ data: existing, alreadyExisted: true })
+  if (existing) {
+    if (newAliases.length > 0) await mergeAliasesInto(existing)
+    return NextResponse.json({ data: existing, alreadyExisted: true })
+  }
 
   const { data, error } = await supabase
     .from('component_catalog')
@@ -70,6 +86,7 @@ export async function POST(request: Request) {
       dsgvo_status:       parsed.data.dsgvo_status ?? null,
       eu_ai_act_risk:     parsed.data.eu_ai_act_risk ?? null,
       website_url:        parsed.data.website_url ?? null,
+      aliases:            newAliases,
       source:             'manual',
       is_active:          true,
     })
@@ -83,10 +100,13 @@ export async function POST(request: Request) {
     if (error.code === '23505') {
       const { data: raceExisting } = await supabase
         .from('component_catalog')
-        .select('id, name, vendor, category, architecture_layer')
+        .select('id, name, vendor, category, architecture_layer, aliases')
         .eq('name_key', nameKey)
         .maybeSingle()
-      if (raceExisting) return NextResponse.json({ data: raceExisting, alreadyExisted: true })
+      if (raceExisting) {
+        if (newAliases.length > 0) await mergeAliasesInto(raceExisting)
+        return NextResponse.json({ data: raceExisting, alreadyExisted: true })
+      }
     }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

@@ -131,9 +131,19 @@ export async function POST(
       return names.map(name => ({ section, name }))
     })
   if (suggestionsBySection.length > 0) {
-    const { data: catalogRows } = await supabase.from('component_catalog').select('name').eq('is_active', true)
+    const { data: catalogRows } = await supabase.from('component_catalog').select('name, aliases').eq('is_active', true)
     const known = new Set((catalogRows ?? []).map(c => c.name))
-    const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known) === null)
+    // Bug-Report Daniel (18.07.2026): "Zum Katalog hinzufügen" legt Komponenten
+    // unter ihrem angereicherten Namen an (z. B. "Databricks Data Intelligence
+    // Platform"), während die KI im nächsten Wizard-Lauf oft wieder den kurzen
+    // Namen ("Databricks") nennt — ohne Alias-Abgleich galt das erneut als
+    // unbekannt und die Komponente kam als "neuer" Vorschlag zurück, obwohl
+    // sie längst im Katalog war. aliases wird beim Anlegen entsprechend befüllt.
+    const aliasMap = new Map<string, string>()
+    for (const row of catalogRows ?? []) {
+      for (const alias of row.aliases ?? []) aliasMap.set(alias.toLowerCase().trim(), row.name)
+    }
+    const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known, aliasMap) === null)
     if (unmatched.length > 0) {
       // Bug-Report 18.07.2026: ein unawaiteter ".then()"-Block ohne Bindung an die
       // Response wird von der Serverless-Function eingefroren/beendet, sobald die

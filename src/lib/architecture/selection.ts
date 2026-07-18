@@ -62,10 +62,19 @@ function findByNormalizedName(target: string, known: Set<string>): string | null
   return null
 }
 
-export function resolveToKnownName(raw: string, known: Set<string>): string | null {
+// aliasMap: normalisierter Alias → kanonischer Katalog-Name (Bug-Report
+// Daniel, 18.07.2026): "Zum Katalog hinzufügen" legt Komponenten unter ihrem
+// ANGEREICHERTEN Namen an (z. B. "Databricks Data Intelligence Platform"),
+// während die KI im nächsten Wizard-Lauf oft wieder den kurzen Namen
+// ("Databricks") vorschlägt — ohne Alias-Abgleich galt das dann erneut als
+// "unbekannt" und die Komponente tauchte immer wieder als neuer Vorschlag
+// auf, obwohl sie längst im Katalog war.
+export function resolveToKnownName(raw: string, known: Set<string>, aliasMap?: Map<string, string>): string | null {
   if (known.has(raw)) return raw
   const normalizedMatch = findByNormalizedName(raw, known)
   if (normalizedMatch) return normalizedMatch
+  const aliasHit = aliasMap?.get(norm(raw))
+  if (aliasHit) return aliasHit
 
   let cleaned = raw
   for (const sep of EXPLANATION_SEPARATORS) {
@@ -74,7 +83,19 @@ export function resolveToKnownName(raw: string, known: Set<string>): string | nu
   }
   if (cleaned === raw) return null
   if (known.has(cleaned)) return cleaned
-  return findByNormalizedName(cleaned, known)
+  const cleanedNormalizedMatch = findByNormalizedName(cleaned, known)
+  if (cleanedNormalizedMatch) return cleanedNormalizedMatch
+  return aliasMap?.get(norm(cleaned)) ?? null
+}
+
+function buildAliasMap(components: CatalogComponent[]): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const c of components) {
+    for (const alias of c.aliases ?? []) {
+      map.set(norm(alias), c.name)
+    }
+  }
+  return map
 }
 
 export function getSelectionStats(input: SelectionInput): SelectionStats {
@@ -84,6 +105,7 @@ export function getSelectionStats(input: SelectionInput): SelectionStats {
 
   const activeNormalized = new Set([...effectiveNames].map(norm))
   const known = new Set(input.components.map(c => c.name))
+  const aliasMap = buildAliasMap(input.components)
   const rejected = new Set(input.rejectedSuggestions ?? [])
   const accepted = new Set(input.acceptedSuggestions ?? [])
 
@@ -91,7 +113,7 @@ export function getSelectionStats(input: SelectionInput): SelectionStats {
   // nur bekannte, nicht abgelehnte, nicht bereits aktive Komponenten.
   const resolvedSuggestions = [...new Set(
     (input.aiSuggestions ?? [])
-      .map(n => resolveToKnownName(n, known))
+      .map(n => resolveToKnownName(n, known, aliasMap))
       .filter((n): n is string => n !== null)
   )]
   const visibleSuggestions = resolvedSuggestions.filter(

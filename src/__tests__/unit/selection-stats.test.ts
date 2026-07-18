@@ -35,6 +35,7 @@ const catalog = [
   mkComp({ id: 'b', name: 'Apache Kafka' }),
   mkComp({ id: 'c', name: 'Grafana' }),
   mkComp({ id: 'd', name: 'HashiCorp Vault' }),
+  mkComp({ id: 'e', name: 'Databricks Data Intelligence Platform', aliases: ['Databricks'] }),
 ]
 
 describe('getSelectionStats — Gate D „Eine Zahl, eine Quelle" (#182)', () => {
@@ -128,6 +129,20 @@ describe('getSelectionStats — Gate D „Eine Zahl, eine Quelle" (#182)', () =>
       aiSuggestions: ['grafana', 'APACHE KAFKA', '  HashiCorp Vault  '],
     })
     expect(stats.visibleSuggestions.sort()).toEqual(['Apache Kafka', 'Grafana', 'HashiCorp Vault'])
+  })
+
+  // Regression 18.07.2026: "Zum Katalog hinzufügen" legt Komponenten unter
+  // ihrem angereicherten Namen an (z. B. "Databricks Data Intelligence
+  // Platform"), während die KI im nächsten Wizard-Lauf oft wieder den
+  // kurzen Namen ("Databricks") nennt — ohne Alias-Abgleich landete die
+  // Komponente dann erneut als "neuer" Vorschlag statt als bekannt zu gelten.
+  it('erkennt Katalog-Treffer über aliases, nicht nur über den kanonischen Namen', () => {
+    const stats = getSelectionStats({
+      activeComponentNames: new Set(['MLflow']),
+      components: catalog,
+      aiSuggestions: ['Databricks'],
+    })
+    expect(stats.visibleSuggestions).toEqual(['Databricks Data Intelligence Platform'])
   })
 
   it('verwirft Vorschläge, die auch nach Bereinigung nicht im Katalog stehen', () => {
