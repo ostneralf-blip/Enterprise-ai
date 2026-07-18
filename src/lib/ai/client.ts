@@ -164,10 +164,16 @@ export async function callLLM<T>(
     const raw      = JSON.parse(text)
     const content  = raw?.content?.[0]?.text ?? ''
     const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return noData('bedrock')
+    if (!jsonMatch) {
+      console.error('[ai/client] Bedrock: kein JSON in Antwort gefunden', { module, content: content.slice(0, 300) })
+      return noData('bedrock', 'NO_JSON')
+    }
 
     const parsed = schema.safeParse(JSON.parse(jsonMatch[0]))
-    if (!parsed.success) return noData('bedrock')
+    if (!parsed.success) {
+      console.error('[ai/client] Bedrock: Zod-Parse fehlgeschlagen', { module, issues: parsed.error.issues })
+      return noData('bedrock', 'ZOD_PARSE')
+    }
 
     // Cache 24h schreiben + Miss verfolgen (fire-and-forget)
     createAdminClient().then(async sb => {
