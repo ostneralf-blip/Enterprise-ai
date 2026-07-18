@@ -48,7 +48,7 @@ export async function GET() {
     ai_limit_free: 1, ai_limit_pro: 10, ai_limit_enterprise: 50,
     stripe_grace_period_days: 7, ai_direct_fallback: 0,
     ai_model_bedrock_haiku:   'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
-    ai_model_bedrock_sonnet:  'anthropic.claude-sonnet-4-5-20250929-v1:0',
+    ai_model_bedrock_sonnet:  'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
     ai_model_direct_fallback: 'claude-haiku-4-5-20251001',
   }
   const result = { ...defaults } as AppSettingsData

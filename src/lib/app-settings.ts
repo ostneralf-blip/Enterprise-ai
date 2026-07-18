@@ -91,7 +91,7 @@ export async function getBedrockModelId(model: 'haiku' | 'sonnet'): Promise<stri
       ?? await getStringSetting('ai_model_bedrock_haiku', 'eu.anthropic.claude-haiku-4-5-20251001-v1:0')
   }
   return process.env.BEDROCK_MODEL_SONNET
-    ?? await getStringSetting('ai_model_bedrock_sonnet', 'anthropic.claude-sonnet-4-5-20250929-v1:0')
+    ?? await getStringSetting('ai_model_bedrock_sonnet', 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0')
 }
 
 export async function getDirectFallbackModelId(model: 'haiku' | 'sonnet'): Promise<string> {
