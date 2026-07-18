@@ -82,6 +82,7 @@ function classifyBedrockError(err: unknown): string {
   if (msg.includes('AccessDeniedException') || msg.includes('registration is incomplete')) return 'AccessDeniedException'
   if (msg.includes('ResourceNotFoundException')) return 'ResourceNotFoundException'
   if (msg.includes('UnrecognizedClientException')) return 'UnrecognizedClientException'
+  if (err instanceof Error && err.name === 'AbortError') return 'Timeout'
   return 'UnknownError'
 }
 

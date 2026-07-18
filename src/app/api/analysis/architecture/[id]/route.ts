@@ -69,10 +69,18 @@ export async function POST(
   const sharedContext = buildSharedContext({ components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, assessment_score_pct, locale })
   const sectionBlocks = buildSectionBlocks(sections)
 
+  // Prompt + erwartete Ausgabe wachsen mit der Anzahl angeforderter Sektionen —
+  // ein fixes 8s/2048-Token-Budget (ausreichend für eine einzelne Sektion)
+  // reicht nicht mehr, sobald z. B. alle drei narrative_*-Sektionen in einem
+  // Aufruf generiert werden. 25s Bedrock + 30s Direct-Fallback bleiben klar
+  // unter maxDuration=60.
+  const timeoutMs = Math.min(8000 + 4000 * (sections.length - 1), 25000)
+  const maxTokens = Math.min(2048 + 1200 * (sections.length - 1), 6000)
+
   const { data: rawResult, meta, errorCode } = await callLLM(
     sectionBlocks,
     AnalysisRawSchema,
-    { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
+    { model: 'haiku', maxTokens, timeoutMs, module: 'architecture', cacheControlPrefix: sharedContext },
   )
 
   if (!rawResult) {
