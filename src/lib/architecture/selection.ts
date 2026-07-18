@@ -41,6 +41,22 @@ export interface SelectionStats {
 
 const norm = (n: string) => n.toLowerCase().trim()
 
+// Trotz Prompt-Vorgabe ("nur der bloße Name") hängt das Modell gelegentlich eine
+// Begründung an (z. B. "SAP Analytics Cloud — for business dashboards"). Ein reiner
+// Exact-Match verwirft solche Vorschläge dann komplett lautlos ("No further
+// suggestions", obwohl die KI etwas Sinnvolles vorgeschlagen hat). Vor dem exakten
+// Katalog-Abgleich zusätzlich den Teil vor gängigen Erklärungs-Trennern probieren.
+const EXPLANATION_SEPARATORS = [' — ', ' – ', ' - ', ' (']
+function resolveToKnownName(raw: string, known: Set<string>): string | null {
+  if (known.has(raw)) return raw
+  let cleaned = raw
+  for (const sep of EXPLANATION_SEPARATORS) {
+    const idx = cleaned.indexOf(sep)
+    if (idx > 0) cleaned = cleaned.slice(0, idx).trim()
+  }
+  return cleaned !== raw && known.has(cleaned) ? cleaned : null
+}
+
 export function getSelectionStats(input: SelectionInput): SelectionStats {
   const fallback = new Set(input.fallbackNames ?? [])
   const effectiveNames =
@@ -53,8 +69,13 @@ export function getSelectionStats(input: SelectionInput): SelectionStats {
 
   // Semantik identisch zum bisherigen KI-Panel (#181-Dedupe inklusive):
   // nur bekannte, nicht abgelehnte, nicht bereits aktive Komponenten.
-  const visibleSuggestions = (input.aiSuggestions ?? []).filter(
-    n => known.has(n) && !rejected.has(n) && !activeNormalized.has(norm(n))
+  const resolvedSuggestions = [...new Set(
+    (input.aiSuggestions ?? [])
+      .map(n => resolveToKnownName(n, known))
+      .filter((n): n is string => n !== null)
+  )]
+  const visibleSuggestions = resolvedSuggestions.filter(
+    n => !rejected.has(n) && !activeNormalized.has(norm(n))
   )
   const openSuggestions = visibleSuggestions.filter(n => !accepted.has(n))
 

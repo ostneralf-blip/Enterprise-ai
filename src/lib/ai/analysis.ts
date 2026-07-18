@@ -40,14 +40,14 @@ const SECTION_TASK_BLOCKS: Record<AnalysisSection, string> = {
 Audience: C-level / CFO. Business language only — no technical jargon.
 Summary: 2-3 sentences — what this AI architecture delivers, the key business value, the most critical risk.
 decision_recommendation: 2-3 sentences with pilot gate and concrete abort criterion. Flowing prose.
-component_suggestions: up to 3 additional real platform names not yet in the list (omit if none).
+component_suggestions: up to 3 additional real platform names not yet in the list (omit if none). CRITICAL FORMAT: each array item is the bare product/platform name ONLY — no explanation, no rationale, no " — " or "(...)" suffix appended. Wrong: "Databricks (for distributed feature engineering)". Correct: "Databricks".
 Return key "narrative_exec": {"summary":"...","key_decisions":[{"de":"...","en":"..."}],"next_steps":[{"de":"...","en":"..."}],"decision_recommendation":"...","component_suggestions":[]}`,
 
   narrative_architect: `=== SECTION narrative_architect ===
 Audience: Enterprise Architect / IT Lead. Full technical depth.
 Summary: architecture pattern, key integration decision, primary operational challenge.
 decision_recommendation: 2-3 sentences focusing on key integration risk. Flowing prose.
-component_suggestions: up to 3 additional real platform names not yet in the list that would strengthen this specific architecture (e.g. a complementary tool from the same vendor ecosystem, or a specific LLM/model fitting the use case) — omit if none.
+component_suggestions: up to 3 additional real platform names not yet in the list that would strengthen this specific architecture (omit if none). CRITICAL FORMAT: each array item is the bare product/platform name ONLY — no explanation, no rationale, no " — " or "(...)" suffix appended. Any reasoning for why it fits belongs in summary or decision_recommendation instead, never inside this array. Wrong: "SAP Analytics Cloud — for business dashboards". Correct: "SAP Analytics Cloud".
 Return key "narrative_architect": {"summary":"...","key_decisions":[{"de":"...","en":"..."}],"next_steps":[{"de":"...","en":"..."}],"decision_recommendation":"...","component_suggestions":[]}`,
 
   narrative_compliance: `=== SECTION narrative_compliance ===

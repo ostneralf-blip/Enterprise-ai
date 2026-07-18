@@ -1037,13 +1037,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setNarrativeLoading(false)
   }
 
-  const handleSave = async () => {
+  const handleSave = async (overrideComponentNames?: Set<string>) => {
     if (!result) return
     setSaving(true)
     try {
       const dateStr = new Date().toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
       const title = `${result.pattern} — ${dateStr}`
-      const payload = { title, wizard_data: answers, result: { ...result, rasic: rasic ?? result.rasic, selectedComponents: [...activeComponentNames], componentSources, componentOwners, componentOpsNotes } }
+      const payload = { title, wizard_data: answers, result: { ...result, rasic: rasic ?? result.rasic, selectedComponents: [...(overrideComponentNames ?? activeComponentNames)], componentSources, componentOwners, componentOpsNotes } }
       // Bereits gespeicherte Architektur aktualisieren (PATCH) statt bei jedem
       // "Speichern"-Klick einen neuen Datensatz anzulegen (POST) — sonst landen
       // KI-Analyse-Ergebnisse (an die ursprüngliche savedId gebunden) an einem
@@ -1672,7 +1672,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             catalogRecs={catalogRecs}
             recComponents={recComponents}
             activeComponentNames={activeComponentNames}
-            onCheckedChange={setActiveComponentNames}
+            onCheckedChange={next => {
+              // Konflikt-Lösung über die Workbench sofort persistieren, wenn bereits
+              // gespeichert (Bug-Report 18.07.2026: ging beim Verlassen der Seite
+              // verloren) — nur bei tatsächlich sinkender Konfliktzahl, nicht bei
+              // jedem regulären Checkbox-Toggle.
+              const byName = Object.fromEntries(recComponents.map(c => [c.name, c]))
+              const prevConflicts = findConflicts(activeComponentNames, byName).length
+              setActiveComponentNames(next)
+              if (saved && findConflicts(next, byName).length < prevConflicts) void handleSave(next)
+            }}
             aiSuggestions={aiNarrative?.component_suggestions ?? []}
             componentSources={componentSources}
             aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
@@ -1792,6 +1801,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               const next = new Set(activeComponentNames)
               next.delete(name)
               setActiveComponentNames(next)
+              // Konflikt-Lösung sofort persistieren, wenn bereits gespeichert — sonst
+              // geht sie beim Verlassen der Seite (z. B. Wechsel zu Roadmap und zurück)
+              // wortlos verloren, weil der Reload wieder von der zuletzt gespeicherten,
+              // noch unaufgelösten Auswahl ausgeht (Bug-Report 18.07.2026).
+              if (saved) void handleSave(next)
             }}
             saved={saved}
             onSave={handleSave}
