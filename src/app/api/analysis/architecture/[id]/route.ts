@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
-import { SectionEnum, AnalysisRawSchema, NarrativeSectionSchema, RasicSuggestionSectionSchema, ComplianceHintsSectionSchema, DecisionSectionSchema } from '@/lib/ai/schemas'
+import { SectionEnum, NarrativeSectionSchema, RasicSuggestionSectionSchema, ComplianceHintsSectionSchema, DecisionSectionSchema } from '@/lib/ai/schemas'
 import type { AnalysisSection } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
 import { trackServer } from '@/lib/posthog/server'
@@ -67,64 +67,64 @@ export async function POST(
   const sections = [...new Set(rawSections)].sort() as z.infer<typeof SectionEnum>[]
 
   const sharedContext = buildSharedContext({ components, roles, compliance, archetype, canvas_quadrant, governance_result, roadmap_phases, assessment_score_pct, locale })
-  const sectionBlocks = buildSectionBlocks(sections)
 
-  // Prompt + erwartete Ausgabe wachsen mit der Anzahl angeforderter Sektionen —
-  // ein fixes 8s/2048-Token-Budget (ausreichend für eine einzelne Sektion)
-  // reicht nicht mehr, sobald z. B. alle drei narrative_*-Sektionen in einem
-  // Aufruf generiert werden. 25s Bedrock + 30s Direct-Fallback bleiben klar
-  // unter maxDuration=60.
-  const timeoutMs = Math.min(8000 + 4000 * (sections.length - 1), 25000)
-  const maxTokens = Math.min(2048 + 1200 * (sections.length - 1), 6000)
+  // Jede Sektion einzeln UND parallel generieren statt eines kombinierten
+  // Prompts: eine einzelne Sektion braucht bei Haiku zuverlässig <8s, drei
+  // davon SEQUENZIELL in einem Call zu erzeugen skaliert die Generierungs-
+  // zeit fast linear mit — selbst ein auf 16s erhöhtes Timeout reichte für
+  // drei Sektionen nicht mehr zuverlässig. Parallel bleibt die Wall-Clock-
+  // Zeit nah an der einer einzelnen Sektion, das Timeout-Budget pro Call
+  // kann beim Default bleiben, und der eine DB-Write am Ende bleibt erhalten
+  // (löst weiterhin die Persistenz-Race, wegen der wir überhaupt umgestellt
+  // haben — siehe Commit "KI-Analyse auf Unified-Endpoint umgestellt").
+  const callResults = await Promise.all(sections.map(async section => {
+    const { data, meta, errorCode } = await callLLM(
+      buildSectionBlocks([section]),
+      SECTION_SCHEMAS[section] as z.ZodType<unknown>,
+      { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
+    )
+    return { section, data, meta, errorCode }
+  }))
 
-  const { data: rawResult, meta, errorCode } = await callLLM(
-    sectionBlocks,
-    AnalysisRawSchema,
-    { model: 'haiku', maxTokens, timeoutMs, module: 'architecture', cacheControlPrefix: sharedContext },
-  )
-
-  if (!rawResult) {
-    void trackServer(userId, 'ai_call', { provider: meta.provider, model: meta.modelId, module: 'analysis', success: false, sections: sections.join(','), cached: false })
-    return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen', code: 'AI_FAILED', bedrock_error: errorCode ?? 'PARSE_OR_EMPTY' }, { status: 503 })
-  }
-
-  if (meta.provider === 'direct' && process.env.VERCEL_ENV === 'production') {
-    Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'analysis' } })
-  }
-
-  // Partial-failure: jede Sektion separat validieren
   const sectionResults: Record<string, unknown> = {}
   const sectionErrors: Record<string, string> = {}
-  for (const section of sections) {
-    const raw = (rawResult as Record<string, unknown>)[section]
-    if (!raw) {
-      sectionErrors[section] = 'MISSING'
-      void trackServer(userId, 'ai_section_failed', { section, error_code: 'MISSING', module: 'analysis' })
-      continue
-    }
-    const parsed = SECTION_SCHEMAS[section].safeParse(raw)
-    if (parsed.success) {
-      sectionResults[section] = parsed.data
+  let representativeMeta = callResults[0].meta
+  let usedDirectFallback = false
+
+  for (const { section, data, meta, errorCode } of callResults) {
+    if (meta.provider === 'direct') usedDirectFallback = true
+    if (data) {
+      sectionResults[section] = data
+      representativeMeta = meta
     } else {
-      sectionErrors[section] = 'ZOD_PARSE'
-      const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`)
-      console.error('[analysis] Zod-Parse fehlgeschlagen', section, issues)
-      Sentry.captureMessage('AI Analysis: Sektion fehlgeschlagen (ZOD_PARSE)', {
+      const code = errorCode ?? 'PARSE_OR_EMPTY'
+      sectionErrors[section] = code
+      console.error('[analysis] Sektion fehlgeschlagen', section, code)
+      Sentry.captureMessage('AI Analysis: Sektion fehlgeschlagen', {
         level: 'warning',
-        tags: { section, module: 'analysis', model: meta.modelId },
-        extra: { issues },
+        tags: { section, module: 'analysis', model: meta.modelId, error_code: code },
       })
-      void trackServer(userId, 'ai_section_failed', { section, error_code: 'ZOD_PARSE', module: 'analysis' })
+      void trackServer(userId, 'ai_section_failed', { section, error_code: code, module: 'analysis' })
     }
+  }
+
+  if (Object.keys(sectionResults).length === 0) {
+    void trackServer(userId, 'ai_call', { provider: representativeMeta.provider, model: representativeMeta.modelId, module: 'analysis', success: false, sections: sections.join(','), cached: false })
+    return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen', code: 'AI_FAILED', bedrock_error: Object.values(sectionErrors)[0] ?? 'PARSE_OR_EMPTY' }, { status: 503 })
+  }
+
+  if (usedDirectFallback && process.env.VERCEL_ENV === 'production') {
+    Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'analysis' } })
   }
 
   const ok = await incrementAIUsage(userId, tier)
   if (!ok) return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
 
+  const promptCachedTokens = callResults.reduce((sum, r) => sum + (r.meta.promptCachedTokens ?? 0), 0)
   void trackServer(userId, 'ai_call', {
-    provider: meta.provider, model: meta.modelId, module: 'analysis',
-    success: true, cached: meta.provider === 'cache',
-    sections: sections.join(','), prompt_cached_tokens: meta.promptCachedTokens ?? 0,
+    provider: representativeMeta.provider, model: representativeMeta.modelId, module: 'analysis',
+    success: true, cached: callResults.every(r => r.meta.provider === 'cache'),
+    sections: sections.join(','), prompt_cached_tokens: promptCachedTokens,
   })
 
   // Ergebnisse in ai_narrative JSONB mergen (je Sektion ein Key) — narrative_*
@@ -137,9 +137,9 @@ export async function POST(
     updatedNarrative[key] = context_hash ? { ...(data as object), based_on_hash: context_hash } : data
   }
 
-  const aiModel = meta.provider === 'cache'
-    ? `${meta.modelId} (cached)`
-    : `${meta.modelId} via ${meta.provider === 'bedrock' ? `AWS Bedrock ${meta.region}` : 'Anthropic Direct'}`
+  const aiModel = representativeMeta.provider === 'cache'
+    ? `${representativeMeta.modelId} (cached)`
+    : `${representativeMeta.modelId} via ${representativeMeta.provider === 'bedrock' ? `AWS Bedrock ${representativeMeta.region}` : 'Anthropic Direct'}`
 
   await supabase
     .from('architectures')
@@ -152,6 +152,6 @@ export async function POST(
     errors:   Object.keys(sectionErrors).length > 0 ? sectionErrors : undefined,
     usage:    await getAIUsageStatus(userId, tier),
     ai_model: aiModel,
-    prompt_cached_tokens: meta.promptCachedTokens ?? 0,
+    prompt_cached_tokens: promptCachedTokens,
   })
 }
