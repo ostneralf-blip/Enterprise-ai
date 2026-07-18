@@ -47,14 +47,34 @@ const norm = (n: string) => n.toLowerCase().trim()
 // suggestions", obwohl die KI etwas Sinnvolles vorgeschlagen hat). Vor dem exakten
 // Katalog-Abgleich zusätzlich den Teil vor gängigen Erklärungs-Trennern probieren.
 const EXPLANATION_SEPARATORS = [' — ', ' – ', ' - ', ' (']
+
+// Case-/Whitespace-unempfindlicher Katalog-Abgleich als Fallback (Bug-Report
+// Daniel, 18.07.2026): ein bereits im Katalog vorhandener Name mit
+// abweichender Groß-/Kleinschreibung oder Leerraum wurde bisher als
+// "unmatched" gewertet — die Komponente landete dadurch wiederholt (mit
+// wachsendem occurrence_count) als neuer Admin-Vorschlag, obwohl sie längst
+// im Katalog existierte.
+function findByNormalizedName(target: string, known: Set<string>): string | null {
+  const targetNorm = norm(target)
+  for (const k of known) {
+    if (norm(k) === targetNorm) return k
+  }
+  return null
+}
+
 export function resolveToKnownName(raw: string, known: Set<string>): string | null {
   if (known.has(raw)) return raw
+  const normalizedMatch = findByNormalizedName(raw, known)
+  if (normalizedMatch) return normalizedMatch
+
   let cleaned = raw
   for (const sep of EXPLANATION_SEPARATORS) {
     const idx = cleaned.indexOf(sep)
     if (idx > 0) cleaned = cleaned.slice(0, idx).trim()
   }
-  return cleaned !== raw && known.has(cleaned) ? cleaned : null
+  if (cleaned === raw) return null
+  if (known.has(cleaned)) return cleaned
+  return findByNormalizedName(cleaned, known)
 }
 
 export function getSelectionStats(input: SelectionInput): SelectionStats {

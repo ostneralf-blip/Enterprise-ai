@@ -39,6 +39,21 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient()
+
+  // Bug-Report Daniel (18.07.2026): derselbe KI-Vorschlag kann mehrfach
+  // protokolliert werden (occurrence_count zählt nur, wie oft er AUFTRAT —
+  // sagt nichts darüber aus, ob er schon im Katalog ist). Ohne diesen Check
+  // würde ein zweiter "Zum Katalog hinzufügen"-Klick für denselben Namen an
+  // component_catalog_name_key_unique scheitern (roher 500er). Stattdessen:
+  // existierenden aktiven Eintrag finden und zurückgeben, statt zu duplizieren.
+  const nameKey = parsed.data.name.toLowerCase().trim()
+  const { data: existing } = await supabase
+    .from('component_catalog')
+    .select('id, name, vendor, category, architecture_layer')
+    .eq('name_key', nameKey)
+    .maybeSingle()
+  if (existing) return NextResponse.json({ data: existing, alreadyExisted: true })
+
   const { data, error } = await supabase
     .from('component_catalog')
     .insert({
@@ -61,6 +76,19 @@ export async function POST(request: Request) {
     .select('id, name, vendor, category, architecture_layer')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    // Race: zwei gleichzeitige Requests legen denselben Namen an — zweiter
+    // Versuch schlägt am Unique-Index fehl, statt 500 den existierenden
+    // Eintrag nachladen.
+    if (error.code === '23505') {
+      const { data: raceExisting } = await supabase
+        .from('component_catalog')
+        .select('id, name, vendor, category, architecture_layer')
+        .eq('name_key', nameKey)
+        .maybeSingle()
+      if (raceExisting) return NextResponse.json({ data: raceExisting, alreadyExisted: true })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ data }, { status: 201 })
 }

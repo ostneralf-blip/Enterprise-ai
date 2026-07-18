@@ -115,6 +115,21 @@ describe('getSelectionStats — Gate D „Eine Zahl, eine Quelle" (#182)', () =>
     expect(stats.visibleSuggestions.sort()).toEqual(['Apache Kafka', 'Grafana'])
   })
 
+  // Regression 18.07.2026: "SAP Analytics Cloud" existierte bereits im Katalog,
+  // wurde aber wiederholt als neuer Admin-Vorschlag geloggt (occurrence_count
+  // wuchs bei jeder erneuten Analyse) statt als bekannt erkannt zu werden —
+  // vermutet: Groß-/Kleinschreibungs- oder Leerraum-Abweichung zwischen
+  // KI-Ausgabe und Katalog-Name. resolveToKnownName() gleicht jetzt zusätzlich
+  // case-/whitespace-unempfindlich ab, bevor auf "unbekannt" geschlossen wird.
+  it('erkennt Katalog-Treffer unabhängig von Groß-/Kleinschreibung', () => {
+    const stats = getSelectionStats({
+      activeComponentNames: new Set(['MLflow']),
+      components: catalog,
+      aiSuggestions: ['grafana', 'APACHE KAFKA', '  HashiCorp Vault  '],
+    })
+    expect(stats.visibleSuggestions.sort()).toEqual(['Apache Kafka', 'Grafana', 'HashiCorp Vault'])
+  })
+
   it('verwirft Vorschläge, die auch nach Bereinigung nicht im Katalog stehen', () => {
     const stats = getSelectionStats({
       activeComponentNames: new Set(['MLflow']),
