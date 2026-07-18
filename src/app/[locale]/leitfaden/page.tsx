@@ -16,8 +16,8 @@ export async function generateMetadata({
   const canonical = `${BASE}${prefix}/leitfaden`
   return {
     title: isEn
-      ? 'The Enterprise AI Guide — AI Navigator'
-      : 'Der Enterprise-AI-Leitfaden — AI Navigator',
+      ? 'The Enterprise AI Guide'
+      : 'Der Enterprise-AI-Leitfaden',
     description: isEn
       ? 'Practical guides on AI readiness, governance, use-case prioritization, EU AI Act and reference architectures — grounded in real enterprise projects.'
       : 'Praxisnahe Leitfäden zu AI-Readiness, Governance, Use-Case-Priorisierung, EU AI Act und Referenzarchitekturen — aus echten Enterprise-Projekten.',
