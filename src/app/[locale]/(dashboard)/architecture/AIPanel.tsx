@@ -32,6 +32,8 @@ interface Props {
   onReanalyze?: () => Promise<void>
   onRemoveComponent?: (name: string) => void
   saved?: boolean
+  onSave?: () => Promise<void>
+  saving?: boolean
   loading?: boolean
   conditionalComps?: CatalogComponent[]
   dsgvoConfirmed?: boolean
@@ -43,6 +45,8 @@ export function AIPanel({
   catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze, onRemoveComponent,
   saved = true,
+  onSave,
+  saving = false,
   loading = false,
   conditionalComps, dsgvoConfirmed, onDsgvoConfirm,
 }: Props) {
@@ -300,7 +304,23 @@ export function AIPanel({
       {onReanalyze && (
         <>
           {!saved && (
-            <p className="text-[10px] text-slate-400 text-center">{t('architecture.narrativeSaveFirst')}</p>
+            <div className="space-y-1.5">
+              <p className="text-[10px] text-slate-400 text-center">{t('architecture.narrativeSaveFirst')}</p>
+              {onSave && (() => {
+                const needsDsgvoConfirm = (conditionalComps?.length ?? 0) > 0 && !dsgvoConfirmed
+                return (
+                  <button
+                    type="button"
+                    onClick={() => void onSave()}
+                    disabled={saving || needsDsgvoConfirm}
+                    title={needsDsgvoConfirm ? t('architecture.dsgvoConfirmTitle') : undefined}
+                    className="w-full py-2 text-xs font-semibold bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary-ring"
+                  >
+                    {saving ? t('architecture.saving') : needsDsgvoConfirm ? t('architecture.dsgvoBlockButton') : t('architecture.save')}
+                  </button>
+                )
+              })()}
+            </div>
           )}
           <button
             type="button"

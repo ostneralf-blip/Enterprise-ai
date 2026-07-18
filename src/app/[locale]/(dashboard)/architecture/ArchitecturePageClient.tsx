@@ -1794,6 +1794,8 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               setActiveComponentNames(next)
             }}
             saved={saved}
+            onSave={handleSave}
+            saving={saving}
             loading={narrativeLoading}
             conditionalComps={selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')}
             dsgvoConfirmed={dsgvoConfirmed}
