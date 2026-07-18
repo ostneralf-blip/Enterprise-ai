@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { SectionEnum, AnalysisRawSchema, NarrativeSectionSchema, RasicSuggestionSectionSchema, ComplianceHintsSectionSchema, DecisionSectionSchema } from '@/lib/ai/schemas'
+import type { AnalysisSection } from '@/lib/ai/schemas'
 import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
 import { trackServer } from '@/lib/posthog/server'
 import { buildSharedContext, buildSectionBlocks } from '@/lib/ai/analysis'
+import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
 import { createClient } from '@/lib/supabase/server'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
@@ -87,10 +89,25 @@ export async function POST(
   const sectionErrors: Record<string, string> = {}
   for (const section of sections) {
     const raw = (rawResult as Record<string, unknown>)[section]
-    if (!raw) { sectionErrors[section] = 'MISSING'; continue }
+    if (!raw) {
+      sectionErrors[section] = 'MISSING'
+      void trackServer(userId, 'ai_section_failed', { section, error_code: 'MISSING', module: 'analysis' })
+      continue
+    }
     const parsed = SECTION_SCHEMAS[section].safeParse(raw)
-    if (parsed.success) sectionResults[section] = parsed.data
-    else sectionErrors[section] = 'ZOD_PARSE'
+    if (parsed.success) {
+      sectionResults[section] = parsed.data
+    } else {
+      sectionErrors[section] = 'ZOD_PARSE'
+      const issues = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`)
+      console.error('[analysis] Zod-Parse fehlgeschlagen', section, issues)
+      Sentry.captureMessage('AI Analysis: Sektion fehlgeschlagen (ZOD_PARSE)', {
+        level: 'warning',
+        tags: { section, module: 'analysis', model: meta.modelId },
+        extra: { issues },
+      })
+      void trackServer(userId, 'ai_section_failed', { section, error_code: 'ZOD_PARSE', module: 'analysis' })
+    }
   }
 
   const ok = await incrementAIUsage(userId, tier)
@@ -102,11 +119,14 @@ export async function POST(
     sections: sections.join(','), prompt_cached_tokens: meta.promptCachedTokens ?? 0,
   })
 
-  // Ergebnisse in ai_narrative JSONB mergen (je Sektion ein Key)
+  // Ergebnisse in ai_narrative JSONB mergen (je Sektion ein Key) — narrative_*
+  // wird unter dem kurzen Audience-Namen gespeichert (SECTION_TO_AUDIENCE),
+  // andere Sektionen behalten ihren vollen Namen.
   const existingNarrative = (arch.ai_narrative as Record<string, unknown> | null) ?? {}
   const updatedNarrative: Record<string, unknown> = { ...existingNarrative }
   for (const [section, data] of Object.entries(sectionResults)) {
-    updatedNarrative[section] = context_hash ? { ...(data as object), based_on_hash: context_hash } : data
+    const key = SECTION_TO_AUDIENCE[section as AnalysisSection] ?? section
+    updatedNarrative[key] = context_hash ? { ...(data as object), based_on_hash: context_hash } : data
   }
 
   const aiModel = meta.provider === 'cache'

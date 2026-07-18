@@ -698,6 +698,8 @@
       "narrativeUnknownBasis": "basis unknown",
       "narrativeSaveFirst": "Save first to activate AI assessment",
       "narrativePlaceholder": "AI assessment not yet generated — start with the ◆ button.",
+      "narrativeErrorZodParse": "The AI response had an unexpected format and could not be processed. Please try again.",
+      "narrativeErrorMissing": "No analysis could be generated for this section. Please try again.",
       "selectionTitle": "Select components",
       "selectionHint": "{checked} of {total} selected",
       "selectionConfirm": "Generate architecture",

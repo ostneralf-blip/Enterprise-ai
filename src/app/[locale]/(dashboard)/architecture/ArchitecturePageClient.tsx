@@ -12,6 +12,7 @@ import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, gene
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
+import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
 import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft-store'
 import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
@@ -705,6 +706,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [narrativeLocale, setNarrativeLocale] = useState<string | null>(null)
   const [aiUsageArch, setAiUsageArch] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)
   const [aiNarrativeError, setAiNarrativeError] = useState<string | null>(null)
+  const [aiSectionErrors, setAiSectionErrors] = useState<Partial<Record<ResultAudience, string>>>({})
   const [aiModel, setAiModel] = useState<string | null>(null)
   const [archDraftBanner, setArchDraftBanner] = useState<{ age: string; data: Partial<Record<ResultAudience, NarrativeEntry>> } | null>(null)
   const [narrativeLoading, setNarrativeLoading] = useState(false)
@@ -943,6 +945,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       setAiNarrativeByAudience({})
     }
     setNarrativeLocale(arch.narrative_locale ?? null)
+    setAiSectionErrors({})
     setAiUsageArch(null)
     setAiModel(null)
     // Draft-Prüfung: falls Server-Narrative leer, Draft aus localStorage anbieten
@@ -963,9 +966,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     setComponentSources(arch.result.componentSources ?? {})
   }
 
-  const handleAINarrative = async (audienceOverride?: ResultAudience) => {
+  // Ein Aufruf generiert alle drei Sichten zusammen (Executive/Architektur/
+  // Compliance) — ein gemeinsamer Bedrock-Call, ein DB-Schreibvorgang. Vorher
+  // hatte jede Sicht ihren eigenen Request mit eigenem Read-Modify-Write auf
+  // dasselbe ai_narrative-JSONB-Feld — ein späterer Request konnte so die
+  // gerade gespeicherten Ergebnisse eines früheren überschreiben.
+  const handleAINarrative = async () => {
     if (!savedId) return
     setAiNarrativeError(null)
+    setAiSectionErrors({})
     setNarrativeLoading(true)
     const components = getSelectionStats({
       activeComponentNames,
@@ -973,10 +982,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       components: recComponents,
     }).activeComponents.map(c => c.name)
     const roles = rolesCatalog.map(r => r.role_name).slice(0, 10)
-    const res = await fetch(`/api/architecture/${savedId}/ai-narrative`, {
+    const res = await fetch(`/api/analysis/architecture/${savedId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        sections: ['narrative_exec', 'narrative_architect', 'narrative_compliance'],
         components,
         roles,
         compliance: answers.compliance ?? undefined,
@@ -988,22 +998,25 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           ? Math.round((assessmentContext.total_score / 5) * 100)
           : undefined,
         locale,
-        audience: audienceOverride ?? resultAudience,
         context_hash: currentHash,
       }),
     })
     const json = await res.json() as {
-      result?: { summary?: string; key_decisions: { de: string; en: string }[]; next_steps: { de: string; en: string }[]; component_suggestions?: string[] }
+      sections?: Record<string, NarrativeEntry>
+      errors?: Record<string, string>
       usage?: { remaining: number; used: number; limit: number; exceeded: boolean }
       ai_model?: string
       error?: string
     }
     if (json.usage) setAiUsageArch(json.usage)
     if (!res.ok) { setAiNarrativeError(json.error ?? 'KI-Analyse fehlgeschlagen'); setNarrativeLoading(false); return }
-    if (json.result) {
-      const aud = audienceOverride ?? resultAudience
+    if (json.sections) {
       setAiNarrativeByAudience(prev => {
-        const next = { ...prev, [aud]: json.result }
+        const next = { ...prev }
+        for (const [section, data] of Object.entries(json.sections!)) {
+          const aud = SECTION_TO_AUDIENCE[section as keyof typeof SECTION_TO_AUDIENCE]
+          if (aud) next[aud] = data
+        }
         if (savedId) saveDraft('architecture', savedId, next, { model: json.ai_model })
         return next
       })
@@ -1011,6 +1024,14 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       setNarrativeLocale(locale)
       setAiAccepted([])
       setResult(prev => prev ? { ...prev, rejected_suggestions: [] } : prev)
+    }
+    if (json.errors) {
+      const mapped: Partial<Record<ResultAudience, string>> = {}
+      for (const [section, code] of Object.entries(json.errors)) {
+        const aud = SECTION_TO_AUDIENCE[section as keyof typeof SECTION_TO_AUDIENCE]
+        if (aud) mapped[aud] = code === 'ZOD_PARSE' ? t('architecture.narrativeErrorZodParse') : t('architecture.narrativeErrorMissing')
+      }
+      setAiSectionErrors(mapped)
     }
     if (json.ai_model) setAiModel(json.ai_model as string)
     setNarrativeLoading(false)
@@ -1278,7 +1299,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           savedId={savedId}
           onAnalyze={handleAINarrative}
           usage={aiUsageArch}
-          error={aiNarrativeError}
+          error={aiSectionErrors[resultAudience] ?? aiNarrativeError}
           loading={narrativeLoading}
           currentHash={currentHash}
         />
