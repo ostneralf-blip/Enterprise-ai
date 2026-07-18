@@ -18,7 +18,7 @@ export async function generateMetadata({
   const prefix = isEn ? '/en' : ''
   const canonical = `${BASE}${prefix}/preise`
   return {
-    title: isEn ? 'Pricing — AI Navigator' : 'Preise — AI Navigator',
+    title: isEn ? 'Pricing & Plans' : 'Preise & Pläne',
     description: isEn
       ? 'Free Explorer plan vs. Professional at €49/month — compare every tool and feature side by side.'
       : 'Kostenloser Explorer-Plan vs. Professional für 49 €/Monat — alle Werkzeuge und Funktionen im direkten Vergleich.',
