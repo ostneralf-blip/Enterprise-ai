@@ -80,6 +80,14 @@ export function CatalogSuggestionsPanel() {
     void fetchSuggestions().then(applyLoaded).catch(applyError).finally(() => setLoading(false))
   }
 
+  const populateForm = (e: Enrichment | null) => setForm({
+    vendor: e?.vendor ?? '',
+    category: e?.category ?? 'packaged_app',
+    architecture_layer: e?.architecture_layer ?? 'application',
+    cloud_provider: e?.cloud_provider ?? '',
+    description: e?.description ?? '',
+  })
+
   const enrichNow = async (id: string) => {
     setBusyId(id)
     try {
@@ -87,6 +95,10 @@ export function CatalogSuggestionsPanel() {
       if (!res.ok) throw new Error()
       const { data } = await res.json()
       setSuggestions(prev => prev.map(s => s.id === id ? data : s))
+      // Formular war für diesen Vorschlag bereits offen (Bug-Report Daniel,
+      // 18.07.2026): zeigte nach "Erneut anreichern" weiterhin die alten,
+      // leeren Werte, weil das Formular nur beim ÖFFNEN neu befüllt wurde.
+      if (openFormFor === id) populateForm(data.enrichment ?? null)
     } catch {
       setError('Anreicherung fehlgeschlagen.')
     } finally {
@@ -107,14 +119,7 @@ export function CatalogSuggestionsPanel() {
 
   const openForm = (s: Suggestion) => {
     if (openFormFor === s.id) { setOpenFormFor(null); return }
-    const e = s.enrichment
-    setForm({
-      vendor: e?.vendor ?? '',
-      category: e?.category ?? 'packaged_app',
-      architecture_layer: e?.architecture_layer ?? 'application',
-      cloud_provider: e?.cloud_provider ?? '',
-      description: e?.description ?? '',
-    })
+    populateForm(s.enrichment)
     setOpenFormFor(s.id)
   }
 
