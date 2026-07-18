@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { CatalogSuggestionsHistory } from './CatalogSuggestionsHistory'
 
 interface Enrichment {
   resolved_name: string
@@ -59,6 +60,7 @@ async function fetchSuggestions(): Promise<Suggestion[]> {
 // Kurzbeschreibung, Hersteller-Link. Das "Zum Katalog hinzufügen"-Formular wird damit
 // vorbefüllt, disambiguiert aber auch mehrdeutige Hersteller-Vorschläge wie "Databricks".
 export function CatalogSuggestionsPanel() {
+  const [view, setView] = useState<'pending' | 'history'>('pending')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -76,6 +78,20 @@ export function CatalogSuggestionsPanel() {
   const refresh = () => {
     setLoading(true)
     void fetchSuggestions().then(applyLoaded).catch(applyError).finally(() => setLoading(false))
+  }
+
+  const enrichNow = async (id: string) => {
+    setBusyId(id)
+    try {
+      const res = await fetch(`/api/admin/catalog-suggestions/${id}/enrich`, { method: 'POST' })
+      if (!res.ok) throw new Error()
+      const { data } = await res.json()
+      setSuggestions(prev => prev.map(s => s.id === id ? data : s))
+    } catch {
+      setError('Anreicherung fehlgeschlagen.')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const dismiss = async (id: string) => {
@@ -138,10 +154,29 @@ export function CatalogSuggestionsPanel() {
     }
   }
 
-  if (loading) return <p className="text-sm text-ink-muted py-6">Lädt…</p>
-
   return (
     <div className="space-y-4 py-2">
+      <div className="flex gap-1 border-b border-line">
+        {([['pending', 'Offen'], ['history', 'Verlauf']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setView(id)}
+            className={cn(
+              'px-3 py-2 text-xs font-medium border-b-2 transition-colors',
+              view === id ? 'border-primary text-primary-hover' : 'border-transparent text-ink-muted hover:text-ink-secondary'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {view === 'history' ? (
+        <CatalogSuggestionsHistory />
+      ) : loading ? (
+        <p className="text-sm text-ink-muted py-6">Lädt…</p>
+      ) : (
+      <>
       {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
@@ -191,33 +226,46 @@ export function CatalogSuggestionsPanel() {
 
             {/* KI-Produktanreicherung */}
             <div className="mt-3 pt-3 border-t border-line-subtle">
-              {s.enrichment_status === 'none' && (
-                <p className="text-xs text-ink-subtle italic">Anreicherung noch nicht gestartet.</p>
-              )}
-              {s.enrichment_status === 'pending' && (
-                <p className="text-xs text-[color:var(--color-ai)] italic">◆ Produktinformationen werden ermittelt…</p>
-              )}
-              {s.enrichment_status === 'failed' && (
-                <p className="text-xs text-danger italic">Anreicherung fehlgeschlagen — Felder unten manuell prüfen.</p>
-              )}
-              {s.enrichment_status === 'done' && e && (
-                <div className="space-y-1.5">
-                  {e.resolved_name !== s.suggested_name && (
-                    <p className="text-xs text-ink-secondary"><span className="font-medium">Vermutlich gemeint:</span> {e.resolved_name}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  {s.enrichment_status === 'none' && (
+                    <p className="text-xs text-ink-subtle italic">Anreicherung noch nicht gestartet.</p>
                   )}
-                  <p className="text-xs text-ink-secondary leading-relaxed">{e.description}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {e.vendor && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-raised text-ink-secondary">{e.vendor}</span>}
-                    {e.dsgvo_status && <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', DSGVO_COLOR[e.dsgvo_status])}>{DSGVO_LABEL[e.dsgvo_status]}</span>}
-                    {e.eu_ai_act_risk && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-raised text-ink-secondary">{RISK_LABEL[e.eu_ai_act_risk]}</span>}
-                    {e.website_url && (
-                      <a href={e.website_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary-soft text-primary hover:underline">
-                        Hersteller-Website ↗
-                      </a>
-                    )}
-                  </div>
+                  {s.enrichment_status === 'pending' && (
+                    <p className="text-xs text-[color:var(--color-ai)] italic">◆ Produktinformationen werden ermittelt…</p>
+                  )}
+                  {s.enrichment_status === 'failed' && (
+                    <p className="text-xs text-danger italic">Anreicherung fehlgeschlagen — Felder unten manuell prüfen.</p>
+                  )}
+                  {s.enrichment_status === 'done' && e && (
+                    <div className="space-y-1.5">
+                      {e.resolved_name !== s.suggested_name && (
+                        <p className="text-xs text-ink-secondary"><span className="font-medium">Vermutlich gemeint:</span> {e.resolved_name}</p>
+                      )}
+                      <p className="text-xs text-ink-secondary leading-relaxed">{e.description}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {e.vendor && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-raised text-ink-secondary">{e.vendor}</span>}
+                        {e.dsgvo_status && <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', DSGVO_COLOR[e.dsgvo_status])}>{DSGVO_LABEL[e.dsgvo_status]}</span>}
+                        {e.eu_ai_act_risk && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-raised text-ink-secondary">{RISK_LABEL[e.eu_ai_act_risk]}</span>}
+                        {e.website_url && (
+                          <a href={e.website_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary-soft text-primary hover:underline">
+                            Hersteller-Website ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+                {s.enrichment_status !== 'pending' && (
+                  <button
+                    onClick={() => void enrichNow(s.id)}
+                    disabled={busyId === s.id}
+                    className="whitespace-nowrap shrink-0 px-2.5 py-1 text-[10px] font-semibold border border-line text-ink-secondary rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
+                  >
+                    {busyId === s.id ? 'Läuft…' : s.enrichment_status === 'done' ? 'Erneut anreichern' : 'Anreicherung starten'}
+                  </button>
+                )}
+              </div>
             </div>
 
             {openFormFor === s.id && (
@@ -277,6 +325,8 @@ export function CatalogSuggestionsPanel() {
           )
         })}
       </div>
+      </>
+      )}
     </div>
   )
 }
