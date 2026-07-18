@@ -131,8 +131,26 @@ export async function POST(
       return names.map(name => ({ section, name }))
     })
   if (suggestionsBySection.length > 0) {
-    const { data: catalogRows } = await supabase.from('component_catalog').select('name, aliases').eq('is_active', true)
-    const known = new Set((catalogRows ?? []).map(c => c.name))
+    // PostgREST kappt jede Antwort hart bei api.max_rows=1000 (supabase/config.toml).
+    // Der Katalog liegt inzwischen bei >1450 aktiven Einträgen — ein einfaches
+    // .select() lieferte damit nur einen unvollständigen Ausschnitt, wodurch
+    // tatsächlich vorhandene Katalog-Einträge (u. a. "Databricks", exakter
+    // Namenstreffer!) fälschlich als "unbekannt" galten und immer wieder neu
+    // vorgeschlagen wurden (Bug-Report Daniel, 19.07.2026). Analog zu
+    // /api/catalog/components seitenweise paginieren.
+    const CATALOG_PAGE_SIZE = 1000
+    const catalogRows: { name: string; aliases: string[] | null }[] = []
+    for (let page = 0; ; page++) {
+      const from = page * CATALOG_PAGE_SIZE
+      const { data } = await supabase
+        .from('component_catalog')
+        .select('name, aliases')
+        .eq('is_active', true)
+        .range(from, from + CATALOG_PAGE_SIZE - 1)
+      catalogRows.push(...(data ?? []))
+      if (!data || data.length < CATALOG_PAGE_SIZE) break
+    }
+    const known = new Set(catalogRows.map(c => c.name))
     // Bug-Report Daniel (18.07.2026): "Zum Katalog hinzufügen" legt Komponenten
     // unter ihrem angereicherten Namen an (z. B. "Databricks Data Intelligence
     // Platform"), während die KI im nächsten Wizard-Lauf oft wieder den kurzen

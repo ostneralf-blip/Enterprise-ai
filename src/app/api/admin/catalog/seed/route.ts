@@ -12,8 +12,17 @@ export async function POST() {
 
   const supabase = await createClient()
 
-  // Fetch current catalog as backup before overwriting
-  const { data: backupData } = await supabase.from('component_catalog').select('*')
+  // Fetch current catalog as backup before overwriting — paginiert, da
+  // PostgREST jede Antwort hart bei api.max_rows=1000 kappt und der Katalog
+  // inzwischen >1450 Einträge hat (sonst unvollständiges Backup ohne Warnung).
+  const BACKUP_PAGE_SIZE = 1000
+  const backupData: Record<string, unknown>[] = []
+  for (let page = 0; ; page++) {
+    const from = page * BACKUP_PAGE_SIZE
+    const { data } = await supabase.from('component_catalog').select('*').range(from, from + BACKUP_PAGE_SIZE - 1)
+    backupData.push(...(data ?? []))
+    if (!data || data.length < BACKUP_PAGE_SIZE) break
+  }
 
   // Deduplicate seed data by lower(trim(name)) — entspricht dem DB-Unique-Index auf name_key
   const compMap = new Map<string, typeof SEED_COMPONENTS[0]>()
