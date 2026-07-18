@@ -11,17 +11,22 @@ import { createAdminClient } from '@/lib/supabase/server'
 // "Databricks" → "Databricks Mosaic AI" o. ä. je nach Kontext) und dieselben
 // Metadaten geliefert, die ein regulärer component_catalog-Eintrag hätte.
 // Läuft komplett unabhängig vom Nutzer-Kontingent des auslösenden Requests.
+// .nullish() statt .nullable(): Sonnet lässt unsichere Felder gelegentlich
+// komplett aus der Antwort weg, statt sie explizit auf null zu setzen —
+// .nullable() akzeptiert nur null, nicht "Feld fehlt" (undefined), und wies
+// die Antwort dann komplett als ZOD_PARSE zurück, obwohl der Call selbst
+// erfolgreich war (Sentry, 18.07.2026: 6 von 10 Feldern "received undefined").
 const EnrichmentSchema = z.object({
   resolved_name:      z.string().min(1).max(200),
-  vendor:              z.string().max(100).nullable(),
-  category:            z.string().max(50).nullable(),
-  architecture_layer:  z.enum(['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']).nullable(),
-  cloud_provider:      z.string().max(50).nullable(),
-  hosting:             z.array(z.string().max(20)).max(10).default([]),
-  dsgvo_status:        z.enum(['compliant', 'conditional', 'non_compliant']).nullable(),
-  eu_ai_act_risk:      z.enum(['minimal', 'limited', 'high', 'prohibited']).nullable(),
-  description:         z.string().max(500),
-  website_url:         z.string().max(300).nullable(),
+  vendor:              z.string().max(100).nullish(),
+  category:            z.string().max(50).nullish(),
+  architecture_layer:  z.enum(['data', 'model', 'serving', 'mlops', 'application', 'governance', 'security']).nullish(),
+  cloud_provider:      z.string().max(50).nullish(),
+  hosting:             z.array(z.string().max(20)).max(10).nullish().default([]),
+  dsgvo_status:        z.enum(['compliant', 'conditional', 'non_compliant']).nullish(),
+  eu_ai_act_risk:      z.enum(['minimal', 'limited', 'high', 'prohibited']).nullish(),
+  description:         z.string().max(500).nullish(),
+  website_url:         z.string().max(300).nullish(),
 })
 
 export type CatalogSuggestionEnrichment = z.infer<typeof EnrichmentSchema>

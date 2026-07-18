@@ -5,15 +5,15 @@ import { CatalogSuggestionsHistory } from './CatalogSuggestionsHistory'
 
 interface Enrichment {
   resolved_name: string
-  vendor: string | null
-  category: string | null
-  architecture_layer: string | null
-  cloud_provider: string | null
+  vendor?: string | null
+  category?: string | null
+  architecture_layer?: string | null
+  cloud_provider?: string | null
   hosting: string[]
-  dsgvo_status: 'compliant' | 'conditional' | 'non_compliant' | null
-  eu_ai_act_risk: 'minimal' | 'limited' | 'high' | 'prohibited' | null
-  description: string
-  website_url: string | null
+  dsgvo_status?: 'compliant' | 'conditional' | 'non_compliant' | null
+  eu_ai_act_risk?: 'minimal' | 'limited' | 'high' | 'prohibited' | null
+  description?: string | null
+  website_url?: string | null
 }
 
 interface Suggestion {
@@ -242,7 +242,7 @@ export function CatalogSuggestionsPanel() {
                       {e.resolved_name !== s.suggested_name && (
                         <p className="text-xs text-ink-secondary"><span className="font-medium">Vermutlich gemeint:</span> {e.resolved_name}</p>
                       )}
-                      <p className="text-xs text-ink-secondary leading-relaxed">{e.description}</p>
+                      {e.description && <p className="text-xs text-ink-secondary leading-relaxed">{e.description}</p>}
                       <div className="flex flex-wrap gap-1.5">
                         {e.vendor && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-raised text-ink-secondary">{e.vendor}</span>}
                         {e.dsgvo_status && <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', DSGVO_COLOR[e.dsgvo_status])}>{DSGVO_LABEL[e.dsgvo_status]}</span>}
