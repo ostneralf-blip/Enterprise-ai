@@ -1231,8 +1231,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const kpSeenStepDe = new Set([...kpAiStp, ...kpCrossSteps, ...kpSteps].map(s => s.de))
     // #204: Max 7 Einträge je Liste (AI > Cross-Module > Deterministisch); Überschuss via "Alle anzeigen" erreichbar
     const MAX_ITEMS = 7
-    const allKeyDecisionsFull = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de))]
-    const allNextStepsFull = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de))]
+    // Alt-Datensätze können keyDecisions/nextSteps-Einträge mit leerem de/en enthalten
+    // (Content-Format vor einer früheren Änderung) — sonst erscheinen Bullet-Points ohne Text.
+    const hasContent = (d: { de: string; en: string }) => d.de?.trim() || d.en?.trim()
+    const allKeyDecisionsFull = [...kpAiDec, ...kpCrossDecisions, ...kpDecisions, ...result.keyDecisions.filter(d => !kpSeenDe.has(d.de) && hasContent(d))]
+    const allNextStepsFull = [...kpAiStp, ...kpCrossSteps, ...kpSteps, ...result.nextSteps.filter(s => !kpSeenStepDe.has(s.de) && hasContent(s))]
     const allKeyDecisions = allKeyDecisionsFull.slice(0, Math.max(MAX_ITEMS, kpAiDec.length))
     const allNextSteps = allNextStepsFull.slice(0, Math.max(MAX_ITEMS, kpAiStp.length))
 

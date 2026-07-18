@@ -58,16 +58,21 @@ export default async function RoadmapPage() {
   // keine Entscheidungen enthält — sonst würde "auf primär setzen" eine vorher
   // sichtbare Liste zum Verschwinden bringen statt sie zu ersetzen.
   type ArchResultRow = { result: { keyDecisions?: { de: string; en: string }[] } }
+  // Verwaiste Alt-Datensätze können keyDecisions-Einträge mit leerem de/en enthalten
+  // (Format vor einer früheren Content-Änderung) — als "leer" behandeln, sonst
+  // erscheinen Bullet-Points ohne Text und der Fallback greift nicht.
+  const withContent = (list: { de: string; en: string }[] | undefined) =>
+    (list ?? []).filter(d => d.de?.trim() || d.en?.trim())
   let archKeyDecisions: { de: string; en: string }[] = []
   if (prefs?.primary_architecture_id) {
     const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
       .eq('id', prefs.primary_architecture_id).maybeSingle() as { data: ArchResultRow | null }
-    archKeyDecisions = data?.result?.keyDecisions ?? []
+    archKeyDecisions = withContent(data?.result?.keyDecisions)
   }
   if (archKeyDecisions.length === 0) {
     const { data } = await supabase.from('architectures').select('result').eq('user_id', user.id)
       .order('updated_at', { ascending: false }).limit(1).maybeSingle() as { data: ArchResultRow | null }
-    archKeyDecisions = data?.result?.keyDecisions ?? []
+    archKeyDecisions = withContent(data?.result?.keyDecisions)
   }
 
   const archetype = (latestResult?.archetype ?? null) as Archetype | null
