@@ -1793,6 +1793,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               next.delete(name)
               setActiveComponentNames(next)
             }}
+            saved={saved}
             loading={narrativeLoading}
             conditionalComps={selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')}
             dsgvoConfirmed={dsgvoConfirmed}
@@ -1900,6 +1901,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
             onAcceptAll={handleAcceptAllAI}
             onScrollToFirst={handleScrollToFirstAI}
             onReanalyze={handleAINarrative}
+            saved={saved}
             loading={narrativeLoading}
           />
         </div>

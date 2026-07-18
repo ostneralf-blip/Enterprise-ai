@@ -31,6 +31,7 @@ interface Props {
   onScrollToFirst?: () => void
   onReanalyze?: () => Promise<void>
   onRemoveComponent?: (name: string) => void
+  saved?: boolean
   loading?: boolean
   conditionalComps?: CatalogComponent[]
   dsgvoConfirmed?: boolean
@@ -41,6 +42,7 @@ export function AIPanel({
   narrative, usage, aiModel, generatedAt, tier, locale,
   catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
   onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze, onRemoveComponent,
+  saved = true,
   loading = false,
   conditionalComps, dsgvoConfirmed, onDsgvoConfirm,
 }: Props) {
@@ -296,20 +298,25 @@ export function AIPanel({
 
       {/* 7. Neu analysieren — volle Breite */}
       {onReanalyze && (
-        <button
-          type="button"
-          onClick={handleReanalyze}
-          disabled={reanalyzing || loading || (usage?.exceeded ?? false)}
-          className={cn(
-            'w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400',
-            reanalyzing || loading || (usage?.exceeded ?? false)
-              ? 'border-slate-200 text-slate-400 bg-white cursor-not-allowed'
-              : 'border-purple-200 text-[color:var(--color-ai)] bg-white hover:bg-purple-50'
+        <>
+          {!saved && (
+            <p className="text-[10px] text-slate-400 text-center">{t('architecture.narrativeSaveFirst')}</p>
           )}
-        >
-          <span aria-hidden="true">◆</span>
-          {reanalyzing || loading ? t('architecture.narrativeLoading') : t('architecture.aiPanelReanalyze')}
-        </button>
+          <button
+            type="button"
+            onClick={handleReanalyze}
+            disabled={!saved || reanalyzing || loading || (usage?.exceeded ?? false)}
+            className={cn(
+              'w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400',
+              !saved || reanalyzing || loading || (usage?.exceeded ?? false)
+                ? 'border-slate-200 text-slate-400 bg-white cursor-not-allowed'
+                : 'border-purple-200 text-[color:var(--color-ai)] bg-white hover:bg-purple-50'
+            )}
+          >
+            <span aria-hidden="true">◆</span>
+            {reanalyzing || loading ? t('architecture.narrativeLoading') : t('architecture.aiPanelReanalyze')}
+          </button>
+        </>
       )}
     </div>
   )
