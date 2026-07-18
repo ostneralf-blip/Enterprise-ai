@@ -76,13 +76,23 @@ function hashPrompt(prompt: string, model: string, prefix?: string): string {
 }
 
 function classifyBedrockError(err: unknown): string {
+  // AWS SDK v3 setzt bei Service-Fehlern err.name auf den exakten Exception-
+  // Typ (z.B. "ValidationException") — err.message enthält oft NUR den
+  // Beschreibungstext ohne den Typnamen (z.B. nur "The provided model
+  // identifier is invalid." ohne "ValidationException:" davor). Ein reiner
+  // message.includes()-Check lief deshalb bei manchen Exceptions ins Leere
+  // und landete fälschlich als "UnknownError" — err.name zuerst prüfen.
+  if (err instanceof Error) {
+    if (err.name === 'AbortError') return 'Timeout'
+    const known = ['ThrottlingException', 'ValidationException', 'AccessDeniedException', 'ResourceNotFoundException', 'UnrecognizedClientException']
+    if (known.includes(err.name)) return err.name
+  }
   const msg = String(err instanceof Error ? err.message : err)
   if (msg.includes('ThrottlingException')) return 'ThrottlingException'
   if (msg.includes('ValidationException')) return 'ValidationException'
   if (msg.includes('AccessDeniedException') || msg.includes('registration is incomplete')) return 'AccessDeniedException'
   if (msg.includes('ResourceNotFoundException')) return 'ResourceNotFoundException'
   if (msg.includes('UnrecognizedClientException')) return 'UnrecognizedClientException'
-  if (err instanceof Error && err.name === 'AbortError') return 'Timeout'
   return 'UnknownError'
 }
 
@@ -204,11 +214,11 @@ export async function callLLM<T>(
           continue
         }
         _bedrockFailureAt = Date.now() // Breaker öffnen — nächste Calls überspringen Bedrock (#180)
-        Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': bedrockErrorCode, region: REGION, attempt } })
+        Sentry.captureException(err, { tags: { 'ai.provider': 'bedrock', 'ai.model': modelId, 'aws.error_code': bedrockErrorCode, region: REGION, attempt, module: moduleName } })
         if (bedrockErrorCode === 'ValidationException') {
-          console.error('[ai/client] ValidationException — wahrscheinlich falsche Model-ID. Env-Var BEDROCK_MODEL_HAIKU/SONNET prüfen. Aktuell:', modelId)
+          console.error('[ai/client] ValidationException — wahrscheinlich falsche Model-ID. Env-Var BEDROCK_MODEL_HAIKU/SONNET prüfen. Aktuell:', modelId, moduleName)
         }
-        console.error('[ai/client] Bedrock-Fehler:', bedrockErrorCode, err)
+        console.error('[ai/client] Bedrock-Fehler:', bedrockErrorCode, moduleName, err)
       }
     }
   }
