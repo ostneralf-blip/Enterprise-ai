@@ -383,6 +383,22 @@ const PATTERNS: Record<PatternId, Omit<ArchitectureResult, 'patternId'>> = {
   },
 }
 
+// result.summary wird in PATTERNS nur auf Deutsch gepflegt (historisch — result.pattern/summary
+// sind persistierte Plain-Strings, keine {de,en}-Objekte, siehe Bug-Report 18.07.2026: "Recommended
+// Pattern"-Karte zeigte deutschen Text trotz EN-UI). Übersetzung separat über patternId, damit
+// bereits gespeicherte Architekturen (result.summary als Plain-String in der DB) unangetastet bleiben.
+export const PATTERN_SUMMARY_EN: Record<PatternId, string> = {
+  cloud_native: 'A fully cloud-based ML platform run by your own team. Maximum scalability and development speed — with a deliberate approach to cloud dependency.',
+  managed: 'Maximum use of pre-trained models and managed services. Low infrastructure effort, fast time-to-value — ideal for teams without in-house ML expertise.',
+  hybrid: 'A combination of on-premise core infrastructure and cloud for scalable workloads. Maximum flexibility with controlled compliance requirements.',
+  onprem: 'A fully on-premise AI infrastructure for maximum data control and compliance. Higher infrastructure effort, but full transparency and regulatory conformity.',
+  data_first: 'Before AI can deliver value, the data foundation has to be right. Invest in your data platform, quality, and governance now — AI use cases on a stable foundation within 3–6 months.',
+}
+
+export function getPatternSummary(patternId: PatternId, summaryFallback: string, locale: string): string {
+  return locale === 'en' ? PATTERN_SUMMARY_EN[patternId] ?? summaryFallback : summaryFallback
+}
+
 export function selectPattern(answers: WizardAnswers): PatternId {
   if (answers.compliance === 'strict' || answers.infra === 'onprem') return 'onprem'
   if (answers.data === 'to_build' || answers.data === 'silos') return 'data_first'

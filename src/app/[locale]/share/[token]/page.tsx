@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
-import type { ArchitectureResult } from '@/config/architecture-data'
+import { getPatternSummary, type ArchitectureResult } from '@/config/architecture-data'
 import type { CanvasData, GovernanceVerdict } from '@/types'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { formatDate } from '@/lib/utils/format'
@@ -210,7 +210,7 @@ function ArchitectureShareView({
           {t('recommendedPattern')}
         </span>
         <h2 className={cn('text-base font-semibold mt-2 mb-1', result.color.title)}>{result.pattern}</h2>
-        <p className="text-sm text-ink-secondary">{result.summary}</p>
+        <p className="text-sm text-ink-secondary">{getPatternSummary(result.patternId, result.summary, locale)}</p>
       </div>
 
       <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6">

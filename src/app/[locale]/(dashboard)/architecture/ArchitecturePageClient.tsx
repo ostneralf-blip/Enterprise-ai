@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
-import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
+import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendJouleUseCases, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations, type JouleUseCase } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
@@ -345,12 +345,12 @@ function ExecKpiStrip({ result, answers }: { result: ArchitectureResult; answers
   )
 }
 
-function ExecRecommendationCard({ result }: { result: ArchitectureResult }) {
+function ExecRecommendationCard({ result, locale }: { result: ArchitectureResult; locale: string }) {
   const t = useTranslations('modules')
   return (
     <div className="bg-surface border border-line rounded-2xl p-5 [border-left-width:4px] border-l-primary">
       <h3 className="text-sm font-semibold text-ink mb-2">{t('architecture.execRecommendTitle')}</h3>
-      <p className="text-sm text-ink-secondary leading-relaxed">{result.summary}</p>
+      <p className="text-sm text-ink-secondary leading-relaxed">{getPatternSummary(result.patternId, result.summary, locale)}</p>
     </div>
   )
 }
@@ -1380,7 +1380,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             </InfoHint>
                           )}
                         </div>
-                        <p className="text-sm text-ink-secondary">{result.summary}</p>
+                        <p className="text-sm text-ink-secondary">{getPatternSummary(result.patternId, result.summary, locale)}</p>
                       </div>
                     </SortableSection>
                   )
@@ -1404,7 +1404,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                             useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
                             eamValid={eamOk}
                           />
-                          <ExecRecommendationCard result={result} />
+                          <ExecRecommendationCard result={result} locale={locale} />
                         </div>
                       </SortableSection>
                     )
