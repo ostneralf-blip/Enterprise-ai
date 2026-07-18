@@ -117,6 +117,19 @@ export async function POST(
     }
   }
 
+  // Diagnose-Logging (18.07.2026): "No further suggestions" wurde wiederholt gemeldet,
+  // obwohl der Prompt component_suggestions anfordert. Loggt die ROHE, ungefilterte
+  // KI-Antwort — getSelectionStats() filtert client-seitig zusätzlich auf bekannte
+  // Katalognamen, sodass ein leeres Panel entweder von der KI selbst (nichts vorgeschlagen)
+  // oder vom Katalog-Filter (Name nicht exakt im Katalog) kommen kann. Erst mit dieser
+  // Unterscheidung lässt sich das ohne weiteres Rätselraten reproduzieren.
+  for (const section of ['narrative_exec', 'narrative_architect'] as const) {
+    const data = sectionResults[section] as { component_suggestions?: string[] } | undefined
+    if (data) {
+      console.info('[analysis] component_suggestions (roh, vor Katalog-Filter)', section, data.component_suggestions ?? [])
+    }
+  }
+
   if (Object.keys(sectionResults).length === 0) {
     void trackServer(userId, 'ai_call', { provider: representativeMeta.provider, model: representativeMeta.modelId, module: 'analysis', success: false, sections: sections.join(','), cached: false })
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen', code: 'AI_FAILED', bedrock_error: Object.values(sectionErrors)[0] ?? 'PARSE_OR_EMPTY' }, { status: 503 })
