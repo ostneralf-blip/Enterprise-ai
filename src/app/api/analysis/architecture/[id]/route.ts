@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { requireFeature } from '@/lib/utils/tier-check'
 import { callLLM } from '@/lib/ai/client'
 import { SectionEnum, NarrativeSectionSchema, RasicSuggestionSectionSchema, ComplianceHintsSectionSchema, DecisionSectionSchema } from '@/lib/ai/schemas'
@@ -135,45 +135,60 @@ export async function POST(
     const known = new Set((catalogRows ?? []).map(c => c.name))
     const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known) === null)
     if (unmatched.length > 0) {
-      createAdminClient().then(async admin => {
-        // Nur für WIRKLICH neue Vorschläge (noch nicht "pending") wird die
-        // Produktanreicherung ausgelöst — bei jeder Wiederholung eines bereits
-        // bekannten Vorschlags reicht das occurrence_count-Increment, sonst
-        // würde derselbe Sonnet-Call bei jeder erneuten Analyse erneut laufen.
-        const { data: pendingRows } = await admin.from('catalog_suggestions').select('suggested_name').eq('status', 'pending')
-        const pendingKeys = new Set((pendingRows ?? []).map(r => r.suggested_name.toLowerCase().trim()))
-        const seenThisBatch = new Set<string>()
-        const suggestionContext = {
-          architecture_id: id, locale, archetype: archetype ?? null,
-          compliance: compliance ?? null, canvas_quadrant: canvas_quadrant ?? null,
-        }
-
-        await Promise.all(unmatched.map(async ({ section, name }) => {
-          const key = name.toLowerCase().trim()
-          const isNew = !pendingKeys.has(key) && !seenThisBatch.has(key)
-          if (isNew) seenThisBatch.add(key)
-
-          await admin.rpc('log_catalog_suggestion', {
-            p_name: name, p_module: 'architecture', p_section: section,
-            p_context: suggestionContext,
-          })
-
-          if (isNew) {
-            const { data: row } = await admin
-              .from('catalog_suggestions')
-              .select('id')
-              .eq('status', 'pending')
-              .eq('suggested_name', name)
-              .maybeSingle()
-            if (row?.id) {
-              void enrichCatalogSuggestion({
-                suggestionId: row.id, name, module: 'architecture', section,
-                context: suggestionContext,
-              })
-            }
+      // Bug-Report 18.07.2026: ein unawaiteter ".then()"-Block ohne Bindung an die
+      // Response wird von der Serverless-Function eingefroren/beendet, sobald die
+      // Antwort rausgeht — die Produktanreicherung (bis zu 15s Bedrock-Call) blieb
+      // dadurch dauerhaft bei enrichment_status "pending" hängen, ohne je Fehler
+      // oder Ergebnis zu zeigen. after() hält die Function-Instanz bis zum Abschluss
+      // dieses Callbacks am Leben, ohne die eigentliche Response zu verzögern.
+      after(async () => {
+        try {
+          const admin = await createAdminClient()
+          // Anreicherung nur auslösen, wenn sie für diesen Vorschlag noch nie
+          // erfolgreich lief oder noch gar nicht versucht wurde — Kriterium ist
+          // enrichment_status, nicht "ist der Name neu": ein Vorschlag kann schon
+          // als "pending" geloggt sein (occurrence_count > 1), aber wegen eines
+          // früheren Abbruchs (z. B. dem after()-Bug oben) nie erfolgreich
+          // angereichert worden sein — der soll bei der nächsten Gelegenheit
+          // trotzdem einen neuen Versuch bekommen, nicht dauerhaft übersprungen werden.
+          const { data: pendingRows } = await admin.from('catalog_suggestions').select('suggested_name, enrichment_status').eq('status', 'pending')
+          const pendingStatus = new Map((pendingRows ?? []).map(r => [r.suggested_name.toLowerCase().trim(), r.enrichment_status]))
+          const seenThisBatch = new Set<string>()
+          const suggestionContext = {
+            architecture_id: id, locale, archetype: archetype ?? null,
+            compliance: compliance ?? null, canvas_quadrant: canvas_quadrant ?? null,
           }
-        }))
-      }).catch(() => { /* Logging ist best-effort, darf die Analyse nicht blockieren */ })
+
+          await Promise.all(unmatched.map(async ({ section, name }) => {
+            const key = name.toLowerCase().trim()
+            const existingStatus = pendingStatus.get(key)
+            const needsEnrichment = (existingStatus === undefined || existingStatus === 'none') && !seenThisBatch.has(key)
+            if (needsEnrichment) seenThisBatch.add(key)
+
+            await admin.rpc('log_catalog_suggestion', {
+              p_name: name, p_module: 'architecture', p_section: section,
+              p_context: suggestionContext,
+            })
+
+            if (needsEnrichment) {
+              const { data: row } = await admin
+                .from('catalog_suggestions')
+                .select('id')
+                .eq('status', 'pending')
+                .eq('suggested_name', name)
+                .maybeSingle()
+              if (row?.id) {
+                // Bewusst awaited statt fire-and-forget — siehe Kommentar oben,
+                // sonst schließt after() das Zeitfenster, bevor Bedrock antwortet.
+                await enrichCatalogSuggestion({
+                  suggestionId: row.id, name, module: 'architecture', section,
+                  context: suggestionContext,
+                })
+              }
+            }
+          }))
+        } catch { /* Logging/Anreicherung ist best-effort, darf die Analyse nicht blockieren */ }
+      })
     }
   }
 
