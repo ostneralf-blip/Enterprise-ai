@@ -73,7 +73,10 @@ export async function POST(
   const { data: rawResult, meta, errorCode } = await callLLM(
     sectionBlocks,
     wrapperSchema,
-    { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
+    // timeoutMs erhöht (Default 8s): sharedContext macht diesen Prompt größer als
+    // andere callLLM-Aufrufe (z. B. Canvas ohne cacheControlPrefix) — 15s Bedrock +
+    // 30s Direct-Fallback bleiben klar unter maxDuration=60 dieser Route.
+    { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext, timeoutMs: 15000 },
   )
 
   const result = rawResult ? NarrativeSectionSchema.safeParse((rawResult as Record<string, unknown>)[section]) : null
