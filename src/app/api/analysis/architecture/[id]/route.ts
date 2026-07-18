@@ -78,11 +78,20 @@ export async function POST(
   // (löst weiterhin die Persistenz-Race, wegen der wir überhaupt umgestellt
   // haben — siehe Commit "KI-Analyse auf Unified-Endpoint umgestellt").
   const callResults = await Promise.all(sections.map(async section => {
-    const { data, meta, errorCode } = await callLLM(
+    // Der Prompt (SECTION_TASK_BLOCKS) weist das Modell an, unter dem
+    // Sektionsnamen zu wrappen (z. B. {"narrative_architect": {...}}) — auch
+    // bei nur einer angeforderten Sektion, weil dasselbe Prompt-Template für
+    // Einzel- und Mehr-Sektionen-Aufrufe gilt. Deshalb hier gegen den
+    // Wrapper validieren und danach entpacken, statt direkt gegen das innere
+    // Schema zu prüfen (das lieferte "key_decisions/next_steps: undefined",
+    // weil sie tatsächlich eine Ebene tiefer liegen).
+    const wrapperSchema = z.object({ [section]: SECTION_SCHEMAS[section] as z.ZodType<unknown> })
+    const { data: wrapped, meta, errorCode } = await callLLM(
       buildSectionBlocks([section]),
-      SECTION_SCHEMAS[section] as z.ZodType<unknown>,
+      wrapperSchema,
       { model: 'haiku', maxTokens: 2048, module: 'architecture', cacheControlPrefix: sharedContext },
     )
+    const data = wrapped ? (wrapped as Record<string, unknown>)[section] : null
     return { section, data, meta, errorCode }
   }))
 
