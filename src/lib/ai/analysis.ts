@@ -20,7 +20,8 @@ export function buildSharedContext(ctx: AnalysisContext): string {
     : ''
 
   return `You are an enterprise AI architecture expert. Return ONLY valid JSON — no markdown, no explanation.
-CRITICAL: Write ALL text fields exclusively in ${langName}.
+CRITICAL: Write single-language text fields (summary, decision_recommendation) exclusively in ${langName}.
+BILINGUAL EXCEPTION: key_decisions and next_steps are bilingual — EVERY item MUST include BOTH a "de" key AND an "en" key with real, independently written text in each language, regardless of ${langName} being the primary response language. Never omit "de" or "en" from these items, even though the rest of the response is in ${langName}.
 PROTECTED PRODUCT NAMES: ${ctx.components.join(', ')} — appear exactly as listed, NEVER translate or paraphrase.
 LIST SIZE: Exactly 3-5 items per list (key_decisions, next_steps).
 

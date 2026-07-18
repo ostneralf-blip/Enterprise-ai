@@ -126,8 +126,15 @@ export async function POST(
     Sentry.captureMessage('AI non-EU fallback used in production', { level: 'error', tags: { 'ai.provider': 'direct', module: 'analysis' } })
   }
 
-  const ok = await incrementAIUsage(userId, tier)
-  if (!ok) return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
+  // Nur bei vollständigem Erfolg das Tageskontingent belasten — ein Nutzer soll
+  // keine Analyse "verbrauchen", wenn ein Teil davon an einem technischen
+  // Problem (Timeout, Zod-Parse) gescheitert ist. Erfolgreiche Teilergebnisse
+  // werden trotzdem gespeichert und zurückgegeben, nur eben kostenlos.
+  const hasErrors = Object.keys(sectionErrors).length > 0
+  if (!hasErrors) {
+    const ok = await incrementAIUsage(userId, tier)
+    if (!ok) return NextResponse.json({ error: 'Tages-Limit erreicht', code: 'LIMIT_EXCEEDED' }, { status: 429 })
+  }
 
   const promptCachedTokens = callResults.reduce((sum, r) => sum + (r.meta.promptCachedTokens ?? 0), 0)
   void trackServer(userId, 'ai_call', {
