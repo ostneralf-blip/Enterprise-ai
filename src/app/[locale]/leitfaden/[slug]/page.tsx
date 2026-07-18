@@ -25,7 +25,7 @@ export async function generateMetadata({
   const title = isEn ? guide.title.en : guide.title.de
   const description = isEn ? guide.metaDescription.en : guide.metaDescription.de
   return {
-    title: `${title} — AI Navigator`,
+    title,
     description,
     alternates: {
       canonical,
