@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { GUIDES, getGuide, AMAZON_BOOK_URL, type Bi } from '@/config/leitfaden-data'
+import { getGuide, AMAZON_BOOK_URL, type Bi } from '@/config/leitfaden-data'
 import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-export function generateStaticParams() {
-  return GUIDES.map((g) => ({ slug: g.slug }))
-}
+// Bewusst kein generateStaticParams: die verschachtelte [locale]/leitfaden/[slug]-Route
+// hatte damit einen Server-Fehler auf allen Slugs (Next.js-Eigenheit bei doppelt
+// verschachtelten Dynamic Segments ohne generateStaticParams im Eltern-Segment).
+// Rein dynamisches Rendering pro Request ist bei 8 Guides performance-unkritisch.
 
 export async function generateMetadata({
   params,
