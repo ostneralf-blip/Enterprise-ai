@@ -47,7 +47,7 @@ const norm = (n: string) => n.toLowerCase().trim()
 // suggestions", obwohl die KI etwas Sinnvolles vorgeschlagen hat). Vor dem exakten
 // Katalog-Abgleich zusätzlich den Teil vor gängigen Erklärungs-Trennern probieren.
 const EXPLANATION_SEPARATORS = [' — ', ' – ', ' - ', ' (']
-function resolveToKnownName(raw: string, known: Set<string>): string | null {
+export function resolveToKnownName(raw: string, known: Set<string>): string | null {
   if (known.has(raw)) return raw
   let cleaned = raw
   for (const sep of EXPLANATION_SEPARATORS) {

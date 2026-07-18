@@ -7,7 +7,8 @@ import { getAIUsageStatus, incrementAIUsage } from '@/lib/ai/usage-log'
 import { trackServer } from '@/lib/posthog/server'
 import { buildSharedContext, buildSectionBlocks } from '@/lib/ai/analysis'
 import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { resolveToKnownName } from '@/lib/architecture/selection'
 import * as Sentry from '@sentry/nextjs'
 import { z } from 'zod'
 
@@ -117,16 +118,30 @@ export async function POST(
     }
   }
 
-  // Diagnose-Logging (18.07.2026): "No further suggestions" wurde wiederholt gemeldet,
-  // obwohl der Prompt component_suggestions anfordert. Loggt die ROHE, ungefilterte
-  // KI-Antwort — getSelectionStats() filtert client-seitig zusätzlich auf bekannte
-  // Katalognamen, sodass ein leeres Panel entweder von der KI selbst (nichts vorgeschlagen)
-  // oder vom Katalog-Filter (Name nicht exakt im Katalog) kommen kann. Erst mit dieser
-  // Unterscheidung lässt sich das ohne weiteres Rätselraten reproduzieren.
-  for (const section of ['narrative_exec', 'narrative_architect'] as const) {
-    const data = sectionResults[section] as { component_suggestions?: string[] } | undefined
-    if (data) {
-      console.info('[analysis] component_suggestions (roh, vor Katalog-Filter)', section, data.component_suggestions ?? [])
+  // KI-Vorschläge ohne Katalog-Treffer protokollieren statt lautlos zu verwerfen
+  // (Rücksprache Daniel, 18.07.2026): resolveToKnownName() fängt "Name + Begründung"
+  // bereits ab (siehe selection.ts) — was danach noch übrig bleibt, ist entweder ein
+  // Tippfehler/Fantasiename der KI oder eine echte Katalog-Lücke. Beides landet als
+  // "pending" in catalog_suggestions für Admin-Review, statt dass der Vorschlag
+  // ersatzlos verschwindet ("No further suggestions").
+  const suggestionsBySection = (['narrative_exec', 'narrative_architect'] as const)
+    .flatMap(section => {
+      const names = (sectionResults[section] as { component_suggestions?: string[] } | undefined)?.component_suggestions ?? []
+      return names.map(name => ({ section, name }))
+    })
+  if (suggestionsBySection.length > 0) {
+    const { data: catalogRows } = await supabase.from('component_catalog').select('name').eq('is_active', true)
+    const known = new Set((catalogRows ?? []).map(c => c.name))
+    const unmatched = suggestionsBySection.filter(({ name }) => resolveToKnownName(name, known) === null)
+    if (unmatched.length > 0) {
+      createAdminClient().then(async admin => {
+        await Promise.all(unmatched.map(({ section, name }) =>
+          admin.rpc('log_catalog_suggestion', {
+            p_name: name, p_module: 'architecture', p_section: section,
+            p_context: { architecture_id: id, locale, archetype: archetype ?? null },
+          })
+        ))
+      }).catch(() => { /* Logging ist best-effort, darf die Analyse nicht blockieren */ })
     }
   }
 

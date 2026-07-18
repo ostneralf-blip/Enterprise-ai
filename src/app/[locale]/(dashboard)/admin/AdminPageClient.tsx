@@ -5,6 +5,7 @@ import type { ContentLibraryEntry, UserProfile, Tier, CatalogComponent, CatalogS
 import { cn } from '@/lib/utils'
 import { AlertBox } from '@/components/shared/AlertBox'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
+import { CatalogSuggestionsPanel } from './CatalogSuggestionsPanel'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
@@ -49,7 +50,7 @@ interface Props {
   initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings'
+type Tab = 'content' | 'users' | 'catalog' | 'suggestions' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings'
 
 interface PromoQueueEntry {
   term: string; synonym: string; synonym_type: string
@@ -917,6 +918,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['content', 'Content Library', entries.length],
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
+          ['suggestions', 'KI-Vorschläge', 0],
           ['synonyms', 'Canvas-Synonyme', synonyms.length],
           ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
           ['policy_templates', 'Policy Templates', policyTemplates.length],
@@ -1775,6 +1777,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           </div>
         </div>
       )}
+
+      {/* ─── KI-Vorschläge tab (catalog_suggestions) ─────────────────────────── */}
+      {tab === 'suggestions' && <CatalogSuggestionsPanel />}
 
       {/* ─── User management tab ─────────────────────────────────────────────── */}
       {tab === 'users' && (
