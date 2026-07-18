@@ -30,6 +30,7 @@ interface Props {
   onAcceptAll?: () => void
   onScrollToFirst?: () => void
   onReanalyze?: () => Promise<void>
+  onRemoveComponent?: (name: string) => void
   loading?: boolean
   conditionalComps?: CatalogComponent[]
   dsgvoConfirmed?: boolean
@@ -39,7 +40,7 @@ interface Props {
 export function AIPanel({
   narrative, usage, aiModel, generatedAt, tier, locale,
   catalogComponents, rejectedSuggestions, acceptedSuggestions, activeComponentNames, canvasEnrichment,
-  onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze,
+  onAccept, onReject, onAcceptAll, onScrollToFirst, onReanalyze, onRemoveComponent,
   loading = false,
   conditionalComps, dsgvoConfirmed, onDsgvoConfirm,
 }: Props) {
@@ -97,6 +98,24 @@ export function AIPanel({
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] font-bold uppercase tracking-wide text-error-text mb-0.5">{t('architecture.aiPanelConflictLabel')}</p>
                   <p className="text-xs text-error-text leading-relaxed">{locale === 'en' ? explanation.en : explanation.de}</p>
+                  {onRemoveComponent && (
+                    <div className="flex gap-1.5 flex-wrap mt-1.5">
+                      <button
+                        type="button"
+                        onClick={() => onRemoveComponent(c.a)}
+                        className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-error-border"
+                      >
+                        {t('architecture.conflictRemove', { name: c.a })}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveComponent(c.b)}
+                        className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-surface transition-colors focus:outline-none focus:ring-2 focus:ring-error-border"
+                      >
+                        {t('architecture.conflictRemove', { name: c.b })}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </li>
             )

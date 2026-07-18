@@ -2,10 +2,9 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { AlertBox } from '@/components/shared/AlertBox'
 import type { CatalogComponent } from '@/types'
 import type { CatalogRecommendations } from '@/config/architecture-rules'
-import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
+import { findConflicts } from '@/lib/utils/catalog-compatibility'
 
 const LS_KEY = 'arch_optimisation_open_v1'
 
@@ -15,7 +14,6 @@ interface Props {
   activeComponentNames: Set<string>
   onCheckedChange: (next: Set<string>) => void
   aiSuggestions?: string[]
-  locale: string
   embedded?: boolean
 }
 
@@ -25,7 +23,6 @@ export function TechnicalArchitectureOptimisation({
   activeComponentNames,
   onCheckedChange,
   aiSuggestions = [],
-  locale,
   embedded = false,
 }: Props) {
   const t = useTranslations('modules.architecture')
@@ -109,40 +106,6 @@ export function TechnicalArchitectureOptimisation({
               </div>
             )
           })}
-
-          {/* Conflict banner */}
-          {conflicts.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              {conflicts.map(({ a, b, alternatives }) => {
-                const explanation = explainConflict(a, b, byName)
-                return (
-                  <AlertBox key={`${a}|${b}`} variant="warning" className="p-3">
-                    <p>{locale === 'de' ? explanation.de : explanation.en}</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {[a, b].map(name => (
-                        <button
-                          key={name}
-                          onClick={() => { const next = new Set(effective); next.delete(name); onCheckedChange(next) }}
-                          className="text-xs text-error-text underline"
-                        >
-                          {name} {t('conflictRemove')}
-                        </button>
-                      ))}
-                      {alternatives.map(alt => (
-                        <button
-                          key={alt}
-                          onClick={() => { const next = new Set(effective); next.delete(a); next.add(alt); onCheckedChange(next) }}
-                          className="text-xs rounded border border-line bg-surface px-2 py-0.5 hover:bg-surface-raised"
-                        >
-                          {alt}
-                        </button>
-                      ))}
-                    </div>
-                  </AlertBox>
-                )
-              })}
-            </div>
-          )}
         </div>
   )
 

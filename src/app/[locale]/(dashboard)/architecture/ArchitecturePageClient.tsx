@@ -1779,6 +1779,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
               }, 250)
             }}
             onReanalyze={handleAINarrative}
+            onRemoveComponent={name => {
+              const next = new Set(activeComponentNames)
+              next.delete(name)
+              setActiveComponentNames(next)
+            }}
             loading={narrativeLoading}
             conditionalComps={selStats.activeComponents.filter(c => c.dsgvo_status === 'conditional')}
             dsgvoConfirmed={dsgvoConfirmed}

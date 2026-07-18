@@ -227,7 +227,7 @@ export function ComponentSelectionStep({ catalogRecs, components, aiSuggested, o
                     </button>
                     <button type="button" onClick={() => resolveConflict(conflict.b)}
                       className="text-[10px] font-semibold opacity-70 underline hover:opacity-100 focus:outline-none">
-                      {conflict.b} {t('architecture.conflictRemove')}
+                      {t('architecture.conflictRemove', { name: conflict.b })}
                     </button>
                   </div>
                   {isShowingAlts && conflict.alternatives.length > 0 && (

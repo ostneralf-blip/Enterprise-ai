@@ -216,7 +216,6 @@ export function ArchitectureWorkbench({
                   activeComponentNames={activeComponentNames}
                   onCheckedChange={onCheckedChange}
                   aiSuggestions={aiSuggestions}
-                  locale={locale}
                   embedded
                 />
                 {effective.size > 0 && roleNames.length > 0 && (
