@@ -454,6 +454,30 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   `/api/export/[report]` erweitert um `readiness`/`usecase-portfolio`/`compliance-status`/
   `roadmap-status`/`architecture-status`/`full-report`, je mit eigenem 404 statt
   leerem Report bei fehlenden Daten.
+- **Nachtrag 19.07.2026 — Investitionsrahmen + Empfehlung im Architektur-Report**
+  (von Daniel nachträglich zu #225 angefordert, oberhalb Schlüssel-Entscheidungen):
+  `NarrativeSectionSchema` (`lib/ai/schemas.ts`) um optionales `investment_framework`
+  erweitert (year1_estimate/ongoing_estimate/timeframe_estimate/risk_label/risk_note),
+  vom Modell im `narrative_exec`-Prompt (`lib/ai/analysis.ts`) explizit als GROBE
+  Schätzung angefordert (keine belastbare Kalkulation, im Report entsprechend
+  beschriftet) — additive Schema-Änderung, bricht die bestehenden 3 Narrative-
+  Konsumenten (Architektur-Workbench-Karten) nicht. `decision_recommendation` gab
+  es im Schema bereits, wurde aber im Report bisher nicht angezeigt — jetzt als
+  eigener „Empfehlung"-Block ergänzt. Beide Felder (wie `aiSummary`) nur sichtbar,
+  wenn `narrative_locale` zur Report-Sprache passt.
+  **Bug gefunden + behoben:** `fontStyle: 'italic'` auf Work-Sans-Text (`emptyState`
+  in 4 Report-Dateien: executive-summary/readiness/compliance-status/roadmap-status/
+  architecture-status) crashte beim ECHTEN react-pdf-Rendern mit "Could not resolve
+  font for Work Sans, fontWeight 400, fontStyle italic" — Work Sans war nur in
+  Regular/Bold registriert, nie in Italic. Der Jest-Mock deckt das nicht ab (prüft
+  keine Font-Auflösung), nur ein echtes Render-Skript hat es gezeigt. Fix: Work Sans
+  Italic 400 in `lib/pdf/meridian/fonts.ts` ergänzt (URL per `curl -A "Mozilla/5.0"
+  fonts.googleapis.com/css?family=Work+Sans:400italic` verifiziert, keine bekannten
+  fontkit-Probleme wie bei IBM Plex Mono). **Lehre:** Bei jeder neuen MERIDIAN-
+  Report-Komponente mit `fontStyle: 'italic'` prüfen, ob die verwendete
+  Font-Familie diese Variante tatsächlich in `fonts.ts` registriert hat — der
+  Jest-Mock validiert das nicht, nur ein reales Render-Skript mit Netzwerkzugriff
+  deckt es auf (siehe auch die IBM-Plex-Mono-Lehre in `fonts.ts` selbst).
 - ~~#223 MERIDIAN-Fundament~~ → DONE (`b1b586c`): Design-Tokens (`config/report-tokens.ts`),
   Fontregistrierung (Lora/Work Sans/IBM Plex Mono — IBM Plex Mono bewusst von
   `raw.githubusercontent.com/google/fonts` statt gstatic, siehe Kommentar in

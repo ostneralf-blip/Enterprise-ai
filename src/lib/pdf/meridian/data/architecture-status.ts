@@ -5,10 +5,20 @@ import type { RawArchitectureResult } from '@/lib/pdf/normalize-architecture'
 import type { Locale } from '@/i18n/routing'
 
 type MaybeLocale = string | { de: string; en: string }
+interface InvestmentFramework {
+  year1_estimate: string
+  year1_caption?: string
+  ongoing_estimate: string
+  timeframe_estimate: string
+  risk_label: string
+  risk_note: string
+}
 interface NarrativeSection {
   summary?: string
   key_decisions: MaybeLocale[]
   next_steps: MaybeLocale[]
+  decision_recommendation?: string
+  investment_framework?: InvestmentFramework
 }
 
 export interface ArchitectureLayerStack {
@@ -22,6 +32,8 @@ export interface ArchitectureStatusData {
   title: string
   pattern: string
   aiSummary: string | null // nur gesetzt, wenn narrative_locale zur angeforderten Sprache passt
+  decisionRecommendation: string | null // dito
+  investmentFramework: InvestmentFramework | null // dito — echte KI-Schätzung, siehe lib/ai/schemas.ts
   keyDecisions: string[]
   nextSteps: string[]
   layers: ArchitectureLayerStack[]
@@ -32,20 +44,20 @@ export interface ArchitectureStatusData {
  * Issue #225). Gibt `null` zurück, wenn keine gespeicherte Architektur
  * existiert.
  *
- * Die Musterseite zeigt vier erfundene Kennzahl-Karten (Investition J1,
- * Laufend, Umsetzung, Risikoprofil) — dafür gibt es keine Datenquelle im
- * Architektur-Generator (weder AI-Narrativ noch Grundergebnis enthalten
- * Kosten-/Zeitschätzungen). Bewusst weggelassen statt erfunden.
- *
- * KI-Einordnung (aiSummary) kommt aus architectures.ai_narrative.exec.summary
- * (Speicher-Key laut lib/ai/section-audience.ts — NICHT "narrative_exec",
- * das ist nur der interne Analyse-Sektionsname). Nur String, keine {de,en}-
- * Form — architectures.narrative_locale trackt die Sprache; bei Mismatch zur
- * angeforderten Report-Sprache wird aiSummary bewusst weggelassen statt
- * falschsprachigen Text zu zeigen. key_decisions/next_steps SIND bilingual
- * und werden unabhängig vom Locale-Mismatch immer aufgelöst — mit Fallback
- * auf das (immer vorhandene) Basis-Ergebnis result.keyDecisions/nextSteps,
- * falls noch keine KI-Einordnung generiert wurde.
+ * KI-Einordnung (aiSummary), Empfehlung (decisionRecommendation) und
+ * Investitionsrahmen (investmentFramework) kommen aus
+ * architectures.ai_narrative.exec.{summary,decision_recommendation,
+ * investment_framework} (Speicher-Key laut lib/ai/section-audience.ts —
+ * NICHT "narrative_exec", das ist nur der interne Analyse-Sektionsname).
+ * investment_framework ist eine vom Modell explizit als grobe Schätzung
+ * gekennzeichnete Größenordnung (siehe Prompt in lib/ai/analysis.ts), keine
+ * belastbare Kalkulation — im Report entsprechend beschriftet. Alle drei
+ * Felder sind reine Strings, keine {de,en}-Form — architectures.narrative_locale
+ * trackt die Sprache; bei Mismatch zur angeforderten Report-Sprache werden sie
+ * bewusst weggelassen statt falschsprachigen Text zu zeigen. key_decisions/
+ * next_steps SIND bilingual und werden unabhängig vom Locale-Mismatch immer
+ * aufgelöst — mit Fallback auf das (immer vorhandene) Basis-Ergebnis
+ * result.keyDecisions/nextSteps, falls noch keine KI-Einordnung generiert wurde.
  */
 export async function getArchitectureStatusData(userId: string, locale: Locale): Promise<ArchitectureStatusData | null> {
   const supabase = await createClient()
@@ -80,7 +92,10 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
   const normalized = normalizeArchitectureResult(rawResult, locale)
 
   const exec = arch.ai_narrative?.exec ?? null
-  const aiSummary = exec?.summary && arch.narrative_locale === locale ? exec.summary : null
+  const narrativeMatchesLocale = arch.narrative_locale === locale
+  const aiSummary = exec?.summary && narrativeMatchesLocale ? exec.summary : null
+  const decisionRecommendation = exec?.decision_recommendation && narrativeMatchesLocale ? exec.decision_recommendation : null
+  const investmentFramework = exec?.investment_framework && narrativeMatchesLocale ? exec.investment_framework : null
 
   const resolveList = (items: MaybeLocale[] | undefined) =>
     (items ?? []).map(item => resolveLocaleField(item, locale)).filter((s): s is string => !!s)
@@ -99,6 +114,8 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     title: arch.title,
     pattern: normalized.pattern,
     aiSummary,
+    decisionRecommendation,
+    investmentFramework,
     keyDecisions,
     nextSteps,
     layers: normalized.layers

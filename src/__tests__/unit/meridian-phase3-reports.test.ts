@@ -94,6 +94,15 @@ const architectureData: ArchitectureStatusData = {
   title: 'Meine Architektur',
   pattern: 'SAP-zentrierter MLOps-Stack',
   aiSummary: 'Die Zielarchitektur implementiert einen skalierbaren Governance-Rahmen.',
+  decisionRecommendation: 'Pilot mit klarem Abbruchkriterium starten, bevor die volle Skalierung freigegeben wird.',
+  investmentFramework: {
+    year1_estimate: '€240–640k',
+    year1_caption: 'Lizenzen · Integration',
+    ongoing_estimate: '€19–56k',
+    timeframe_estimate: '6–12 Monate',
+    risk_label: 'DSGVO',
+    risk_note: 'prüfen — AVV offen',
+  },
   keyDecisions: ['Kubernetes als primäre Orchestrierung.'],
   nextSteps: ['Pilot in Non-Production starten.'],
   layers: [{ name: 'Governance', components: ['SAP MDG', 'HashiCorp Vault'] }],
@@ -142,8 +151,16 @@ describe('MERIDIAN Phase 3 — Leerzustände', () => {
     expect(await isPdf(renderMeridianRoadmapStatus(empty, 'de'))).toBe(true)
   })
 
-  it('Architektur-Status: rendert ohne KI-Einordnung, ohne Entscheidungen, ohne Stack', async () => {
-    const empty: ArchitectureStatusData = { ...architectureData, aiSummary: null, keyDecisions: [], nextSteps: [], layers: [] }
+  it('Architektur-Status: rendert ohne KI-Einordnung, ohne Investitionsrahmen, ohne Empfehlung, ohne Entscheidungen, ohne Stack', async () => {
+    const empty: ArchitectureStatusData = {
+      ...architectureData,
+      aiSummary: null,
+      decisionRecommendation: null,
+      investmentFramework: null,
+      keyDecisions: [],
+      nextSteps: [],
+      layers: [],
+    }
     expect(await isPdf(renderMeridianArchitectureStatus(empty, 'de'))).toBe(true)
   })
 })

@@ -41,7 +41,8 @@ Audience: C-level / CFO. Business language only — no technical jargon.
 Summary: 2-3 sentences — what this AI architecture delivers, the key business value, the most critical risk.
 decision_recommendation: 2-3 sentences with pilot gate and concrete abort criterion. Flowing prose.
 component_suggestions: up to 3 additional real platform names not yet in the list (omit if none). CRITICAL FORMAT: each array item is the bare product/platform name ONLY — no explanation, no rationale, no " — " or "(...)" suffix appended. Wrong: "Databricks (for distributed feature engineering)". Correct: "Databricks".
-Return key "narrative_exec": {"summary":"...","key_decisions":[{"de":"...","en":"..."}],"next_steps":[{"de":"...","en":"..."}],"decision_recommendation":"...","component_suggestions":[]}`,
+investment_framework: a ROUGH order-of-magnitude estimate based on the chosen components/pattern — NOT a real quote, phrase ranges generously (e.g. a currency range like "€240–640k", never a single precise number). Fields: year1_estimate (one-time licenses + integration + enablement cost range), year1_caption (2-4 words, what's included), ongoing_estimate (recurring monthly cost range), timeframe_estimate (implementation duration range, e.g. "6–12 months"), risk_label (the single most relevant compliance/risk keyword for this architecture, e.g. "GDPR"), risk_note (max 8 words on its current status, e.g. "review needed — DPA pending").
+Return key "narrative_exec": {"summary":"...","key_decisions":[{"de":"...","en":"..."}],"next_steps":[{"de":"...","en":"..."}],"decision_recommendation":"...","component_suggestions":[],"investment_framework":{"year1_estimate":"...","year1_caption":"...","ongoing_estimate":"...","timeframe_estimate":"...","risk_label":"...","risk_note":"..."}}`,
 
   narrative_architect: `=== SECTION narrative_architect ===
 Audience: Enterprise Architect / IT Lead. Full technical depth.

@@ -44,12 +44,27 @@ export const SectionEnum = z.enum([
 ])
 export type AnalysisSection = z.infer<typeof SectionEnum>
 
+// Investitionsrahmen (#225 MERIDIAN Architektur-Report) — nur für narrative_exec
+// sinnvoll befüllt (C-Level/CFO-Audience), bei narrative_architect/-compliance
+// bleibt das Feld einfach leer. Ausdrücklich eine grobe Schätzung des Modells
+// auf Basis der gewählten Komponenten/Muster, keine belastbare Kalkulation —
+// im Report entsprechend als Schätzung gekennzeichnet.
+export const InvestmentFrameworkSchema = z.object({
+  year1_estimate: z.string().max(60),
+  year1_caption: z.string().max(80).optional(),
+  ongoing_estimate: z.string().max(60),
+  timeframe_estimate: z.string().max(30),
+  risk_label: z.string().max(40),
+  risk_note: z.string().max(120),
+})
+
 export const NarrativeSectionSchema = z.object({
   summary: z.string().max(2000).optional(),
   key_decisions: z.array(BilingualItemSchema).max(10),
   next_steps: z.array(BilingualItemSchema).max(10),
   component_suggestions: z.array(z.string().max(200)).max(8).optional(),
   decision_recommendation: z.string().max(1500).optional(),
+  investment_framework: InvestmentFrameworkSchema.optional(),
 })
 
 export const RasicSuggestionSectionSchema = z.object({

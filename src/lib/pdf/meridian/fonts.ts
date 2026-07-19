@@ -39,6 +39,14 @@ export function registerMeridianFonts() {
     fonts: [
       { src: 'https://fonts.gstatic.com/s/worksans/v24/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K0nXBi8Jow.ttf', fontWeight: 400, fontStyle: 'normal' },
       { src: 'https://fonts.gstatic.com/s/worksans/v24/QGY_z_wNahGAdqQ43RhVcIgYT2Xz5u32K67QBi8Jow.ttf', fontWeight: 700, fontStyle: 'normal' },
+      // Italic ergänzt (#225): mehrere Report-Leerzustände (emptyState) nutzten
+      // fontStyle:'italic' auf Work Sans, ohne dass diese Variante registriert
+      // war — react-pdf wirft dann beim tatsächlichen Rendern (nicht im Jest-
+      // Mock sichtbar) "Could not resolve font for Work Sans, fontWeight 400,
+      // fontStyle italic". URL per Google-Fonts-CSS-API verifiziert (curl
+      // -A "Mozilla/5.0" .../css?family=Work+Sans:400italic), keine bekannten
+      // fontkit-Probleme wie bei IBM Plex Mono.
+      { src: 'https://fonts.gstatic.com/s/worksans/v24/QGY9z_wNahGAdqQ43Rh_ebrnlwyYfEPxPoGU3ms5pIfd.ttf', fontWeight: 400, fontStyle: 'italic' },
     ],
   })
 
