@@ -37,6 +37,9 @@ const Text = ({ children, render }) => {
 const Svg = ({ children }) => React.createElement('svg', { 'data-pdf': 'svg' }, children)
 const Path = () => React.createElement('path', { 'data-pdf': 'path' })
 const Circle = () => React.createElement('circle', { 'data-pdf': 'circle' })
+// Rect (Issue #224, Executive-Summary-Tabellenbalken) — dieselbe reine
+// Platzhalter-Logik wie Path/Circle, siehe Kommentar oben.
+const Rect = () => React.createElement('rect', { 'data-pdf': 'rect' })
 const Font = { register: () => {}, registerHyphenationCallback: () => {} }
 
 // Läuft den Element-Baum rekursiv durch und ruft dabei jede Funktionskomponente
@@ -62,4 +65,4 @@ async function renderToBuffer(document) {
   return Buffer.from('%PDF-1.4 mock-content')
 }
 
-module.exports = { Document, Page, View, Text, Svg, Path, Circle, Font, StyleSheet, renderToBuffer }
+module.exports = { Document, Page, View, Text, Svg, Path, Circle, Rect, Font, StyleSheet, renderToBuffer }

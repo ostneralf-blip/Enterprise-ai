@@ -420,9 +420,35 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~Wave 3 zusammenfassung/page.tsx~~ → DONE (`6463b88`)
 - ~~Wave 4 große Module~~ → DONE (`1198e1a`, 17.07.2026) — verbleibende Farben sind intentionale Kategorie-/Brand-Farben (RACI, Dept-Badges, AI-Brand, dunkle CTAs)
 
+**ERLEDIGT — Sprint 32 MERIDIAN PDF-Reports #223 + #224 (19.07.2026):**
+- ~~#223 MERIDIAN-Fundament~~ → DONE (`b1b586c`): Design-Tokens (`config/report-tokens.ts`),
+  Fontregistrierung (Lora/Work Sans/IBM Plex Mono — IBM Plex Mono bewusst von
+  `raw.githubusercontent.com/google/fonts` statt gstatic, siehe Kommentar in
+  `lib/pdf/meridian/fonts.ts` zu einem fontkit-Bug bei der gstatic-Subset-Datei),
+  7 Basiskomponenten (`lib/pdf/meridian/components.tsx`), Route `/api/export/[report]`.
+- ~~#224 Executive Summary MVP~~ → DONE: `lib/pdf/meridian/reports/executive-summary.tsx`
+  bildet Musterseite 1 exakt nach (RingGauge, Archetyp-Badge, 6 MeterBars, Kernbefund,
+  Top-3-Use-Cases-Tabelle, EU-AI-Act-Status, Nächste-90-Tage) — visuell gegen
+  `docs/design/AI-Navigator-Report-Design-MERIDIAN(-EN).pdf` abgeglichen (Seite 1/1,
+  kein Umbruch). Datenmapping in `lib/pdf/meridian/data/executive-summary.ts`:
+  EU-AI-Act-Status nutzt `computeEuAiActStatusV1()` als bewusst isolierte, austauschbare
+  Funktion (siehe Use-Case-Compliance-Scoring-Eintrag im Feature-Backlog unten) — Branchenbenchmark aus der
+  Musterseite entfällt mangels echter Datenquelle ersatzlos, Vorjahreswert wird nur bei
+  einem zweiten abgeschlossenen Assessment angezeigt (keine erfundenen Zahlen).
+  i18n-Namespace `reports.executiveSummary` neu in `messages/de.json`/`en.json`
+  (next-intl `createTranslator()` statt der alten `PDF_T`-Dictionary, wie in #224 gefordert).
+  Export-Button (`MeridianExportButton.tsx`, Pro-gated, disabled ohne Assessment)
+  in `/zusammenfassung` neben dem bestehenden `/api/export/pdf`-Link; PostHog-Event
+  `report_exported`. Jest-Testing-Hinweis: `next-intl`/`use-intl` sind reines ESM und
+  brauchen einen lokalen `jest.mock()` (siehe `__tests__/test-utils/next-intl-mock.js`) —
+  bewusst NICHT global aktiviert, das hätte 15 unabhängige, bereits vorher rote
+  next-intl-Testsuiten mitverändert.
+
 **IMPLEMENTIERT — Akzeptanz-Gate ausstehend (Freigabe Daniel vor GitHub-Close):**
 - **#217** Tab-Leisten ohne Scrollbar (`783b940`): Compliance + Admin → Mobile Select + Fade-Kante; UseCaseTable scrollbar-hidden. Screenshot 1440+375 + Daniels Freigabe ausstehend.
 - **#218** KI-Ergebnis-Autosave (`d60718f`): `lib/ai/draft-store.ts` (TTL 7d) + `AiDraftBanner` in Architektur + Canvas. GIF-Nachweis + Daniels Freigabe ausstehend.
+- **#223/#224** MERIDIAN Executive Summary: Screenshot 1440px (Musterseiten-Abgleich bereits
+  im Rahmen der Umsetzung erfolgt, s. o.) + Daniels finale Freigabe vor GitHub-Close ausstehend.
 
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
 - Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.
@@ -440,6 +466,7 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~**#201** Zentrales Theme-System~~ → Wave 4 DONE (`1198e1a`, 17.07.2026). Daniels Screenshot-Freigabe für ArchitecturePageClient noch ausstehend.
 - ~~**#205** Einheitliche Grundelemente~~ → DONE (`1bd36f2`, 17.07.2026) — InfoHints, AlertBox-Konsolidierung, Semantic Tokens. Daniels Freigabe ausstehend.
 - **#217 / #218** — implementiert, warten auf Daniels Screenshot-Freigabe (siehe oben).
+- ~~**#223 / #224** MERIDIAN PDF-Fundament + Executive Summary~~ → DONE (s. o.), Freigabe ausstehend.
 
 **Feature-Backlog (für zukünftige Sprints):**
 - Compliance-Quellen: Admin kann neue URLs zur Überwachung eintragen (aktuell hardcodiert in `scanner.ts`)
@@ -453,3 +480,29 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   `canvas_synonyms` — global, nicht user-gescoped), `/api/admin/synonyms` (`canvas_synonyms`),
   `/api/admin/content` (`content_library`), `/api/admin/promotions`, `/api/admin/compliance/drafts`,
   `/api/admin/policy-templates`, `/api/canvas/[id]/classify-terms` (`detection_blocklist`)
+- **Use-Case-Compliance-Scoring (Analyse Daniel, 19.07.2026, im Rahmen von Issue #224):**
+  aktuell gibt es KEINE eigene EU-AI-Act-Risikoklassifizierung pro Use-Case — die
+  Executive-Summary-PDF (MERIDIAN) nutzt als V1-Näherung `use_cases.governance_result`
+  (approve/improve/stop_dsgvo/stop_risk, aus Issue #65) mit einem festen Mapping auf
+  Minimal/Begrenzt/Hochrisiko. Von Daniel skizzierte Zielarchitektur für eine spätere,
+  genauere Version:
+  - Jeder AI Use Case (Canvas) bekommt ein EIGENES Compliance-Scoring im Hintergrund,
+    abgeleitet aus den im Canvas markierten Compliance-Relevanzen (z. B. "DSGVO-relevant",
+    "Employee-Data-relevant" — welche Canvas-Felder/Tags genau, ist noch zu definieren).
+  - Dieses Use-Case-Scoring fließt zusätzlich zum bestehenden Governance-Check-Ergebnis
+    in ein GESAMT-Scoring ein (Aggregationsformel noch offen).
+  - Im Report soll nur das aggregierte Gesamt-Scoring grafisch erscheinen — aber mit
+    Randnotiz/Fußnote, welcher Use Case zu welcher Einzel-Einstufung zählt.
+  - Ohne selektierte/bewertete Use-Cases fällt es auf das reine Governance-Check-Ergebnis
+    zurück (kein Fehlerzustand).
+  - Braucht vermutlich: neue Spalte(n) für das Use-Case-Scoring (evtl. auf `use_cases`
+    oder `canvases`), eine Aggregationsfunktion, und eine Entscheidung, wie Canvas ↔
+    Use-Case ↔ Governance-Check-Ergebnis dann alle drei zusammenhängen (aktuell sind nur
+    Governance-Check ↔ Use-Case verknüpft, Canvas ↔ Use-Case noch nicht durchgängig).
+  - **Bewusst nicht in #224 gebaut** (Stufe 3, eigene Rücksprache nötig) — die
+    Executive-Summary-Datenschicht ist aber so vorbereitet: `computeEuAiActStatusV1()`
+    in `lib/pdf/meridian/data/executive-summary.ts` ist die einzige Stelle, die
+    `governance_result` auf die generische `EuAiActStatusSummary`-Form abbildet;
+    die Report-Komponente selbst kennt nur diese Form, nicht deren Herkunft. Eine
+    spätere `computeEuAiActStatusV2()` müsste nur diese eine Funktion ersetzen,
+    ohne `reports/executive-summary.tsx` anzufassen.

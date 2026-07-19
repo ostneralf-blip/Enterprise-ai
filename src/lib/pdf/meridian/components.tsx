@@ -6,7 +6,10 @@ import { reportColors, reportFonts, reportType, REPORT_CRITICAL_THRESHOLD } from
 // die "stille Vermessung": Haarlinien statt Flächen, Messstriche statt
 // Dekoration, Farbe nur als Signal (primary = Standard, critical = Wert < 50).
 
-const semanticColor = (value: number) => (value < REPORT_CRITICAL_THRESHOLD ? reportColors.critical : reportColors.primary)
+// Exportiert (nicht nur intern genutzt), da z. B. der Executive-Summary-
+// Report (#224) eigene, schmalere Balken für die Top-Use-Cases-Tabelle
+// braucht, aber dieselbe Schwellenlogik verwenden soll wie MeterBar/RingGauge.
+export const semanticColor = (value: number) => (value < REPORT_CRITICAL_THRESHOLD ? reportColors.critical : reportColors.primary)
 
 // ─────────────────────────────────────────────────────────────────────────
 // TickRuler — horizontale Messleiste mit gleichmäßigen Strichen. Dient sowohl

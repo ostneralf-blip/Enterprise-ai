@@ -28,3 +28,25 @@ describe('Security: /api/export/[report] (MERIDIAN, #223)', () => {
     expect(renderIndex).toBeGreaterThan(gateIndex)
   })
 })
+
+describe('Security: Executive-Summary-Report (MERIDIAN, #224)', () => {
+  it('lädt Executive-Summary-Daten erst nach dem Auth-Gate (kein Supabase-Zugriff vor requireFeature)', () => {
+    const gateIndex = reportRoute.indexOf("requireFeature('pdf_export')")
+    const dataIndex = reportRoute.indexOf('getExecutiveSummaryData(')
+    expect(gateIndex).toBeGreaterThan(-1)
+    expect(dataIndex).toBeGreaterThan(gateIndex)
+  })
+
+  it('nutzt die userId aus dem Gate-Ergebnis, nicht aus Client-Input', () => {
+    expect(reportRoute).toContain('getExecutiveSummaryData(gate.userId, locale)')
+  })
+
+  it('gibt 404 zurück, wenn kein abgeschlossenes Assessment existiert, statt einen leeren Report zu rendern', () => {
+    expect(reportRoute).toContain('if (!data)')
+    expect(reportRoute).toMatch(/if \(!data\)[\s\S]{0,120}status: 404/)
+  })
+
+  it('"executive-summary" ist Teil der REPORT_TYPES-Allowlist', () => {
+    expect(reportRoute).toContain("'executive-summary'")
+  })
+})
