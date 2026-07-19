@@ -1430,6 +1430,10 @@
       "confidential": "VERTRAULICH",
       "exportButton": "Architektur (MERIDIAN)",
       "exportHintEmpty": "Erst nach dem Speichern einer Architektur verfügbar."
+    },
+    "fullReport": {
+      "exportButton": "Gesamtreport (MERIDIAN)",
+      "exportHintEmpty": "Erst nach Abschluss des AI-Readiness-Assessments verfügbar."
     }
   },
   "errors": {

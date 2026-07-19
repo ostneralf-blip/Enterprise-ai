@@ -274,8 +274,8 @@ export default async function ZusammenfassungPage() {
           </p>
         </div>
         <MeridianExportButton
-          report="executive-summary"
-          namespace="reports.executiveSummary"
+          report="full-report"
+          namespace="reports.fullReport"
           locale={locale}
           isPro={hasAccess(tier, 'pro')}
           hasData={!!latestAssessment}
