@@ -1,7 +1,10 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
+import { resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 import type { Locale } from '@/i18n/routing'
+
+type MaybeLocale = string | { de: string; en: string }
 
 export type QuadrantKey = 'quick_win' | 'strategic_bet' | 'low_hanging_fruit' | 'avoid'
 export type Archetype = 'starter' | 'scaler' | 'transformer'
@@ -146,7 +149,7 @@ export async function getExecutiveSummaryData(
       .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle() as unknown as Promise<{
-      data: { phases: Array<{ actions?: Array<{ label: string }> }> } | null
+      data: { phases: Array<{ actions?: Array<{ label: MaybeLocale }> }> } | null
     }>,
   ])
 
@@ -187,9 +190,17 @@ export async function getExecutiveSummaryData(
     quadrant: uc.quadrant,
   }))
 
+  // roadmaps.phases[].actions[].label kann ein roher { de, en }-String sein —
+  // handhabungsübliches Archetyp-Template (config/roadmap-data.ts) wird beim
+  // Speichern unverändert in die DB übernommen, ohne Locale-Auflösung (siehe
+  // RoadmapPageClient.handleSave: `...roadmap[phaseId]` aus ROADMAPS[archetype]).
+  // Ohne resolveLocaleField() crasht react-pdf mit React-Fehler #31 ("Objects
+  // are not valid as a React child"), sobald ein <Text> ein solches Objekt roh
+  // als Kind bekommt — derselbe Bug-Typ, den die alte PDF-Route schon einmal hatte.
   const next90Days = (roadmapRes.data?.phases?.[0]?.actions ?? [])
     .slice(0, 3)
-    .map(a => a.label)
+    .map(a => resolveLocaleField(a.label, locale))
+    .filter((label): label is string => !!label)
 
   return {
     companyName: profileRes.data?.company ?? null,

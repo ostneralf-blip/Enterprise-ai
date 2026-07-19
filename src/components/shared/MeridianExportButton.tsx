@@ -11,11 +11,10 @@ interface Props {
   hasAssessment: boolean
 }
 
-// Export-Button für MERIDIAN-Reports (Issue #224) — bewusst als eigene
-// Client-Komponente, da nur hier ein `report_exported`-PostHog-Event vor dem
-// Öffnen der PDF-Route gefeuert werden muss (der bestehende Executive-
-// Summary-Link auf derselben Seite bleibt unverändert bei /api/export/pdf,
-// dem alten book/board/blueprint-Templatesystem).
+// Export-Button für MERIDIAN-Reports (Issue #224) — ersetzt auf /zusammenfassung
+// den alten Executive-Summary-Link (/api/export/pdf, book/board/blueprint-
+// Templatesystem). Bewusst als eigene Client-Komponente, da hier ein
+// `report_exported`-PostHog-Event vor dem Öffnen der PDF-Route gefeuert wird.
 export function MeridianExportButton({ report, locale, isPro, hasAssessment }: Props) {
   const t = useTranslations('reports.executiveSummary')
 
@@ -49,7 +48,7 @@ export function MeridianExportButton({ report, locale, isPro, hasAssessment }: P
   return (
     <button
       onClick={handleClick}
-      className="px-4 py-2 text-sm font-medium border border-line rounded-xl text-ink-secondary hover:bg-surface-raised transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+      className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
     >
       {t('exportButton')}
     </button>

@@ -1075,8 +1075,6 @@
   "summary": {
     "title": "Executive Summary",
     "completedOf": "{completed} of {total} modules completed",
-    "exportPdf": "Export PDF",
-    "proSuffix": "· Pro",
     "statusDone": "Completed",
     "statusPending": "Pending",
     "statusProFeature": "Pro feature",

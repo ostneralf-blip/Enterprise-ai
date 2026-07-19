@@ -273,21 +273,12 @@ export default async function ZusammenfassungPage() {
             {t('completedOf', { completed: completedCount, total: modules.length })}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href={hasAccess(tier, 'pro') ? `/api/export/pdf?module=executive_summary&locale=${locale}` : '/upgrade'}
-            {...(hasAccess(tier, 'pro') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
-          >
-            {t('exportPdf')}{!hasAccess(tier, 'pro') && <span className="text-xs opacity-60">{t('proSuffix')}</span>}
-          </a>
-          <MeridianExportButton
-            report="executive-summary"
-            locale={locale}
-            isPro={hasAccess(tier, 'pro')}
-            hasAssessment={!!latestAssessment}
-          />
-        </div>
+        <MeridianExportButton
+          report="executive-summary"
+          locale={locale}
+          isPro={hasAccess(tier, 'pro')}
+          hasAssessment={!!latestAssessment}
+        />
       </div>
 
       {/* ── KI-Priorisierungs-Summary ─────────────────────────── */}
