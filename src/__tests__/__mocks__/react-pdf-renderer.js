@@ -20,10 +20,24 @@ function assertValidChild(child) {
 const Document = ({ children }) => React.createElement('div', { 'data-pdf': 'document' }, children)
 const Page = ({ children }) => React.createElement('div', { 'data-pdf': 'page' }, children)
 const View = ({ children }) => React.createElement('div', { 'data-pdf': 'view' }, children)
-const Text = ({ children }) => {
-  assertValidChild(children)
-  return React.createElement('span', { 'data-pdf': 'text' }, String(children ?? ''))
+const Text = ({ children, render }) => {
+  // react-pdf unterstützt eine render()-Prop für dynamische Inhalte (z. B.
+  // Seitenzahlen über pageNumber/totalPages) — siehe ReportFooter (MERIDIAN, #223).
+  const content = render ? render({ pageNumber: 1, totalPages: 1 }) : children
+  assertValidChild(content)
+  return React.createElement('span', { 'data-pdf': 'text' }, String(content ?? ''))
 }
+
+// MERIDIAN (#223) nutzt SVG-Primitiven für TickRuler/MeterBar/RingGauge sowie
+// Font.register() für die Custom-Fontregistrierung — beides bislang von den
+// älteren book/board/blueprint-Templates ungenutzt und deshalb im Mock nicht
+// vorhanden. Reine No-op-/Platzhalter-Implementierungen reichen hier: der Mock
+// prüft nicht die SVG-Geometrie, sondern nur, dass der Komponentenbaum ohne
+// Fehler durchläuft (siehe assertValidChild/walk).
+const Svg = ({ children }) => React.createElement('svg', { 'data-pdf': 'svg' }, children)
+const Path = () => React.createElement('path', { 'data-pdf': 'path' })
+const Circle = () => React.createElement('circle', { 'data-pdf': 'circle' })
+const Font = { register: () => {}, registerHyphenationCallback: () => {} }
 
 // Läuft den Element-Baum rekursiv durch und ruft dabei jede Funktionskomponente
 // tatsächlich auf (React.createElement allein tut das nicht — Komponenten sind
@@ -48,4 +62,4 @@ async function renderToBuffer(document) {
   return Buffer.from('%PDF-1.4 mock-content')
 }
 
-module.exports = { Document, Page, View, Text, StyleSheet, renderToBuffer }
+module.exports = { Document, Page, View, Text, Svg, Path, Circle, Font, StyleSheet, renderToBuffer }
