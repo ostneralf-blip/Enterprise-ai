@@ -262,9 +262,17 @@ export async function POST(
     ? `${representativeMeta.modelId} (cached)`
     : `${representativeMeta.modelId} via ${representativeMeta.provider === 'bedrock' ? `AWS Bedrock ${representativeMeta.region}` : 'Anthropic Direct'}`
 
+  // narrative_locale wurde hier nie geschrieben (Migration 20260713155101 legte
+  // die Spalte an, aber kein Code-Pfad befüllte sie) — dadurch blieb sie für
+  // JEDE je generierte KI-Einordnung NULL. Der Client-Staleness-Hinweis
+  // (narrativeLocale !== locale in ArchitecturePageClient) griff dadurch nie,
+  // und der MERIDIAN-Architektur-Report (#225) verwarf aiSummary/
+  // decisionRecommendation/investmentFramework fälschlich als sprachlichen
+  // Mismatch, obwohl echte, korrekte Daten vorhanden waren. Gefunden am
+  // 19.07.2026 via `supabase db dump` gegen einen real exportierten Report.
   await supabase
     .from('architectures')
-    .update({ ai_narrative: updatedNarrative, ai_model: aiModel, ai_generated_at: new Date().toISOString() })
+    .update({ ai_narrative: updatedNarrative, ai_model: aiModel, ai_generated_at: new Date().toISOString(), narrative_locale: locale })
     .eq('id', id)
     .eq('user_id', userId)
 

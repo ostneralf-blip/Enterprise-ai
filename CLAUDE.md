@@ -478,6 +478,26 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   Font-Familie diese Variante tatsächlich in `fonts.ts` registriert hat — der
   Jest-Mock validiert das nicht, nur ein reales Render-Skript mit Netzwerkzugriff
   deckt es auf (siehe auch die IBM-Plex-Mono-Lehre in `fonts.ts` selbst).
+- **Nachtrag 19.07.2026 — Root-Cause-Fix: `narrative_locale` wurde nie geschrieben.**
+  Daniel meldete, dass der Investitionsrahmen/die Empfehlung im Architektur-Report
+  trotz Deploy weiterhin fehlten ("alte Struktur"). Reale exportierte PDF-Datei
+  geprüft + `supabase db dump` gegen die Produktions-DB: `architectures.ai_narrative`
+  enthält bei vielen Zeilen echten, korrekten KI-Text — aber `narrative_locale` ist
+  bei JEDER je generierten KI-Einordnung `NULL`. Ursache: Migration
+  `20260713155101_add_narrative_locale.sql` legte die Spalte an (für Issue #172),
+  aber kein Code-Pfad hat sie je beschrieben — `src/app/api/analysis/architecture/[id]/route.ts`
+  aktualisierte beim Speichern nur `ai_narrative`/`ai_model`/`ai_generated_at`, nie
+  `narrative_locale`. Betraf nicht nur den neuen MERIDIAN-Report (der die Spalte als
+  Sprach-Gate nutzt), sondern auch einen bereits bestehenden, aber nie ausgelösten
+  Staleness-Hinweis in der Architektur-Workbench selbst (`ArchitecturePageClient.tsx`,
+  `narrativeLocale !== locale`-Check griff mangels gesetztem Wert nie).
+  **Fix:** `narrative_locale: locale` im Update-Payload ergänzt (Regressionstest
+  `__tests__/unit/architecture-narrative-locale.test.ts`). **Kein Backfill** für
+  bereits gespeicherte Zeilen — die Sprache des vorhandenen `ai_narrative`-Texts
+  variiert nachweislich zeilenweise (DE und EN im selben Datensatz gefunden), ein
+  pauschales Setzen von `narrative_locale='de'` hätte teils falschsprachigen Text
+  als "passend" ausgegeben. Betroffene Nutzer müssen die KI-Einordnung einmal neu
+  ausführen, danach greift der Fix automatisch.
 - ~~#223 MERIDIAN-Fundament~~ → DONE (`b1b586c`): Design-Tokens (`config/report-tokens.ts`),
   Fontregistrierung (Lora/Work Sans/IBM Plex Mono — IBM Plex Mono bewusst von
   `raw.githubusercontent.com/google/fonts` statt gstatic, siehe Kommentar in
