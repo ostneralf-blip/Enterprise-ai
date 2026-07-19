@@ -2,7 +2,16 @@ import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
 import { resolveLocaleField } from '@/lib/pdf/normalize-architecture'
+import { loadEuAiActStatusV2 } from '@/lib/compliance/eu-ai-act-use-case-scoring'
+import type { EuAiActStatusSummary } from '@/lib/compliance/eu-ai-act-status-v1'
 import type { Locale } from '@/i18n/routing'
+
+// EuAiActStatusSummary wird hier re-exportiert, damit Konsumenten dieser
+// Datenschicht (z. B. der Report) nicht wissen müssen, dass der Typ
+// inzwischen in lib/compliance/eu-ai-act-status-v1.ts lebt (ausgelagert, um
+// einen Zirkelbezug mit eu-ai-act-use-case-scoring.ts zu vermeiden, siehe
+// Kommentar dort).
+export type { EuAiActStatusSummary }
 
 type MaybeLocale = string | { de: string; en: string }
 
@@ -21,67 +30,6 @@ export interface ExecutiveSummaryUseCase {
   value100: number
   feasibility100: number
   quadrant: QuadrantKey | null
-}
-
-// EU-AI-Act-Status — V1-Datenschicht (Issue #224). Nutzt den Governance-Check
-// als Proxy für die Risikoeinstufung eines Use Cases: jedes Ergebnis eines
-// Governance-Checks (use_cases.governance_result, siehe Issue #65) wird 1:1
-// auf eine der drei anzeigbaren EU-AI-Act-Risikoklassen abgebildet.
-//
-// Das ist bewusst eine Vereinfachung: Der Governance-Check bewertet aktuell
-// EINEN Use Case pauschal, nicht die tatsächliche EU-AI-Act-Einstufung nach
-// Anhang III. Eine vollständigere Lösung (von Daniel am 19.07.2026 skizziert,
-// siehe CLAUDE.md → "Use-Case-Compliance-Scoring") würde stattdessen ein
-// eigenes Scoring pro Use Case aus dessen Klassifizierungsmerkmalen (z. B.
-// DSGVO-Relevanz, Mitarbeiterdaten-Bezug) ableiten und mehrere Use Cases zu
-// einem Gesamt-Scoring aggregieren.
-//
-// Damit dieser Umbau später NICHT die PDF-Komponente anfassen muss, ist die
-// Zuordnung hier absichtlich in einer einzelnen, isolierten Funktion
-// gekapselt, die nur die generische Zielform `EuAiActStatusSummary` zurückgibt.
-// Eine künftige `computeEuAiActStatusV2()` müsste nur diese Funktion ersetzen.
-export interface EuAiActStatusSummary {
-  highCount: number
-  limitedCount: number
-  minimalCount: number
-  classifiedCount: number
-  gapCount: number
-}
-
-export function computeEuAiActStatusV1(
-  useCases: Array<{ governance_result: GovernanceVerdict | null }>
-): EuAiActStatusSummary | null {
-  if (useCases.length === 0) return null
-
-  let highCount = 0
-  let limitedCount = 0
-  let minimalCount = 0
-  let gapCount = 0
-
-  for (const uc of useCases) {
-    switch (uc.governance_result) {
-      case 'stop_dsgvo':
-      case 'stop_risk':
-        highCount++
-        break
-      case 'improve':
-        limitedCount++
-        break
-      case 'approve':
-        minimalCount++
-        break
-      default:
-        gapCount++
-    }
-  }
-
-  return {
-    highCount,
-    limitedCount,
-    minimalCount,
-    classifiedCount: useCases.length - gapCount,
-    gapCount,
-  }
 }
 
 export interface ExecutiveSummaryData {
@@ -161,7 +109,7 @@ export async function getExecutiveSummaryData(
   const useCasesRes = portfolioId
     ? await (supabase
         .from('use_cases')
-        .select('name, scores, quadrant, governance_result')
+        .select('name, scores, quadrant, governance_result, canvas_id')
         .eq('portfolio_id', portfolioId)
         .order('weighted_score', { ascending: false }) as unknown as Promise<{
         data: Array<{
@@ -169,6 +117,7 @@ export async function getExecutiveSummaryData(
           scores: Record<string, number> | null
           quadrant: QuadrantKey | null
           governance_result: GovernanceVerdict | null
+          canvas_id: string | null
         }> | null
       }>)
     : { data: [] }
@@ -210,8 +159,9 @@ export async function getExecutiveSummaryData(
     previousScore100: previous ? score100(previous.total_score) : null,
     dimensions,
     topUseCases,
-    euAiActStatus: computeEuAiActStatusV1(
-      useCases.map(uc => ({ governance_result: uc.governance_result }))
+    euAiActStatus: await loadEuAiActStatusV2(
+      userId,
+      useCases.map(uc => ({ governance_result: uc.governance_result, canvas_id: uc.canvas_id }))
     ),
     next90Days,
   }

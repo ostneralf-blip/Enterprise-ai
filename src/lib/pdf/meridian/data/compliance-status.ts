@@ -1,7 +1,7 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { EU_AI_ACT_OBLIGATIONS, EU_AI_ACT_RISK_CLASSES, type CheckStatus } from '@/config/compliance-data'
-import { computeEuAiActStatusV1 } from '@/lib/pdf/meridian/data/executive-summary'
+import { loadEuAiActStatusV2 } from '@/lib/compliance/eu-ai-act-use-case-scoring'
 import type { Locale } from '@/i18n/routing'
 
 export interface RiskClassBand {
@@ -29,12 +29,15 @@ export interface ComplianceStatusData {
 
 /**
  * Lädt die Daten für den MERIDIAN Compliance-Report (Musterseite 4, Issue #225).
- * Nutzt denselben V1-Governance-Proxy wie die Executive Summary (#224) für die
- * Risikoklassen-Zählung. Die Musterseite zeigt vier Dokumentationsstand-Balken
- * mit erfundenen Prozentzahlen (60 %/45 %/80 %/70 %) — dafür gibt es keine
- * fraktionale Datenquelle (compliance_checks.status ist ein Status-Enum, kein
- * Prozentwert). Ersetzt durch EINEN echten Gesamt-Fortschrittsbalken
- * (erledigte / gesamt Hochrisiko-Pflichten) statt vier erfundener Werte.
+ * Nutzt dieselbe EU-AI-Act-Status-Berechnung wie die Executive Summary (#224,
+ * inzwischen V2 — echte Art.-6-Klassifikation + Kategorie-Zuschläge je Canvas,
+ * siehe lib/compliance/eu-ai-act-use-case-scoring.ts, 19.07.2026 mit Daniel
+ * abgestimmt) für die Risikoklassen-Zählung. Die Musterseite zeigt vier
+ * Dokumentationsstand-Balken mit erfundenen Prozentzahlen (60 %/45 %/80 %/
+ * 70 %) — dafür gibt es keine fraktionale Datenquelle (compliance_checks.status
+ * ist ein Status-Enum, kein Prozentwert). Ersetzt durch EINEN echten Gesamt-
+ * Fortschrittsbalken (erledigte / gesamt Hochrisiko-Pflichten) statt vier
+ * erfundener Werte.
  */
 export async function getComplianceStatusData(userId: string, locale: Locale): Promise<ComplianceStatusData | null> {
   const supabase = await createClient()
@@ -58,9 +61,9 @@ export async function getComplianceStatusData(userId: string, locale: Locale): P
     portfolioId
       ? (supabase
           .from('use_cases')
-          .select('governance_result')
+          .select('governance_result, canvas_id')
           .eq('portfolio_id', portfolioId) as unknown as Promise<{
-          data: Array<{ governance_result: 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve' | null }> | null
+          data: Array<{ governance_result: 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve' | null; canvas_id: string | null }> | null
         }>)
       : Promise.resolve({ data: [] }),
     supabase
@@ -76,7 +79,7 @@ export async function getComplianceStatusData(userId: string, locale: Locale): P
   const checks = checksRes.data ?? []
   if (useCases.length === 0 && checks.length === 0) return null
 
-  const euStatus = computeEuAiActStatusV1(useCases)
+  const euStatus = await loadEuAiActStatusV2(userId, useCases)
 
   const riskBands: RiskClassBand[] = (['prohibited', 'high', 'limited', 'minimal'] as const).map(id => {
     const def = EU_AI_ACT_RISK_CLASSES.find(c => c.id === id)

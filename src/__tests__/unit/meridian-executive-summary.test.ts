@@ -6,7 +6,8 @@
 jest.mock('next-intl', () => require('../test-utils/next-intl-mock'))
 
 import { renderMeridianExecutiveSummary } from '@/lib/pdf/meridian/reports/executive-summary'
-import { computeEuAiActStatusV1, type ExecutiveSummaryData } from '@/lib/pdf/meridian/data/executive-summary'
+import type { ExecutiveSummaryData } from '@/lib/pdf/meridian/data/executive-summary'
+import { computeEuAiActStatusV1 } from '@/lib/compliance/eu-ai-act-status-v1'
 import { renderPdf } from '@/lib/pdf/generate'
 
 // Executive-Summary-Report (Issue #224) — Test-Gate laut CLAUDE.md ("Bei PDF/

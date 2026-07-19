@@ -10,7 +10,8 @@ import type { CheckStatus } from '@/config/compliance-data'
 import type { Locale } from '@/i18n/routing'
 
 // Compliance-Report (Musterseite 4, Issue #225) — vier EU-AI-Act-Risikoklassen-
-// Bänder (echte Zählung via computeEuAiActStatusV1, siehe #224), offizielle
+// Bänder (echte Zählung via computeEuAiActStatusV2, siehe lib/compliance/
+// eu-ai-act-use-case-scoring.ts, 19.07.2026), offizielle
 // EU-AI-Act-Fristen-Zeitleiste (feste, öffentlich bekannte Gesetzestermine —
 // kein Nutzerdatum, daher unbedenklich hartcodiert), offene Pflichten mit
 // echtem Status aus compliance_checks, ein echter Gesamt-Fortschrittsbalken

@@ -508,8 +508,10 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   Top-3-Use-Cases-Tabelle, EU-AI-Act-Status, Nächste-90-Tage) — visuell gegen
   `docs/design/AI-Navigator-Report-Design-MERIDIAN(-EN).pdf` abgeglichen (Seite 1/1,
   kein Umbruch). Datenmapping in `lib/pdf/meridian/data/executive-summary.ts`:
-  EU-AI-Act-Status nutzt `computeEuAiActStatusV1()` als bewusst isolierte, austauschbare
-  Funktion (siehe Use-Case-Compliance-Scoring-Eintrag im Feature-Backlog unten) — Branchenbenchmark aus der
+  EU-AI-Act-Status nutzte zunächst `computeEuAiActStatusV1()` als bewusst isolierte,
+  austauschbare Funktion — seit dem Use-Case-Compliance-Scoring-Nachtrag weiter unten
+  läuft hier `computeEuAiActStatusV2()`, die Funktion wurde wie geplant 1:1 ausgetauscht,
+  ohne diese Report-Komponente anzufassen. Branchenbenchmark aus der
   Musterseite entfällt mangels echter Datenquelle ersatzlos, Vorjahreswert wird nur bei
   einem zweiten abgeschlossenen Assessment angezeigt (keine erfundenen Zahlen).
   i18n-Namespace `reports.executiveSummary` neu in `messages/de.json`/`en.json`
@@ -558,29 +560,44 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   `canvas_synonyms` — global, nicht user-gescoped), `/api/admin/synonyms` (`canvas_synonyms`),
   `/api/admin/content` (`content_library`), `/api/admin/promotions`, `/api/admin/compliance/drafts`,
   `/api/admin/policy-templates`, `/api/canvas/[id]/classify-terms` (`detection_blocklist`)
-- **Use-Case-Compliance-Scoring (Analyse Daniel, 19.07.2026, im Rahmen von Issue #224):**
-  aktuell gibt es KEINE eigene EU-AI-Act-Risikoklassifizierung pro Use-Case — die
-  Executive-Summary-PDF (MERIDIAN) nutzt als V1-Näherung `use_cases.governance_result`
-  (approve/improve/stop_dsgvo/stop_risk, aus Issue #65) mit einem festen Mapping auf
-  Minimal/Begrenzt/Hochrisiko. Von Daniel skizzierte Zielarchitektur für eine spätere,
-  genauere Version:
-  - Jeder AI Use Case (Canvas) bekommt ein EIGENES Compliance-Scoring im Hintergrund,
-    abgeleitet aus den im Canvas markierten Compliance-Relevanzen (z. B. "DSGVO-relevant",
-    "Employee-Data-relevant" — welche Canvas-Felder/Tags genau, ist noch zu definieren).
-  - Dieses Use-Case-Scoring fließt zusätzlich zum bestehenden Governance-Check-Ergebnis
-    in ein GESAMT-Scoring ein (Aggregationsformel noch offen).
-  - Im Report soll nur das aggregierte Gesamt-Scoring grafisch erscheinen — aber mit
-    Randnotiz/Fußnote, welcher Use Case zu welcher Einzel-Einstufung zählt.
-  - Ohne selektierte/bewertete Use-Cases fällt es auf das reine Governance-Check-Ergebnis
-    zurück (kein Fehlerzustand).
-  - Braucht vermutlich: neue Spalte(n) für das Use-Case-Scoring (evtl. auf `use_cases`
-    oder `canvases`), eine Aggregationsfunktion, und eine Entscheidung, wie Canvas ↔
-    Use-Case ↔ Governance-Check-Ergebnis dann alle drei zusammenhängen (aktuell sind nur
-    Governance-Check ↔ Use-Case verknüpft, Canvas ↔ Use-Case noch nicht durchgängig).
-  - **Bewusst nicht in #224 gebaut** (Stufe 3, eigene Rücksprache nötig) — die
-    Executive-Summary-Datenschicht ist aber so vorbereitet: `computeEuAiActStatusV1()`
-    in `lib/pdf/meridian/data/executive-summary.ts` ist die einzige Stelle, die
-    `governance_result` auf die generische `EuAiActStatusSummary`-Form abbildet;
-    die Report-Komponente selbst kennt nur diese Form, nicht deren Herkunft. Eine
-    spätere `computeEuAiActStatusV2()` müsste nur diese eine Funktion ersetzen,
-    ohne `reports/executive-summary.tsx` anzufassen.
+- ~~**Use-Case-Compliance-Scoring**~~ → V2 UMGESETZT (19.07.2026, mit Daniel abgestimmt,
+  im Rahmen der MERIDIAN-Report-Nacharbeiten). Ersetzt die V1-Näherung
+  (`use_cases.governance_result` 1:1 auf Minimal/Begrenzt/Hochrisiko) durch ein
+  echtes Use-Case-Scoring:
+  - **Wichtige Entdeckung bei der Umsetzung:** Es gab bereits eine fertige, aber in der
+    CLAUDE.md-Analyse übersehene Infrastruktur — `lib/eu-ai-act/classifier.ts`
+    (deterministischer Art.-6-Klassifikator, kein LLM) + `canvases.ai_act_assessment`
+    (Migration `20260715220302`, Ergebnis `hochrisiko`/`anhang_iii_ausgenommen`/
+    `nicht_anhang_iii`) + `use_cases.canvas_id` (FK, seit `20260626202141`). Aktuell
+    deckt der Klassifikator nur die Domäne Beschäftigung (Anhang III Nr. 4) ab, nicht
+    alle 8 Anhang-III-Bereiche.
+  - **Scoring-Formel** (`lib/compliance/eu-ai-act-use-case-scoring.ts`,
+    `computeEuAiActStatusV2`): Basis aus `ai_act_assessment.classification.result` —
+    `hochrisiko`→100 Punkte, `anhang_iii_ausgenommen`/`nicht_anhang_iii`→0 Punkte
+    (rechtlich korrektes Mapping: eine Art.-6-Abs.-3-Ausnahme bedeutet ebenso wie
+    "nicht Anhang III" keine Hochrisiko-Pflicht — der einzige Unterschied ist das
+    *Warum*, nicht das *Ob*). Zuschlag pro aktiver Compliance-Kategorie (aus
+    `analyzeCanvas().compliance`, 7 Kategorien seit #82) = `(100 − Fortschritt-%) × 0,3`,
+    aus dem KONTOWEITEN Checklisten-Fortschritt der jeweiligen Kategorie
+    (`compliance_checks` ist pro Nutzer, nicht pro Use-Case — der Fortschritt einer
+    Kategorie wird auf jeden Use-Case angewendet, der sie als relevant erkennt; inhaltlich
+    vertretbar, da Maßnahmen wie ein VVT unternehmensweit gelten). Schwellwerte: ≥67
+    Hochrisiko, 34–66 Begrenzt, <34 Minimal. Nur 5 von 7 Kategorien haben eine echte
+    Checkliste (DSGVO, EU AI Act, ISO 27001, NIS2, Finanzregulierung≈BAIT) —
+    Gesundheitsdaten/MDR und EU-Hosting/Datensouveränität bleiben ohne Zuschlag
+    (kein erfundener Wert ohne echte Datenquelle).
+  - **Fallback ohne Canvas/Assessment:** automatisch V1 (`governance_result`) pro
+    einzelnem Use-Case, kein Fehlerzustand — `computeEuAiActStatusV1` liegt jetzt in
+    einer eigenen Datei `lib/compliance/eu-ai-act-status-v1.ts` (aus
+    `data/executive-summary.ts` ausgelagert, um einen Zirkelbezug mit V2 zu vermeiden).
+  - **Nebenbei gefunden + behoben:** `POST /api/compliance` akzeptierte nur
+    `eu_ai_act`/`dsgvo`/`risk_matrix` als `regulation` — die "Weiteren Regularien"
+    (NIS2, ISO 27001, ISO 42001, BAIT, LkSG) und deren Aktivierung (`regulation='system'`)
+    scheiterten seit ihrer Einführung serverseitig an Zod (422), ohne dass die UI den
+    Fehler bemerkte (optimistisches Update lief trotzdem durch — Checkboxen wirkten
+    gespeichert, waren es nie). Ohne diesen Fix hätte das V2-Scoring für diese 5
+    Kategorien nie echte Daten gehabt. Enum jetzt aus `ADDITIONAL_REGULATIONS`
+    abgeleitet statt hartcodiert.
+  - Gleiche `EuAiActStatusSummary`-Ausgabeform wie V1 — Report-Komponenten
+    (`executive-summary.tsx`, `compliance-status.tsx`) unverändert, wie in #224
+    versprochen. 16 neue Unit-Tests (Formel-Logik + Fallback + Kategorie-Fortschritt).
