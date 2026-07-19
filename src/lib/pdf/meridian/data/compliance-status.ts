@@ -22,6 +22,8 @@ export interface ComplianceStatusData {
   companyName: string | null
   generatedAt: string
   riskBands: RiskClassBand[]
+  classifiedUseCasesCount: number // Use-Cases mit einer der 3 Risikoklassen — NICHT dasselbe wie die Summe der riskBands.count, siehe gapUseCasesCount
+  gapUseCasesCount: number // Use-Cases ohne Canvas-Klassifikation UND ohne governance_result (Bug gefunden 19.07.2026: vorher unsichtbar, Subtitle summierte nur riskBands.count und zeigte "0 Use-Cases" trotz vorhandener, nur unklassifizierter Use-Cases)
   obligations: ObligationStatus[] // Hochrisiko-Pflichten, max. 5, mit echtem Status
   obligationsCompletedCount: number
   obligationsTotalCount: number
@@ -111,6 +113,8 @@ export async function getComplianceStatusData(userId: string, locale: Locale): P
     companyName: profileRes.data?.company ?? null,
     generatedAt: new Date().toISOString(),
     riskBands,
+    classifiedUseCasesCount: euStatus?.classifiedCount ?? 0,
+    gapUseCasesCount: euStatus?.gapCount ?? 0,
     obligations,
     obligationsCompletedCount,
     obligationsTotalCount: highRiskObligations.length,

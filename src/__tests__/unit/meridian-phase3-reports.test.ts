@@ -66,6 +66,8 @@ const complianceData: ComplianceStatusData = {
     { id: 'limited', count: 4, title: 'Begrenzt', articleRef: 'Art. 50', summary: 'Kennzeichnungspflicht.' },
     { id: 'minimal', count: 7, title: 'Minimal', articleRef: '', summary: 'Interne Werkzeuge.' },
   ],
+  classifiedUseCasesCount: 12,
+  gapUseCasesCount: 1,
   obligations: [
     { label: 'Konformitätsbewertung', article: 'Art. 43', status: 'pending' },
     { label: 'Technische Dokumentation', article: 'Art. 11', status: 'partial' },
@@ -144,6 +146,16 @@ describe('MERIDIAN Phase 3 — Leerzustände', () => {
   it('Compliance-Status: rendert Leerzustand ohne offene Pflichten', async () => {
     const empty: ComplianceStatusData = { ...complianceData, obligations: [], obligationsCompletedCount: 0, obligationsTotalCount: 0 }
     expect(await isPdf(renderMeridianComplianceStatus(empty, 'de'))).toBe(true)
+  })
+
+  it('Compliance-Status: rendert ohne Fehler, wenn ALLE Use-Cases unklassifiziert sind (Regression 19.07.2026: Subtitle zeigte "0 Use-Cases" statt der echten Anzahl)', async () => {
+    const allGaps: ComplianceStatusData = {
+      ...complianceData,
+      riskBands: complianceData.riskBands.map(b => ({ ...b, count: 0 })),
+      classifiedUseCasesCount: 0,
+      gapUseCasesCount: 2,
+    }
+    expect(await isPdf(renderMeridianComplianceStatus(allGaps, 'de'))).toBe(true)
   })
 
   it('Roadmap-Status: rendert ohne Vorjahreswert und ohne Score', async () => {

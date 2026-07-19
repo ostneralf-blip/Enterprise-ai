@@ -1381,6 +1381,7 @@
       "documentType": "COMPLIANCE STATUS",
       "title": "EU AI Act Compliance",
       "subtitle": "Risk classification · {count} use cases",
+      "gapUseCasesNote": "{gap} of {total} use cases not yet classified — no canvas with AI classification and no governance check assessment.",
       "timelineLabel": "REGULATORY DEADLINES",
       "today": "TODAY",
       "milestoneProhibitions": "Prohibitions effective",

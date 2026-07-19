@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
   },
   title: { ...reportType.title, marginTop: 16 },
   subtitle: { ...reportType.subtitle, marginTop: 4, marginBottom: 18 },
+  gapNote: { ...reportType.bodyMuted, fontSize: 7.5, marginBottom: 10 },
   band: { flexDirection: 'row', gap: 10, borderWidth: 0.75, borderColor: reportColors.line, borderRadius: 3, padding: 9, marginBottom: 6, alignItems: 'flex-start' },
   bandCount: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   bandCountText: { fontFamily: reportFonts.serif, fontWeight: 700, fontSize: 13, color: reportColors.white },
@@ -77,7 +78,11 @@ export function renderMeridianComplianceStatus(data: ComplianceStatusData, local
   registerMeridianFonts()
   const t = getComplianceTranslator(locale)
   const contentWidth = reportPage.width - reportPage.margin * 2
-  const totalUseCases = data.riskBands.reduce((sum, b) => sum + b.count, 0)
+  // NICHT data.riskBands.reduce(...) — das zählt nur klassifizierte Use-Cases
+  // und zeigte vor dem Fix vom 19.07.2026 fälschlich "0 Use-Cases", obwohl
+  // welche vorhanden, aber noch nicht klassifiziert waren (kein Canvas mit
+  // Art.-6-Einordnung UND kein governance_result).
+  const totalUseCases = data.classifiedUseCasesCount + data.gapUseCasesCount
   const now = Date.now()
 
   const statusLabel: Record<CheckStatus, string> = {
@@ -94,6 +99,12 @@ export function renderMeridianComplianceStatus(data: ComplianceStatusData, local
 
         <Text style={styles.title}>{t('title')}</Text>
         <Text style={styles.subtitle}>{t('subtitle', { count: totalUseCases })}</Text>
+
+        {data.gapUseCasesCount > 0 && (
+          <Text style={styles.gapNote}>
+            {t('gapUseCasesNote', { gap: data.gapUseCasesCount, total: totalUseCases })}
+          </Text>
+        )}
 
         {data.riskBands.map(band => (
           <View key={band.id} style={styles.band}>

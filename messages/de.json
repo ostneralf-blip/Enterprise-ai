@@ -1381,6 +1381,7 @@
       "documentType": "COMPLIANCE-STATUS",
       "title": "EU-AI-Act-Compliance",
       "subtitle": "Risikoklassifizierung · {count} Use-Cases",
+      "gapUseCasesNote": "{gap} von {total} Use-Cases noch nicht klassifiziert — kein Canvas mit KI-Einordnung und keine Governance-Check-Bewertung vorhanden.",
       "timelineLabel": "REGULATORISCHE FRISTEN",
       "today": "HEUTE",
       "milestoneProhibitions": "Verbote wirksam",
