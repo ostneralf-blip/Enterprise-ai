@@ -420,7 +420,40 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~Wave 3 zusammenfassung/page.tsx~~ → DONE (`6463b88`)
 - ~~Wave 4 große Module~~ → DONE (`1198e1a`, 17.07.2026) — verbleibende Farben sind intentionale Kategorie-/Brand-Farben (RACI, Dept-Badges, AI-Brand, dunkle CTAs)
 
-**ERLEDIGT — Sprint 32 MERIDIAN PDF-Reports #223 + #224 (19.07.2026):**
+**ERLEDIGT — Sprint 32 MERIDIAN PDF-Reports #223 + #224 + #225 (19.07.2026):**
+- ~~#225 Readiness-, Portfolio-, Compliance-, Roadmap- & Architektur-Report~~ → DONE:
+  5 weitere Report-Typen (Musterseiten 2-6) plus Gesamtdokument-Export. Neue Basis-
+  komponenten in `components.tsx`: `RadarChart` (Hexagon-Netz, SVG-Polygon statt
+  react-pdf-Text-in-Svg — Labels als absolut positionierte Text-Geschwister),
+  `QuadrantMatrix`, `Timeline` (mit HEUTE-Marke, Insets gegen abgeschnittene
+  Rand-Kreise), `HorizonCard`, `AiCalloutBlock`. Jede Musterseite hat 1-2 erfundene
+  Datenpunkte, die mangels echter Quelle bewusst NICHT gebaut wurden (Prinzip
+  konsequent aus #224 fortgeführt, jeweils in der jeweiligen `data/*.ts`-Datei
+  dokumentiert): Readiness-Branchenbenchmark entfällt; Use-Case-Portfolio-Logik-Text
+  nutzt echte Quadranten-Zählung statt erfundener Kapazitäts-/Quartalsangaben;
+  Compliance-Dokumentationsstand ist EIN echter Gesamt-Fortschrittsbalken (erledigte/
+  gesamt Hochrisiko-Pflichten aus `compliance_checks`) statt vier erfundener
+  Einzelprozentwerte, EU-AI-Act-Fristen-Zeitleiste nutzt die offiziellen, öffentlich
+  bekannten Gesetzestermine (unbedenklich hartcodiert, kein Nutzerdatum); Roadmap-
+  "Projektion Reifegrad"/"Review-Kadenz" ersetzt durch echten Ist-vs-Vorher-Assessment-
+  Score; Architektur-Kennzahl-Karten (Investition/Laufend/Umsetzung/Risikoprofil)
+  entfallen komplett mangels Datenquelle, KI-Einordnung nutzt `architectures.ai_narrative.exec`
+  (echter Speicher-Key laut `lib/ai/section-audience.ts` — NICHT `narrative_exec`,
+  das ist nur der interne Analyse-Sektionsname) und wird nur bei zur Report-Sprache
+  passendem `narrative_locale` gezeigt. Roadmap- und Architektur-Datenschicht lösen
+  `{de,en}`-LocaleString-Felder konsequent über `resolveLocaleField()` auf (derselbe
+  React-Fehler-#31-Bug-Typ wie beim #224-Fix vom 19.07.2026, hier von Anfang an vermieden).
+  Gesamtdokument (`reports/full-report.tsx`): extrahiert das `<Page>`-Kind jedes
+  Einzel-`<Document>` (`doc.props.children`) statt jede Datei auf eine Page-only-
+  Variante umzubauen — react-pdf zählt `pageNumber`/`totalPages` automatisch über
+  alle Seiten EINES gemeinsamen `<Document>`, dadurch stimmt die fortlaufende
+  XX/YY-Paginierung ohne weiteres Zutun; fehlende Module werden übersprungen statt
+  den Export scheitern zu lassen. Export-Buttons in allen 5 Modul-Seiten (Assessment,
+  Use-Case, Compliance, Roadmap, Architektur) ersetzen die alten `/api/export/pdf`-Links
+  (`MeridianExportButton.tsx` generalisiert auf ein `namespace`-Prop). Route
+  `/api/export/[report]` erweitert um `readiness`/`usecase-portfolio`/`compliance-status`/
+  `roadmap-status`/`architecture-status`/`full-report`, je mit eigenem 404 statt
+  leerem Report bei fehlenden Daten.
 - ~~#223 MERIDIAN-Fundament~~ → DONE (`b1b586c`): Design-Tokens (`config/report-tokens.ts`),
   Fontregistrierung (Lora/Work Sans/IBM Plex Mono — IBM Plex Mono bewusst von
   `raw.githubusercontent.com/google/fonts` statt gstatic, siehe Kommentar in
@@ -447,8 +480,9 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 **IMPLEMENTIERT — Akzeptanz-Gate ausstehend (Freigabe Daniel vor GitHub-Close):**
 - **#217** Tab-Leisten ohne Scrollbar (`783b940`): Compliance + Admin → Mobile Select + Fade-Kante; UseCaseTable scrollbar-hidden. Screenshot 1440+375 + Daniels Freigabe ausstehend.
 - **#218** KI-Ergebnis-Autosave (`d60718f`): `lib/ai/draft-store.ts` (TTL 7d) + `AiDraftBanner` in Architektur + Canvas. GIF-Nachweis + Daniels Freigabe ausstehend.
-- **#223/#224** MERIDIAN Executive Summary: Screenshot 1440px (Musterseiten-Abgleich bereits
-  im Rahmen der Umsetzung erfolgt, s. o.) + Daniels finale Freigabe vor GitHub-Close ausstehend.
+- **#223/#224/#225** MERIDIAN PDF-Reports komplett: Screenshot 1440px (Musterseiten-Abgleich
+  bereits im Rahmen der Umsetzung erfolgt, s. o.) + Daniels finale Freigabe vor GitHub-Close
+  ausstehend.
 
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
 - Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.
@@ -466,7 +500,7 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - ~~**#201** Zentrales Theme-System~~ → Wave 4 DONE (`1198e1a`, 17.07.2026). Daniels Screenshot-Freigabe für ArchitecturePageClient noch ausstehend.
 - ~~**#205** Einheitliche Grundelemente~~ → DONE (`1bd36f2`, 17.07.2026) — InfoHints, AlertBox-Konsolidierung, Semantic Tokens. Daniels Freigabe ausstehend.
 - **#217 / #218** — implementiert, warten auf Daniels Screenshot-Freigabe (siehe oben).
-- ~~**#223 / #224** MERIDIAN PDF-Fundament + Executive Summary~~ → DONE (s. o.), Freigabe ausstehend.
+- ~~**#223 / #224 / #225** MERIDIAN PDF-Fundament + alle 6 Report-Typen + Gesamtdokument~~ → DONE (s. o.), Freigabe ausstehend.
 
 **Feature-Backlog (für zukünftige Sprints):**
 - Compliance-Quellen: Admin kann neue URLs zur Überwachung eintragen (aktuell hardcodiert in `scanner.ts`)

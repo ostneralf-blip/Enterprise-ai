@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
+import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
@@ -1695,14 +1696,13 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           {saved && (
             <span className="text-sm text-success-text font-medium">{t('architecture.saved')}</span>
           )}
-          <a
-            href={`/api/export/pdf?module=architecture&locale=${locale}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
-          >
-            {t('architecture.pdfExport')}
-          </a>
+          <MeridianExportButton
+            report="architecture-status"
+            namespace="reports.architectureStatus"
+            locale={locale}
+            isPro
+            hasData={!!savedId}
+          />
           {savedId && result && (
             <>
               <VersionsPanel

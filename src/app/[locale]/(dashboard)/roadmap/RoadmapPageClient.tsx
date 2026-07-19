@@ -25,6 +25,7 @@ import { InfoHint } from '@/components/shared/InfoHint'
 import { AlertBox } from '@/components/shared/AlertBox'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
+import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import type { Archetype, Tier } from '@/types'
 
 type GovernanceVerdict = 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve'
@@ -479,11 +480,13 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
           </button>
         )}
         {saved && <span className="text-sm text-green-700 font-medium">{t('roadmap.saved')}</span>}
-        <a href={tier !== 'free' ? `/api/export/pdf?module=roadmap&locale=${locale}` : '/upgrade'}
-          {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5">
-          {t('roadmap.exportPdf')}{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
-        </a>
+        <MeridianExportButton
+          report="roadmap-status"
+          namespace="reports.roadmapStatus"
+          locale={locale}
+          isPro={tier !== 'free'}
+          hasData={!!savedId}
+        />
         {savedId && (
           <>
             <VersionsPanel module="roadmap" entityId={savedId} tier={tier} currentData={{ archetype, milestones: milestones as Record<string, unknown> }} />

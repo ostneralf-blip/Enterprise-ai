@@ -28,6 +28,7 @@ interface DbPolicyTemplate {
 }
 import { InfoHint, HintBox } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
+import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import type { CatalogRole } from '@/types'
 
 type Tab = 'euaiact' | 'dsgvo' | 'matrix' | 'summary' | 'templates' | 'extras' | 'roles'
@@ -778,14 +779,13 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
 
       {/* Aktions-Leiste */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-line">
-        <a
-          href={`/api/export/pdf?module=compliance&locale=${locale}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
-        >
-          {t('compliance.exportPdf')}
-        </a>
+        <MeridianExportButton
+          report="compliance-status"
+          namespace="reports.complianceStatus"
+          locale={locale}
+          isPro
+          hasData
+        />
       </div>
     </div>
   )

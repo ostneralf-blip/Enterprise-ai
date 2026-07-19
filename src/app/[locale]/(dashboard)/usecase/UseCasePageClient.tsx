@@ -8,6 +8,7 @@ import { WeightsEditor } from '@/components/modules/usecase/WeightsEditor'
 import { UpgradeModal } from '@/components/shared/UpgradeModal'
 import { InfoHint } from '@/components/shared/InfoHint'
 import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
+import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import { FREE_LIMIT } from '@/config/usecase-data'
 import type { UseCase, UseCasePortfolio, UseCaseWeights, Tier } from '@/types'
 
@@ -134,13 +135,13 @@ export function UseCasePageClient({ initialPortfolio, initialCases, tier, canvas
 
       {/* Aktions-Leiste — konsistent unten wie alle anderen Module */}
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200">
-        <a
-          href={tier !== 'free' ? `/api/export/pdf?module=usecase&locale=${locale}` : '/upgrade'}
-          {...(tier !== 'free' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          className="px-5 py-2 text-sm font-medium bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2 inline-flex items-center gap-1.5"
-        >
-          {t('usecase.exportPdf')}{tier === 'free' && <span className="text-xs opacity-60">· Pro</span>}
-        </a>
+        <MeridianExportButton
+          report="usecase-portfolio"
+          namespace="reports.usecasePortfolio"
+          locale={locale}
+          isPro={tier !== 'free'}
+          hasData={useCases.length > 0}
+        />
       </div>
 
       {showUpgrade && <UpgradeModal feature="Use-Case Scoring (mehr als 3 Use Cases)" onClose={() => setShowUpgrade(false)} />}

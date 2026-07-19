@@ -28,6 +28,7 @@ export function AssessmentResults({
   const [showUpgrade, setShowUpgrade] = useState(false)
   const locale = useLocale()
   const t = useTranslations('modules')
+  const tReports = useTranslations('reports.readiness')
   const maturity = getMaturityLevel(totalScore)
   const archetypeConfig = ARCHETYPES[archetype]
 
@@ -37,8 +38,8 @@ export function AssessmentResults({
       setShowUpgrade(true)
       return
     }
-    track('export_pdf', { module: 'assessment' })
-    window.open(`/api/export/pdf?module=assessment&locale=${locale}`, '_blank')
+    track('report_exported', { report: 'readiness', locale })
+    window.open(`/api/export/readiness?locale=${locale}`, '_blank')
   }
 
   const handleSave = () => {
@@ -180,7 +181,7 @@ export function AssessmentResults({
 
           <button onClick={handleExportPDF}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-300 text-slate-700 hover:border-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
-            {t('assessment.exportPdf')}
+            {tReports('exportButton')}
             {tier === 'free' && <span className="text-xs text-primary ml-1">Pro</span>}
           </button>
 

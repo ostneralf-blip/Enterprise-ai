@@ -6,17 +6,18 @@ import { track } from '@/lib/posthog/client'
 
 interface Props {
   report: string
+  namespace: string // 'reports.executiveSummary' | 'reports.readiness' | ... — jede Sektion trägt exportButton + exportHintEmpty
   locale: string
   isPro: boolean
-  hasAssessment: boolean
+  hasData: boolean
 }
 
-// Export-Button für MERIDIAN-Reports (Issue #224) — ersetzt auf /zusammenfassung
-// den alten Executive-Summary-Link (/api/export/pdf, book/board/blueprint-
-// Templatesystem). Bewusst als eigene Client-Komponente, da hier ein
-// `report_exported`-PostHog-Event vor dem Öffnen der PDF-Route gefeuert wird.
-export function MeridianExportButton({ report, locale, isPro, hasAssessment }: Props) {
-  const t = useTranslations('reports.executiveSummary')
+// Export-Button für MERIDIAN-Reports (#224/#225) — generisch für alle
+// Report-Typen (namespace wählt den passenden reports.*-i18n-Block). Bewusst
+// als eigene Client-Komponente, da hier ein `report_exported`-PostHog-Event
+// vor dem Öffnen der PDF-Route gefeuert wird.
+export function MeridianExportButton({ report, namespace, locale, isPro, hasData }: Props) {
+  const t = useTranslations(namespace as Parameters<typeof useTranslations>[0])
 
   if (!isPro) {
     return (
@@ -29,10 +30,10 @@ export function MeridianExportButton({ report, locale, isPro, hasAssessment }: P
     )
   }
 
-  if (!hasAssessment) {
+  if (!hasData) {
     return (
       <span
-        title={t('exportHintNoAssessment')}
+        title={t('exportHintEmpty')}
         className="px-4 py-2 text-sm font-medium border border-line text-ink-subtle rounded-xl whitespace-nowrap inline-flex items-center gap-1.5 cursor-not-allowed opacity-60"
       >
         {t('exportButton')}

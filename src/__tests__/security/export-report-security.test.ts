@@ -50,3 +50,36 @@ describe('Security: Executive-Summary-Report (MERIDIAN, #224)', () => {
     expect(reportRoute).toContain("'executive-summary'")
   })
 })
+
+describe('Security: Phase-3-Reports + Gesamtdokument (MERIDIAN, #225)', () => {
+  const gateIndex = reportRoute.indexOf("requireFeature('pdf_export')")
+
+  it.each([
+    ['readiness', 'getReadinessData('],
+    ['usecase-portfolio', 'getUsecasePortfolioData('],
+    ['compliance-status', 'getComplianceStatusData('],
+    ['roadmap-status', 'getRoadmapStatusData('],
+    ['architecture-status', 'getArchitectureStatusData('],
+    ['full-report', 'getFullReportData('],
+  ])('"%s" ist in der REPORT_TYPES-Allowlist und lädt Daten erst nach dem Auth-Gate', (reportType, dataFnCall) => {
+    expect(reportRoute).toContain(`'${reportType}'`)
+    const dataIndex = reportRoute.indexOf(dataFnCall)
+    expect(dataIndex).toBeGreaterThan(-1)
+    expect(dataIndex).toBeGreaterThan(gateIndex)
+  })
+
+  it('alle Datenlader werden mit gate.userId aufgerufen, nicht mit Client-Input', () => {
+    expect(reportRoute).toContain('getReadinessData(gate.userId, locale)')
+    expect(reportRoute).toContain('getUsecasePortfolioData(gate.userId)')
+    expect(reportRoute).toContain('getComplianceStatusData(gate.userId, locale)')
+    expect(reportRoute).toContain('getRoadmapStatusData(gate.userId, locale)')
+    expect(reportRoute).toContain('getArchitectureStatusData(gate.userId, locale)')
+    expect(reportRoute).toContain('getFullReportData(gate.userId, locale)')
+  })
+
+  it('jeder Phase-3-Report gibt 404 zurück statt eines leeren Reports, wenn keine Daten existieren', () => {
+    const matches = reportRoute.match(/if \(!data\) return NextResponse\.json\([^)]*status: 404[^)]*\)/g) ?? []
+    // executive-summary + 5 Phase-3-Reports + full-report = 7 eigenständige 404-Checks
+    expect(matches.length).toBeGreaterThanOrEqual(7)
+  })
+})

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Svg, Path, Circle } from '@react-pdf/renderer'
+import { View, Text, StyleSheet, Svg, Path, Circle, Polygon, Line } from '@react-pdf/renderer'
 import { reportColors, reportFonts, reportType, REPORT_CRITICAL_THRESHOLD } from '@/config/report-tokens'
 
 // MERIDIAN-Basiskomponenten (Issue #223) — react-pdf-Pendants zu den 7 in der
@@ -207,6 +207,244 @@ export function StatCard({ eyebrow, value, caption, accentColor = reportColors.p
         <Text style={{ fontFamily: reportFonts.serif, fontSize: 15, fontWeight: 700, color: reportColors.ink }}>{value}</Text>
         {caption && <Text style={{ ...reportType.bodyMuted, fontSize: 7, marginTop: 2 }}>{caption}</Text>}
       </View>
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// RadarChart — Hexagon-Netz mit gefülltem Datenpolygon (Musterseite 2,
+// Readiness-Report, #225). Labels werden NICHT innerhalb des Svg platziert
+// (react-pdf/fontkit rendert Text-in-Svg nicht zuverlässig für beliebige
+// Positionen), sondern als absolut positionierte Text-Geschwister außerhalb
+// des Svg, per selber Trigonometrie wie die Datenpunkte berechnet.
+// ─────────────────────────────────────────────────────────────────────────
+interface RadarChartProps {
+  dimensions: Array<{ label: string; value: number }> // 0-100, beliebige Achsenzahl ≥ 3
+  size?: number
+}
+export function RadarChart({ dimensions, size = 220 }: RadarChartProps) {
+  const n = dimensions.length
+  const center = size / 2
+  const maxRadius = size / 2 - 34
+  const angleFor = (i: number) => (-90 + (360 / n) * i) * (Math.PI / 180)
+  const pointFor = (i: number, fraction: number): [number, number] => {
+    const angle = angleFor(i)
+    return [center + Math.cos(angle) * maxRadius * fraction, center + Math.sin(angle) * maxRadius * fraction]
+  }
+  const gridLevels = [0.25, 0.5, 0.75, 1]
+  const dataPoints = dimensions.map((d, i) => pointFor(i, Math.max(0, Math.min(1, d.value / 100))))
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <Svg width={size} height={size}>
+        {gridLevels.map((level, gi) => (
+          <Polygon
+            key={gi}
+            points={dimensions.map((_, i) => pointFor(i, level).join(',')).join(' ')}
+            stroke={reportColors.line}
+            strokeWidth={0.5}
+            fill="none"
+          />
+        ))}
+        {dimensions.map((_, i) => {
+          const [x, y] = pointFor(i, 1)
+          return <Line key={i} x1={center} y1={center} x2={x} y2={y} stroke={reportColors.line} strokeWidth={0.5} />
+        })}
+        <Polygon
+          points={dataPoints.map(p => p.join(',')).join(' ')}
+          stroke={reportColors.primary}
+          strokeWidth={1.5}
+          fill={reportColors.primary}
+          fillOpacity={0.18}
+        />
+        {dataPoints.map(([x, y], i) => (
+          <Circle key={i} cx={x} cy={y} r={2.5} fill={reportColors.primary} />
+        ))}
+      </Svg>
+      {dimensions.map((d, i) => {
+        const [x, y] = pointFor(i, 1.22)
+        const cos = Math.cos(angleFor(i))
+        const align = cos > 0.3 ? 'left' : cos < -0.3 ? 'right' : 'center'
+        return (
+          <Text
+            key={i}
+            style={{
+              position: 'absolute', left: x - 32, top: y - 4, width: 64,
+              textAlign: align, fontFamily: reportFonts.sans, fontSize: 7.5, color: reportColors.inkSecondary,
+            }}
+          >
+            {d.label}
+          </Text>
+        )
+      })}
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// QuadrantMatrix — Wert×Machbarkeit-Streudiagramm mit vier Quadranten-Labels
+// und nummerierten Punkten (Musterseite 3, Use-Case-Portfolio, #225).
+// ─────────────────────────────────────────────────────────────────────────
+interface QuadrantPoint {
+  rank: number
+  x: number // 0-100, Machbarkeit
+  y: number // 0-100, Geschäftswert
+  filled?: boolean
+}
+interface QuadrantMatrixProps {
+  points: QuadrantPoint[]
+  size: number
+  quadrantLabels: { topLeft: string; topRight: string; bottomLeft: string; bottomRight: string }
+}
+export function QuadrantMatrix({ points, size, quadrantLabels }: QuadrantMatrixProps) {
+  const toPx = (v: number) => Math.max(0, Math.min(1, v / 100)) * size
+  return (
+    <View style={{ width: size, height: size, position: 'relative', borderWidth: 0.75, borderColor: reportColors.line }}>
+      <Svg width={size} height={size}>
+        <Line x1={size / 2} y1={0} x2={size / 2} y2={size} stroke={reportColors.line} strokeWidth={0.75} />
+        <Line x1={0} y1={size / 2} x2={size} y2={size / 2} stroke={reportColors.line} strokeWidth={0.75} />
+        {points.map(p => {
+          const cx = toPx(p.x)
+          const cy = size - toPx(p.y)
+          return (
+            <Circle
+              key={p.rank}
+              cx={cx} cy={cy} r={p.filled ? 8 : 6}
+              fill={p.filled ? reportColors.primary : reportColors.ivory}
+              stroke={p.filled ? reportColors.primary : reportColors.lineStrong}
+              strokeWidth={0.75}
+            />
+          )
+        })}
+      </Svg>
+      {points.map(p => {
+        const cx = toPx(p.x)
+        const cy = size - toPx(p.y)
+        return (
+          <Text
+            key={p.rank}
+            style={{
+              position: 'absolute', left: cx - 9, top: cy - 4.5, width: 18, textAlign: 'center',
+              fontFamily: reportFonts.mono, fontSize: p.filled ? 7 : 5.5, fontWeight: 700,
+              color: p.filled ? reportColors.white : reportColors.inkMuted,
+            }}
+          >
+            {p.rank}
+          </Text>
+        )
+      })}
+      <Text style={{ position: 'absolute', top: 8, left: 8, ...reportType.eyebrow }}>{quadrantLabels.topLeft}</Text>
+      <Text style={{ position: 'absolute', top: 8, right: 8, ...reportType.eyebrow, textAlign: 'right' }}>{quadrantLabels.topRight}</Text>
+      <Text style={{ position: 'absolute', bottom: 8, left: 8, ...reportType.eyebrow }}>{quadrantLabels.bottomLeft}</Text>
+      <Text style={{ position: 'absolute', bottom: 8, right: 8, ...reportType.eyebrow, textAlign: 'right' }}>{quadrantLabels.bottomRight}</Text>
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Timeline — horizontale Zeitleiste mit Meilenstein-Punkten + gestrichelter
+// HEUTE-Marke, proportional zur echten Zeitspanne positioniert (Musterseite 4,
+// Compliance-Report, #225).
+// ─────────────────────────────────────────────────────────────────────────
+interface TimelineMarker {
+  dateMs: number
+  dateLabel: string
+  eventLabel: string
+  filled: boolean // liegt in der Vergangenheit / bereits wirksam
+}
+interface TimelineProps {
+  markers: TimelineMarker[] // chronologisch sortiert
+  todayMs: number
+  todayLabel: string
+  width: number
+}
+export function Timeline({ markers, todayMs, todayLabel, width }: TimelineProps) {
+  const minMs = markers[0]?.dateMs ?? todayMs
+  const maxMs = markers[markers.length - 1]?.dateMs ?? todayMs
+  const span = Math.max(1, maxMs - minMs)
+  // Inset um den Punkt-Radius: sonst werden die äußeren Meilenstein-Kreise
+  // exakt am Svg-Rand abgeschnitten (halbe Kreise wirken wie Pfeilspitzen).
+  const inset = 4
+  const usableWidth = width - inset * 2
+  const xFor = (ms: number) => inset + Math.max(0, Math.min(1, (ms - minMs) / span)) * usableWidth
+  const todayX = xFor(todayMs)
+  const lineY = 40
+
+  return (
+    <View style={{ width, height: 66, position: 'relative' }}>
+      <Svg width={width} height={66}>
+        <Line x1={inset} y1={lineY} x2={width - inset} y2={lineY} stroke={reportColors.line} strokeWidth={0.75} />
+        <Line x1={todayX} y1={16} x2={todayX} y2={lineY} stroke={reportColors.primary} strokeWidth={0.75} strokeDasharray="2,2" />
+        {markers.map((m, i) => (
+          <Circle key={i} cx={xFor(m.dateMs)} cy={lineY} r={2.5} fill={m.filled ? reportColors.primary : reportColors.ivory} stroke={reportColors.primary} strokeWidth={0.75} />
+        ))}
+      </Svg>
+      <Text style={{ position: 'absolute', left: todayX - 20, top: 4, width: 40, textAlign: 'center', fontFamily: reportFonts.mono, fontSize: 6, letterSpacing: 0.6, color: reportColors.primary, fontWeight: 700 }}>
+        {todayLabel}
+      </Text>
+      {markers.map((m, i) => (
+        <View key={i} style={{ position: 'absolute', left: xFor(m.dateMs) - 36, top: lineY + 8, width: 72, alignItems: 'center' }}>
+          <Text style={{ fontFamily: reportFonts.mono, fontSize: 6, letterSpacing: 0.4, color: reportColors.inkSubtle }}>{m.dateLabel}</Text>
+          <Text style={{ ...reportType.bodyMuted, fontSize: 6.5, textAlign: 'center', marginTop: 2 }}>{m.eventLabel}</Text>
+        </View>
+      ))}
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// HorizonCard — Karte mit farbigem Kopfbalken für die Drei-Horizonte-Roadmap
+// (Musterseite 5, Roadmap-Report, #225).
+// ─────────────────────────────────────────────────────────────────────────
+interface HorizonCardProps {
+  eyebrowLabel: string // "HORIZONT 1"
+  durationLabel: string // "0-3 MONATE"
+  title: string
+  accentColor: string
+  items: Array<{ title: string; subtitle?: string }>
+  width: number
+}
+export function HorizonCard({ eyebrowLabel, durationLabel, title, accentColor, items, width }: HorizonCardProps) {
+  return (
+    <View style={{ width, borderWidth: 0.75, borderColor: reportColors.line, borderRadius: 3, overflow: 'hidden' }}>
+      <View style={{ height: 2.5, backgroundColor: accentColor }} />
+      <View style={{ padding: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <Text style={{ ...reportType.eyebrowPrimary, color: accentColor }}>{eyebrowLabel}</Text>
+          <Text style={{ ...reportType.eyebrow, fontSize: 6 }}>{durationLabel}</Text>
+        </View>
+        <Text style={{ fontFamily: reportFonts.serif, fontSize: 17, color: reportColors.ink, marginBottom: 10 }}>{title}</Text>
+        {items.map((item, i) => (
+          <View key={i} style={{ marginBottom: 7 }}>
+            <Text style={{ fontFamily: reportFonts.sans, fontWeight: 700, fontSize: 8, color: reportColors.ink }}>{item.title}</Text>
+            {item.subtitle && <Text style={{ ...reportType.bodyMuted, fontSize: 7, marginTop: 1 }}>{item.subtitle}</Text>}
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// AiCalloutBlock — violett getönter KI-Einordnungs-Block mit Badges
+// (Musterseite 6, Architektur-Report, #225).
+// ─────────────────────────────────────────────────────────────────────────
+interface AiCalloutBlockProps {
+  eyebrowLabel: string
+  badges: string[]
+  text: string
+  width: number
+}
+export function AiCalloutBlock({ eyebrowLabel, badges, text, width }: AiCalloutBlockProps) {
+  return (
+    <View style={{ width, backgroundColor: reportColors.aiSoft, borderRadius: 4, padding: 12 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <Text style={{ ...reportType.eyebrow, color: reportColors.ai }}>{eyebrowLabel}</Text>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {badges.map((b, i) => <Badge key={i} label={b} variant="ai" />)}
+        </View>
+      </View>
+      <Text style={{ ...reportType.body, lineHeight: 1.5 }}>{text}</Text>
     </View>
   )
 }

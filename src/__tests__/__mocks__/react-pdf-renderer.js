@@ -40,6 +40,10 @@ const Circle = () => React.createElement('circle', { 'data-pdf': 'circle' })
 // Rect (Issue #224, Executive-Summary-Tabellenbalken) — dieselbe reine
 // Platzhalter-Logik wie Path/Circle, siehe Kommentar oben.
 const Rect = () => React.createElement('rect', { 'data-pdf': 'rect' })
+// Polygon/Line (Issue #225, RadarChart/QuadrantMatrix/Timeline) — dieselbe
+// reine Platzhalter-Logik.
+const Polygon = () => React.createElement('polygon', { 'data-pdf': 'polygon' })
+const Line = () => React.createElement('line', { 'data-pdf': 'line' })
 const Font = { register: () => {}, registerHyphenationCallback: () => {} }
 
 // Läuft den Element-Baum rekursiv durch und ruft dabei jede Funktionskomponente
@@ -65,4 +69,4 @@ async function renderToBuffer(document) {
   return Buffer.from('%PDF-1.4 mock-content')
 }
 
-module.exports = { Document, Page, View, Text, Svg, Path, Circle, Rect, Font, StyleSheet, renderToBuffer }
+module.exports = { Document, Page, View, Text, Svg, Path, Circle, Rect, Polygon, Line, Font, StyleSheet, renderToBuffer }
