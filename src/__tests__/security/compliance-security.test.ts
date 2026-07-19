@@ -127,4 +127,29 @@ describe('Security: Compliance Center', () => {
       expect(source).toContain('user_preferences')
     })
   })
+
+  describe('POST /api/compliance — regulation-Enum akzeptiert alle real genutzten Werte (Regression, gefunden 19.07.2026)', () => {
+    // CompliancePageClient speichert auch 'system' (Meta-Zeile für aktivierte
+    // "Weitere Regularien") und die IDs aus ADDITIONAL_REGULATIONS (nis2,
+    // iso_27001, iso_42001, bait, lksg) — das alte Enum kannte nur
+    // eu_ai_act/dsgvo/risk_matrix, jeder andere Wert scheiterte an Zod (422),
+    // ohne dass der Client den Fehler bemerkte (optimistisches UI-Update lief
+    // trotzdem durch — Checkboxen wirkten gespeichert, waren es aber nie).
+    const routeSource = readFileSync(join(process.cwd(), 'src/app/api/compliance/route.ts'), 'utf-8')
+
+    it("akzeptiert 'system' (Meta-Zeile für aktivierte Regularien)", () => {
+      expect(routeSource).toContain("'system'")
+    })
+
+    it('leitet zusätzliche Regulation-IDs aus ADDITIONAL_REGULATIONS ab statt sie hartzucodieren', () => {
+      expect(routeSource).toContain('ADDITIONAL_REGULATIONS.map(r => r.id)')
+    })
+
+    it('CompliancePageClient prüft jetzt res.ok und macht das optimistische Update bei Fehlschlag rückgängig', () => {
+      const clientSource = readFileSync(
+        join(process.cwd(), 'src/app/[locale]/(dashboard)/compliance/CompliancePageClient.tsx'), 'utf-8'
+      )
+      expect(clientSource).toContain('res.ok')
+    })
+  })
 })

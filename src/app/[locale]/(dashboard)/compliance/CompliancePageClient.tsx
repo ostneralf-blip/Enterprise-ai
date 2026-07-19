@@ -105,6 +105,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
     notes?: string | null
   ) => {
     const key = makeKey(regulation, checkType)
+    const previous = checks.get(key)
     const optimistic: CheckRow = {
       regulation,
       check_type: checkType,
@@ -115,15 +116,33 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
     setChecks(prev => new Map(prev).set(key, optimistic))
     setSaving(prev => new Set(prev).add(key))
     try {
-      await fetch('/api/compliance', {
+      const res = await fetch('/api/compliance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ regulation, check_type: checkType, status, notes: notes ?? null }),
       })
+      // Ohne diesen Check blieb ein fehlgeschlagenes Speichern (z. B. Zod-422)
+      // unbemerkt — das optimistische Update stand weiter, obwohl in der DB
+      // nichts ankam (siehe Bugfix 19.07.2026, api/compliance/route.ts).
+      if (!res.ok) {
+        setChecks(prev => {
+          const n = new Map(prev)
+          if (previous) n.set(key, previous)
+          else n.delete(key)
+          return n
+        })
+      }
+    } catch {
+      setChecks(prev => {
+        const n = new Map(prev)
+        if (previous) n.set(key, previous)
+        else n.delete(key)
+        return n
+      })
     } finally {
       setSaving(prev => { const n = new Set(prev); n.delete(key); return n })
     }
-  }, [])
+  }, [checks])
 
   // Zyklus: pending → compliant → non_compliant → pending
   const toggleItem = (regulation: string, checkType: string) => {

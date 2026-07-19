@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { ADDITIONAL_REGULATIONS } from '@/config/compliance-data'
 import { z } from 'zod'
 
+// Bug gefunden 19.07.2026: dieses Enum ließ nur die drei ursprünglichen
+// Regulation-Werte zu. CompliancePageClient.tsx speichert aber auch
+// 'system' (Meta-Zeile für die Liste aktivierter "Weitere Regularien",
+// check_type='active_regulations') und die IDs aus ADDITIONAL_REGULATIONS
+// (z. B. 'nis2', 'iso_27001') für deren Checklisten-Items — jeder dieser
+// Aufrufe scheiterte bisher an diesem Enum (422), ohne dass der Client den
+// Fehler abfing (optimistisches UI-Update lief trotzdem durch). Betroffene
+// Checkboxen wirkten gespeichert, waren es aber nie. IDs werden aus
+// ADDITIONAL_REGULATIONS abgeleitet statt hartcodiert, damit künftig neue
+// Regularien dort automatisch mit erfasst werden.
 const UpsertSchema = z.object({
-  regulation: z.enum(['eu_ai_act', 'dsgvo', 'risk_matrix']),
+  regulation: z.enum(['eu_ai_act', 'dsgvo', 'risk_matrix', 'system', ...ADDITIONAL_REGULATIONS.map(r => r.id)] as [string, ...string[]]),
   check_type: z.string().min(1).max(100),
   status: z.enum(['pending', 'compliant', 'non_compliant', 'partial']),
   notes: z.string().max(1000).nullable().optional(),
