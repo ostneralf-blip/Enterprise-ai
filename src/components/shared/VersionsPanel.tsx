@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import type { ArchitectureResult } from '@/config/architecture-data'
+import { ARCHETYPE_LABELS } from '@/config/roadmap-data'
+import { pick } from '@/lib/utils/locale-data'
+import type { Archetype } from '@/types'
 
 interface Version {
   id: string
@@ -170,42 +173,72 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
   )
 }
 
+type DiffRow = { label: string; a: string; b: string }
+
+// Zählt erledigte/gesamt Meilensteine einer Phase aus den Version-Daten
+// (Keys sind `${phaseId}_${index}`, Status not_started|in_progress|done).
+function phaseProgress(milestones: Record<string, string> | undefined, phase: string): string {
+  if (!milestones) return '—'
+  const entries = Object.entries(milestones).filter(([k]) => k.startsWith(`${phase}_`))
+  if (entries.length === 0) return '—'
+  return `${entries.filter(([, v]) => v === 'done').length}/${entries.length}`
+}
+
 function VersionCompare({ a, b, module }: { a: Version; b: Version; module: string }) {
   const t = useTranslations('modules')
+  const locale = useLocale()
+
+  let rows: DiffRow[] | null = null
+
   if (module === 'architecture') {
     const aResult = (a.data as { result?: ArchitectureResult }).result
     const bResult = (b.data as { result?: ArchitectureResult }).result
-    if (!aResult || !bResult) return null
-
-    const rows: Array<{ label: string; a: string; b: string }> = [
-      { label: 'Muster', a: aResult.pattern, b: bResult.pattern },
-      { label: 'Zusammenfassung', a: aResult.summary, b: bResult.summary },
-      ...aResult.layers.map((l, i) => ({
-        label: l.name,
-        a: l.components.join(', '),
-        b: bResult.layers[i]?.components.join(', ') ?? '—',
+    if (aResult && bResult) {
+      rows = [
+        { label: t('versions.compareArchPattern'), a: aResult.pattern, b: bResult.pattern },
+        { label: t('versions.compareArchSummary'), a: aResult.summary, b: bResult.summary },
+        ...aResult.layers.map((l, i) => ({
+          label: l.name,
+          a: l.components.join(', '),
+          b: bResult.layers[i]?.components.join(', ') ?? '—',
+        })),
+      ]
+    }
+  } else if (module === 'roadmap') {
+    // Roadmap-Version: { archetype, milestones } — Diff über Archetyp + je Phase
+    // den Meilenstein-Fortschritt (UX-Review Sprint 36).
+    const aData = a.data as { archetype?: string; milestones?: Record<string, string> }
+    const bData = b.data as { archetype?: string; milestones?: Record<string, string> }
+    const archetypeLabel = (arch?: string) =>
+      arch && ARCHETYPE_LABELS[arch as Archetype] ? pick(ARCHETYPE_LABELS[arch as Archetype].label, locale) : (arch ?? '—')
+    rows = [
+      { label: t('versions.compareArchetype'), a: archetypeLabel(aData.archetype), b: archetypeLabel(bData.archetype) },
+      ...(['phase1', 'phase2', 'phase3'] as const).map((phase, i) => ({
+        label: t('versions.comparePhase', { n: i + 1 }),
+        a: phaseProgress(aData.milestones, phase),
+        b: phaseProgress(bData.milestones, phase),
       })),
     ]
+  }
 
-    return (
-      <div className="border border-line rounded-xl overflow-hidden" role="table" aria-label={t('versions.compareAriaLabel')}>
-        <div className="grid grid-cols-3 bg-surface-raised px-3 py-2 text-xs font-semibold text-ink-muted border-b border-line">
-          <span>{t('versions.compareFieldCol')}</span>
-          <span>{t('versions.versionNo', { no: a.version_no })}</span>
-          <span>{t('versions.versionNo', { no: b.version_no })}</span>
-        </div>
-        {rows.map((row, i) => (
-          <div key={i} className={`grid grid-cols-3 px-3 py-2 text-xs gap-2 ${i % 2 === 0 ? 'bg-surface' : 'bg-surface-raised'}`}>
-            <span className="font-medium text-ink-secondary">{row.label}</span>
-            <span className={`text-ink-secondary ${row.a !== row.b ? 'text-warning-text font-medium' : ''}`}>{row.a}</span>
-            <span className={`text-ink-secondary ${row.a !== row.b ? 'text-warning-text font-medium' : ''}`}>{row.b}</span>
-          </div>
-        ))}
-      </div>
-    )
+  if (!rows) {
+    return <p className="text-xs text-ink-subtle text-center py-2">{t('versions.compareNotAvailable')}</p>
   }
 
   return (
-    <p className="text-xs text-ink-subtle text-center py-2">{t('versions.compareNotAvailable')}</p>
+    <div className="border border-line rounded-xl overflow-hidden" role="table" aria-label={t('versions.compareAriaLabel')}>
+      <div className="grid grid-cols-3 bg-surface-raised px-3 py-2 text-xs font-semibold text-ink-muted border-b border-line">
+        <span>{t('versions.compareFieldCol')}</span>
+        <span>{t('versions.versionNo', { no: a.version_no })}</span>
+        <span>{t('versions.versionNo', { no: b.version_no })}</span>
+      </div>
+      {rows.map((row, i) => (
+        <div key={i} className={`grid grid-cols-3 px-3 py-2 text-xs gap-2 ${i % 2 === 0 ? 'bg-surface' : 'bg-surface-raised'}`}>
+          <span className="font-medium text-ink-secondary">{row.label}</span>
+          <span className={`text-ink-secondary ${row.a !== row.b ? 'text-warning-text font-medium' : ''}`}>{row.a}</span>
+          <span className={`text-ink-secondary ${row.a !== row.b ? 'text-warning-text font-medium' : ''}`}>{row.b}</span>
+        </div>
+      ))}
+    </div>
   )
 }

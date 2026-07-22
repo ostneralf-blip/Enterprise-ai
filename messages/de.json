@@ -911,7 +911,12 @@
       "hintMeasuresTitle": "Was sind die Maßnahmen?",
       "hintMeasures": "Die Maßnahmen sind konkrete Umsetzungsschritte für diese Phase. Klicken Sie auf eine Maßnahme, um den Status zu wechseln: offen → in Bearbeitung → erledigt. Erledigte Maßnahmen erscheinen durchgestrichen.",
       "hintKpisTitle": "Was sind die Ziel-KPIs?",
-      "hintKpis": "KPIs (Key Performance Indicators) zeigen, woran Sie den Erfolg dieser Phase messen. Sie sind archetyp-spezifisch und helfen, den Fortschritt objektiv zu bewerten."
+      "hintKpis": "KPIs (Key Performance Indicators) zeigen, woran Sie den Erfolg dieser Phase messen. Sie sind archetyp-spezifisch und helfen, den Fortschritt objektiv zu bewerten.",
+      "saveDialogTitle": "Roadmap speichern",
+      "saveDialogDesc": "Möchten Sie den aktuellen Stand aktualisieren oder ihn zusätzlich als neue Version festhalten? Versionen lassen sich später vergleichen und wiederherstellen.",
+      "saveAsVersion": "Als neue Version sichern",
+      "saveUpdate": "Aktuellen Stand aktualisieren",
+      "saveDialogCancel": "Abbrechen"
     },
     "versions": {
       "panelButtonPro": "Versionen (Pro)",
@@ -928,7 +933,11 @@
       "versionNo": "Version #{no}",
       "compareFieldCol": "Feld",
       "compareAriaLabel": "Versions-Vergleich",
-      "compareNotAvailable": "Vergleich für dieses Modul noch nicht verfügbar."
+      "compareNotAvailable": "Vergleich für dieses Modul noch nicht verfügbar.",
+      "compareArchPattern": "Muster",
+      "compareArchSummary": "Zusammenfassung",
+      "compareArchetype": "Archetyp",
+      "comparePhase": "Phase {n}"
     },
     "zusammenfassung": {
       "title": "Executive Summary",

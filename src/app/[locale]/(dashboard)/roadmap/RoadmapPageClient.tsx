@@ -138,6 +138,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
   const [savedId, setSavedId] = useState<string | null>(savedRoadmap?.id ?? null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(!!savedRoadmap)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
   const [dismissedDecisions, setDismissedDecisions] = useState<Set<string>>(new Set())
 
   const [phaseOrder, setPhaseOrder] = useState<PhaseId[]>(() => {
@@ -171,7 +172,9 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
     setSaved(false)
   }
 
-  const handleSave = async () => {
+  // Persistiert die Arbeits-Zeile (POST beim ersten Mal, sonst PATCH) und gibt
+  // die id der gespeicherten Roadmap zurück (oder null bei Fehler).
+  const persistRoadmap = async (): Promise<string | null> => {
     const roadmap = ROADMAPS[archetype]
     const phases = phaseOrder.map(phaseId => {
       const phaseMilestones = Object.fromEntries(
@@ -181,24 +184,48 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       )
       return { phase: phaseId, ...roadmap[phaseId], milestones: phaseMilestones }
     })
+    const [url, method] = savedId
+      ? [`/api/roadmap/${savedId}`, 'PATCH']
+      : ['/api/roadmap', 'POST']
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archetype, phases }),
+    })
+    if (!res.ok) return null
+    const { data } = await res.json()
+    const id = (data?.id as string | undefined) ?? savedId
+    if (data?.id && !savedId) setSavedId(data.id)
+    return id ?? null
+  }
+
+  // „Aktualisieren": nur die Arbeits-Zeile. „Als neue Version sichern":
+  // zusätzlich einen Versions-Snapshot (POST /api/versions) — derselbe
+  // Datenschnitt wie im VersionsPanel ({ archetype, milestones }).
+  const doSave = async (mode: 'update' | 'version') => {
+    setShowSaveDialog(false)
     setSaving(true)
     try {
-      const [url, method] = savedId
-        ? [`/api/roadmap/${savedId}`, 'PATCH']
-        : ['/api/roadmap', 'POST']
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ archetype, phases }),
-      })
-      if (res.ok) {
-        const { data } = await res.json()
-        if (data?.id && !savedId) setSavedId(data.id)
-        setSaved(true)
+      const id = await persistRoadmap()
+      if (id && mode === 'version') {
+        await fetch('/api/versions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ module: 'roadmap', entity_id: id, data: { archetype, milestones } }),
+        }).catch(() => {})
       }
+      if (id) setSaved(true)
     } finally {
       setSaving(false)
     }
+  }
+
+  // Beim ersten Speichern (noch keine gespeicherte Roadmap) direkt sichern —
+  // es gibt noch nichts zu versionieren. Ab der zweiten Speicherung fragt der
+  // Dialog „Aktualisieren vs. als neue Version sichern" (UX-Review Sprint 36).
+  const handleSaveClick = () => {
+    if (savedId) setShowSaveDialog(true)
+    else void doSave('update')
   }
 
   const roadmap = ROADMAPS[archetype]
@@ -483,7 +510,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       {/* Aktions-Leiste — unterhalb der Phasen */}
       <div className="flex flex-wrap items-center gap-3 mt-6">
         {!saved && (
-          <button onClick={handleSave} disabled={saving}
+          <button onClick={handleSaveClick} disabled={saving}
             className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2">
             {saving ? t('roadmap.saving') : t('roadmap.save')}
           </button>
@@ -503,6 +530,37 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
           </>
         )}
       </div>
+
+      {/* Speichern-Dialog: erscheint ab der zweiten Speicherung (UX-Review Sprint 36) */}
+      {showSaveDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" role="dialog" aria-modal="true" aria-label={t('roadmap.saveDialogTitle')}>
+          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-ink">{t('roadmap.saveDialogTitle')}</h2>
+              <button
+                onClick={() => setShowSaveDialog(false)}
+                aria-label={t('roadmap.saveDialogCancel')}
+                className="text-ink-subtle hover:text-ink-secondary text-xl leading-none focus:outline-none"
+              >×</button>
+            </div>
+            <p className="text-sm text-ink-secondary mb-5">{t('roadmap.saveDialogDesc')}</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => void doSave('version')}
+                className="w-full py-2.5 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+              >
+                {t('roadmap.saveAsVersion')}
+              </button>
+              <button
+                onClick={() => void doSave('update')}
+                className="w-full py-2.5 text-sm font-medium border border-line text-ink-secondary rounded-xl hover:bg-surface-raised transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
+              >
+                {t('roadmap.saveUpdate')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

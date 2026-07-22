@@ -911,7 +911,12 @@
       "hintMeasuresTitle": "What are the actions?",
       "hintMeasures": "Actions are concrete implementation steps for this phase. Click an action to cycle its status: open → in progress → done. Completed actions appear with strikethrough.",
       "hintKpisTitle": "What are the target KPIs?",
-      "hintKpis": "KPIs (Key Performance Indicators) show how to measure the success of this phase. They are archetype-specific and help assess progress objectively."
+      "hintKpis": "KPIs (Key Performance Indicators) show how to measure the success of this phase. They are archetype-specific and help assess progress objectively.",
+      "saveDialogTitle": "Save roadmap",
+      "saveDialogDesc": "Would you like to update the current state or additionally keep it as a new version? Versions can be compared and restored later.",
+      "saveAsVersion": "Save as new version",
+      "saveUpdate": "Update current state",
+      "saveDialogCancel": "Cancel"
     },
     "versions": {
       "panelButtonPro": "Versions (Pro)",
@@ -928,7 +933,11 @@
       "versionNo": "Version #{no}",
       "compareFieldCol": "Field",
       "compareAriaLabel": "Version comparison",
-      "compareNotAvailable": "Comparison not available for this module yet."
+      "compareNotAvailable": "Comparison not available for this module yet.",
+      "compareArchPattern": "Pattern",
+      "compareArchSummary": "Summary",
+      "compareArchetype": "Archetype",
+      "comparePhase": "Phase {n}"
     },
     "zusammenfassung": {
       "title": "Executive Summary",
