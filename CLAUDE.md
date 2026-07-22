@@ -530,6 +530,31 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   bereits im Rahmen der Umsetzung erfolgt, s. o.) + Daniels finale Freigabe vor GitHub-Close
   ausstehend.
 
+**ERLEDIGT — UX-Review Sprint 34–37 (22.07.2026, `docs/sprints/2026-07-22-sprint-34-37-ux-review-plan.md`):**
+- **Sprint 34** UI-Konsistenz: `UnifiedContextBanner` als eigene Komponente extrahiert
+  (aus ArchitecturePageClient, inkl. #205 Governance-Badge-`title`), InfoHint-Ruhezustand-
+  Rahmen + HintBox-`break-words`, Dashboard-Pfad an Sidebar-Reihenfolge angeglichen
+  (8 Schritte inkl. Roadmap), Roadmap-Kontextboxen zu einer Karte zusammengeführt.
+- **Sprint 35** Assessment-Flow: Draft-Autosave (`/api/assessment` POST + `[id]` PATCH,
+  debounced, Fortsetzen-/Verwerfen-UI) + freiwillige Pro-Kurzversion (16 statt 42 Fragen,
+  variant quick/deep). 8 Security-Tests.
+- **Sprint 36** Roadmap-Versionierung: Speichern-Dialog „aktualisieren vs. als neue Version"
+  ab der 2. Speicherung + Roadmap-Diff in VersionCompare (Archetyp + Meilenstein-Fortschritt
+  je Phase). Governance/Canvas/UseCase-Diff weiterhin Platzhalter (mögliche Folge-Issues).
+- **Sprint 37** Executive-Summary-Content: Reifegrad-Status je Assessment-Dimension unter
+  der Top-3-Liste (schwach < 3.0 → archetypspez. Empfehlung, gut → Bestätigung). Reine
+  Datenschicht `generateDimensionStatuses` (`summary-priorities.ts`, Schwelle 3.0), 6 Unit-Tests.
+  **Die 24 Empfehlungstexte sind über den Content-Library-Editor im Admin-Bereich
+  editierbar** (Seed-Migration `20260722204936`, 48 Zeilen DE+EN, context_key
+  `summary.dim.<status>.<archetyp>.<dimId>`; Lese-Pfad in `zusammenfassung/page.tsx` mit
+  i18n-Fallback auf `summary.dimStatus.*`). **Dabei Content-Library-Admin-Editor
+  vervollständigt** (war Lücke): Formular/Type/`content/[id]`-PATCH-Schema um `context_key`,
+  `locale`, `is_published` (+ min_tier-Fix) erweitert — vorher konnte kein Admin diese
+  Felder setzen und ein Edit hätte `context_key` auf NULL überschrieben.
+- Alle vier: tsc/eslint sauber, Testlauf-Baseline unverändert, Build grün, deployt.
+  Offen: Daniels Screenshot-/Interaktions-Freigabe (Gate B/D) + Redaktions-Feinschliff
+  der 24 Texte (jetzt ohne Deploy im Admin möglich).
+
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
 - Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.
   Bei Go-Live nochmals auf rechtliche Vollständigkeit prüfen (eRecht24/Anwalt).
