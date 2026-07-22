@@ -207,117 +207,126 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
   return (
     <div>
-      {/* Canvas-Kontext-Banner */}
-      {linkedCanvas && (
-        <div className="mb-5 bg-primary-soft border border-primary-border rounded-2xl p-4">
-          <div className="flex items-start gap-2 mb-2">
-            <span className="text-xs font-semibold text-primary">{t('roadmap.canvasLinked')}</span>
-            <InfoHint title={t('roadmap.canvasHintTitle')} side="bottom">
-              <p>{t('roadmap.canvasHintP1')}</p>
-              <p className="mt-1.5">{t('roadmap.canvasHintP2')}</p>
-            </InfoHint>
-          </div>
-          <p className="text-xs text-primary-hover font-medium mb-1">{linkedCanvas.title}</p>
-          {(linkedCanvas.data.problem || linkedCanvas.data.kpis) && (
-            <div className="mt-1 mb-2 space-y-1">
-              {linkedCanvas.data.problem && (
-                <p className="text-xs text-primary-hover opacity-90">
-                  <span className="font-medium">{t('roadmap.problemLabel')} </span>
-                  {linkedCanvas.data.problem.length > 120 ? `${linkedCanvas.data.problem.slice(0, 120)}…` : linkedCanvas.data.problem}
-                </p>
-              )}
-              {linkedCanvas.data.kpis && (
-                <p className="text-xs text-primary-hover opacity-90">
-                  <span className="font-medium">{t('roadmap.kpisPrefix')} </span>
-                  {linkedCanvas.data.kpis.length > 100 ? `${linkedCanvas.data.kpis.slice(0, 100)}…` : linkedCanvas.data.kpis}
-                </p>
-              )}
-            </div>
+      {/* Kontext & Konfiguration — eine gemeinsame Card statt drei getrennter
+          Blöcke (#205-Folgeissue „Roadmap-Boxen verschmelzen", UX-Review 22.07.2026):
+          Archetyp-Auswahl + Top-Use-Cases im Standard-Kartendesign, Canvas-Kontext
+          als eingebettete Teilbox darunter. Semantische Tokens (kein hartes Blau
+          mehr wie in den alten primary-soft-Boxen), #201-konform. */}
+      <div className="mb-6 bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-5">
+        {/* Archetyp-Auswahl */}
+        <div>
+          {fromAssessment && initialArchetype && (
+            <p className="text-xs text-ink-muted mb-3">{t('roadmap.archetypeFromAssessmentHint')}</p>
           )}
-          {canvasInsights.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {canvasInsights.map(insight => (
-                <span key={insight} className="text-[11px] bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">
-                  {insight}
-                </span>
-              ))}
-            </div>
-          )}
-          {canvasInsights.length === 0 && (
-            <p className="text-xs text-primary opacity-70">{t('roadmap.canvasNoSignals')}</p>
-          )}
-        </div>
-      )}
-
-      {/* Archetyp-Auswahl */}
-      <div className="mb-6">
-        {fromAssessment && initialArchetype && (
-          <p className="text-xs text-slate-500 mb-3">{t('roadmap.archetypeFromAssessmentHint')}</p>
-        )}
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t('roadmap.archetypeAriaLabel')}>
-          {ARCHETYPES.map(a => {
-            const meta = ARCHETYPE_LABELS[a]
-            const active = archetype === a
-            return (
-              <button key={a} onClick={() => handleArchetypeChange(a)} aria-pressed={active}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
-                  active ? 'bg-primary border-primary text-white font-medium' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                )}>
-                <span aria-hidden="true">{meta.icon}</span>
-                {pick(meta.label, locale)}
-              </button>
-            )
-          })}
-        </div>
-        <div className="flex items-center gap-1.5 mt-2">
-          <p className="text-xs text-slate-400">{pick(ARCHETYPE_LABELS[archetype].desc, locale)}</p>
-          <InfoHint title={t('roadmap.hintArchetypeTitle')} side="bottom">
-            <p>{t('roadmap.hintArchetype')}</p>
-          </InfoHint>
-        </div>
-      </div>
-
-      {/* Top Use-Cases aus Scoring */}
-      {topUseCases.length > 0 && (
-        <div className="mb-6 bg-primary-soft border border-primary-border rounded-2xl p-4">
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <p className="text-xs font-medium text-primary-hover uppercase tracking-wide">
-              {t('roadmap.topUseCasesLabel')}
-            </p>
-            <InfoHint title={t('roadmap.hintTopUseCasesTitle')} side="bottom">
-              <p>{t('roadmap.hintTopUseCases')}</p>
-            </InfoHint>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {topUseCases.map((uc, i) => {
-              const qMeta = uc.quadrant ? QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META] : null
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t('roadmap.archetypeAriaLabel')}>
+            {ARCHETYPES.map(a => {
+              const meta = ARCHETYPE_LABELS[a]
+              const active = archetype === a
               return (
-                <div key={uc.id} className={cn(
-                  'flex items-center gap-2 bg-white border rounded-xl px-3 py-2 text-sm min-w-0',
-                  uc.governance_result === 'stop_dsgvo' || uc.governance_result === 'stop_risk'
-                    ? 'border-red-200 opacity-75'
-                    : 'border-primary-soft'
-                )}>
-                  <span className="text-slate-400 text-xs flex-shrink-0">#{i + 1}</span>
-                  <span className="font-medium text-slate-900 truncate max-w-[120px]">{uc.name}</span>
-                  {uc.weighted_score != null && (
-                    <span className="text-xs text-slate-500 flex-shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(uc.weighted_score))}</span>
-                  )}
-                  {qMeta && (
-                    <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
-                  )}
-                  {uc.governance_result && (
-                    <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0', GOVERNANCE_BADGE_CLASS[uc.governance_result])}>
-                      {governanceBadgeLabel[uc.governance_result]}
-                    </span>
-                  )}
-                </div>
+                <button key={a} onClick={() => handleArchetypeChange(a)} aria-pressed={active}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
+                    active ? 'bg-primary border-primary text-white font-medium' : 'bg-surface border-line text-ink-secondary hover:border-line-strong hover:bg-surface-raised'
+                  )}>
+                  <span aria-hidden="true">{meta.icon}</span>
+                  {pick(meta.label, locale)}
+                </button>
               )
             })}
           </div>
+          <div className="flex items-center gap-1.5 mt-2">
+            <p className="text-xs text-ink-subtle">{pick(ARCHETYPE_LABELS[archetype].desc, locale)}</p>
+            <InfoHint title={t('roadmap.hintArchetypeTitle')} side="bottom">
+              <p>{t('roadmap.hintArchetype')}</p>
+            </InfoHint>
+          </div>
         </div>
-      )}
+
+        {/* Top Use-Cases aus Scoring */}
+        {topUseCases.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <p className="text-xs font-medium text-ink-muted uppercase tracking-wide">
+                {t('roadmap.topUseCasesLabel')}
+              </p>
+              <InfoHint title={t('roadmap.hintTopUseCasesTitle')} side="bottom">
+                <p>{t('roadmap.hintTopUseCases')}</p>
+              </InfoHint>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {topUseCases.map((uc, i) => {
+                const qMeta = uc.quadrant ? QUADRANT_META[uc.quadrant as keyof typeof QUADRANT_META] : null
+                return (
+                  <div key={uc.id} className={cn(
+                    'flex items-center gap-2 bg-surface-raised border rounded-xl px-3 py-2 text-sm min-w-0',
+                    uc.governance_result === 'stop_dsgvo' || uc.governance_result === 'stop_risk'
+                      ? 'border-error-border opacity-75'
+                      : 'border-line'
+                  )}>
+                    <span className="text-ink-subtle text-xs flex-shrink-0">#{i + 1}</span>
+                    <span className="font-medium text-ink truncate max-w-[120px]">{uc.name}</span>
+                    {uc.weighted_score != null && (
+                      <span className="text-xs text-ink-muted flex-shrink-0">{Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Number(uc.weighted_score))}</span>
+                    )}
+                    {qMeta && (
+                      <span className="text-xs flex-shrink-0">{qMeta.icon}</span>
+                    )}
+                    {uc.governance_result && (
+                      <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0', GOVERNANCE_BADGE_CLASS[uc.governance_result])}>
+                        {governanceBadgeLabel[uc.governance_result]}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Canvas-Kontext — eingebettete Teilbox mit Canvas-Icon (◧, konsistent
+            zur Sidebar/AI-Pfad-Iconografie) vor dem Titel. */}
+        {linkedCanvas && (
+          <div className="bg-surface-raised border border-line rounded-xl p-3.5">
+            <div className="flex items-start gap-2 mb-2">
+              <span className="text-primary text-sm leading-none mt-0.5" aria-hidden="true">◧</span>
+              <span className="text-xs font-semibold text-ink-secondary">{t('roadmap.canvasLinked')}</span>
+              <InfoHint title={t('roadmap.canvasHintTitle')} side="bottom">
+                <p>{t('roadmap.canvasHintP1')}</p>
+                <p className="mt-1.5">{t('roadmap.canvasHintP2')}</p>
+              </InfoHint>
+            </div>
+            <p className="text-xs text-ink font-medium mb-1">{linkedCanvas.title}</p>
+            {(linkedCanvas.data.problem || linkedCanvas.data.kpis) && (
+              <div className="mt-1 mb-2 space-y-1">
+                {linkedCanvas.data.problem && (
+                  <p className="text-xs text-ink-secondary">
+                    <span className="font-medium">{t('roadmap.problemLabel')} </span>
+                    {linkedCanvas.data.problem.length > 120 ? `${linkedCanvas.data.problem.slice(0, 120)}…` : linkedCanvas.data.problem}
+                  </p>
+                )}
+                {linkedCanvas.data.kpis && (
+                  <p className="text-xs text-ink-secondary">
+                    <span className="font-medium">{t('roadmap.kpisPrefix')} </span>
+                    {linkedCanvas.data.kpis.length > 100 ? `${linkedCanvas.data.kpis.slice(0, 100)}…` : linkedCanvas.data.kpis}
+                  </p>
+                )}
+              </div>
+            )}
+            {canvasInsights.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {canvasInsights.map(insight => (
+                  <span key={insight} className="text-[11px] bg-primary-soft text-primary-hover rounded-full px-2 py-0.5 font-medium">
+                    {insight}
+                  </span>
+                ))}
+              </div>
+            )}
+            {canvasInsights.length === 0 && (
+              <p className="text-xs text-ink-subtle">{t('roadmap.canvasNoSignals')}</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Key Decisions aus Architektur */}
       {archKeyDecisions.length > 0 && (
