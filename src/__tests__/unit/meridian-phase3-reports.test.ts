@@ -73,8 +73,11 @@ const complianceData: ComplianceStatusData = {
     { label: 'Technische Dokumentation', article: 'Art. 11', status: 'partial' },
     { label: 'Transparenz-Kennzeichnung', article: 'Art. 50', status: 'compliant' },
   ],
-  obligationsCompletedCount: 3,
-  obligationsTotalCount: 8,
+  documentationStatus: [
+    { label: 'DSGVO', completed: 8, total: 12, pct: 67 },
+    { label: 'EU AI Act', completed: 10, total: 11, pct: 91 },
+    { label: 'NIS-2', completed: 3, total: 8, pct: 38 },
+  ],
 }
 
 const roadmapData: RoadmapStatusData = {
@@ -144,7 +147,7 @@ describe('MERIDIAN Phase 3 — Leerzustände', () => {
   })
 
   it('Compliance-Status: rendert Leerzustand ohne offene Pflichten', async () => {
-    const empty: ComplianceStatusData = { ...complianceData, obligations: [], obligationsCompletedCount: 0, obligationsTotalCount: 0 }
+    const empty: ComplianceStatusData = { ...complianceData, obligations: [], documentationStatus: [] }
     expect(await isPdf(renderMeridianComplianceStatus(empty, 'de'))).toBe(true)
   })
 

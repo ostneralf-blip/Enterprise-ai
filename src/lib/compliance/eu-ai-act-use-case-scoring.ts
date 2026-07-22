@@ -1,10 +1,8 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
-import { analyzeCanvas } from '@/lib/canvas/detection'
 import { computeEuAiActStatusV1 } from '@/lib/compliance/eu-ai-act-status-v1'
 import type { EuAiActStatusSummary } from '@/lib/compliance/eu-ai-act-status-v1'
-import { computeCategoryProgress } from '@/lib/compliance/category-scoring'
-import type { CategoryProgress } from '@/lib/compliance/category-scoring'
+import { computeRegulationProgress, surchargeFromProgress } from '@/lib/compliance/category-scoring'
 import type { Canvas } from '@/types'
 
 type GovernanceVerdict = 'approve' | 'stop_dsgvo' | 'stop_risk' | 'improve'
@@ -21,43 +19,32 @@ export interface UseCaseForScoring {
   canvas: CanvasForScoring | null
 }
 
-// Zuschlag pro aktiver Kategorie bei 0 % Fortschritt = 100 × CATEGORY_WEIGHT
-// Punkte. Bei drei gleichzeitig komplett unbearbeiteten Kategorien (0,9 =
-// 3 × 0,3) übersteigt der Zuschlag allein bereits die HIGH_THRESHOLD (67) —
-// mehrere vernachlässigte Compliance-Bereiche können damit einen laut Art. 6
-// technisch unkritischen Use-Case dennoch als Hochrisiko einstufen. Mit
-// Daniel abgestimmt (19.07.2026): "positiv oder negativ aufs Gesamt-Scoring".
-const CATEGORY_WEIGHT = 0.3
+// Schwellwerte für die Einstufung des kombinierten Use-Case-Scores.
 const HIGH_THRESHOLD = 67
 const LIMITED_THRESHOLD = 34
 
 type RiskBucket = 'high' | 'limited' | 'minimal'
 
 /**
- * Scoring für einen einzelnen Use-Case (Art. 6 EU-AI-Act-Klassifikation als
- * Basis + Zuschlag je aktiver Compliance-Kategorie, siehe Kommentar oben).
- * Gibt `null` zurück, wenn kein Canvas verlinkt ist oder der Canvas noch
- * keine ai_act_assessment hat — dieser Use-Case fällt dann in
- * computeEuAiActStatusV2 auf den V1-Governance-Result-Fallback zurück.
+ * Scoring für einen einzelnen Use-Case. Basis aus der EU-AI-Act-Art.-6-
+ * Klassifikation (canvas.ai_act_assessment): `hochrisiko`→100, alles andere
+ * (inkl. noch KEINE Einordnung durchgeführt)→0. Dazu der GLOBALE Zuschlag aus
+ * dem Fortschritt aller aktivierten Regularien (identisch für jeden Use-Case,
+ * 19.07.2026 mit Daniel abgestimmt — das Scoring bezieht sich auf die vom
+ * Nutzer aktivierten Regularien, nicht auf pro-Canvas erkannte Kategorien).
+ *
+ * Gibt `null` NUR zurück, wenn gar kein Canvas verlinkt ist — dann fällt der
+ * Use-Case in computeEuAiActStatusV2 auf den V1-Governance-Result-Fallback
+ * zurück. Ein Canvas OHNE ai_act_assessment wird bewusst mit Basis 0 bewertet
+ * (statt zu null zu werden), damit die aktivierten Regularien überhaupt einen
+ * sichtbaren Effekt haben können.
  */
-function scoreUseCase(useCase: UseCaseForScoring, categoryProgress: Map<string, CategoryProgress>): RiskBucket | null {
+function scoreUseCase(useCase: UseCaseForScoring, globalSurcharge: number): RiskBucket | null {
   const canvas = useCase.canvas
   if (!canvas) return null
 
-  const classificationResult = canvas.ai_act_assessment?.classification?.result
-  if (!classificationResult) return null
-
-  const base = classificationResult === 'hochrisiko' ? 100 : 0
-  const activeCategories = analyzeCanvas(canvas as unknown as Canvas).compliance
-
-  let score = base
-  for (const category of activeCategories) {
-    const progress = categoryProgress.get(category)
-    if (progress && progress.total > 0) {
-      score += (100 - progress.pct) * CATEGORY_WEIGHT
-    }
-  }
-  score = Math.min(100, score)
+  const base = canvas.ai_act_assessment?.classification?.result === 'hochrisiko' ? 100 : 0
+  const score = Math.min(100, base + globalSurcharge)
 
   if (score >= HIGH_THRESHOLD) return 'high'
   if (score >= LIMITED_THRESHOLD) return 'limited'
@@ -70,16 +57,13 @@ function scoreUseCase(useCase: UseCaseForScoring, categoryProgress: Map<string, 
  * Liefert dieselbe EuAiActStatusSummary-Form wie V1, damit die Report-
  * Komponenten selbst unverändert bleiben (wie in #224 versprochen).
  *
- * Nutzt für Use-Cases mit verlinktem Canvas + vorhandener ai_act_assessment
- * die echte Art.-6-Klassifikation plus Kategorie-Zuschläge. Für alle
- * anderen Use-Cases (kein Canvas verlinkt oder noch keine KI-Einordnung im
- * Canvas durchgeführt) greift automatisch der V1-Fallback über
- * governance_result — kein Fehlerzustand, einfach eine gröbere Einstufung
- * für diesen einzelnen Use-Case.
+ * Use-Cases MIT verlinktem Canvas werden per scoreUseCase() bewertet (auch
+ * ohne formale Art.-6-Einordnung, Basis 0). Nur Use-Cases OHNE Canvas fallen
+ * auf den V1-Fallback über governance_result zurück.
  */
 export function computeEuAiActStatusV2(
   useCases: UseCaseForScoring[],
-  categoryProgress: Map<string, CategoryProgress>
+  globalSurcharge: number
 ): EuAiActStatusSummary | null {
   if (useCases.length === 0) return null
 
@@ -89,7 +73,7 @@ export function computeEuAiActStatusV2(
   const fallbackUseCases: Array<{ governance_result: GovernanceVerdict | null }> = []
 
   for (const useCase of useCases) {
-    const bucket = scoreUseCase(useCase, categoryProgress)
+    const bucket = scoreUseCase(useCase, globalSurcharge)
     if (bucket === 'high') highCount++
     else if (bucket === 'limited') limitedCount++
     else if (bucket === 'minimal') minimalCount++
@@ -117,9 +101,38 @@ export function computeEuAiActStatusV2(
 }
 
 /**
- * Orchestriert V2 komplett (Canvas-Laden + Kategorie-Fortschritt + Scoring) —
- * gemeinsam von der Executive-Summary- und der Compliance-Report-Datenschicht
- * genutzt (#224/#225), damit die Canvas-Join-Logik nicht doppelt gepflegt wird.
+ * Lädt die Canvases zu den Use-Cases + baut die Scoring-Eingabe. Getrennt von
+ * loadEuAiActStatusV2, damit der Compliance-Report den Regulierungs-Fortschritt
+ * (für den Dokumentationsstand-Block) nur EINMAL laden und sowohl für den
+ * Zuschlag als auch für die Anzeige nutzen kann.
+ */
+async function buildScoringInput(
+  userId: string,
+  useCases: Array<{ canvas_id: string | null; governance_result: GovernanceVerdict | null }>
+): Promise<UseCaseForScoring[]> {
+  const supabase = await createClient()
+  const canvasIds = [...new Set(useCases.map(uc => uc.canvas_id).filter((id): id is string => !!id))]
+
+  const canvasesRes = canvasIds.length > 0
+    ? await (supabase
+        .from('canvases')
+        .select('id, title, data, ai_act_assessment')
+        .in('id', canvasIds) as unknown as Promise<{ data: CanvasForScoring[] | null }>)
+    : { data: [] as CanvasForScoring[] }
+
+  const canvasById = new Map((canvasesRes.data ?? []).map(c => [c.id, c]))
+  return useCases.map(uc => ({
+    governance_result: uc.governance_result,
+    canvas: uc.canvas_id ? (canvasById.get(uc.canvas_id) ?? null) : null,
+  }))
+}
+
+/**
+ * Orchestriert V2 komplett (Canvas-Laden + Regulierungs-Fortschritt + Scoring)
+ * — für die Executive-Summary-Datenschicht, die den Fortschritts-Breakdown
+ * selbst nicht braucht. Der Compliance-Report nutzt stattdessen die
+ * `computeRegulationProgress`/`scoreUseCasesWithProgress`-Kombination, um den
+ * Fortschritt nur einmal zu laden.
  */
 export async function loadEuAiActStatusV2(
   userId: string,
@@ -127,25 +140,25 @@ export async function loadEuAiActStatusV2(
 ): Promise<EuAiActStatusSummary | null> {
   if (useCases.length === 0) return null
 
-  const supabase = await createClient()
-  const canvasIds = [...new Set(useCases.map(uc => uc.canvas_id).filter((id): id is string => !!id))]
-
-  const [canvasesRes, categoryProgress] = await Promise.all([
-    canvasIds.length > 0
-      ? (supabase
-          .from('canvases')
-          .select('id, title, data, ai_act_assessment')
-          .in('id', canvasIds) as unknown as Promise<{ data: CanvasForScoring[] | null }>)
-      : Promise.resolve({ data: [] as CanvasForScoring[] }),
-    computeCategoryProgress(userId),
+  const [scoringInput, progress] = await Promise.all([
+    buildScoringInput(userId, useCases),
+    computeRegulationProgress(userId),
   ])
 
-  const canvasById = new Map((canvasesRes.data ?? []).map(c => [c.id, c]))
+  return computeEuAiActStatusV2(scoringInput, surchargeFromProgress(progress))
+}
 
-  const scoringInput: UseCaseForScoring[] = useCases.map(uc => ({
-    governance_result: uc.governance_result,
-    canvas: uc.canvas_id ? (canvasById.get(uc.canvas_id) ?? null) : null,
-  }))
-
-  return computeEuAiActStatusV2(scoringInput, categoryProgress)
+/**
+ * Wie loadEuAiActStatusV2, aber mit bereits geladenem Regulierungs-Fortschritt
+ * — vermeidet einen doppelten compliance_checks-Query, wenn der Aufrufer
+ * (Compliance-Report) den Fortschritt ohnehin für die Anzeige braucht.
+ */
+export async function scoreUseCasesWithProgress(
+  userId: string,
+  useCases: Array<{ canvas_id: string | null; governance_result: GovernanceVerdict | null }>,
+  surcharge: number
+): Promise<EuAiActStatusSummary | null> {
+  if (useCases.length === 0) return null
+  const scoringInput = await buildScoringInput(userId, useCases)
+  return computeEuAiActStatusV2(scoringInput, surcharge)
 }

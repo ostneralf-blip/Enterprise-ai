@@ -6,70 +6,77 @@ jest.mock('@/lib/supabase/server', () => ({
 }))
 
 import { createClient } from '@/lib/supabase/server'
-import { computeCategoryProgress } from '@/lib/compliance/category-scoring'
+import { computeRegulationProgress } from '@/lib/compliance/category-scoring'
 import { DSGVO_CHECKLIST, EU_AI_ACT_OBLIGATIONS, ADDITIONAL_REGULATIONS } from '@/config/compliance-data'
 
 const mockCreateClient = createClient as jest.Mock
 
-function mockChecks(rows: Array<{ regulation: string; check_type: string; status: string }>) {
+function mockChecks(rows: Array<{ regulation: string; check_type: string; status: string; notes?: string | null }>) {
   mockCreateClient.mockResolvedValue({
     from: () => ({
       select: () => ({
-        eq: () => ({
-          in: () => Promise.resolve({ data: rows }),
-        }),
+        eq: () => Promise.resolve({ data: rows.map(r => ({ notes: null, ...r })) }),
       }),
     }),
   })
 }
 
-describe('computeCategoryProgress — kontoweiter Fortschritt je Compliance-Kategorie', () => {
+describe('computeRegulationProgress — Fortschritt je aktivierter Regularie', () => {
   beforeEach(() => jest.clearAllMocks())
 
-  it('berechnet den DSGVO-Fortschritt aus compliance_checks (regulation=dsgvo, status=compliant)', async () => {
-    const firstTwoIds = DSGVO_CHECKLIST.slice(0, 2).map(i => i.id)
-    mockChecks(firstTwoIds.map(id => ({ regulation: 'dsgvo', check_type: id, status: 'compliant' })))
-
-    const progress = await computeCategoryProgress('user-1')
-    const dsgvo = progress.get('DSGVO relevant')
-    expect(dsgvo).toEqual({
-      completed: 2,
-      total: DSGVO_CHECKLIST.length,
-      pct: Math.round((2 / DSGVO_CHECKLIST.length) * 100),
-    })
+  it('enthält immer DSGVO und EU AI Act als Kern-Regularien, auch ohne aktivierte Zusätze', async () => {
+    mockChecks([])
+    const progress = await computeRegulationProgress('user-1')
+    const ids = progress.map(p => p.id)
+    expect(ids).toContain('dsgvo')
+    expect(ids).toContain('eu_ai_act')
   })
 
-  it('zählt nur status=compliant als erledigt, nicht partial/pending', async () => {
+  it('nimmt zusätzliche Regularien nur auf, wenn sie in der active_regulations-Meta-Zeile stehen', async () => {
     mockChecks([
-      { regulation: 'dsgvo', check_type: DSGVO_CHECKLIST[0].id, status: 'compliant' },
-      { regulation: 'dsgvo', check_type: DSGVO_CHECKLIST[1].id, status: 'partial' },
-      { regulation: 'dsgvo', check_type: DSGVO_CHECKLIST[2].id, status: 'pending' },
+      { regulation: 'system', check_type: 'active_regulations', status: 'compliant', notes: JSON.stringify(['nis2']) },
     ])
-
-    const progress = await computeCategoryProgress('user-1')
-    expect(progress.get('DSGVO relevant')?.completed).toBe(1)
+    const progress = await computeRegulationProgress('user-1')
+    const ids = progress.map(p => p.id)
+    expect(ids).toContain('nis2')
+    expect(ids).not.toContain('iso_27001')
   })
 
-  it('liefert 0 % für eine Kategorie ohne jegliche gespeicherte compliance_checks-Zeile', async () => {
-    mockChecks([])
-    const progress = await computeCategoryProgress('user-1')
-    expect(progress.get('NIS2 / KRITIS relevant')).toEqual({
-      completed: 0,
-      total: ADDITIONAL_REGULATIONS.find(r => r.id === 'nis2')!.items.length,
-      pct: 0,
-    })
+  it('berechnet den DSGVO-Fortschritt aus compliance_checks (nur status=compliant zählt)', async () => {
+    const ids = DSGVO_CHECKLIST.slice(0, 3).map(i => i.id)
+    mockChecks([
+      { regulation: 'dsgvo', check_type: ids[0], status: 'compliant' },
+      { regulation: 'dsgvo', check_type: ids[1], status: 'compliant' },
+      { regulation: 'dsgvo', check_type: ids[2], status: 'non_compliant' },
+    ])
+    const progress = await computeRegulationProgress('user-1')
+    const dsgvo = progress.find(p => p.id === 'dsgvo')
+    expect(dsgvo).toMatchObject({ completed: 2, total: DSGVO_CHECKLIST.length })
+    expect(dsgvo?.pct).toBe(Math.round((2 / DSGVO_CHECKLIST.length) * 100))
   })
 
-  it('enthält KEINE Kategorien ohne echte Checkliste (Gesundheitsdaten/MDR, EU-Hosting) — kein erfundener Zuschlag möglich', async () => {
-    mockChecks([])
-    const progress = await computeCategoryProgress('user-1')
-    expect(progress.has('Gesundheitsdaten / MDR relevant')).toBe(false)
-    expect(progress.has('EU-Hosting / Datensouveränität')).toBe(false)
+  it('berechnet den NIS2-Fortschritt korrekt, wenn NIS2 aktiviert ist', async () => {
+    const nis2 = ADDITIONAL_REGULATIONS.find(r => r.id === 'nis2')!
+    mockChecks([
+      { regulation: 'system', check_type: 'active_regulations', status: 'compliant', notes: JSON.stringify(['nis2']) },
+      { regulation: 'nis2', check_type: nis2.items[0].id, status: 'compliant' },
+    ])
+    const progress = await computeRegulationProgress('user-1')
+    expect(progress.find(p => p.id === 'nis2')).toMatchObject({ completed: 1, total: nis2.items.length })
   })
 
-  it('berechnet den EU-AI-Act-Fortschritt aus EU_AI_ACT_OBLIGATIONS.high', async () => {
+  it('nutzt EU_AI_ACT_OBLIGATIONS.high als EU-AI-Act-Checkliste', async () => {
     mockChecks([])
-    const progress = await computeCategoryProgress('user-1')
-    expect(progress.get('EU AI Act relevant')?.total).toBe(EU_AI_ACT_OBLIGATIONS.high.length)
+    const progress = await computeRegulationProgress('user-1')
+    expect(progress.find(p => p.id === 'eu_ai_act')?.total).toBe(EU_AI_ACT_OBLIGATIONS.high.length)
+  })
+
+  it('ignoriert eine kaputte active_regulations-Notes-JSON ohne zu crashen', async () => {
+    mockChecks([
+      { regulation: 'system', check_type: 'active_regulations', status: 'compliant', notes: 'not-json' },
+    ])
+    const progress = await computeRegulationProgress('user-1')
+    // Nur die beiden Kern-Regularien, keine Zusätze
+    expect(progress.map(p => p.id).sort()).toEqual(['dsgvo', 'eu_ai_act'])
   })
 })

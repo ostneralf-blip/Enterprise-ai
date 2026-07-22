@@ -150,14 +150,19 @@ export function renderMeridianComplianceStatus(data: ComplianceStatusData, local
         )}
 
         <Text style={styles.sectionEyebrow}>{t('progressLabel')}</Text>
-        <MeterBar
-          label={t('progressBarLabel')}
-          value={data.obligationsTotalCount > 0 ? Math.round((data.obligationsCompletedCount / data.obligationsTotalCount) * 100) : 0}
-          width={contentWidth - 90 - 24 - 16}
-        />
-        <Text style={styles.obligationArticle}>
-          {t('progressNote', { done: data.obligationsCompletedCount, total: data.obligationsTotalCount })}
-        </Text>
+        {data.documentationStatus.length === 0 ? (
+          <Text style={styles.emptyState}>{t('noRegulations')}</Text>
+        ) : (
+          data.documentationStatus.map((reg, i) => (
+            <MeterBar
+              key={i}
+              label={`${reg.label}  ${t('progressCount', { done: reg.completed, total: reg.total })}`}
+              value={reg.pct}
+              width={contentWidth - 130 - 24 - 16}
+              labelWidth={130}
+            />
+          ))
+        )}
 
         <ReportFooter confidentialLabel={t('confidential')} />
       </Page>

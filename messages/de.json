@@ -1393,9 +1393,9 @@
       "statusOpen": "Offen",
       "statusInProgress": "In Arbeit",
       "statusDone": "Erledigt",
-      "progressLabel": "DOKUMENTATIONSSTAND HOCHRISIKO-PFLICHTEN",
-      "progressBarLabel": "Fortschritt",
-      "progressNote": "{done} von {total} Pflichten erledigt",
+      "progressLabel": "DOKUMENTATIONSSTAND JE REGULIERUNG",
+      "progressCount": "{done}/{total}",
+      "noRegulations": "Noch keine Regularien aktiviert.",
       "confidential": "VERTRAULICH",
       "exportButton": "Compliance-Status (MERIDIAN)",
       "exportHintEmpty": "Erst nach der ersten Compliance-Prüfung oder Governance-Bewertung verfügbar."

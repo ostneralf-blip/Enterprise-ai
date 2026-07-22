@@ -1393,9 +1393,9 @@
       "statusOpen": "Open",
       "statusInProgress": "In Progress",
       "statusDone": "Done",
-      "progressLabel": "HIGH-RISK OBLIGATIONS DOCUMENTATION STATUS",
-      "progressBarLabel": "Progress",
-      "progressNote": "{done} of {total} obligations completed",
+      "progressLabel": "DOCUMENTATION STATUS PER REGULATION",
+      "progressCount": "{done}/{total}",
+      "noRegulations": "No regulations activated yet.",
       "confidential": "CONFIDENTIAL",
       "exportButton": "Compliance Status (MERIDIAN)",
       "exportHintEmpty": "Available once the first compliance check or governance assessment exists."

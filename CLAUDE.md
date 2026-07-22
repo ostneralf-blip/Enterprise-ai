@@ -601,3 +601,38 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
   - Gleiche `EuAiActStatusSummary`-Ausgabeform wie V1 — Report-Komponenten
     (`executive-summary.tsx`, `compliance-status.tsx`) unverändert, wie in #224
     versprochen. 16 neue Unit-Tests (Formel-Logik + Fallback + Kategorie-Fortschritt).
+- **Nachtrag 22.07.2026 — V2-Redesign nach Daniels Test: von pro-Canvas-Kategorien
+  auf GLOBAL aktivierte Regularien + Sichtbarkeit im Report.** Daniel meldete, dass
+  DSGVO- und NIS2-Checklisten-Arbeit im Compliance-Report keinerlei Wirkung zeigte.
+  Ursachenkette (per `supabase db dump` am realen Testkonto verifiziert):
+  1. Seine 2 Use-Cases haben Canvases, aber KEINE `ai_act_assessment` (das
+     Art.-6-Formular erscheint nur bei Beschäftigungs-/HR-Kontext, seine
+     Prozess-Automatisierungen sind das nicht) UND `governance_result` ist NULL —
+     beide fielen also in den V1-Fallback → gapCount → nie ein Kategorie-Zuschlag.
+  2. Der pro-Canvas-Zuschlag (V2-Erstfassung) griff nur bei Use-Cases, deren Canvas-
+     Text die Kategorie zufällig erkannte — unzuverlässig.
+  3. Der Report-Subtitle summierte nur `riskBands.count` (klassifizierte) und zeigte
+     "0 Use-Cases" trotz 2 vorhandener (behoben in `c752273`).
+  **Mit Daniel abgestimmte Neuausrichtung (drei AskUserQuestion-Entscheidungen):**
+  (a) Scoring bezieht sich auf die GLOBAL aktivierten Regularien (DSGVO + EU AI Act
+  immer, NIS2/ISO/BAIT/... nur per Compliance-Seiten-Toggle, gespeichert als
+  `regulation='system'`, `check_type='active_regulations'`, JSON-Liste in `notes`),
+  NICHT mehr auf pro-Canvas erkannte Kategorien — vorhersehbar und direkt an
+  Nutzeraktion gekoppelt. (b) Use-Cases MIT Canvas fließen auch OHNE Art.-6-Einordnung
+  ins Scoring (Basis 0 + globaler Zuschlag), statt als Gap rauszufallen — nur
+  canvas-lose Use-Cases fallen noch auf V1. (c) Neuer Report-Block
+  „DOKUMENTATIONSSTAND JE REGULIERUNG": ein MeterBar pro aktivierter Regularie
+  (Label „DSGVO 9/12", Wert = %) statt des früheren einzelnen EU-AI-Act-Balkens —
+  Checklisten-Fortschritt ist jetzt direkt sichtbar.
+  **Umbau:** `category-scoring.ts` liefert jetzt `computeRegulationProgress()`
+  (Fortschritt je aktivierter Regularie, Kern DSGVO+EU-AI-Act via `DSGVO_CHECKLIST`/
+  `EU_AI_ACT_OBLIGATIONS.high`, Zusätze via `ADDITIONAL_REGULATIONS`) +
+  `surchargeFromProgress()` (Σ `(100−pct)×0,3`, jede Regularie gleich gewichtet, global
+  auf jeden Use-Case, gedeckelt bei 100). `eu-ai-act-use-case-scoring.ts`:
+  `computeEuAiActStatusV2(useCases, globalSurcharge: number)` (Signatur von Map auf
+  Zahl geändert), `scoreUseCasesWithProgress()` für den Compliance-Report (lädt
+  Fortschritt nur einmal, nutzt ihn für Zuschlag UND Anzeige), `loadEuAiActStatusV2()`
+  weiterhin self-contained für die Executive Summary. `MeterBar` um optionales
+  `labelWidth`-Prop erweitert (Default 90). Tests umgeschrieben (jetzt 20:
+  Regulierungs-Fortschritt inkl. aktivierte-Toggles + Basis-0-Verhalten + Zuschlags-
+  Schwellwerte + V1-Fallback).

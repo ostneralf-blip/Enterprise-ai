@@ -99,7 +99,7 @@ export function ReportFooter({ confidentialLabel }: ReportFooterProps) {
 // ─────────────────────────────────────────────────────────────────────────
 const meterStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
-  label: { ...reportType.body, width: 90 },
+  label: { ...reportType.body },
   trackWrap: { flex: 1, marginHorizontal: 8 },
   value: { fontFamily: reportFonts.mono, fontSize: 9, fontWeight: 700, width: 24, textAlign: 'right' },
 })
@@ -109,14 +109,15 @@ interface MeterBarProps {
   max?: number
   width: number // Track-Breite in pt
   tickCount?: number
+  labelWidth?: number // Standard 90; z. B. der Compliance-Report braucht mehr für "DSGVO 9/12"
 }
-export function MeterBar({ label, value, max = 100, width, tickCount = 20 }: MeterBarProps) {
+export function MeterBar({ label, value, max = 100, width, tickCount = 20, labelWidth = 90 }: MeterBarProps) {
   const color = semanticColor(value)
   const fillWidth = Math.max(0, Math.min(1, value / max)) * width
   const trackHeight = 5
   return (
     <View style={meterStyles.row}>
-      <Text style={meterStyles.label}>{label}</Text>
+      <Text style={[meterStyles.label, { width: labelWidth }]}>{label}</Text>
       <View style={meterStyles.trackWrap}>
         <Svg width={width} height={trackHeight}>
           <Path d={`M0,${trackHeight / 2} L${width},${trackHeight / 2}`} stroke={reportColors.lineSubtle} strokeWidth={trackHeight} />
