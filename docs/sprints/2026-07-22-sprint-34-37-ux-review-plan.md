@@ -1,19 +1,24 @@
-# Sprintplan: UX-Review 22.07.2026 → Sprints 33–36
+# Sprintplan: UX-Review 22.07.2026 → Sprints 34–37
 
 Ableitung aus `AI-Navigator_Sprintplanung_UX-Review.md` (10 UX-Punkte, Blöcke A–E).
 Diese Datei übersetzt die Blöcke in konkrete, sequenzierte Sprints mit Abhängigkeiten.
 Kein neuer Scope — nur Ordnung, Reihenfolge und Exit-Kriterien.
 
-## Vorab zu klären (blockiert das Anlegen NICHT, aber vor Sprint 33 erledigen)
+## Vorab geklärt (22.07.2026)
 
-- **#205-Status widersprüchlich:** CLAUDE.md führt #205 als „DONE (`1bd36f2`)", GitHub
-  hat #205 **OPEN**. Das Review behandelt #205 als offen (4 Punkte sind Ergänzungen).
-  → Vor Sprint 33 klären: ist #205 inhaltlich erledigt und nur nicht geschlossen, oder
-  fehlt der in Teil B beschriebene Rest tatsächlich noch? Danach CLAUDE.md ODER
-  GitHub-Status korrigieren.
-- **Sprint-Nummer gegenprüfen (Gate I):** `docs/sprints/` endet bei Sprint 32, CLAUDE.md
-  bestätigt Sprint 32 (MERIDIAN) als erledigt. Nächste freie Nummer ist voraussichtlich
-  **33** — vor dem Anlegen kurz gegen den letzten Sprint-Branch/Commit verifizieren.
+- **#205-Status: GEKLÄRT — Issue bleibt zu Recht OPEN.** `1bd36f2` (17.07.) war nur EIN
+  Teil-Commit (Roadmap-InfoHints, 3 Dateien), NICHT das ganze Issue. Die breiten
+  Akzeptanzkriterien (Inventur-Tabelle, alle Hinweisboxen aus der Einheits-Komponente,
+  Wissensbasis-Komponente in ≥2 Modulen) sind unerfüllt. Die CLAUDE.md-Angabe „→ DONE"
+  war überzogen und wurde am 22.07. korrigiert. Alle drei Teil-B-Punkte im Code
+  verifiziert als offen: HintBox hat `min-w-0 flex-1` ohne `break-words`
+  (`InfoHint.tsx:129`); der Governance-Result-Badge in `UnifiedContextBanner`
+  (`ArchitecturePageClient.tsx`) hat KEIN `title` (Archetyp- und Roadmap-Badge schon);
+  der InfoHint-Button (`InfoHint.tsx:73`) hat nur Hover-Akzent, keinen Ruhezustand-Rahmen.
+- **Sprint-Nummer: GEKLÄRT — nächste freie ist 34.** Gate-I-Fund: „Sprint 33" ist bereits
+  vergeben (`a93860d`, 16.07., Dark-Mode-Fix #213/#214) — die Nummerierung ist NICHT
+  streng chronologisch (32 = MERIDIAN 17.–19.07., 33 = Dark-Mode 16.07.). Höchste
+  vergebene Nummer = 33 → dieser Plan nutzt 34–37.
 
 ## Abhängigkeitsgraph
 
@@ -31,7 +36,7 @@ Executive-Summary-Dimensionstexte  (blockiert auf Daniels Textfreigabe)
 
 ---
 
-## Sprint 33 — UI-Konsistenz & Navigation
+## Sprint 34 — UI-Konsistenz & Navigation
 
 **Thema:** Visuelle Vereinheitlichung + Navigationsreihenfolge. Durchgängig
 `/frontend-design`-lastig, geringes Risiko, eine kohärente Design-Klammer.
@@ -69,7 +74,7 @@ Daniel vor Closes.
 
 ---
 
-## Sprint 34 — Assessment-Flow
+## Sprint 35 — Assessment-Flow
 
 **Thema:** Beide Punkte fassen denselben `AssessmentWizard.tsx`-Flow an →
 gemeinsame PR-Serie statt getrennt. `/fullstack-developer`-lastig. Berührt #222.
@@ -101,12 +106,12 @@ Wahl, Free nicht; alte Drafts sauber getrennt; Freigabe Daniel vor Closes.
 
 ---
 
-## Sprint 35 — Roadmap-Versionierung
+## Sprint 36 — Roadmap-Versionierung
 
 **Thema:** Selbstständiges Feature auf bestehender Versionierungs-Infrastruktur
 (`result_versions`, `POST /api/versions`, `VersionsPanel module="roadmap"`).
 `/fullstack-developer`-lastig, eigene Testfläche → eigener Sprint. **Technisch
-unabhängig — kann bei Kapazität vor Sprint 34 gezogen werden.**
+unabhängig — kann bei Kapazität vor Sprint 35 gezogen werden.**
 
 **Umfang (ein Issue, zwei PRs möglich):**
 1. Speichern-Dialog auf `/roadmap` ab der zweiten Speicherung: „Als neue Version
@@ -125,7 +130,7 @@ zwischen zwei Roadmap-Versionen; Freigabe Daniel vor Closes.
 
 ---
 
-## Sprint 36 — Executive-Summary-Content
+## Sprint 37 — Executive-Summary-Content
 
 **Thema:** Handlungsempfehlung je Assessment-Dimension. Content-lastig,
 **blockiert auf Daniels Freigabe/Überarbeitung der Redaktionstexte** (24 Texte:
@@ -160,10 +165,10 @@ Bestätigung); Freigabe Daniel inkl. Redaktionstexte vor Closes.
 
 | Sprint | Thema | Issues | Rolle | Blocker |
 |---|---|---|---|---|
-| 33 | UI-Konsistenz & Navigation | #205-Ergänzung + Sidebar=AI-Pfad + Roadmap-Merge | frontend-design | #205-Status klären |
-| 34 | Assessment-Flow | Draft-Autosave + Pro-Kurzversion | fullstack | — (berührt #222) |
-| 35 | Roadmap-Versionierung | Versions-Dialog + Diff | fullstack | — (vorziehbar) |
-| 36 | Executive-Summary-Content | Handlungsempfehlung je Dimension | fullstack + Content | Daniels Textfreigabe |
+| 34 | UI-Konsistenz & Navigation | #205-Ergänzung + Sidebar=AI-Pfad + Roadmap-Merge | frontend-design | #205-Status klären |
+| 35 | Assessment-Flow | Draft-Autosave + Pro-Kurzversion | fullstack | — (berührt #222) |
+| 36 | Roadmap-Versionierung | Versions-Dialog + Diff | fullstack | — (vorziehbar) |
+| 37 | Executive-Summary-Content | Handlungsempfehlung je Dimension | fullstack + Content | Daniels Textfreigabe |
 
 **Nichts hiervon braucht ein neues Datenmodell** — `InfoHint`, `VersionsPanel`,
 `result_versions`, `dim_scores`, `assessment_sessions.{answers,completed,type}`

@@ -544,7 +544,7 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 
 **Offene GitHub Issues (aktiv, kein Blocker):**
 - ~~**#201** Zentrales Theme-System~~ → Wave 4 DONE (`1198e1a`, 17.07.2026). Daniels Screenshot-Freigabe für ArchitecturePageClient noch ausstehend.
-- ~~**#205** Einheitliche Grundelemente~~ → DONE (`1bd36f2`, 17.07.2026) — InfoHints, AlertBox-Konsolidierung, Semantic Tokens. Daniels Freigabe ausstehend.
+- **#205** Einheitliche Grundelemente → TEILWEISE (korrigiert 22.07.2026, war fälschlich als „DONE" markiert): `1bd36f2` (17.07.) war nur EIN Teil-Commit (Roadmap-InfoHints), nicht das ganze Issue. Die breiten Akzeptanzkriterien (Inventur-Tabelle Modul × Hilfsmarker, ALLE Hinweisboxen aus der Einheits-Komponente, Wissensbasis-Komponente in ≥2 Modulen) sind NICHT erfüllt — Issue bleibt zu Recht OPEN. Verbleibender Rest u. a. im UX-Review-Sprintplan (`docs/sprints/2026-07-22-sprint-34-37-ux-review-plan.md`, Teil B): HintBox-`break-words`, Governance-Badge-`title` in `UnifiedContextBanner`, InfoHint-Ruhezustand-Rahmen.
 - **#217 / #218** — implementiert, warten auf Daniels Screenshot-Freigabe (siehe oben).
 - ~~**#223 / #224 / #225** MERIDIAN PDF-Fundament + alle 6 Report-Typen + Gesamtdokument~~ → DONE (s. o.), Freigabe ausstehend.
 
