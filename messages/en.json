@@ -332,7 +332,11 @@
       "hintScoreTitle": "How the score is calculated",
       "hintProfileTitle": "What does the radar chart show?",
       "hintDimResultTitle": "The six dimensions",
-      "hintRecommendationsTitle": "How are recommendations derived?"
+      "hintRecommendationsTitle": "How are recommendations derived?",
+      "resumeTitle": "Continue your assessment?",
+      "resumeDesc": "You started an assessment ({count} questions already answered) but did not finish it. Would you like to continue where you left off?",
+      "resumeContinue": "Continue",
+      "resumeRestart": "Start over"
     },
     "usecase": {
       "title": "Use-Case Scoring",

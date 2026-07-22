@@ -332,7 +332,11 @@
       "hintScoreTitle": "So wird der Score berechnet",
       "hintProfileTitle": "Was zeigt das Radar-Diagramm?",
       "hintDimResultTitle": "Die sechs Dimensionen",
-      "hintRecommendationsTitle": "Wie entstehen die Empfehlungen?"
+      "hintRecommendationsTitle": "Wie entstehen die Empfehlungen?",
+      "resumeTitle": "Angefangenes Assessment fortsetzen?",
+      "resumeDesc": "Sie haben ein Assessment begonnen ({count} Fragen bereits beantwortet), aber nicht abgeschlossen. Möchten Sie dort weitermachen, wo Sie aufgehört haben?",
+      "resumeContinue": "Fortsetzen",
+      "resumeRestart": "Neu starten"
     },
     "usecase": {
       "title": "Use-Case Scoring",

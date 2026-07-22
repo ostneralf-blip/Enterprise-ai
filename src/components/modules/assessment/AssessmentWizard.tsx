@@ -11,6 +11,12 @@ import type { Tier } from '@/types'
 interface AssessmentWizardProps {
   tier: Tier
   onSave?: (result: AssessmentResultData) => Promise<void>
+  // Draft-Autosave (UX-Review Sprint 35): onStart legt beim Wizard-Start eine
+  // Draft-Zeile an, onAnswerChange meldet jede Antwort (Parent debounced +
+  // PATCHt), initialAnswers setzt den Wizard beim Fortsetzen auf den letzten Stand.
+  onStart?: () => Promise<void>
+  onAnswerChange?: (answers: Record<string, number>) => void
+  initialAnswers?: Record<string, number>
 }
 
 export interface AssessmentResultData {
@@ -22,10 +28,16 @@ export interface AssessmentResultData {
 
 type WizardState = 'intro' | 'questions' | 'results'
 
-export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
-  const [state, setState] = useState<WizardState>('intro')
-  const [currentIdx, setCurrentIdx] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number>>({})
+export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initialAnswers }: AssessmentWizardProps) {
+  const [state, setState] = useState<WizardState>(initialAnswers ? 'questions' : 'intro')
+  const [currentIdx, setCurrentIdx] = useState(() => {
+    if (!initialAnswers) return 0
+    // Beim Fortsetzen auf die erste noch unbeantwortete Frage springen.
+    const qs = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
+    const idx = qs.findIndex(q => initialAnswers[q.id] === undefined)
+    return idx === -1 ? qs.length - 1 : idx
+  })
+  const [answers, setAnswers] = useState<Record<string, number>>(initialAnswers ?? {})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -38,8 +50,10 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   const currentDim = ASSESSMENT_DIMENSIONS.find(d => d.questions.some(q => q.id === currentQ?.id))
 
   const handleSelect = useCallback((score: number) => {
-    setAnswers(prev => ({ ...prev, [currentQ.id]: score }))
-  }, [currentQ])
+    const next = { ...answers, [currentQ.id]: score }
+    setAnswers(next)
+    onAnswerChange?.(next) // Draft-Autosave (Parent debounced die Persistenz)
+  }, [answers, currentQ, onAnswerChange])
 
   const handleNext = useCallback(() => {
     const score = answers[currentQ.id]
@@ -83,7 +97,11 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   }
 
   if (state === 'intro') {
-    return <AssessmentIntro tier={tier} onStart={() => { track('tool_started', { module: 'assessment', tier }); setState('questions') }} />
+    return <AssessmentIntro tier={tier} onStart={async () => {
+      track('tool_started', { module: 'assessment', tier })
+      await onStart?.() // Draft anlegen (Pro), bevor die erste Antwort fällt
+      setState('questions')
+    }} />
   }
 
   if (state === 'results') {
@@ -191,7 +209,7 @@ export function AssessmentWizard({ tier, onSave }: AssessmentWizardProps) {
   )
 }
 
-function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void }) {
+function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void | Promise<void> }) {
   const t = useTranslations('modules.assessment')
   const isPro = tier !== 'free'
   const questionCount = isPro ? 42 : 16
