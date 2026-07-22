@@ -4,7 +4,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
 import { hasAccess } from '@/lib/utils/tier-check'
-import { generateSummaryBlock } from '@/lib/utils/summary-priorities'
+import { generateSummaryBlock, generateDimensionStatuses } from '@/lib/utils/summary-priorities'
+import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
+import { pick } from '@/lib/utils/locale-data'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { formatDate } from '@/lib/utils/format'
 import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
@@ -63,7 +65,7 @@ export default async function ZusammenfassungPage() {
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, company, tier').eq('id', user.id).single(),
     supabase.from('assessment_sessions')
-      .select('archetype, total_score, created_at')
+      .select('archetype, total_score, dim_scores, created_at')
       .eq('user_id', user.id).eq('completed', true)
       .order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('canvases')
@@ -257,6 +259,12 @@ export default async function ZusammenfassungPage() {
     totalModules:           modules.length,
   })
 
+  // Sprint 37: Reifegrad-Status je Assessment-Dimension (schwach → Empfehlung,
+  // gut → Bestätigung). Nur befüllt, wenn ein Assessment mit dim_scores vorliegt.
+  const dimScores = (latestAssessment as { dim_scores?: Record<string, number> | null } | null)?.dim_scores ?? null
+  const assessmentArchetype = latestAssessment?.archetype ?? null
+  const dimStatuses = generateDimensionStatuses(dimScores, assessmentArchetype)
+
   const URGENCY_STYLE = {
     critical:    { dot: 'bg-error-text',     card: 'border-error-border bg-error-subtle',     title: 'text-error-text',   label: t('urgencyCritical') },
     recommended: { dot: 'bg-warning-text',   card: 'border-warning-border bg-warning-subtle', title: 'text-warning-text', label: t('urgencyRecommended') },
@@ -305,6 +313,38 @@ export default async function ZusammenfassungPage() {
                       <p className="text-xs text-ink-secondary mt-0.5">{action.description}</p>
                     </div>
                   </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
+
+      {/* ── Reifegrad je Dimension (Sprint 37) ─────────────────── */}
+      {dimStatuses.length > 0 && (
+        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-ink mb-1">{t('dimStatusTitle')}</h2>
+          <p className="text-xs text-ink-secondary mb-4">{t('dimStatusSubtext')}</p>
+          <ul className="space-y-2.5" role="list">
+            {dimStatuses.map(ds => {
+              const dim = ASSESSMENT_DIMENSIONS.find(d => d.id === ds.dimId)
+              if (!dim) return null
+              const weak = ds.status === 'weak'
+              const statusText = weak
+                ? t(`dimStatus.weak.${assessmentArchetype}.${ds.dimId}`)
+                : t(`dimStatus.good.${ds.dimId}`)
+              return (
+                <li key={ds.dimId} className={`rounded-xl border px-3 py-2.5 ${weak ? 'border-warning-border bg-warning-subtle' : 'border-line bg-surface-raised'}`}>
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <span className="text-xs font-semibold text-ink min-w-0 break-words">{pick(dim.label, locale)}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-semibold uppercase tracking-wide ${weak ? 'text-warning-text' : 'text-success-text'}`}>
+                        {weak ? t('dimStatusWeakLabel') : t('dimStatusGoodLabel')}
+                      </span>
+                      <span className="text-xs font-bold text-ink tabular-nums">{ds.score.toFixed(1)}<span className="text-ink-muted font-normal">/5</span></span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-ink-secondary">{statusText}</p>
                 </li>
               )
             })}

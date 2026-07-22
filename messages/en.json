@@ -1121,7 +1121,47 @@
     "govImprove": "Improvement required",
     "urgencyCritical": "Critical",
     "urgencyRecommended": "Recommended",
-    "urgencyNext": "Next step"
+    "urgencyNext": "Next step",
+    "dimStatusTitle": "Maturity by dimension",
+    "dimStatusSubtext": "A recommendation per assessment dimension based on your maturity and archetype.",
+    "dimStatusWeakLabel": "Action needed",
+    "dimStatusGoodLabel": "Solid",
+    "dimStatus": {
+      "weak": {
+        "starter": {
+          "data": "Your data foundation still has gaps. Start with an inventory of your most important data sources and establish clean, documented access for a first use case.",
+          "skills": "AI skills are still scarce. Train a small core team in a targeted way and bring in external support selectively to get started.",
+          "governance": "Clear rules for AI use are still missing. Define simple guardrails (responsibilities, approvals) before the first use case goes live.",
+          "tech": "Your technical base is not yet AI-ready. Start with a lean cloud or managed solution instead of building your own infrastructure.",
+          "strategy": "A clear AI vision is still missing. Articulate the concrete value AI should create for your organization before you invest.",
+          "culture": "AI is still viewed with hesitation. Build trust with a visible first success and take employees’ concerns seriously."
+        },
+        "scaler": {
+          "data": "Scaling requires a consistent data foundation. Establish uniform data-quality standards and centralized access across multiple use cases.",
+          "skills": "To apply AI more broadly you need more specialists. Build structured upskilling paths and define clear AI roles within the team.",
+          "governance": "With several use cases, governance needs grow. Formalize approval, risk, and documentation processes and assign clear responsibilities.",
+          "tech": "Across several use cases your infrastructure reaches its limits. Invest in scalable, reusable platform building blocks (e.g. MLOps, interfaces).",
+          "strategy": "Your AI activities need a shared direction. Derive a prioritized AI roadmap with measurable goals from your corporate strategy.",
+          "culture": "Going broad requires active support. Win over leaders as advocates and encourage an open approach to AI in everyday work."
+        },
+        "transformer": {
+          "data": "Enterprise-wide AI presupposes an integrated data platform. Prioritize data governance, metadata management, and automated quality controls.",
+          "skills": "A single team is not enough for a transformation. Establish a center of excellence and anchor AI competence across the organization.",
+          "governance": "Enterprise-wide AI demands an end-to-end governance framework. Embed risk classification, auditability, and EU AI Act conformity in your processes.",
+          "tech": "Enterprise AI needs a robust platform. Prioritize an integrated reference architecture with scalability, security, and operability.",
+          "strategy": "For a transformation, AI must be part of the core strategy. Anchor AI goals at leadership level and tie them to concrete business outcomes.",
+          "culture": "Transformation succeeds only with cultural backing. Anchor a learning, change-ready culture and a visible commitment from leadership."
+        }
+      },
+      "good": {
+        "data": "Your data quality and availability are robust — a solid basis for data-driven AI applications.",
+        "skills": "Your team has the AI skills needed to drive initiatives independently.",
+        "governance": "Your governance structures hold up — responsibilities and processes for responsible AI use are established.",
+        "tech": "Your technical infrastructure is robust and ready to run AI applications reliably.",
+        "strategy": "Your AI vision is clear — the direction gives your initiatives a reliable orientation.",
+        "culture": "Culture and leadership actively support your AI course — a key success factor for sustainable change."
+      }
+    }
   },
   "share": {
     "readOnly": "Read-only view",

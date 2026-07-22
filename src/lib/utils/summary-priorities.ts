@@ -1,4 +1,33 @@
+import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
+
 export type SummaryUrgency = 'critical' | 'recommended' | 'next'
+
+// Schwellwert „schwach" vs. „gut" je Dimension (Sprint 37). An den L1–L5-
+// Reifegraden orientiert: < 3.0 liegt unterhalb von „Level 3 — Defined" und
+// deckt sich mit der roten/gelben Farbgrenze in den Assessment-Ergebnissen
+// (AssessmentResults: score < 3 = rot). Ab 3.0 gilt eine Dimension als tragfähig.
+export const DIM_WEAK_THRESHOLD = 3.0
+
+export type DimensionStatus = {
+  dimId: string
+  score: number
+  status: 'weak' | 'good'
+}
+
+// Reine Datenschicht (keine Texte — die kommen i18n-aufgelöst aus der Seite):
+// liefert je bewerteter Dimension in kanonischer Reihenfolge den Reifegrad-Status.
+// Leer, wenn kein Assessment/keine dim_scores/kein Archetyp vorliegt.
+export function generateDimensionStatuses(
+  dimScores: Record<string, number> | null | undefined,
+  archetype: string | null | undefined,
+): DimensionStatus[] {
+  if (!dimScores || !archetype) return []
+  return ASSESSMENT_DIMENSIONS.flatMap(dim => {
+    const score = dimScores[dim.id]
+    if (typeof score !== 'number') return []
+    return [{ dimId: dim.id, score, status: score < DIM_WEAK_THRESHOLD ? 'weak' : 'good' } as DimensionStatus]
+  })
+}
 
 export type SummaryAction = {
   title: string
