@@ -336,7 +336,11 @@
       "resumeTitle": "Angefangenes Assessment fortsetzen?",
       "resumeDesc": "Sie haben ein Assessment begonnen ({count} Fragen bereits beantwortet), aber nicht abgeschlossen. Möchten Sie dort weitermachen, wo Sie aufgehört haben?",
       "resumeContinue": "Fortsetzen",
-      "resumeRestart": "Neu starten"
+      "resumeRestart": "Neu starten",
+      "variantChooseLabel": "Umfang wählen",
+      "variantFull": "Vollständig · 42 Fragen",
+      "variantQuick": "Schnell-Check · 16 Fragen",
+      "quickCheckWarning": "Der Schnell-Check basiert auf weniger Fragen und ist weniger aussagekräftig als ein vollständiges Assessment."
     },
     "usecase": {
       "title": "Use-Case Scoring",

@@ -33,7 +33,7 @@ export default async function AssessmentPage() {
       .maybeSingle(),
     supabase
       .from('assessment_sessions')
-      .select('id, answers, updated_at')
+      .select('id, answers, updated_at, type')
       .eq('user_id', user!.id)
       .eq('completed', false)
       .gte('updated_at', draftCutoff)
@@ -52,9 +52,9 @@ export default async function AssessmentPage() {
   // Nur für Pro relevant (Free persistiert nicht) und nur, wenn der Draft
   // tatsächlich beantwortete Fragen enthält — ein frisch angelegter, sofort
   // verlassener Draft (0 Antworten) soll keinen Fortsetzen-Hinweis auslösen.
-  const draftRow = draftSession as { id: string; answers: Record<string, number> | null; updated_at: string } | null
+  const draftRow = draftSession as { id: string; answers: Record<string, number> | null; updated_at: string; type: string | null } | null
   const draft = tier !== 'free' && draftRow && draftRow.answers && Object.keys(draftRow.answers).length > 0
-    ? { id: draftRow.id, answers: draftRow.answers, updatedAt: draftRow.updated_at }
+    ? { id: draftRow.id, answers: draftRow.answers, updatedAt: draftRow.updated_at, type: (draftRow.type === 'quick' ? 'quick' : 'deep') as 'quick' | 'deep' }
     : null
 
   return (

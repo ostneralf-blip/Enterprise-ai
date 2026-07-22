@@ -6,17 +6,20 @@ import { AssessmentResults } from './AssessmentResults'
 import { track } from '@/lib/posthog/client'
 import { useLocale, useTranslations } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
+import { cn } from '@/lib/utils'
 import type { Tier } from '@/types'
 
 interface AssessmentWizardProps {
   tier: Tier
   onSave?: (result: AssessmentResultData) => Promise<void>
   // Draft-Autosave (UX-Review Sprint 35): onStart legt beim Wizard-Start eine
-  // Draft-Zeile an, onAnswerChange meldet jede Antwort (Parent debounced +
-  // PATCHt), initialAnswers setzt den Wizard beim Fortsetzen auf den letzten Stand.
-  onStart?: () => Promise<void>
+  // Draft-Zeile an (mit gewählter Variante als type), onAnswerChange meldet jede
+  // Antwort (Parent debounced + PATCHt), initialAnswers/initialVariant setzen den
+  // Wizard beim Fortsetzen auf den letzten Stand.
+  onStart?: (type: 'quick' | 'deep') => Promise<void>
   onAnswerChange?: (answers: Record<string, number>) => void
   initialAnswers?: Record<string, number>
+  initialVariant?: 'quick' | 'deep'
 }
 
 export interface AssessmentResultData {
@@ -28,12 +31,16 @@ export interface AssessmentResultData {
 
 type WizardState = 'intro' | 'questions' | 'results'
 
-export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initialAnswers }: AssessmentWizardProps) {
+export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initialAnswers, initialVariant }: AssessmentWizardProps) {
+  // Free = immer Schnell-Check (16). Pro = standardmäßig vollständig (42), darf
+  // auf dem Intro aber freiwillig den Schnell-Check wählen (UX-Review Sprint 35 PR 2).
+  const resolvedVariant = initialVariant ?? (tier === 'free' ? 'quick' : 'deep')
+  const [variant, setVariant] = useState<'quick' | 'deep'>(resolvedVariant)
   const [state, setState] = useState<WizardState>(initialAnswers ? 'questions' : 'intro')
   const [currentIdx, setCurrentIdx] = useState(() => {
     if (!initialAnswers) return 0
     // Beim Fortsetzen auf die erste noch unbeantwortete Frage springen.
-    const qs = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
+    const qs = resolvedVariant === 'quick' ? FREE_QUESTIONS : ALL_QUESTIONS
     const idx = qs.findIndex(q => initialAnswers[q.id] === undefined)
     return idx === -1 ? qs.length - 1 : idx
   })
@@ -43,7 +50,7 @@ export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initia
 
   const locale = useLocale()
   const t = useTranslations('modules.assessment')
-  const questions = tier === 'free' ? FREE_QUESTIONS : ALL_QUESTIONS
+  const questions = variant === 'quick' ? FREE_QUESTIONS : ALL_QUESTIONS
   const totalQ = questions.length
   const currentQ = questions[currentIdx]
   const progress = Math.round((currentIdx / totalQ) * 100)
@@ -97,11 +104,16 @@ export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initia
   }
 
   if (state === 'intro') {
-    return <AssessmentIntro tier={tier} onStart={async () => {
-      track('tool_started', { module: 'assessment', tier })
-      await onStart?.() // Draft anlegen (Pro), bevor die erste Antwort fällt
-      setState('questions')
-    }} />
+    return <AssessmentIntro
+      tier={tier}
+      variant={variant}
+      onVariantChange={setVariant}
+      onStart={async () => {
+        track('tool_started', { module: 'assessment', tier, variant })
+        await onStart?.(variant) // Draft anlegen (Pro) mit gewählter Variante
+        setState('questions')
+      }}
+    />
   }
 
   if (state === 'results') {
@@ -209,11 +221,17 @@ export function AssessmentWizard({ tier, onSave, onStart, onAnswerChange, initia
   )
 }
 
-function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void | Promise<void> }) {
+function AssessmentIntro({ tier, variant, onVariantChange, onStart }: {
+  tier: Tier
+  variant: 'quick' | 'deep'
+  onVariantChange: (v: 'quick' | 'deep') => void
+  onStart: () => void | Promise<void>
+}) {
   const t = useTranslations('modules.assessment')
   const isPro = tier !== 'free'
-  const questionCount = isPro ? 42 : 16
-  const duration = isPro ? t('introDuration25') : t('introDuration10')
+  // Free ist fix Schnell-Check; für Pro folgt die Fragenzahl der gewählten Variante.
+  const questionCount = variant === 'quick' ? 16 : 42
+  const duration = variant === 'quick' ? t('introDuration10') : t('introDuration25')
 
   return (
     <div className="max-w-xl mx-auto">
@@ -234,6 +252,39 @@ function AssessmentIntro({ tier, onStart }: { tier: Tier; onStart: () => void | 
             </span>
           )}
         </p>
+
+        {/* Umfang-Wahl — nur Pro (Free ist automatisch Schnell-Check, siehe #222).
+            Pro darf freiwillig den 16-Fragen-Schnell-Check nutzen, z. B. für einen
+            Zwischen-Check (UX-Review Sprint 35 PR 2). */}
+        {isPro && (
+          <div className="mb-6">
+            <p className="text-xs font-medium text-ink-secondary uppercase tracking-wide mb-2">{t('variantChooseLabel')}</p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label={t('variantChooseLabel')}>
+              {(['deep', 'quick'] as const).map(v => {
+                const active = variant === v
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => onVariantChange(v)}
+                    aria-pressed={active}
+                    className={cn(
+                      'px-4 py-2 rounded-xl border text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2',
+                      active ? 'bg-primary border-primary text-white font-medium' : 'bg-surface border-line text-ink-secondary hover:border-line-strong hover:bg-surface-raised'
+                    )}
+                  >
+                    {v === 'deep' ? t('variantFull') : t('variantQuick')}
+                  </button>
+                )
+              })}
+            </div>
+            {variant === 'quick' && (
+              <p className="mt-2 text-xs text-warning-text bg-warning-subtle border border-warning-border rounded-lg px-3 py-2">
+                {t('quickCheckWarning')}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
           {[

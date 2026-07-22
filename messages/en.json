@@ -336,7 +336,11 @@
       "resumeTitle": "Continue your assessment?",
       "resumeDesc": "You started an assessment ({count} questions already answered) but did not finish it. Would you like to continue where you left off?",
       "resumeContinue": "Continue",
-      "resumeRestart": "Start over"
+      "resumeRestart": "Start over",
+      "variantChooseLabel": "Choose scope",
+      "variantFull": "Full · 42 questions",
+      "variantQuick": "Quick check · 16 questions",
+      "quickCheckWarning": "The quick check is based on fewer questions and is less meaningful than a full assessment."
     },
     "usecase": {
       "title": "Use-Case Scoring",

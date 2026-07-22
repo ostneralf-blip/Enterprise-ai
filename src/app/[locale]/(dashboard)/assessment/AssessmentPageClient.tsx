@@ -15,6 +15,7 @@ interface DraftData {
   id: string
   answers: Record<string, number>
   updatedAt: string
+  type: 'quick' | 'deep'
 }
 
 interface AssessmentPageClientProps {
@@ -37,15 +38,16 @@ export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPag
   const draftIdRef = useRef<string | null>(draft?.id ?? null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Draft beim Wizard-Start anlegen (nur Pro; Free persistiert nicht). Bereits
-  // gesetzte draftId (Resume) wird nicht überschrieben.
-  const handleStart = useCallback(async () => {
+  // Draft beim Wizard-Start anlegen (nur Pro; Free persistiert nicht) mit der
+  // gewählten Variante als type. Bereits gesetzte draftId (Resume) wird nicht
+  // überschrieben.
+  const handleStart = useCallback(async (type: 'quick' | 'deep') => {
     if (draftIdRef.current) return
     try {
       const res = await fetch('/api/assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'deep' }),
+        body: JSON.stringify({ type }),
       })
       if (res.ok) {
         const { data } = await res.json() as { data: { id: string } }
@@ -75,8 +77,10 @@ export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPag
     let id = draftIdRef.current
     if (!id) {
       // Defensiv: falls der Start-POST fehlschlug, jetzt einen Draft anlegen.
+      // Variante aus der Antwortzahl ableiten (Schnell-Check=16, vollständig=42).
+      const type = Object.keys(result.answers).length < 30 ? 'quick' : 'deep'
       const created = await fetch('/api/assessment', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'deep' }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }),
       })
       if (created.ok) id = (await created.json() as { data: { id: string } }).data.id
     }
@@ -159,6 +163,7 @@ export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPag
       onStart={isPro ? handleStart : undefined}
       onAnswerChange={isPro ? handleAnswerChange : undefined}
       initialAnswers={resumeAnswers}
+      initialVariant={resumeAnswers ? draft?.type : undefined}
     />
   )
 }
