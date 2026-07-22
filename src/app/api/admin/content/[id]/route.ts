@@ -4,12 +4,17 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/utils/admin-check'
 
 const UpdateSchema = z.object({
-  module:   z.string().min(1).max(50).optional(),
-  category: z.string().min(1).max(50).optional(),
-  title:    z.string().min(1).max(200).optional(),
-  content:  z.string().min(1).optional(),
-  source:   z.string().max(500).nullable().optional(),
-  tags:     z.array(z.string().max(50)).max(20).optional(),
+  module:        z.string().min(1).max(50).optional(),
+  category:      z.string().min(1).max(50).optional(),
+  title:         z.string().min(1).max(200).optional(),
+  content:       z.string().min(1).optional(),
+  source:        z.string().max(500).nullable().optional(),
+  tags:          z.array(z.string().max(50)).max(20).optional(),
+  context_key:   z.string().max(100).nullable().optional(),
+  locale:        z.enum(['de', 'en']).optional(),
+  display_order: z.number().int().min(0).optional(),
+  is_published:  z.boolean().optional(),
+  min_tier:      z.enum(['free', 'pro', 'enterprise']).optional(),
 }).strict()
 
 export async function PATCH(

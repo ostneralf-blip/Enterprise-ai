@@ -30,6 +30,10 @@ export interface ContentLibraryEntry {
   source: string | null
   tags: string[]
   min_tier: string
+  context_key: string | null
+  locale: string
+  display_order: number
+  is_published: boolean
   created_at: string
   updated_at: string
 }

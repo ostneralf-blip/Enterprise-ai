@@ -265,6 +265,27 @@ export default async function ZusammenfassungPage() {
   const assessmentArchetype = latestAssessment?.archetype ?? null
   const dimStatuses = generateDimensionStatuses(dimScores, assessmentArchetype)
 
+  // Admin-editierbare Empfehlungstexte aus content_library (Content-Library-Editor).
+  // Fallback ist die i18n-Ebene (summary.dimStatus.*), damit fehlende/unveröffentlichte
+  // Zeilen die Seite nie brechen. Gezielte, wachstumssichere Abfrage (max. 48 Zeilen).
+  const dimContent = new Map<string, string>()
+  if (dimStatuses.length > 0) {
+    const { data: dimRows } = await supabase
+      .from('content_library')
+      .select('context_key, locale, content')
+      .eq('module', 'assessment')
+      .eq('is_published', true)
+      .like('context_key', 'summary.dim.%')
+      .in('locale', [locale, 'de'])
+    for (const row of (dimRows ?? []) as { context_key: string | null; locale: string; content: string }[]) {
+      if (!row.context_key) continue
+      // Aktuelle Locale gewinnt; 'de' dient nur als Fallback für fehlende Übersetzungen.
+      if (!dimContent.has(row.context_key) || row.locale === locale) {
+        dimContent.set(row.context_key, row.content)
+      }
+    }
+  }
+
   const URGENCY_STYLE = {
     critical:    { dot: 'bg-error-text',     card: 'border-error-border bg-error-subtle',     title: 'text-error-text',   label: t('urgencyCritical') },
     recommended: { dot: 'bg-warning-text',   card: 'border-warning-border bg-warning-subtle', title: 'text-warning-text', label: t('urgencyRecommended') },
@@ -330,9 +351,14 @@ export default async function ZusammenfassungPage() {
               const dim = ASSESSMENT_DIMENSIONS.find(d => d.id === ds.dimId)
               if (!dim) return null
               const weak = ds.status === 'weak'
-              const statusText = weak
-                ? t(`dimStatus.weak.${assessmentArchetype}.${ds.dimId}`)
-                : t(`dimStatus.good.${ds.dimId}`)
+              const key = weak
+                ? `summary.dim.weak.${assessmentArchetype}.${ds.dimId}`
+                : `summary.dim.good.${ds.dimId}`
+              // content_library-Text bevorzugen, sonst i18n-Fallback.
+              const statusText = dimContent.get(key)
+                ?? (weak
+                  ? t(`dimStatus.weak.${assessmentArchetype}.${ds.dimId}`)
+                  : t(`dimStatus.good.${ds.dimId}`))
               return (
                 <li key={ds.dimId} className={`rounded-xl border px-3 py-2.5 ${weak ? 'border-warning-border bg-warning-subtle' : 'border-line bg-surface-raised'}`}>
                   <div className="flex items-center justify-between gap-2 mb-0.5">

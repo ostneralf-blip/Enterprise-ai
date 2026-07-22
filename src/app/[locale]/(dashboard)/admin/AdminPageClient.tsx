@@ -65,9 +65,12 @@ type FormState = {
   source: string
   tags: string
   min_tier: string
+  context_key: string
+  locale: string
+  is_published: boolean
 }
 
-const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free' }
+const EMPTY_FORM: FormState = { module: '', category: '', title: '', content: '', source: '', tags: '', min_tier: 'free', context_key: '', locale: 'de', is_published: true }
 
 export function AdminPageClient({ initialEntries, initialUsers = [], initialComponents = [], componentCount = 0, initialSources = [], initialUploadLog = [], initialDrafts = [], initialSourceSnapshots = [], initialPolicyTemplates = [] }: Props) {
   const t = useTranslations('admin')
@@ -311,6 +314,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       source: entry.source ?? '',
       tags: entry.tags.join(', '),
       min_tier: entry.min_tier ?? 'free',
+      context_key: entry.context_key ?? '',
+      locale: entry.locale ?? 'de',
+      is_published: entry.is_published ?? true,
     })
     setError(null)
     setShowForm(true)
@@ -334,6 +340,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       source: form.source.trim() || null,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       min_tier: form.min_tier || 'free',
+      context_key: form.context_key.trim() || null,
+      locale: form.locale || 'de',
+      is_published: form.is_published,
     }
     try {
       if (editing) {
@@ -1059,6 +1068,28 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label htmlFor="admin-context-key" className="block text-xs font-medium text-ink-secondary mb-1">Context-Key (optional)</label>
+                  <input id="admin-context-key" type="text" value={form.context_key}
+                    onChange={e => setForm(f => ({ ...f, context_key: e.target.value }))}
+                    placeholder="z. B. summary.dim.weak.starter.data"
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-ring" />
+                </div>
+                <div>
+                  <label htmlFor="admin-locale" className="block text-xs font-medium text-ink-secondary mb-1">Sprache</label>
+                  <select id="admin-locale" value={form.locale}
+                    onChange={e => setForm(f => ({ ...f, locale: e.target.value }))}
+                    className="w-full border border-line-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
+                    <option value="de">de</option>
+                    <option value="en">en</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="admin-is-published" type="checkbox" checked={form.is_published}
+                  onChange={e => setForm(f => ({ ...f, is_published: e.target.checked }))}
+                  className="h-4 w-4 rounded border-line-strong text-primary focus:ring-2 focus:ring-primary-ring" />
+                <label htmlFor="admin-is-published" className="text-xs font-medium text-ink-secondary">Veröffentlicht (für Nutzer sichtbar)</label>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleSave} disabled={saving}
@@ -1098,6 +1129,15 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                       <td className="px-4 py-3 text-xs text-ink-muted whitespace-nowrap">{entry.category}</td>
                       <td className="px-4 py-3 font-medium text-ink min-w-0">
                         <div className="truncate max-w-xs">{entry.title}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {entry.context_key && (
+                            <span className="text-[10px] font-mono text-ink-subtle truncate max-w-[16rem]">{entry.context_key}</span>
+                          )}
+                          <span className="text-[10px] uppercase text-ink-subtle">{entry.locale ?? 'de'}</span>
+                          {entry.is_published === false && (
+                            <span className="text-[10px] font-semibold text-warning-text bg-warning-subtle border border-warning-border rounded px-1">Entwurf</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <div className="flex gap-1 flex-wrap">
