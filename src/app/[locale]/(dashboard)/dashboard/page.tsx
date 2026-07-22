@@ -106,14 +106,20 @@ export default async function DashboardPage() {
     : 0
   const assessmentWeeksSince = Math.floor(assessmentDaysSince / 7)
 
+  // Reihenfolge identisch zur Sidebar (src/config/modules.ts) + Executive Summary
+  // als 8. Schritt (#205-Folgeissue „Sidebar = AI-Pfad", UX-Review 22.07.2026):
+  // Assessment → Canvas → Use-Case → Governance → Roadmap → Compliance →
+  // Architektur → Summary. Die stepNDesc-i18n-Keys bleiben inhaltlich an ihrem
+  // Modul (nur die step-Position ändert sich), damit keine Übersetzung verrutscht.
   const guidedSteps: PathStep[] = [
-    { step: 1, icon: '◎', title: 'Assessment',               desc: t('step1Desc'), href: '/assessment',      done: (assessmentCount ?? 0) > 0 },
-    { step: 2, icon: '⊞', title: 'Use-Case',                 desc: t('step2Desc'), href: '/usecase',         done: usecaseCount > 0 },
-    { step: 3, icon: '◧', title: 'Canvas',                   desc: t('step3Desc'), href: '/canvas',          done: (canvasCount ?? 0) > 0 },
-    { step: 4, icon: '⊙', title: 'Governance',               desc: t('step4Desc'), href: '/governance',      done: (governanceCount ?? 0) > 0 },
-    { step: 5, icon: '⚖', title: 'Compliance',               desc: t('step5Desc'), href: '/compliance',      done: (complianceCount ?? 0) > 0 },
-    { step: 6, icon: '⬡', title: t('step6Title'),            desc: t('step6Desc'), href: '/architecture',    done: (architectureCount ?? 0) > 0 },
-    { step: 7, icon: '□', title: 'Summary',                  desc: t('step7Desc'), href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && usecaseCount > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
+    { step: 1, icon: '◎', title: 'Assessment',               desc: t('step1Desc'),         href: '/assessment',      done: (assessmentCount ?? 0) > 0 },
+    { step: 2, icon: '◧', title: 'Canvas',                   desc: t('step3Desc'),         href: '/canvas',          done: (canvasCount ?? 0) > 0 },
+    { step: 3, icon: '⊞', title: 'Use-Case',                 desc: t('step2Desc'),         href: '/usecase',         done: usecaseCount > 0 },
+    { step: 4, icon: '⊙', title: 'Governance',               desc: t('step4Desc'),         href: '/governance',      done: (governanceCount ?? 0) > 0 },
+    { step: 5, icon: '▷', title: 'Roadmap',                  desc: t('stepRoadmapDesc'),   href: '/roadmap',         done: (roadmapCount ?? 0) > 0 },
+    { step: 6, icon: '⚖', title: 'Compliance',               desc: t('step5Desc'),         href: '/compliance',      done: (complianceCount ?? 0) > 0 },
+    { step: 7, icon: '⬡', title: t('step6Title'),            desc: t('step6Desc'),         href: '/architecture',    done: (architectureCount ?? 0) > 0 },
+    { step: 8, icon: '□', title: 'Summary',                  desc: t('step7Desc'),         href: '/zusammenfassung', done: (assessmentCount ?? 0) > 0 && usecaseCount > 0 && (canvasCount ?? 0) > 0 && (governanceCount ?? 0) > 0 && (roadmapCount ?? 0) > 0 && (complianceCount ?? 0) > 0 && (architectureCount ?? 0) > 0 },
   ]
 
   const completedSteps = guidedSteps.filter(s => s.done).length

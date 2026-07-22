@@ -168,6 +168,7 @@
     "step2Desc": "Set priorities",
     "step3Desc": "Develop use case",
     "step4Desc": "Release use case",
+    "stepRoadmapDesc": "Plan the rollout",
     "step5Desc": "EU AI Act & GDPR",
     "step6Title": "Architecture",
     "step6Desc": "Define AI architecture",
