@@ -167,6 +167,14 @@ function UnifiedContextBanner({
     stop_dsgvo: t('architecture.governanceStopDsgvo'),
     stop_risk:  t('architecture.governanceStopRisk'),
   }
+  // #205 (Teil B): der Governance-Badge erklärt sein Label per title, analog zum
+  // Archetyp-Badge (Score) und Roadmap-Badge (Phasenzahl) — vorher fehlte der Hint.
+  const governanceTitle: Record<string, string> = {
+    approve:    t('architecture.governanceApproveTitle'),
+    improve:    t('architecture.governanceImproveTitle'),
+    stop_dsgvo: t('architecture.governanceStopDsgvoTitle'),
+    stop_risk:  t('architecture.governanceStopRiskTitle'),
+  }
   const complianceLabel: Record<string, string> = {
     strict:    t('architecture.complianceStrict'),
     moderate:  t('architecture.complianceModerate'),
@@ -233,10 +241,13 @@ function UnifiedContextBanner({
                     </span>
                   )}
                   {governanceContext?.result && (
-                    <span className={cn(
-                      'text-[10px] font-medium px-2 py-0.5 rounded-full border border-transparent',
-                      GOVERNANCE_COLORS[governanceContext.result] ?? 'text-ink-secondary bg-surface-raised border-line'
-                    )}>
+                    <span
+                      className={cn(
+                        'text-[10px] font-medium px-2 py-0.5 rounded-full border border-transparent',
+                        GOVERNANCE_COLORS[governanceContext.result] ?? 'text-ink-secondary bg-surface-raised border-line'
+                      )}
+                      title={governanceTitle[governanceContext.result] ?? undefined}
+                    >
                       {governanceLabel[governanceContext.result] ?? governanceContext.result}
                     </span>
                   )}

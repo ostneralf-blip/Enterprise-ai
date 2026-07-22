@@ -70,7 +70,7 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
         onClick={() => setOpen(v => !v)}
         aria-label={`Info: ${title}`}
         aria-expanded={open}
-        className="w-4 h-4 rounded-full bg-surface-input text-ink-muted hover:bg-primary-soft hover:text-primary text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 flex-shrink-0"
+        className="w-4 h-4 rounded-full border border-line bg-surface-input text-ink-muted hover:bg-primary-soft hover:border-primary-border hover:text-primary text-[10px] font-bold flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1 flex-shrink-0"
       >
         ?
       </button>
@@ -126,7 +126,7 @@ export function HintBox({ children, className, dismissible = false, variant = 'i
         <span className="mt-0.5 flex-shrink-0 select-none" aria-hidden="true">
           {variant === 'info' ? 'ℹ' : variant === 'tip' ? '✦' : '⚠'}
         </span>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1 break-words">{children}</div>
         {dismissible && (
           <button
             onClick={() => setVisible(false)}
