@@ -28,7 +28,7 @@ import {
   type VerdictLevel,
 } from '@/config/governance-data'
 import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
-import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { InfoHint } from '@/components/shared/InfoHint'
 import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
@@ -343,10 +343,6 @@ export function GovernancePageClient({
   return (
     <div className="max-w-2xl">
       <ComplianceContextBanner riskClass={complianceRisk} />
-      <HintBox variant="info" className="mb-6">
-        <strong>{t('governance.infoTitle')}</strong> {t('governance.infoBody', { totalSteps })}
-        <span className="block mt-1 text-xs opacity-75">{t('governance.infoTip')}</span>
-      </HintBox>
 
       {/* Use-Case-Auswahl */}
       <div className="mb-5">
