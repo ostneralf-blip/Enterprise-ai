@@ -110,6 +110,12 @@ interface HintBoxProps {
   variant?: 'info' | 'tip' | 'warning'
 }
 
+/**
+ * @deprecated Kanonische Hinweis-/Fehlerbox ist `AlertBox` (`@/components/shared/AlertBox`,
+ * #205 Element 4 — genau drei Varianten info/warning/error, semantische Tokens).
+ * HintBox bleibt vorerst für die kompakte Inline-Optik bestehen; neue Boxen bitte
+ * mit AlertBox bauen. Migration bestehender HintBox-Aufrufe = separater Adoptions-Sweep.
+ */
 export function HintBox({ children, className, dismissible = false, variant = 'info' }: HintBoxProps) {
   const [visible, setVisible] = useState(true)
   if (!visible) return null

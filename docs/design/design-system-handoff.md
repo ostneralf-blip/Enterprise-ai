@@ -128,3 +128,62 @@ Für die Neuaufbau-Arbeit an Login-Screen und Assessment-Wizard sind folgende We
 - **Playwright/Puppeteer MCP** (falls verbunden): für automatisierte Screenshot-Vergleiche bei den drei Referenzbreiten aus Abschnitt 7, als Teil eines visuellen Regressionstests.
 
 **Pragmatische Mindest-Empfehlung:** Selbst ohne zusätzliche MCP-Tools löst die direkte Dateisystem-Anbindung von Claude Code das größte Problem aus dieser Session bereits — keine Kopier-Synchronisationsfehler mehr zwischen zwei Umgebungen. Die MCP-Tools sind ein Plus für visuelle Verifikation, aber kein Blocker, um mit dem Neuaufbau zu starten.
+
+## 9. Einheitliche Grundelemente (Issue #205) — verbindlicher Standard
+
+Ziel (Anforderung Daniel 16.07.2026): Textelemente, Hilfetexte, Wissensbasis und
+Box-Grunddesign sind über **alle** Module gleich. Farb-/Theme-Tokens selbst kommen
+aus #201 — dieses Kapitel definiert die *Struktur-Komponenten*, die diese Tokens nutzen.
+
+**Status (23.07.2026): Fundament gebaut, modulweite Adoption ausstehend** (bewusst
+getrennt, weil ein visueller Sweep eine Screenshot-Abnahmerunde braucht — siehe Abschnitt 7).
+
+### 9.1 Textelement-Hierarchie (`src/components/shared/typography.tsx`)
+EIN Komponenten-Set statt ad-hoc-Klassen. Neue/überarbeitete UI nutzt diese:
+
+| Komponente | Zweck | Basis-Klassen |
+|---|---|---|
+| `<Eyebrow>` | Seiten-/Sektions-Eyebrow | `text-xs text-primary tracking-widest uppercase font-medium` |
+| `<SectionTitle as="h2">` | Sektions-Titel | `text-base sm:text-lg font-semibold text-ink` |
+| `<CardTitle as="h3">` | Karten-Titel | `text-sm font-semibold text-ink` |
+| `<BodyText>` | Beschreibungs-/Fließtext | `text-sm text-ink-secondary leading-relaxed` |
+| `<HintText tone="info\|warning\|error\|muted">` | Inline-Hinweistext (KEINE Box) | `text-xs` + Ton-Farbe |
+| `<MetaText>` | Meta-/Provenienz-Zeile (mono) | `text-xs text-ink-muted font-mono` |
+| `<Badge tone="neutral\|info\|warning\|error\|success">` | Badge/Pill | `text-xs font-medium border rounded-full px-2 py-0.5` + Ton |
+
+### 9.2 Hinweis-/Fehlerbox-Standard — EINE Komponente
+- **Kanonisch:** `<AlertBox variant="info|warning|error">` (`src/components/shared/AlertBox.tsx`) —
+  `role="alert"`, Icon-Slot, semantische Tokens (`info-/warning-/error-subtle`). **Genau drei Varianten.**
+- `HintBox` (in `InfoHint.tsx`) ist **@deprecated** — bleibt vorerst für die kompakte
+  Inline-Optik, neue Boxen aber immer als `AlertBox`. Migration bestehender HintBox-
+  Aufrufe (Compliance) = Teil des Adoptions-Sweeps.
+- **Regel:** kein drittes Box-Muster, keine ad-hoc `bg-*-50 border-*-200`-Box mehr für
+  Hinweise/Fehler (Kategorie-/Status-Farben sind davon unberührt).
+
+### 9.3 Hilfsmarker + Wissensbasis
+- **Hilfsmarker:** EIN Muster — `<InfoHint title=…>` (das `?`-Popup). Erklärungsbedürftige
+  Karten/Sektionen bekommen einen InfoHint; Texte in i18n (DE Sie-Form + EN), kein Inline-Freitext.
+- **Wissensbasis:** `<GuidancePanel module=… contextKey=… />` (Side-Drawer aus `content_library`).
+  Position oben rechts, gleiche Optik in allen Modulen.
+
+### 9.4 Inventur — Modul × Hilfsmarker (Stand 23.07.2026)
+Legende: ✓ vorhanden · (n) Anzahl · — Adoptions-/Lücken-Kandidat für den Sweep.
+
+| Modul | Wissensbasis (GuidancePanel) | Hilfsmarker (InfoHint) | Bekannte Lücken-Kandidaten (Sweep) |
+|---|---|---|---|
+| Assessment | ✓ | ✓ (4, in `AssessmentResults`) | Score-/Dimensions-Anzeigen bereits abgedeckt |
+| Use-Case | ✓ | ✓ (2) | Kontextanalyse-Spalten, Score-Zellen |
+| Governance | ✓ | ✓ (2) | RACI-Zellen-Bedienung |
+| Roadmap | ✓ | ✓ (5) | — (gut abgedeckt) |
+| Canvas | ✓ | ✓ (1) | Compliance-Kategorien, Erkennungs-Badges |
+| Compliance | ✓ | ✓ (5) | HintBox→AlertBox migrieren |
+| Architektur | ✓ | ✓ (2) | Workbench-Tabs, Landkarten-Badges (EU/SAP/◆) |
+
+**Wissensbasis-Akzeptanz (#205 E2) erfüllt:** GuidancePanel ist in allen 7 Modulen aktiv
+(gefordert waren ≥2 zusätzliche) — keine Weglass-Entscheidung nötig.
+
+### 9.5 Was der Adoptions-Sweep noch umfasst (separater, screenshot-abgenommener Schritt)
+1. Hierarchie-Komponenten aus 9.1 in den Modulen ausrollen (uneinheitliche Titel-/Eyebrow-Größen ersetzen).
+2. HintBox-Aufrufe (Compliance) + echte ad-hoc Hinweis-/Fehlerboxen auf `AlertBox` migrieren.
+3. Fehlende InfoHints aus der Inventur (9.4, Spalte „Lücken-Kandidaten") ergänzen, Texte in i18n.
+4. Screenshot-Serie vorher/nachher (1440/375) + Freigabe Daniel.
