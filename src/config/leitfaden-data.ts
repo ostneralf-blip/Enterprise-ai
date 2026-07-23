@@ -60,6 +60,11 @@ export interface Guide {
 
 export const AMAZON_BOOK_URL = 'https://www.amazon.de/dp/B0H6GN7LJQ'
 
+// „Zuletzt geprüft"-Datum für die Guide-Seiten (GEO-Format, Issue #220).
+// ISO-Datum; wird auf jeder Guide-Seite als Vertrauens-/Aktualitätssignal angezeigt.
+// Bei inhaltlicher Überarbeitung eines Guides hochziehen.
+export const GUIDES_REVIEWED_AT = '2026-07-23'
+
 export const GUIDES: Guide[] = [
   {
     slug: 'warum-ai-projekte-scheitern',
@@ -763,7 +768,7 @@ export const PRICING_GROUPS: PricingGroup[] = [
   {
     title: { de: 'Arbeiten & Ergebnisse', en: 'Work & Results' },
     rows: [
-      { label: { de: 'Ergebnisse speichern', en: 'Save results' }, free: 'yes', pro: 'yes' },
+      { label: { de: 'Ergebnisse speichern', en: 'Save results' }, why: { de: 'Free kann Ergebnisse speichern — mit einer limitierten Anzahl pro Tag je Werkzeug. Pro speichert unbegrenzt.', en: 'Free can save results — with a limited number per day per tool. Pro saves without limit.' }, free: 'yes', freeNote: { de: 'limitiert pro Tag', en: 'limited per day' }, pro: 'yes', proNote: { de: 'unbegrenzt', en: 'unlimited' } },
       { label: { de: 'PDF-Export', en: 'PDF export' }, free: 'no', pro: 'yes' },
       { label: { de: 'Teilen per Link', en: 'Share via link' }, free: 'no', pro: 'yes' },
       { label: { de: 'Versionen', en: 'Versions' }, free: 'no', pro: 'yes' },

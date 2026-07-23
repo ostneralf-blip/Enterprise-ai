@@ -10,7 +10,7 @@ const idRoute = readFileSync(join(process.cwd(), 'src/app/api/assessment/[id]/ro
 const tierCheckSrc = readFileSync(join(process.cwd(), 'src/lib/utils/tier-check.ts'), 'utf-8')
 
 describe('Security: POST /api/assessment (Draft anlegen)', () => {
-  it('erfordert Pro-Tier — requireFeature(save_results) delegiert 401/403 an tier-check.ts', () => {
+  it('gatet über requireFeature(save_results) — delegiert 401/403 an tier-check.ts (save_results ist seit #222 free, das Gate erzwingt weiterhin Auth)', () => {
     expect(postRoute).toContain("requireFeature('save_results')")
     expect(tierCheckSrc).toContain('status: 401')
     expect(tierCheckSrc).toContain('status: 403')
@@ -28,8 +28,9 @@ describe('Security: POST /api/assessment (Draft anlegen)', () => {
 })
 
 describe('Security: PATCH /api/assessment/[id] (Draft-Update / Finalisierung)', () => {
-  it('erfordert Pro-Tier via requireFeature(save_results)', () => {
+  it('gatet über requireFeature(save_results) und erzwingt bei Finalisierung das Free-Tageslimit (enforceSaveQuota)', () => {
     expect(idRoute).toContain("requireFeature('save_results')")
+    expect(idRoute).toContain('enforceSaveQuota')
   })
 
   it('validiert den Body via Zod inkl. Score-Wertebereich (1–5) und antwortet 422', () => {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireFeature } from '@/lib/utils/tier-check'
+import { enforceSaveQuota } from '@/lib/tier/save-quota'
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -50,6 +51,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { answers, completed, total_score, dim_scores, archetype } = parsed.data
   const update: Record<string, unknown> = { answers }
   if (completed) {
+    // Nur die Finalisierung zählt gegen das Free-Tageslimit (Draft-Autosave nicht).
+    const limited = await enforceSaveQuota(gate.userId, gate.tier, 'assessment')
+    if (limited) return limited
     update.completed = true
     update.total_score = total_score
     update.dim_scores = dim_scores

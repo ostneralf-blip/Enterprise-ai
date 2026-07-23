@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getGuide, AMAZON_BOOK_URL, type Bi } from '@/config/leitfaden-data'
+import { getGuide, AMAZON_BOOK_URL, GUIDES_REVIEWED_AT, type Bi } from '@/config/leitfaden-data'
 import { PublicNav } from '@/components/shared/PublicNav'
+import { GuideViewTracker, GuideCtaLink } from '@/components/shared/GuideAnalytics'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -101,8 +102,13 @@ export default async function GuidePage({
         <Link href={`${prefix}/leitfaden`} className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
           {isEn ? '← All guides' : '← Alle Leitfäden'}
         </Link>
+        <GuideViewTracker slug={slug} locale={locale} />
         <div className="text-xs text-primary font-semibold uppercase tracking-wide mb-3 mt-6">{p(guide.eyebrow)}</div>
-        <h1 className="text-3xl sm:text-4xl font-semibold font-serif leading-tight mb-6">{p(guide.title)}</h1>
+        <h1 className="text-3xl sm:text-4xl font-semibold font-serif leading-tight mb-3">{p(guide.title)}</h1>
+        <p className="text-xs text-slate-400 mb-6">
+          {isEn ? 'Last reviewed: ' : 'Zuletzt geprüft: '}
+          {new Date(GUIDES_REVIEWED_AT).toLocaleDateString(isEn ? 'en-GB' : 'de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}
+        </p>
 
         {/* Kurzantwort / answer band */}
         <div className="bg-primary-soft border border-primary-border rounded-2xl p-5 mb-10">
@@ -175,9 +181,9 @@ export default async function GuidePage({
         <section className="bg-primary rounded-2xl p-6 text-white mb-12">
           <h2 className="text-xl font-semibold font-serif mb-2">{p(guide.ctaBand.title)}</h2>
           <p className="text-white/80 text-sm leading-relaxed mb-4">{p(guide.ctaBand.body)}</p>
-          <Link href={`${prefix}/register`} className="inline-block bg-white text-primary font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/90 transition-colors">
+          <GuideCtaLink href={`${prefix}/register`} slug={slug} className="inline-block bg-white text-primary font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/90 transition-colors">
             {p(guide.ctaBand.linkLabel)}
-          </Link>
+          </GuideCtaLink>
         </section>
 
         {/* FAQ */}

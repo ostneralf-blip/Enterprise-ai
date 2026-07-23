@@ -42,6 +42,8 @@ export type TrackingEvent =
   | 'ai_suggestion_accepted'
   | 'ai_suggestion_rejected'
   | 'report_exported'
+  | 'guide_viewed'
+  | 'guide_cta'
 
 export function track(event: TrackingEvent, props?: Record<string, unknown>) {
   if (typeof window !== 'undefined' && posthog.__loaded) {

@@ -4,7 +4,9 @@ import type { Tier } from '@/types'
 // requireFeature() in lib/utils/tier-check.ts erzwingt dies server-seitig.
 export const FEATURE_TIERS = {
   pdf_export:          'pro',
-  save_results:        'pro',
+  // Free darf speichern (Issue #222), aber mit Tageslimit pro Tool —
+  // durchgesetzt über enforceSaveQuota() / FREE_DAILY_SAVES_PER_MODULE.
+  save_results:        'free',
   versioning:          'pro',
   sharing:             'pro',
   ai_enrich:           'pro',
@@ -36,20 +38,27 @@ export const AI_CALL_LIMITS: Record<Tier, number> = {
   enterprise: 50,
 }
 
+// Free-Tier: max. neue gespeicherte Ergebnisse pro Tag und pro Tool (Issue #222).
+// Pro/Enterprise speichern unbegrenzt. Enforcement server-seitig via
+// enforceSaveQuota() (lib/tier/save-quota.ts). Kann später über app_settings
+// überschreibbar gemacht werden (analog AI_CALL_LIMITS).
+export const FREE_DAILY_SAVES_PER_MODULE = 5
+
 export const TIER_CONFIG = {
   free: {
     name: 'Explorer',
     price: null,
     color: 'slate',
     limits: {
-      saved_results_per_module: 0,
+      saved_results_per_module: -1, // gesamt unbegrenzt, aber pro Tag gedeckelt (siehe daily_saves_per_module)
+      daily_saves_per_module: FREE_DAILY_SAVES_PER_MODULE,
       versions_per_entity: 0,
       use_cases_per_portfolio: 3,
     },
     features: {
       all_free_tools: true,
       quick_scan: true,
-      save_results: false,
+      save_results: true,
       pdf_export: false,
       sharing: false,
       versioning: false,
@@ -64,6 +73,7 @@ export const TIER_CONFIG = {
     color: 'blue',
     limits: {
       saved_results_per_module: -1, // unlimited
+      daily_saves_per_module: -1,   // unbegrenzt
       versions_per_entity: 10,
       use_cases_per_portfolio: -1,
     },
@@ -85,6 +95,7 @@ export const TIER_CONFIG = {
     color: 'emerald',
     limits: {
       saved_results_per_module: -1,
+      daily_saves_per_module: -1,
       versions_per_entity: -1,
       use_cases_per_portfolio: -1,
     },

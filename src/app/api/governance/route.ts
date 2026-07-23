@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getTier } from '@/lib/utils/tier-check'
+import { enforceSaveQuota } from '@/lib/tier/save-quota'
 
 const SaveSchema = z.object({
   use_case_name: z.string().max(200).nullable().optional(),
@@ -36,6 +38,10 @@ export async function POST(req: Request) {
 
   const parsed = SaveSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
+
+  // Free-Tageslimit fürs Speichern eines neuen Governance-Ergebnisses (Issue #222).
+  const limited = await enforceSaveQuota(user.id, await getTier(user.id), 'governance')
+  if (limited) return limited
 
   const { data, error } = await supabase
     .from('governance_sessions')

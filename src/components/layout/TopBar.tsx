@@ -22,7 +22,8 @@ export function TopBar({ profile }: TopBarProps) {
   const handleSignOut = async () => {
     reset()
     await supabase.auth.signOut()
-    router.push('/login')
+    // Nach dem Logout auf die öffentliche Landing Page statt zur Login-Maske (Issue #222).
+    router.push('/')
   }
 
   const tierLabel =

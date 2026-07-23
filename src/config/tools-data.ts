@@ -70,6 +70,7 @@ export const TOOLS: ToolLanding[] = [
     free: [
       { de: 'Vollständiges Assessment & Archetyp-Ergebnis', en: 'Full assessment & archetype result' },
       { de: 'Handlungsempfehlung je Dimension', en: 'Recommendation per dimension' },
+      { de: 'Ergebnis speichern (limitiert pro Tag)', en: 'Save result (limited per day)' },
     ],
     pro: [
       { de: 'Ergebnis speichern & versionieren', en: 'Save & version your result' },
@@ -85,7 +86,7 @@ export const TOOLS: ToolLanding[] = [
     faq: [
       {
         q: { de: 'Ist das AI-Readiness Assessment wirklich kostenlos?', en: 'Is the AI readiness assessment really free?' },
-        a: { de: 'Ja. Das vollständige Assessment inklusive Archetyp und Empfehlungen nutzen Sie mit einem kostenlosen Konto. Speichern, PDF-Export und Verlauf sind Pro-Funktionen.', en: 'Yes. You use the full assessment including archetype and recommendations with a free account. Saving, PDF export and history are Pro features.' },
+        a: { de: 'Ja. Das vollständige Assessment inklusive Archetyp und Empfehlungen nutzen Sie mit einem kostenlosen Konto. Ergebnisse können Sie auch mit Free speichern (limitierte Anzahl pro Tag); PDF-Export und Verlauf sind Pro-Funktionen.', en: 'Yes. You use the full assessment including archetype and recommendations with a free account. You can also save results on Free (a limited number per day); PDF export and history are Pro features.' },
       },
       {
         q: { de: 'Wie lange dauert das Assessment?', en: 'How long does the assessment take?' },
@@ -131,6 +132,7 @@ export const TOOLS: ToolLanding[] = [
     free: [
       { de: 'Canvas vollständig ausfüllen', en: 'Fill in the full canvas' },
       { de: 'Komponenten- & Compliance-Erkennung', en: 'Component & compliance detection' },
+      { de: 'Canvas speichern (limitiert pro Tag)', en: 'Save canvas (limited per day)' },
     ],
     pro: [
       { de: 'Canvas speichern & versionieren', en: 'Save & version your canvas' },
@@ -192,6 +194,7 @@ export const TOOLS: ToolLanding[] = [
     free: [
       { de: 'Use Cases erfassen & bewerten', en: 'Capture & score use cases' },
       { de: 'Gewichtete Rangfolge', en: 'Weighted ranking' },
+      { de: 'Portfolio speichern (limitiert pro Tag)', en: 'Save portfolio (limited per day)' },
     ],
     pro: [
       { de: 'Portfolio speichern & versionieren', en: 'Save & version your portfolio' },
@@ -253,6 +256,7 @@ export const TOOLS: ToolLanding[] = [
     free: [
       { de: 'Vollständiger Governance-Check', en: 'Full governance check' },
       { de: 'Verdikt & Gate-Begründung', en: 'Verdict & gate rationale' },
+      { de: 'Ergebnis speichern (limitiert pro Tag)', en: 'Save result (limited per day)' },
     ],
     pro: [
       { de: 'Ergebnis speichern & versionieren', en: 'Save & version your result' },
@@ -314,6 +318,7 @@ export const TOOLS: ToolLanding[] = [
     free: [
       { de: 'Roadmap generieren & anpassen', en: 'Generate & adjust your roadmap' },
       { de: 'Maßnahmen, KPIs & Meilensteine', en: 'Measures, KPIs & milestones' },
+      { de: 'Roadmap speichern (limitiert pro Tag)', en: 'Save roadmap (limited per day)' },
     ],
     pro: [
       { de: 'Roadmap speichern & versionieren', en: 'Save & version your roadmap' },
@@ -373,8 +378,7 @@ export const TOOLS: ToolLanding[] = [
       { de: 'Eine Einordnung, die in Governance-Check und Executive Summary einfließt', en: 'A classification that feeds into the governance check and executive summary' },
     ],
     free: [
-      { de: 'Risikoklasse bestimmen', en: 'Determine risk class' },
-      { de: 'EU-AI-Act- & DSGVO-Überblick', en: 'EU AI Act & GDPR overview' },
+      { de: 'Nur in Pro verfügbar', en: 'Available in Pro only' },
     ],
     pro: [
       { de: 'Checklisten-Fortschritt speichern', en: 'Save checklist progress' },
@@ -434,8 +438,7 @@ export const TOOLS: ToolLanding[] = [
       { de: 'Eine KI-Einordnung mit grobem Investitionsrahmen und Empfehlung für die Entscheidung', en: 'An AI assessment with a rough investment frame and a recommendation for the decision' },
     ],
     free: [
-      { de: 'Referenzarchitektur generieren', en: 'Generate reference architecture' },
-      { de: '5-Band-Landkarte & Komponenten', en: '5-band map & components' },
+      { de: 'Nur in Pro verfügbar', en: 'Available in Pro only' },
     ],
     pro: [
       { de: 'Architektur speichern & versionieren', en: 'Save & version your architecture' },

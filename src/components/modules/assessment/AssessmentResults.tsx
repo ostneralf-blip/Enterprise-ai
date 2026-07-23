@@ -43,11 +43,7 @@ export function AssessmentResults({
   }
 
   const handleSave = () => {
-    if (tier === 'free') {
-      track('upgrade_clicked', { feature: 'save_results', from: 'assessment_results' })
-      setShowUpgrade(true)
-      return
-    }
+    // Free darf speichern (Issue #222) — mit serverseitigem Tageslimit pro Tool.
     onSave()
   }
 
@@ -176,7 +172,6 @@ export function AssessmentResults({
                 : 'bg-slate-900 text-white hover:bg-slate-700 focus:ring-slate-500'
             }`}>
             {saved ? t('assessment.saved') : saving ? t('assessment.saving') : t('assessment.save')}
-            {tier === 'free' && !saved && <span className="text-xs opacity-60 ml-1">Pro</span>}
           </button>
 
           <button onClick={handleExportPDF}
