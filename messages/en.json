@@ -598,7 +598,9 @@
       "rolesUsedBadge": "✓ Used in architecture · {title}",
       "rolesResponsibilities": "Responsibilities",
       "rolesEmpty": "No roles in the catalog yet.",
-      "rolesNoArch": "After running the Architecture Generator, the roles assigned in the RASIC will appear here."
+      "rolesNoArch": "After running the Architecture Generator, the roles assigned in the RASIC will appear here.",
+      "riskMatrixHintTitle": "How do I read the risk matrix?",
+      "riskMatrixHint": "Pick the estimated severity (impact) and the likelihood of occurrence. The cell turns green (low), amber (medium) or red (high risk) — the higher both are, the more urgent your mitigations."
     },
     "architecture": {
       "title": "Architecture Generator",

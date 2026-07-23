@@ -27,6 +27,7 @@ interface DbPolicyTemplate {
   display_order: number
 }
 import { InfoHint } from '@/components/shared/InfoHint'
+import { CardTitle } from '@/components/shared/typography'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
 import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import type { CatalogRole } from '@/types'
@@ -468,9 +469,14 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {/* ── RISIKOMATRIX ── */}
       {tab === 'matrix' && (
         <div role="tabpanel" id="panel-matrix" aria-labelledby="tab-matrix">
-          <p className="text-sm text-ink-muted mb-5">
-            {t('compliance.riskMatrixIntro')}
-          </p>
+          <div className="flex items-start gap-2 mb-5">
+            <p className="text-sm text-ink-muted min-w-0">
+              {t('compliance.riskMatrixIntro')}
+            </p>
+            <InfoHint title={t('compliance.riskMatrixHintTitle')} side="bottom" className="mt-0.5 shrink-0">
+              <p>{t('compliance.riskMatrixHint')}</p>
+            </InfoHint>
+          </div>
           <RiskMatrixSelector
             value={getRiskMatrixPos()}
             onChange={({ impact, probability }) => setRiskMatrixPos(impact, probability)}
@@ -593,7 +599,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
             <section key={tpl.id} aria-labelledby={`tpl-${tpl.id}`} className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
-                  <h2 id={`tpl-${tpl.id}`} className="text-sm font-semibold text-ink">{tpl.title}</h2>
+                  <CardTitle as="h2" id={`tpl-${tpl.id}`}>{tpl.title}</CardTitle>
                   <p className="text-xs text-ink-subtle mt-0.5">{tpl.subtitle}</p>
                 </div>
                 <button
@@ -678,7 +684,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
               <div key={reg.id} className="border border-line rounded-2xl p-4 sm:p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <h3 className="text-sm font-semibold text-ink truncate">{pick(reg.label, locale)}</h3>
+                    <CardTitle className="truncate">{pick(reg.label, locale)}</CardTitle>
                     <InfoHint title={pick(reg.label, locale)} side="bottom">
                       <p>{pick(reg.description, locale)}</p>
                       <p className="mt-1.5"><strong>{t('compliance.appliesTo')}</strong> {pick(reg.applicability, locale)}</p>

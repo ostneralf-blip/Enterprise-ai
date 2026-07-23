@@ -598,7 +598,9 @@
       "rolesUsedBadge": "✓ In Architektur belegt · {title}",
       "rolesResponsibilities": "Aufgaben",
       "rolesEmpty": "Noch keine Rollen im Katalog hinterlegt.",
-      "rolesNoArch": "Nach dem Ausführen des Architektur-Generators erscheint hier, welche Rollen in der RASIC belegt sind."
+      "rolesNoArch": "Nach dem Ausführen des Architektur-Generators erscheint hier, welche Rollen in der RASIC belegt sind.",
+      "riskMatrixHintTitle": "Wie lese ich die Risikomatrix?",
+      "riskMatrixHint": "Wählen Sie die geschätzte Schadenshöhe (Auswirkung) und die Eintrittswahrscheinlichkeit. Das Feld färbt sich grün (geringes), gelb (mittleres) oder rot (hohes Risiko) — je höher beides, desto dringlicher sind Gegenmaßnahmen."
     },
     "architecture": {
       "title": "Architektur-Generator",
