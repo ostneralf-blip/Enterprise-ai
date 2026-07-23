@@ -188,5 +188,12 @@ Legende: ✓ vorhanden · (n) Anzahl · — Adoptions-/Lücken-Kandidat für den
 3. Fehlende InfoHints aus der Inventur (9.4, Spalte „Lücken-Kandidaten") ergänzen, Texte in i18n.
 4. Screenshot-Serie vorher/nachher (1440/375) + Freigabe Daniel.
 
-**Sweep-Fortschritt:** E4-Box-Konsolidierung abgeschlossen (eine Box-Komponente). E3-Adoption
-+ E1-Lückenfüllung folgen inkrementell, je mit Screenshot-Abnahme.
+**Sweep-Fortschritt (Stand 23.07.2026):**
+- ✅ **E4** Box-Konsolidierung: HintBox entfernt, AlertBox einzige Box.
+- ✅ **E3** Titel-Adoption: Compliance, Architektur, Governance, Roadmap nutzen
+  `CardTitle`/`SectionTitle`. Canvas/Use-Case waren bereits konform; Assessment nutzt
+  bewusst Serif-Seitentitel (PageHeader-Ebene). Titel-Sweep abgeschlossen.
+- 🔶 **E1** InfoHint-Lücken: Compliance-Risikomatrix ergänzt. Verbleibende
+  Inventur-Kandidaten (RASIC-Zellen, Landkarten-Badges, Canvas-Erkennungs-Badges,
+  Use-Case-Score-Zellen) sind **Design-Entscheidungen** (ein „?" dort kann auch
+  überladen) — bewusst offen für Daniels Einzelfall-Freigabe, kein Blindausbau.
