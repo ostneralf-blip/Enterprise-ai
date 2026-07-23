@@ -771,6 +771,13 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                             )}>
                               {pick(item.label, locale)}
                             </p>
+                            {item.description && <p className="text-xs text-ink-subtle mt-0.5">{pick(item.description, locale)}</p>}
+                            {item.relevance && (
+                              <p className="text-xs text-warning-text bg-warning-subtle rounded px-2 py-1 mt-1.5">
+                                {t('compliance.whyRelevant')} {pick(item.relevance, locale)}
+                              </p>
+                            )}
+                            <ItemSource item={item} />
                           </div>
                         </div>
                       </li>
