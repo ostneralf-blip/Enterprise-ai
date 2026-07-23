@@ -878,7 +878,12 @@
       "decisionAnalyzeCta": "◆ Analyze for this view",
       "conflictShowAlt": "Show alternative",
       "conflictHideAlt": "Hide alternative",
-      "conflictAlternatives": "Alternatives"
+      "conflictAlternatives": "Alternatives",
+      "workbenchInfoTitle": "What is the Technical Architecture Workbench?",
+      "workbenchInfo": "A manual tool to refine the generated architecture: add or remove components from the catalog, maintain owners and operations notes per component, and adjust the architecture diagram. Your changes flow into saving, export and the map.",
+      "resultOverviewEyebrow": "Overview",
+      "resultOverviewHintTitle": "How is this result structured?",
+      "resultOverviewHint": "At the top you switch between management and technical view and the level of detail. Below you find the AI assessment, the reference architecture with its map, plus cost, decision and RASIC cards. At the very bottom sits the \"Technical Architecture Workbench\" — a manual tool to add components yourself, adjust the diagram and search the catalog."
     },
     "roadmap": {
       "title": "Roadmap Generator",

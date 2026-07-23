@@ -878,7 +878,12 @@
       "decisionAnalyzeCta": "◆ Für diese Sicht analysieren",
       "conflictShowAlt": "Alternative anzeigen",
       "conflictHideAlt": "Alternative ausblenden",
-      "conflictAlternatives": "Alternativen"
+      "conflictAlternatives": "Alternativen",
+      "workbenchInfoTitle": "Was ist die Technical Architecture Workbench?",
+      "workbenchInfo": "Ein manuelles Werkzeug, um die generierte Architektur zu verfeinern: Komponenten aus dem Katalog hinzufügen oder entfernen, Owner und Betriebsnotizen je Komponente pflegen und das Architektur-Diagramm anpassen. Ihre Änderungen fließen in Speichern, Export und Landkarte ein.",
+      "resultOverviewEyebrow": "Überblick",
+      "resultOverviewHintTitle": "Wie ist dieses Ergebnis aufgebaut?",
+      "resultOverviewHint": "Oben schalten Sie zwischen Management- und Technik-Sicht sowie der Detailtiefe um. Darunter finden Sie die KI-Einordnung, die Referenzarchitektur mit Landkarte sowie Kosten-, Entscheidungs- und RASIC-Karten. Ganz unten steht die „Technical Architecture Workbench\" — ein manuelles Werkzeug, mit dem Sie Komponenten selbst hinzufügen, das Diagramm anpassen und den Katalog durchsuchen."
     },
     "roadmap": {
       "title": "Roadmap-Generator",

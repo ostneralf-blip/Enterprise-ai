@@ -8,7 +8,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import { InfoHint } from '@/components/shared/InfoHint'
-import { CardTitle, SectionTitle } from '@/components/shared/typography'
+import { CardTitle, SectionTitle, Eyebrow } from '@/components/shared/typography'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
@@ -1075,6 +1075,15 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           savedId={savedId}
           locale={locale}
         />
+
+        {/* Überblick über den Aufbau des Ergebnisses (#205 E1) — erklärt die Karten
+            und weist auf die manuelle Workbench weiter unten hin. */}
+        <div className="flex items-center gap-2">
+          <Eyebrow>{t('architecture.resultOverviewEyebrow')}</Eyebrow>
+          <InfoHint title={t('architecture.resultOverviewHintTitle')} side="bottom">
+            <p>{t('architecture.resultOverviewHint')}</p>
+          </InfoHint>
+        </div>
 
         <UnifiedContextBanner
           assessmentContext={assessmentContext}

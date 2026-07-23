@@ -9,6 +9,7 @@ import type { CatalogRecommendations } from '@/config/architecture-rules'
 import type { WizardAnswers } from '@/config/architecture-data'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { explainConflict } from '@/lib/utils/catalog-compatibility'
+import { InfoHint } from '@/components/shared/InfoHint'
 
 type Tab = 'komponenten' | 'diagramm' | 'katalog'
 const LS_OPEN = 'arch_workbench_open_v1'
@@ -105,26 +106,34 @@ export function ArchitectureWorkbench({
 
   return (
     <div id="architecture-workbench" className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-      <button
-        onClick={handleToggle}
-        className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
-        aria-expanded={open}
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">{t('workbenchTitle')}</span>
-          <span className="text-xs text-slate-400 truncate">
-            {effective.size} {t('workbenchSummaryComponents')}
-            {openSuggestions.length > 0 && ` · ${t('workbenchSummarySuggestions', { count: openSuggestions.length })}`}
-            {conflicts.length > 0 && ` · ${t('workbenchSummaryConflicts', { count: conflicts.length })}`}
-          </span>
-          {hasBadge && (
-            <span className="shrink-0 text-[10px] font-bold text-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] px-1.5 py-0.5 rounded">◆</span>
-          )}
+      {/* InfoHint als Geschwister NEBEN dem Toggle-Button (keine verschachtelten Buttons). */}
+      <div className="flex items-center">
+        <button
+          onClick={handleToggle}
+          className="flex-1 min-w-0 flex items-center justify-between gap-3 pl-4 sm:pl-6 pr-3 py-4 text-left hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-1"
+          aria-expanded={open}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">{t('workbenchTitle')}</span>
+            <span className="text-xs text-slate-400 truncate">
+              {effective.size} {t('workbenchSummaryComponents')}
+              {openSuggestions.length > 0 && ` · ${t('workbenchSummarySuggestions', { count: openSuggestions.length })}`}
+              {conflicts.length > 0 && ` · ${t('workbenchSummaryConflicts', { count: conflicts.length })}`}
+            </span>
+            {hasBadge && (
+              <span className="shrink-0 text-[10px] font-bold text-[color:var(--color-ai)] bg-[color:var(--color-ai-soft)] px-1.5 py-0.5 rounded">◆</span>
+            )}
+          </div>
+          <svg className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div className="shrink-0 pr-4 sm:pr-6">
+          <InfoHint title={t('workbenchInfoTitle')} side="bottom" align="right">
+            <p>{t('workbenchInfo')}</p>
+          </InfoHint>
         </div>
-        <svg className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+      </div>
 
       {open && (
         <>
