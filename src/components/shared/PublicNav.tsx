@@ -18,7 +18,7 @@ export async function PublicNav({ locale }: { locale: string }) {
       </Link>
       <div className="hidden md:flex items-center gap-6 text-sm text-slate-600">
         <Link href={`${prefix}/leitfaden`} className="hover:text-slate-900 transition-colors">{t('navLeitfaden')}</Link>
-        <Link href={`${prefix}/#tools`} className="hover:text-slate-900 transition-colors">{t('navTools')}</Link>
+        <Link href={`${prefix}/tools`} className="hover:text-slate-900 transition-colors">{t('navTools')}</Link>
         <a href={AMAZON_BOOK_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">{t('navBuch')}</a>
         <Link href={`${prefix}/preise`} className="hover:text-slate-900 transition-colors">{t('navPreise')}</Link>
       </div>

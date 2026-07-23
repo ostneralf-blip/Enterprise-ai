@@ -1,10 +1,12 @@
 import type { MetadataRoute } from 'next'
 import { GUIDES } from '@/config/leitfaden-data'
+import { TOOLS } from '@/config/tools-data'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
 const publicRoutes: Array<{ path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'] }> = [
   { path: '',            priority: 1.0, changeFrequency: 'monthly' },
+  { path: '/tools',      priority: 0.9, changeFrequency: 'monthly' },
   { path: '/leitfaden',  priority: 0.9, changeFrequency: 'weekly'  },
   { path: '/preise',     priority: 0.8, changeFrequency: 'monthly' },
   { path: '/trust',      priority: 0.7, changeFrequency: 'monthly' },
@@ -17,6 +19,11 @@ const publicRoutes: Array<{ path: string; priority: number; changeFrequency: Met
   ...GUIDES.map((g) => ({
     path: `/leitfaden/${g.slug}`,
     priority: 0.8,
+    changeFrequency: 'monthly' as MetadataRoute.Sitemap[number]['changeFrequency'],
+  })),
+  ...TOOLS.map((tool) => ({
+    path: `/tools/${tool.slug}`,
+    priority: 0.85,
     changeFrequency: 'monthly' as MetadataRoute.Sitemap[number]['changeFrequency'],
   })),
 ]
