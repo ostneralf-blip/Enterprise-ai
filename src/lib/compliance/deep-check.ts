@@ -11,10 +11,31 @@ import { callLLM } from '@/lib/ai/client'
 // Übernahme läuft über die Admin-Review-UI (#251).
 
 const DeepCheckSchema = z.object({
-  matches: z.boolean(),
+  // 'unklar' ist bewusst erlaubt: Das Modell darf NICHT aus dem Gedächtnis raten,
+  // wenn der Auszug keine Verifikation zulässt (verhindert erfundene Korrekturen).
+  verdict: z.enum(['bestaetigt', 'korrektur', 'unklar']),
   suggested_article: z.string().nullable(),
   note: z.string(),
 })
+
+/**
+ * Schneidet den relevanten Abschnitt um eine Artikel-/Paragraphen-Referenz aus dem
+ * (oft sehr langen) Quelltext. Viele Quellen (z. B. eur-lex) liefern das GANZE Gesetz
+ * — der gesuchte Artikel liegt tief im Text, nicht in den ersten Zeichen. Nicht
+ * auffindbar → null (dann kann nicht verifiziert werden, „unklar" statt Raten).
+ */
+export function extractArticleWindow(text: string, article: string): string | null {
+  const num = article.match(/\d+/)?.[0]
+  if (!num) return null
+  const patterns = /§/.test(article)
+    ? [new RegExp(`§\\s*${num}(?!\\d)`)]
+    : [new RegExp(`Artikel\\s*${num}(?!\\d)`), new RegExp(`Article\\s*${num}(?!\\d)`), new RegExp(`Art\\.?\\s*${num}(?!\\d)`)]
+  let idx = -1
+  for (const p of patterns) { const m = text.search(p); if (m >= 0) { idx = m; break } }
+  if (idx < 0) return null
+  const start = Math.max(0, idx - 200)
+  return text.slice(start, start + 3500)
+}
 
 export interface DeepCheckResult {
   slug: string
@@ -56,28 +77,36 @@ export async function runDeepCheck(regulationSlug: string): Promise<DeepCheckRes
     if (!it.article || !it.source_url) { result.skipped++; continue }
     result.checked++
 
-    const text = await fetchText(it.source_url)
+    const fullText = await fetchText(it.source_url)
+    // Nur den Abschnitt um die Referenz an das LLM geben — nicht die ersten 4000
+    // Zeichen eines ggf. kompletten Gesetzestextes (dort steht der Artikel nie).
+    const excerpt = fullText ? extractArticleWindow(fullText, it.article!) : null
     let status = 'unklar'
     let suggested: string | null = null
     let summary = 'Primärquelle nicht automatisiert abrufbar — Referenz manuell prüfen.'
 
-    if (text) {
-      const prompt = `Du bist Compliance-Analyst. Prüfe, ob die Rechtsreferenz "${it.article}" (Regularie "${regDe.short_label}") inhaltlich zum folgenden Checklistenpunkt passt.
+    if (fullText && !excerpt) {
+      // Quelle abrufbar, aber die Referenz ist darin nicht auffindbar (z. B.
+      // Gesamtdokument ohne Anker / 202-Platzhalterseite) → nicht verifizierbar.
+      summary = `Referenz "${it.article}" im Quelltext nicht auffindbar — manuell prüfen (Quelle evtl. Gesamtdokument ohne Anker).`
+      result.unresolved++
+    } else if (excerpt) {
+      const prompt = `Du bist Compliance-Analyst. Prüfe ANHAND DES AUSZUGS, ob die Rechtsreferenz "${it.article}" (Regularie "${regDe.short_label}") inhaltlich zum Checklistenpunkt passt.
 
 CHECKLISTENPUNKT: ${it.label}
 
 AUSZUG PRIMÄRQUELLE (${it.source_url}):
-${text.slice(0, 4000)}
+${excerpt}
 
 Antworte NUR als JSON ohne Markdown:
-{"matches":<true wenn die Referenz korrekt ist, sonst false>,"suggested_article":<bei false die korrekte Referenz als String, sonst null>,"note":"<max 2 Sätze auf Deutsch, Begründung>"}`
+{"verdict":"bestaetigt" (Referenz laut Auszug korrekt) | "korrektur" (der Auszug belegt eindeutig eine andere/treffendere Referenz) | "unklar" (der Auszug erlaubt keine Verifikation),"suggested_article":<bei "korrektur" die im Auszug belegte Referenz als String, sonst null>,"note":"<max 2 Sätze auf Deutsch>"}
+WICHTIG: Rate NICHT aus dem Gedächtnis. Wenn der Auszug die Frage nicht beantwortet, wähle "unklar".`
       const { data } = await callLLM(prompt, DeepCheckSchema, { model: 'haiku', maxTokens: 300, timeoutMs: 30_000, module: 'compliance' })
       if (data) {
-        status = data.matches ? 'bestaetigt' : 'korrektur_vorgeschlagen'
-        suggested = data.matches ? null : data.suggested_article
         summary = data.note
-        if (data.matches) result.confirmed++
-        else result.corrections++
+        if (data.verdict === 'bestaetigt') { status = 'bestaetigt'; result.confirmed++ }
+        else if (data.verdict === 'korrektur') { status = 'korrektur_vorgeschlagen'; suggested = data.suggested_article; result.corrections++ }
+        else { status = 'unklar'; result.unresolved++ }
       } else {
         result.unresolved++
       }
