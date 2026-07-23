@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { getTool, AMAZON_BOOK_URL, type Bi } from '@/config/tools-data'
 import { getGuide } from '@/config/leitfaden-data'
 import { PublicNav } from '@/components/shared/PublicNav'
+import { getPublicPricing, formatPrice } from '@/lib/pricing'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -66,6 +67,10 @@ export default async function ToolLandingPage({
   const related = tool.relatedGuideSlugs
     .map((s) => getGuide(s))
     .filter((g): g is NonNullable<typeof g> => Boolean(g))
+
+  // Pro-Preis admin-konfigurierbar (price_config / promotions) — kein Hardcode.
+  const pricing = await getPublicPricing()
+  const proPrice = formatPrice(pricing.promotion?.promo_price ?? pricing.monthly, locale)
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -188,7 +193,7 @@ export default async function ToolLandingPage({
               </ul>
             </div>
             <div className="bg-primary-soft border border-primary-border rounded-2xl p-5">
-              <div className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">Pro · €49{isEn ? '/mo' : '/Monat'}</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">Pro · €{proPrice}{isEn ? '/mo' : '/Monat'}</div>
               <ul className="space-y-2">
                 {tool.pro.map((item) => (
                   <li key={p(item)} className="flex gap-2 text-sm text-slate-800">

@@ -5,6 +5,7 @@ import { TIER_CONFIG } from '@/config/tiers'
 import { PublicNav } from '@/components/shared/PublicNav'
 import { PREISE_GALLERY } from '@/config/preise-gallery'
 import { ProductGallery } from '@/components/shared/ProductGallery'
+import { getPublicPricing, formatPrice } from '@/lib/pricing'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -17,11 +18,13 @@ export async function generateMetadata({
   const isEn = locale === 'en'
   const prefix = isEn ? '/en' : ''
   const canonical = `${BASE}${prefix}/preise`
+  const pricing = await getPublicPricing()
+  const price = formatPrice(pricing.promotion?.promo_price ?? pricing.monthly, locale)
   return {
     title: isEn ? 'Pricing & Plans' : 'Preise & Pläne',
     description: isEn
-      ? 'Free Explorer plan vs. Professional at €49/month — compare every tool and feature side by side.'
-      : 'Kostenloser Explorer-Plan vs. Professional für 49 €/Monat — alle Werkzeuge und Funktionen im direkten Vergleich.',
+      ? `Free Explorer plan vs. Professional at €${price}/month — compare every tool and feature side by side.`
+      : `Kostenloser Explorer-Plan vs. Professional für ${price} €/Monat — alle Werkzeuge und Funktionen im direkten Vergleich.`,
     alternates: {
       canonical,
       languages: {
@@ -35,10 +38,6 @@ export async function generateMetadata({
 
 function pick(locale: string, bi: Bi): string {
   return locale === 'en' ? bi.en : bi.de
-}
-
-function formatEuro(cents: number): string {
-  return (cents / 100).toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
 function Cell({ value, note, locale }: { value: PricingRow['free']; note?: Bi; locale: string }) {
@@ -66,9 +65,13 @@ export default async function PreisePage({
   const prefix = isEn ? '/en' : ''
   const p = (bi: Bi) => pick(locale, bi)
 
-  const pro = TIER_CONFIG.pro
-  const monthlyPrice = pro.price ? formatEuro(pro.price.monthly) : '—'
-  const yearlyPrice = pro.price ? formatEuro(pro.price.yearly) : '—'
+  // Preise + optionale Promotion admin-konfigurierbar (price_config / promotions).
+  const pricing = await getPublicPricing()
+  const promo = pricing.promotion
+  const listMonthly = formatPrice(pricing.monthly, locale)
+  const effectiveMonthly = formatPrice(promo?.promo_price ?? pricing.monthly, locale)
+  const yearlyValue = promo?.promo_price_yearly ?? pricing.yearly
+  const yearlyPrice = yearlyValue != null ? formatPrice(yearlyValue, locale) : null
 
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
@@ -85,6 +88,23 @@ export default async function PreisePage({
         </p>
       </div>
 
+      {/* Aktive Promotion (admin-konfigurierbar) */}
+      {promo && (promo.badge_text || promo.description) && (
+        <div className="max-w-3xl mx-auto px-6 mb-8">
+          <div className="rounded-2xl border border-primary-border bg-primary-soft px-5 py-4 flex items-start gap-3">
+            {promo.badge_text && (
+              <span className="shrink-0 bg-primary text-white text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full">
+                {promo.badge_text}
+              </span>
+            )}
+            <div className="min-w-0">
+              {promo.name && <p className="text-sm font-semibold text-slate-900">{promo.name}</p>}
+              {promo.description && <p className="text-xs text-slate-600 leading-relaxed mt-0.5">{promo.description}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plan header cards */}
       <div className="max-w-3xl mx-auto px-6 pb-12">
         <div className="grid sm:grid-cols-2 gap-6">
@@ -98,15 +118,18 @@ export default async function PreisePage({
           </div>
           <div className="bg-primary text-white rounded-2xl p-6 relative">
             <span className="absolute -top-3 left-6 bg-white text-primary text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full">
-              {isEn ? 'Most popular' : 'Am beliebtesten'}
+              {promo?.badge_text ? promo.badge_text : (isEn ? 'Most popular' : 'Am beliebtesten')}
             </span>
             <h2 className="font-semibold text-lg mb-1">{TIER_CONFIG.pro.name}</h2>
             <p className="text-3xl font-bold font-serif mb-1">
-              €{monthlyPrice}<span className="text-base font-normal">/{isEn ? 'mo' : 'Monat'}</span>
+              {promo && <span className="text-lg font-normal line-through text-white/50 mr-2">€{listMonthly}</span>}
+              €{effectiveMonthly}<span className="text-base font-normal">/{isEn ? 'mo' : 'Monat'}</span>
             </p>
-            <p className="text-white/70 text-xs mb-4">
-              {isEn ? `or €${yearlyPrice}/year` : `oder €${yearlyPrice}/Jahr`}
-            </p>
+            {yearlyPrice && (
+              <p className="text-white/70 text-xs mb-4">
+                {isEn ? `or €${yearlyPrice}/year` : `oder €${yearlyPrice}/Jahr`}
+              </p>
+            )}
             <Link href={`${prefix}/register`} className="block text-center bg-white text-primary rounded-xl py-2.5 text-sm font-semibold hover:bg-white/90 transition-colors">
               {isEn ? 'Upgrade to Pro' : 'Auf Pro upgraden'}
             </Link>
