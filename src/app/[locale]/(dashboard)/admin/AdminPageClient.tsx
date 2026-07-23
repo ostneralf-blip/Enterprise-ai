@@ -253,6 +253,10 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number; sources: ScanSourceResult[] } | null>(null)
   const [showArchive, setShowArchive] = useState(false)
   const [sourceSnapshots, setSourceSnapshots] = useState<SourceScanStatus[]>(initialSourceSnapshots)
+  // Deep-Check (#250): Fakten-Abgleich einer Regularie gegen die Primärquelle.
+  const [deepSlug, setDeepSlug] = useState('lksg')
+  const [deepChecking, setDeepChecking] = useState(false)
+  const [deepResult, setDeepResult] = useState<{ slug: string; checked: number; confirmed: number; corrections: number; unresolved: number; skipped: number } | null>(null)
   // „Jetzt" einmalig beim Mount (Staleness der Scan-Quellen, #248) — reine State-Init
   // statt Date.now() im Render (react-hooks/purity).
   const [nowMs] = useState(() => Date.now())
@@ -654,6 +658,26 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     })
     if (res.ok) {
       setDrafts(prev => prev.map(d => d.id === id ? { ...d, review_status: status } : d))
+    }
+  }
+
+  // Deep-Check (#250): Fakten-Abgleich einer Regularie anstoßen.
+  async function runDeepCheck() {
+    setDeepChecking(true); setDeepResult(null)
+    try {
+      const res = await fetch('/api/admin/compliance/deep-check', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: deepSlug }),
+      })
+      if (!res.ok) throw new Error('Deep-Check fehlgeschlagen')
+      const { result } = await res.json()
+      setDeepResult(result)
+      // Neue Deep-Check-Drafts nachladen.
+      const draftsRes = await fetch('/api/admin/compliance/drafts')
+      if (draftsRes.ok) { const { data } = await draftsRes.json() as { data: ComplianceSourceDraft[] }; setDrafts(data ?? []) }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setDeepChecking(false)
     }
   }
 
@@ -2278,7 +2302,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               <div>
                 <p className="text-sm font-medium text-ink-secondary">Regulatorische Quellenüberwachung</p>
                 <p className="text-xs text-ink-muted mt-0.5">
-                  5 Primärquellen · Änderungserkennung per SHA-256-Hash · Nie automatisch publiziert.
+                  4 Primärquellen · Änderungserkennung per SHA-256-Hash · Nie automatisch publiziert.
                 </p>
               </div>
               <button
@@ -2325,6 +2349,33 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             </div>
           </div>
 
+          {/* Deep-Check: Fakten-Abgleich einer Regularie (#250) */}
+          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-b border-line-subtle">
+              <div>
+                <p className="text-sm font-medium text-ink-secondary">Fakten-Abgleich (Deep-Check)</p>
+                <p className="text-xs text-ink-muted mt-0.5">
+                  Prüft je Checklistenpunkt, ob die Rechtsreferenz noch zur Primärquelle passt (LLM + Quelltext). Ergebnisse als Entwürfe unten — nie automatisch übernommen.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select value={deepSlug} onChange={e => setDeepSlug(e.target.value)}
+                  className="border border-line-strong rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring">
+                  {['dsgvo', 'eu_ai_act', 'iso_42001', 'nis2', 'iso_27001', 'bait', 'lksg', 'bdsg'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <button onClick={runDeepCheck} disabled={deepChecking}
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 whitespace-nowrap">
+                  {deepChecking ? 'Prüfe…' : 'Deep-Check starten'}
+                </button>
+              </div>
+            </div>
+            {deepResult && (
+              <div className="px-4 py-2.5 text-xs text-ink-secondary">
+                <span className="font-medium">{deepResult.slug}</span>: {deepResult.checked} geprüft · {deepResult.confirmed} bestätigt · {deepResult.corrections} Korrektur(en) · {deepResult.unresolved} unklar · {deepResult.skipped} übersprungen (ohne Referenz/Quelle)
+              </div>
+            )}
+          </div>
+
           {/* Scan-Ergebnis + Log */}
           {scanResult && (
             <div className="bg-success-subtle border border-success-border rounded-xl overflow-hidden">
@@ -2369,15 +2420,25 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             draft.status_estimate === 'final'   && 'bg-error-subtle border-error-border text-error-text',
                             draft.status_estimate === 'entwurf' && 'bg-warning-subtle border-warning-border text-warning-text',
                             draft.status_estimate === 'unklar'  && 'bg-surface-raised border-line text-ink-secondary',
+                            draft.status_estimate === 'bestaetigt' && 'bg-success-subtle border-success-border text-success-text',
+                            draft.status_estimate === 'korrektur_vorgeschlagen' && 'bg-warning-subtle border-warning-border text-warning-text',
                           )}>
                             {draft.status_estimate}
                           </span>
+                          {draft.checklist_item_id && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-semibold border border-primary-border text-primary bg-primary-soft rounded-full flex-shrink-0">Fakten-Abgleich</span>
+                          )}
                           <span className="text-sm font-medium text-ink min-w-0">{draft.source_label}</span>
                           <span className="text-xs text-ink-subtle ml-auto flex-shrink-0">
                             {new Date(draft.scanned_at).toLocaleDateString('de-DE')}
                           </span>
                         </div>
                         <p className="text-sm text-ink-secondary">{draft.summary}</p>
+                        {draft.suggested_value && (
+                          <p className="text-xs text-warning-text bg-warning-subtle border border-warning-border rounded-lg px-2.5 py-1.5">
+                            Korrekturvorschlag: <span className="font-semibold">{draft.suggested_value}</span> — „Berücksichtigt" schreibt diesen Wert in den Checklistenpunkt.
+                          </p>
+                        )}
                         <div className="flex gap-2">
                           <button
                             onClick={() => reviewDraft(draft.id, 'beruecksichtigt')}

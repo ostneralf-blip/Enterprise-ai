@@ -322,9 +322,13 @@ export interface ComplianceSourceDraft {
   source_url: string
   source_label: string
   summary: string
-  status_estimate: 'final' | 'entwurf' | 'unklar'
+  // 'bestaetigt' / 'korrektur_vorgeschlagen' sind Deep-Check-Ergebnisse (#249/#250).
+  status_estimate: 'final' | 'entwurf' | 'unklar' | 'bestaetigt' | 'korrektur_vorgeschlagen'
   review_status: 'pending_review' | 'beruecksichtigt' | 'ignoriert'
   scanned_at: string
   reviewed_at: string | null
   reviewed_by: string | null
+  // Fakten-Abgleich (#250): gesetzt = Deep-Check-Draft zu einem Checklistenpunkt.
+  checklist_item_id?: string | null
+  suggested_value?: string | null
 }

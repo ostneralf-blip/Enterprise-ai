@@ -41,5 +41,25 @@ export async function PATCH(request: Request) {
     .select()
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // #251: Freigabe eines Deep-Check-Drafts (checklist_item_id gesetzt) mit
+  // Korrekturvorschlag → den vorgeschlagenen Wert in den Checklistenpunkt
+  // schreiben (beide Locale-Zeilen) und last_verified auf heute setzen.
+  const draft = data as { checklist_item_id: string | null; suggested_value: string | null } | null
+  if (parsed.data.review_status === 'beruecksichtigt' && draft?.checklist_item_id && draft.suggested_value) {
+    const { data: item } = await supabase
+      .from('compliance_checklist_items').select('item_key, regulation_id').eq('id', draft.checklist_item_id).single() as { data: { item_key: string; regulation_id: string } | null }
+    if (item) {
+      const { data: reg } = await supabase.from('compliance_regulations').select('slug').eq('id', item.regulation_id).single() as { data: { slug: string } | null }
+      if (reg) {
+        const { data: regIds } = await supabase.from('compliance_regulations').select('id').eq('slug', reg.slug)
+        const ids = (regIds ?? []).map((r: { id: string }) => r.id)
+        await supabase.from('compliance_checklist_items')
+          .update({ article: draft.suggested_value, last_verified: new Date().toISOString().slice(0, 10) })
+          .in('regulation_id', ids).eq('item_key', item.item_key)
+      }
+    }
+  }
+
   return NextResponse.json({ data })
 }
