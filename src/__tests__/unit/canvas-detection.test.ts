@@ -173,10 +173,18 @@ describe('analyzeCanvas — Regression SAP-SuccessFactors-HR-Canvas', () => {
     expect(result.filledCount).toBe(8)
   })
 
-  it('erkennt BDSG bei Beschäftigtendaten und Scoring', () => {
+  it('erkennt BDSG bei Beschäftigtendaten und Scoring (Fallback ohne DB-Trigger)', () => {
     // makeCanvas-Basis ist bereits ein HR-Canvas → BDSG-Signal aus Beschäftigungsbezug.
     const BDSG = 'BDSG (Beschäftigtendaten / Scoring) relevant'
     expect(analyzeCanvas(makeCanvas({}, 'KI zur Bewerberauswahl und Leistungsbeurteilung von Mitarbeitern')).compliance).toContain(BDSG)
     expect(analyzeCanvas(makeCanvas({}, 'Automatisiertes Kredit-Scoring zur Bonitätsprüfung')).compliance).toContain(BDSG)
+  })
+
+  it('DB-getriebene Erkennung: übergebene Trigger steuern die Reg-Anzeige und ersetzen den Hardcode', () => {
+    const triggers = [{ label: 'LkSG relevant', keywords: ['lieferkette', 'sorgfaltspflicht'] }]
+    const res = analyzeCanvas(makeCanvas({}, 'KI zur Prüfung der Lieferkette und Sorgfaltspflicht'), undefined, triggers)
+    expect(res.compliance).toContain('LkSG relevant')
+    // Im DB-Modus greift der Hardcode-Fallback NICHT — nur konfigurierte Trigger zählen.
+    expect(res.compliance).not.toContain('DSGVO relevant')
   })
 })

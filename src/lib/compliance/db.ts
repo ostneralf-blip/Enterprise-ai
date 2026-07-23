@@ -148,3 +148,37 @@ export async function getRegulationSlugs(): Promise<string[]> {
   const { data } = await supabase.from('compliance_regulations').select('slug').eq('locale', 'de').eq('is_published', true)
   return [...new Set((data ?? []).map((r: { slug: string }) => r.slug))]
 }
+
+export interface ComplianceTrigger {
+  slug: string
+  label: { de: string; en: string }
+  keywords: string[]
+}
+
+/**
+ * Trigger-Keywords je (published) Regularie für die DB-getriebene Compliance-
+ * Erkennung in Canvas + Architektur. Kombiniert die Keywords beider Locale-Zeilen,
+ * kleingeschrieben. label = short_label je Locale (Anzeige „<label> relevant").
+ * Regularien ohne Keywords entfallen (keine Fehl-Erkennung ohne konfigurierte Trigger).
+ */
+export const getComplianceTriggers = cache(async (): Promise<ComplianceTrigger[]> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('compliance_regulations')
+    .select('slug, locale, short_label, trigger_keywords, display_order')
+    .eq('is_published', true)
+    .order('display_order')
+  const rows = (data ?? []) as { slug: string; locale: string; short_label: string; trigger_keywords: string[] | null; display_order: number }[]
+  const bySlug = new Map<string, ComplianceTrigger & { order: number }>()
+  for (const r of rows) {
+    let t = bySlug.get(r.slug)
+    if (!t) { t = { slug: r.slug, label: { de: r.short_label, en: r.short_label }, keywords: [], order: r.display_order }; bySlug.set(r.slug, t) }
+    if (r.locale === 'de') t.label.de = r.short_label
+    if (r.locale === 'en') t.label.en = r.short_label
+    for (const k of r.trigger_keywords ?? []) { const kl = k.toLowerCase().trim(); if (kl && !t.keywords.includes(kl)) t.keywords.push(kl) }
+  }
+  return [...bySlug.values()]
+    .filter(t => t.keywords.length > 0)
+    .sort((a, b) => a.order - b.order)
+    .map(({ order: _order, ...t }) => t)
+})

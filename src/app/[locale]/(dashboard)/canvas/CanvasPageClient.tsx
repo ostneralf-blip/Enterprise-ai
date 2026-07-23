@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
-import { analyzeCanvas } from '@/lib/canvas/detection'
+import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
 import { detectAiActDomain, classifyAiAct, generateDocumentationText } from '@/lib/eu-ai-act/classifier'
 import type { AiActAnswers, AiActAssessment } from '@/lib/eu-ai-act/classifier'
 import { InfoHint } from '@/components/shared/InfoHint'
@@ -116,9 +116,10 @@ const ARCHETYPE_BTNS: { id: Archetype; label: string }[] = [
 interface Props {
   initialCanvases: Canvas[]
   tier: Tier
+  complianceTriggers?: ComplianceTriggerDisplay[]
 }
 
-export function CanvasPageClient({ initialCanvases, tier }: Props) {
+export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: Props) {
   const t = useTranslations('modules')
   const tAi = useTranslations('ai')
   const locale = useLocale()
@@ -139,8 +140,8 @@ export function CanvasPageClient({ initialCanvases, tier }: Props) {
   }, [])
 
   const insights = useMemo(
-    () => active ? analyzeCanvas(active, Object.keys(extraAliases).length ? extraAliases : undefined) : null,
-    [active, extraAliases],
+    () => active ? analyzeCanvas(active, Object.keys(extraAliases).length ? extraAliases : undefined, complianceTriggers) : null,
+    [active, extraAliases, complianceTriggers],
   )
   const [catalogSuggestions, setCatalogSuggestions] = useState<Array<{ name: string; architecture_layer: string | null }> | null>(null)
   const [aiUsage, setAiUsage] = useState<{ remaining: number; used: number; limit: number; exceeded: boolean } | null>(null)

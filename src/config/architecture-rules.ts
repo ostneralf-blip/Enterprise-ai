@@ -515,7 +515,7 @@ export function runEamValidation(
 // ─── CROSS-MODULE DECISIONS ───────────────────────────────────────────────────
 interface CrossModuleContext {
   assessment?: { archetype: string | null; total_score: number; dim_scores: Record<string, number> } | null
-  canvas?: { canvas: { title: string }; useCase: { name: string; quadrant?: string } } | null
+  canvas?: { canvas: { title: string }; useCase: { name: string; quadrant?: string }; compliance?: string[] } | null
   governance?: { use_case_name: string | null; result: string | null } | null
   roadmap?: { title: string; phasesCount: number } | null
 }
@@ -552,11 +552,12 @@ export function generateCrossModuleDecisions(ctx: CrossModuleContext): { de: str
     items.push({ de: `Governance-Check zeigt erhöhtes Risiko für "${name}" — Compliance-Anforderungen in Architektur-Design einbeziehen, nicht nachträglich ergänzen`, en: `Governance check flags elevated risk for "${name}" — embed compliance requirements in the architecture design upfront, not as an afterthought` })
   }
 
-  // BDSG-Relevanz aus dem Use-Case-Kontext (Beschäftigtendaten/Scoring) — das
-  // deutsche BDSG konkretisiert die DSGVO. Signal aus Canvas-/Governance-Use-Case-Namen.
-  const ctxNames = `${ctx.canvas?.useCase.name ?? ''} ${ctx.governance?.use_case_name ?? ''}`
-  if (/beschäftigt|mitarbeiter|arbeitnehmer|bewerber|recruiting|human resources|\bhr\b|personal(akte|daten|verwaltung)|leistungsbeurteilung|\bscoring\b|bonität|kreditwürdig/i.test(ctxNames)) {
-    items.push({ de: 'BDSG in der Architektur berücksichtigen — der Use-Case berührt Beschäftigtendaten oder Scoring: §§ 26/31 BDSG konkretisieren die DSGVO. Menschliche Kontrolle, Zweckbindung und Protokollierung von Anfang an einplanen.', en: 'Factor the BDSG into the architecture — the use case touches employee data or scoring: §§ 26/31 BDSG specify the GDPR. Plan human oversight, purpose limitation and logging in from the start.' })
+  // DB-getriebene Compliance-Signale aus dem verknüpften Canvas (Trigger-Keywords je
+  // Regularie, gepflegt im Admin-Panel) — im Architektur-Design früh verankern statt
+  // nachrüsten. Neue Regularien fließen automatisch ein, ohne Code-Änderung.
+  if (ctx.canvas?.compliance && ctx.canvas.compliance.length) {
+    const list = ctx.canvas.compliance.join(', ')
+    items.push({ de: `Compliance-Anforderungen aus dem Canvas (${list}) früh im Architektur-Design verankern — Kontrollen, Datenhaltung und Protokollierung von Anfang an einplanen, nicht nachträglich ergänzen.`, en: `Anchor the compliance requirements from the canvas (${list}) early in the architecture design — plan controls, data handling and logging from the start, not as a retrofit.` })
   }
 
   if (ctx.roadmap && ctx.roadmap.phasesCount > 0) {

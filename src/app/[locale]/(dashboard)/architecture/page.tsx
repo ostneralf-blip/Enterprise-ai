@@ -5,7 +5,8 @@ import { hasAccess } from '@/lib/utils/tier-check'
 import { ArchitecturePageClient } from './ArchitecturePageClient'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { getComplianceTriggers } from '@/lib/compliance/db'
 import type { Tier, Archetype, CanvasSynonym } from '@/types'
 import type { Metadata } from 'next'
 
@@ -17,7 +18,12 @@ export default async function ArchitecturePage({
 }: {
   searchParams: Promise<{ from?: string; id?: string }>
 }) {
-  const [supabase, t] = await Promise.all([createClient(), getTranslations('modules')])
+  const [supabase, t, locale, triggers] = await Promise.all([
+    createClient(), getTranslations('modules'), getLocale(), getComplianceTriggers(),
+  ])
+  // DB-getriebene Compliance-Erkennung (dieselben Trigger wie im Canvas).
+  const loc = locale === 'en' ? 'en' : 'de'
+  const complianceTriggers = triggers.map(tr => ({ label: `${tr.label[loc]} relevant`, keywords: tr.keywords }))
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -159,6 +165,7 @@ export default async function ArchitecturePage({
         compliancePreset={riskClassNote ? compliancePreset : undefined}
         tier={tier}
         canvasContext={canvasContext}
+        complianceTriggers={complianceTriggers}
         roadmapContext={roadmapContext}
         synonyms={(synonyms ?? []) as CanvasSynonym[]}
         rolesCatalog={(rolesCatalog ?? []) as { role_name: string; role_category: string | null; description: string | null; responsibilities: string[] | null; raci_activities: { activity: string; type: string }[] | null }[]}

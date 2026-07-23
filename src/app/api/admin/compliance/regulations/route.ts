@@ -24,6 +24,9 @@ const RegulationSchema = z.object({
   category: z.enum(['gesetz', 'standard', 'aufsichtsrecht']),
   display_order: z.number().int().min(0).default(0),
   is_published: z.boolean().default(true),
+  // Trigger-Keywords für die DB-getriebene Erkennung in Canvas/Architektur.
+  // Regularie-Ebene (gilt für beide Locale-Zeilen); leer = keine Auto-Erkennung.
+  trigger_keywords: z.array(z.string().min(1).max(80)).max(60).default([]),
   de: LocaleReg,
   en: LocaleReg,
 })
@@ -118,6 +121,7 @@ export async function GET() {
       category: base.category,
       display_order: base.display_order ?? 0,
       is_published: base.is_published ?? true,
+      trigger_keywords: (base.trigger_keywords as string[] | null) ?? [],
       de: de ? { short_label: de.short_label, label: de.label, description: de.description ?? null, applicability: de.applicability ?? null } : null,
       en: en ? { short_label: en.short_label, label: en.label, description: en.description ?? null, applicability: en.applicability ?? null } : null,
       itemCount: itemsOut.length,
@@ -144,6 +148,7 @@ export async function POST(req: Request) {
       short_label: d[loc].short_label, label: d[loc].label,
       description: d[loc].description ?? null, applicability: d[loc].applicability ?? null,
       display_order: d.display_order, is_published: d.is_published,
+      trigger_keywords: d.trigger_keywords,
     }))
     const { error } = await supabase.from('compliance_regulations').upsert(rows, { onConflict: 'slug,locale' })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

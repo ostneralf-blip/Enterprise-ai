@@ -281,7 +281,14 @@ export function mergeAliases(
   return result
 }
 
-export function analyzeCanvas(canvas: Canvas, extraAliases?: Record<string, string[]>): CanvasDetectionResult {
+/** DB-getriebene Regularie: Anzeige-Label (bereits lokalisiert) + Trigger-Keywords. */
+export interface ComplianceTriggerDisplay { label: string; keywords: string[] }
+
+export function analyzeCanvas(
+  canvas: Canvas,
+  extraAliases?: Record<string, string[]>,
+  triggers?: ComplianceTriggerDisplay[],
+): CanvasDetectionResult {
   const text = buildDetectionText(canvas)
   const aliases = extraAliases ? mergeAliases(VENDOR_ALIASES, extraAliases) : VENDOR_ALIASES
   const platform = detectPlatformTags(text, aliases)
@@ -289,25 +296,33 @@ export function analyzeCanvas(canvas: Canvas, extraAliases?: Record<string, stri
   const complianceFlags = detectCompliance(text)
   const hasDocumentContext = detectDocumentContext(text)
 
-  // Compliance → display strings (kompatibel mit normalizeComplianceFlag in CanvasPageClient)
+  // Compliance → display strings (kompatibel mit normalizeComplianceFlag in CanvasPageClient).
+  // DB-getrieben, wenn `triggers` übergeben werden (Canvas-Seite lädt sie aus
+  // compliance_regulations): jede Regularie mit passendem Trigger-Keyword erscheint
+  // automatisch — neue Regularien brauchen keinen Code. Ohne `triggers` (Unit-Tests,
+  // Legacy-Aufrufer): hardcodierter Fallback, der die bisherige Erkennung 1:1 abbildet.
   const complianceDisplay: string[] = []
-  if (complianceFlags.includes('dsgvo_strict')) complianceDisplay.push('DSGVO relevant')
-  if (complianceFlags.includes('eu_ai_act_high')) complianceDisplay.push('EU AI Act relevant')
+  if (triggers && triggers.length) {
+    const lower = text.toLowerCase()
+    for (const tr of triggers) if (tr.keywords.some(k => lower.includes(k))) complianceDisplay.push(tr.label)
+  } else {
+    if (complianceFlags.includes('dsgvo_strict')) complianceDisplay.push('DSGVO relevant')
+    if (complianceFlags.includes('eu_ai_act_high')) complianceDisplay.push('EU AI Act relevant')
+    if (/iso.?27001|isms|informationssicherheit|soc.?2|pentest/i.test(text))
+      complianceDisplay.push('ISO 27001 / IT-Sicherheit relevant')
+    if (/nis.?2|kritis|kritische infrastruktur/i.test(text))
+      complianceDisplay.push('NIS2 / KRITIS relevant')
+    // BDSG konkretisiert die DSGVO bei Beschäftigtendaten (§ 26) und Scoring (§ 31).
+    if (/beschäftigt|mitarbeiter|arbeitnehmer|bewerber|recruiting|human resources|\bhr\b|personalakte|personaldaten|personalverwaltung|leistungsbeurteilung|mitarbeiterüberwachung/i.test(text)
+        || /\bscoring\b|bonität|kreditwürdig|schufa/i.test(text))
+      complianceDisplay.push('BDSG (Beschäftigtendaten / Scoring) relevant')
+  }
+  // Canvas-Heuristiken OHNE gepflegte Regularie (keine DB-Entsprechung) — immer, beide Modi:
   if (complianceFlags.includes('eu_hosting_required')) complianceDisplay.push('EU-Hosting / Datensouveränität')
-  // Extended compliance from canvas text (analog zu analyzeCanvasData)
-  if (/iso.?27001|isms|informationssicherheit|soc.?2|pentest/i.test(text))
-    complianceDisplay.push('ISO 27001 / IT-Sicherheit relevant')
-  if (/nis.?2|kritis|kritische infrastruktur/i.test(text))
-    complianceDisplay.push('NIS2 / KRITIS relevant')
   if (/gesundheit|patientendaten|medizin|klinik|hipaa|\bmdr\b/i.test(text))
     complianceDisplay.push('Gesundheitsdaten / MDR relevant')
   if (/finanz|banking|zahlungs|psd2|mifid|bafin/i.test(text))
     complianceDisplay.push('Finanzregulierung relevant')
-  // BDSG (deutsches Datenschutzrecht) — konkretisiert die DSGVO bei Beschäftigten-
-  // daten (§ 26) und Scoring (§ 31). Signal aus Beschäftigungs-/HR- bzw. Scoring-Bezug.
-  if (/beschäftigt|mitarbeiter|arbeitnehmer|bewerber|recruiting|human resources|\bhr\b|personalakte|personaldaten|personalverwaltung|leistungsbeurteilung|mitarbeiterüberwachung/i.test(text)
-      || /\bscoring\b|bonität|kreditwürdig|schufa/i.test(text))
-    complianceDisplay.push('BDSG (Beschäftigtendaten / Scoring) relevant')
 
   const filledCount = Object.values(canvas.data).filter(v => v?.trim()).length
 

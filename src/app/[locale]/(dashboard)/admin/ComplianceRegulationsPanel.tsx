@@ -14,6 +14,7 @@ interface Item {
 }
 interface Regulation {
   slug: string; category: string; display_order: number; is_published: boolean
+  trigger_keywords: string[]
   de: RegLocale | null; en: RegLocale | null; itemCount: number; items: Item[]
 }
 
@@ -22,6 +23,7 @@ const RISK_CLASSES = ['', 'prohibited', 'high', 'limited', 'minimal'] as const
 
 const emptyRegForm = () => ({
   slug: '', category: 'gesetz' as string, display_order: 0, is_published: true,
+  trigger_keywords: '',
   de: { short_label: '', label: '', description: '', applicability: '' },
   en: { short_label: '', label: '', description: '', applicability: '' },
 })
@@ -88,6 +90,7 @@ export function ComplianceRegulationsPanel() {
     setRegFormMode('edit')
     setRegForm({
       slug: reg.slug, category: reg.category, display_order: reg.display_order, is_published: reg.is_published,
+      trigger_keywords: (reg.trigger_keywords ?? []).join(', '),
       de: { short_label: reg.de?.short_label ?? '', label: reg.de?.label ?? '', description: reg.de?.description ?? '', applicability: reg.de?.applicability ?? '' },
       en: { short_label: reg.en?.short_label ?? '', label: reg.en?.label ?? '', description: reg.en?.description ?? '', applicability: reg.en?.applicability ?? '' },
     })
@@ -105,7 +108,7 @@ export function ComplianceRegulationsPanel() {
   async function toggleRegPublish(reg: Regulation) {
     await post({
       kind: 'regulation', slug: reg.slug, category: reg.category, display_order: reg.display_order,
-      is_published: !reg.is_published,
+      is_published: !reg.is_published, trigger_keywords: reg.trigger_keywords ?? [],
       de: reg.de ?? { short_label: reg.slug, label: reg.slug, description: null, applicability: null },
       en: reg.en ?? { short_label: reg.slug, label: reg.slug, description: null, applicability: null },
     })
@@ -159,9 +162,14 @@ export function ComplianceRegulationsPanel() {
               </div>
             </div>
           ))}
+          <label className="block"><span className={labelCls}>Trigger-Keywords (komma-getrennt)</span>
+            <input className={inputCls} value={regForm.trigger_keywords}
+              onChange={e => setRegForm(f => f && { ...f, trigger_keywords: e.target.value })}
+              placeholder="z. B. beschäftigt, mitarbeiter, scoring, bonität" />
+            <span className="text-[10px] text-ink-muted">Erkennt diese Regularie automatisch in AI Use-Case Canvas + Architektur-Generator, wenn der Text ein Keyword enthält. Leer = keine Auto-Erkennung.</span></label>
           <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={regForm.is_published} onChange={e => setRegForm(f => f && { ...f, is_published: e.target.checked })} /> Veröffentlicht</label>
           <div className="flex gap-2">
-            <button disabled={saving} onClick={async () => { if (await post({ kind: 'regulation', ...regForm })) setRegForm(null) }}
+            <button disabled={saving} onClick={async () => { if (await post({ kind: 'regulation', ...regForm, trigger_keywords: regForm.trigger_keywords.split(',').map(s => s.trim()).filter(Boolean) })) setRegForm(null) }}
               className="px-3 py-1.5 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50">Speichern</button>
             <button disabled={saving} onClick={() => setRegForm(null)} className="px-3 py-1.5 text-xs font-medium bg-surface-raised text-ink-secondary rounded-lg hover:bg-line">Abbrechen</button>
           </div>

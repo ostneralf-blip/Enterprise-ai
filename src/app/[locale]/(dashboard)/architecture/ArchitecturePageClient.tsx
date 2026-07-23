@@ -11,6 +11,7 @@ import { InfoHint } from '@/components/shared/InfoHint'
 import { CardTitle, SectionTitle, Eyebrow } from '@/components/shared/typography'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
+import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
@@ -93,6 +94,7 @@ interface Props {
   compliancePreset?: 'strict' | 'moderate' | 'low' | 'undefined'
   tier?: string
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
+  complianceTriggers?: ComplianceTriggerDisplay[]
   roadmapContext?: RoadmapContext | null
   synonyms?: CanvasSynonym[]
   rolesCatalog?: RoleCatalogEntry[]
@@ -448,7 +450,7 @@ const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'rasic', 'decisions',
 type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
 const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, complianceTriggers = [], roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
@@ -473,6 +475,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     if (!canvasContext) return null
     return extractCanvasContext(canvasContext.canvas, canvasContext.useCase, [], synonyms)
   })
+  // DB-getriebene Compliance-Erkennung aus dem verknüpften Canvas (Trigger-Keywords je
+  // Regularie) — fließt in die Cross-Modul-Entscheidungen unten.
+  const canvasCompliance = useMemo(
+    () => canvasContext ? analyzeCanvas(canvasContext.canvas, undefined, complianceTriggers).compliance : [],
+    [canvasContext, complianceTriggers],
+  )
   const [showCanvasBanner, setShowCanvasBanner] = useState(!!canvasContext)
   const [selectedCanvasIds, setSelectedCanvasIds] = useState<string[]>(canvasContext ? [canvasContext.canvas.id] : [])
   const [result, setResult] = useState<ArchitectureResult | null>(null)
@@ -1022,15 +1030,16 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     const kpComponents = selStats.activeComponents
     const kpDecisions = generateDynamicKeyDecisions(kpComponents)
     const kpSteps = generateDynamicNextSteps(kpComponents)
+    const crossCanvas = canvasContext ? { ...canvasContext, compliance: canvasCompliance } : null
     const kpCrossDecisions = generateCrossModuleDecisions({
       assessment: assessmentContext,
-      canvas: canvasContext,
+      canvas: crossCanvas,
       governance: governanceContext,
       roadmap: roadmapContext,
     })
     const kpCrossSteps = generateCrossModuleNextSteps({
       assessment: assessmentContext,
-      canvas: canvasContext,
+      canvas: crossCanvas,
       governance: governanceContext,
       roadmap: roadmapContext,
     })
