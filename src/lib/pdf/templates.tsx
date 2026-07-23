@@ -2,7 +2,7 @@ import React from 'react'
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import type { ReactElement } from 'react'
 import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-data'
-import { EU_AI_ACT_RISK_CLASSES, EU_AI_ACT_OBLIGATIONS, DSGVO_CHECKLIST, RISK_MATRIX, getRiskLevel } from '@/config/compliance-data'
+import { EU_AI_ACT_RISK_CLASSES, RISK_MATRIX, getRiskLevel } from '@/config/compliance-data'
 import { formatDate } from '@/lib/utils'
 import { resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 
@@ -855,15 +855,11 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string }> =
   pending:       { label: 'Ausstehend',      color: C.neutral, bg: C.neutralBg },
 }
 
-export function renderCompliancePdf(data: CompliancePdfData, locale = 'de'): ReactElement {
+// labelMap (id → „Artikel: Label") kommt seit #246 aus der DB und wird vom
+// (async) Aufrufer übergeben — buildComplianceLabelMap() in lib/compliance/db.ts.
+export function renderCompliancePdf(data: CompliancePdfData, locale = 'de', labelMap: Map<string, string> = new Map()): ReactElement {
   const l = pdfLoc(locale)
   const statusCfg = locale === 'en' ? STATUS_CFG_EN : STATUS_CFG
-  // Build label lookup from config
-  const labelMap = new Map<string, string>()
-  for (const items of Object.values(EU_AI_ACT_OBLIGATIONS)) {
-    for (const i of items) labelMap.set(i.id, `${i.article}: ${i.label[l]}`)
-  }
-  for (const i of DSGVO_CHECKLIST) labelMap.set(i.id, `${i.article}: ${i.label[l]}`)
 
   const byReg = new Map<string, ComplianceCheck[]>()
   for (const c of data.checks) {

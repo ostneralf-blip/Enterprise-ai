@@ -1,6 +1,7 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
-import { EU_AI_ACT_OBLIGATIONS, EU_AI_ACT_RISK_CLASSES, type CheckStatus } from '@/config/compliance-data'
+import { EU_AI_ACT_RISK_CLASSES, type CheckStatus } from '@/config/compliance-data'
+import { getComplianceContent } from '@/lib/compliance/db'
 import { scoreUseCasesWithProgress } from '@/lib/compliance/eu-ai-act-use-case-scoring'
 import { computeRegulationProgress, surchargeFromProgress } from '@/lib/compliance/category-scoring'
 import type { Locale } from '@/i18n/routing'
@@ -110,7 +111,7 @@ export async function getComplianceStatusData(userId: string, locale: Locale): P
   })
 
   const statusByType = new Map(checks.map(c => [c.check_type, c.status]))
-  const highRiskObligations = EU_AI_ACT_OBLIGATIONS.high
+  const highRiskObligations = (await getComplianceContent()).euAiActObligations.high
 
   const obligations: ObligationStatus[] = highRiskObligations.slice(0, 5).map(ob => ({
     label: ob.label[locale],

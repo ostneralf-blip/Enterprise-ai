@@ -6,15 +6,14 @@ import { cn } from '@/lib/utils'
 import { AlertBox } from '@/components/shared/AlertBox'
 import {
   EU_AI_ACT_RISK_CLASSES,
-  EU_AI_ACT_OBLIGATIONS,
-  DSGVO_CHECKLIST,
   RISK_MATRIX,
   getRiskLevel,
-  ADDITIONAL_REGULATIONS,
   REGULATORY_WATCHLIST,
   type CheckRow,
   type CheckStatus,
   type EuAiActRiskClass,
+  type ChecklistItem,
+  type AdditionalRegulation,
 } from '@/config/compliance-data'
 
 interface DbPolicyTemplate {
@@ -48,13 +47,44 @@ interface Props {
   rolesCatalog?: RoleCatalogItem[]
   archUsedRoles?: Set<string>
   archTitle?: string | null
+  // Compliance-Inhalte kommen seit #246 aus der DB (server-seitig geladen),
+  // nicht mehr aus der statischen Config.
+  dsgvoChecklist: ChecklistItem[]
+  euAiActObligations: Record<EuAiActRiskClass, ChecklistItem[]>
+  additionalRegulations: AdditionalRegulation[]
+  latestVerified?: string | null
 }
 
 function makeKey(regulation: string, checkType: string) {
   return `${regulation}::${checkType}`
 }
 
-export function CompliancePageClient({ initialChecks, policyTemplates = [], rolesCatalog = [], archUsedRoles = new Set(), archTitle = null }: Props) {
+// Rechtsstand je Checklistenpunkt (#247): Quelle-Link + „zuletzt geprüft".
+// Rendert nur, was am Item gesetzt ist — Punkte ohne source_url/last_verified
+// (aktuell DSGVO teils + die 5 Zusatzregularien, füllt #254) bleiben unverändert.
+function ItemSource({ item }: { item: ChecklistItem }) {
+  const t = useTranslations('modules')
+  const locale = useLocale()
+  if (!item.sourceUrl && !item.lastVerified) return null
+  return (
+    <p className="text-[11px] text-ink-subtle mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+      {item.sourceUrl && (
+        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+          {t('compliance.sourceLink')} ↗
+        </a>
+      )}
+      {item.lastVerified && (
+        <span>{t('compliance.lastVerified')} {new Date(item.lastVerified).toLocaleDateString(locale === 'en' ? 'en-GB' : 'de-DE')}</span>
+      )}
+    </p>
+  )
+}
+
+export function CompliancePageClient({ initialChecks, policyTemplates = [], rolesCatalog = [], archUsedRoles = new Set(), archTitle = null, dsgvoChecklist, euAiActObligations, additionalRegulations, latestVerified = null }: Props) {
+  // Alias auf die bisherigen Namen — der restliche Modul-Code bleibt unverändert (#246).
+  const DSGVO_CHECKLIST = dsgvoChecklist
+  const EU_AI_ACT_OBLIGATIONS = euAiActObligations
+  const ADDITIONAL_REGULATIONS = additionalRegulations
   const t = useTranslations('modules')
   const locale = useLocale()
   const [tab, setTab] = useState<Tab>('summary')
@@ -221,6 +251,14 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
         </span>
       </div>
 
+      {/* Rechtsstand aus den DB-Referenzen (#247): jüngstes last_verified über alle Punkte */}
+      {latestVerified && (
+        <p className="-mt-2 mb-4 text-xs text-ink-subtle">
+          {t('compliance.legalStatusChecked')}{' '}
+          <span className="font-medium text-ink-secondary">{new Date(latestVerified).toLocaleDateString(locale === 'en' ? 'en-GB' : 'de-DE')}</span>
+        </p>
+      )}
+
       {/* Tab bar — Mobile: select, Desktop: button row */}
       <div className="mb-6">
         {/* Mobile select (< md) */}
@@ -382,6 +420,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                               {t('compliance.whyRelevant')} {pick(item.relevance, locale)}
                             </p>
                           )}
+                          <ItemSource item={item} />
                         </div>
                       </div>
                     </li>
@@ -457,6 +496,7 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
                           {t('compliance.aiRelevance')} {pick(item.relevance, locale)}
                         </p>
                       )}
+                      <ItemSource item={item} />
                     </div>
                   </div>
                 </li>

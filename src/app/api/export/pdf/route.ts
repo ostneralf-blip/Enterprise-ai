@@ -14,6 +14,7 @@ import {
   renderExecutiveSummaryPdf,
 } from '@/lib/pdf/templates'
 import { normalizeArchitectureResult } from '@/lib/pdf/normalize-architecture'
+import { buildComplianceLabelMap } from '@/lib/compliance/db'
 import type { ReactElement } from 'react'
 import { z } from 'zod'
 
@@ -148,7 +149,8 @@ export async function GET(req: Request) {
       if (!checks || checks.length === 0) {
         return NextResponse.json({ error: 'Keine Compliance-Prüfungen gefunden' }, { status: 404 })
       }
-      doc = renderCompliancePdf({ checks, companyName: company }, locale)
+      const labelMap = await buildComplianceLabelMap(locale === 'en' ? 'en' : 'de')
+      doc = renderCompliancePdf({ checks, companyName: company }, locale, labelMap)
       filename = 'compliance-report.pdf'
 
     } else if (module === 'architecture') {

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { CompliancePageClient } from './CompliancePageClient'
+import { getComplianceContent } from '@/lib/compliance/db'
 import { GuidancePanel } from '@/components/modules/GuidancePanel'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { getTranslations } from 'next-intl/server'
@@ -59,6 +60,9 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
   const archUsedRoles = new Set(archRasicEntries.map(e => e.role))
   const archTitle = (latestArch as { title?: string | null } | null)?.title ?? null
 
+  // Compliance-Inhalte aus der DB (#246) statt statischer Config.
+  const content = await getComplianceContent()
+
   return (
     <div>
       <PageHeader title={t('compliance.title')} description={t('compliance.desc')} />
@@ -71,6 +75,10 @@ export default async function CompliancePage({ params }: { params: Promise<{ loc
         rolesCatalog={(rolesCatalogRaw ?? []) as Pick<CatalogRole, 'role_name' | 'role_category' | 'description' | 'description_en' | 'responsibilities' | 'responsibilities_en'>[]}
         archUsedRoles={archUsedRoles}
         archTitle={archTitle}
+        dsgvoChecklist={content.dsgvo}
+        euAiActObligations={content.euAiActObligations}
+        additionalRegulations={content.additional}
+        latestVerified={content.latestVerified}
       />
     </div>
   )

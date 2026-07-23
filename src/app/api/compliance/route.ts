@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { ADDITIONAL_REGULATIONS } from '@/config/compliance-data'
+import { getRegulationSlugs } from '@/lib/compliance/db'
 import { z } from 'zod'
 
-// Bug gefunden 19.07.2026: dieses Enum ließ nur die drei ursprünglichen
-// Regulation-Werte zu. CompliancePageClient.tsx speichert aber auch
-// 'system' (Meta-Zeile für die Liste aktivierter "Weitere Regularien",
-// check_type='active_regulations') und die IDs aus ADDITIONAL_REGULATIONS
-// (z. B. 'nis2', 'iso_27001') für deren Checklisten-Items — jeder dieser
-// Aufrufe scheiterte bisher an diesem Enum (422), ohne dass der Client den
-// Fehler abfing (optimistisches UI-Update lief trotzdem durch). Betroffene
-// Checkboxen wirkten gespeichert, waren es aber nie. IDs werden aus
-// ADDITIONAL_REGULATIONS abgeleitet statt hartcodiert, damit künftig neue
-// Regularien dort automatisch mit erfasst werden.
+// `regulation` ist entweder eine Regulierungs-Slug (aus der DB, seit #246) oder
+// ein Sonder-Schlüssel: 'risk_matrix' (Risikomatrix-Position), 'system' (Meta-
+// Zeile für aktivierte Zusatz-Regularien, check_type='active_regulations').
+// Die konkrete Slug-Whitelist wird zur Laufzeit gegen compliance_regulations
+// geprüft (siehe POST) — so werden neue Regularien (z. B. bdsg) automatisch
+// erfasst, ohne dass ein statisches Enum nachgezogen werden muss.
+const SPECIAL_REGULATIONS = ['risk_matrix', 'system'] as const
 const UpsertSchema = z.object({
-  regulation: z.enum(['eu_ai_act', 'dsgvo', 'risk_matrix', 'system', ...ADDITIONAL_REGULATIONS.map(r => r.id)] as [string, ...string[]]),
+  regulation: z.string().min(1).max(50),
   check_type: z.string().min(1).max(100),
   status: z.enum(['pending', 'compliant', 'non_compliant', 'partial']),
   notes: z.string().max(1000).nullable().optional(),
@@ -46,6 +43,12 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 })
 
   const { regulation, check_type, status, notes } = parsed.data
+
+  // Whitelist zur Laufzeit: gültige Regulierungs-Slugs (DB) + Sonder-Schlüssel.
+  const allowedRegulations = new Set<string>([...await getRegulationSlugs(), ...SPECIAL_REGULATIONS])
+  if (!allowedRegulations.has(regulation)) {
+    return NextResponse.json({ error: `Unbekannte Regulierung: ${regulation}` }, { status: 422 })
+  }
   const completed_at = status === 'compliant' ? new Date().toISOString() : null
 
   const { data, error } = await supabase

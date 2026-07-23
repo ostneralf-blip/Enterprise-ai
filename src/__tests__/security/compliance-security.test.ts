@@ -141,8 +141,12 @@ describe('Security: Compliance Center', () => {
       expect(routeSource).toContain("'system'")
     })
 
-    it('leitet zusätzliche Regulation-IDs aus ADDITIONAL_REGULATIONS ab statt sie hartzucodieren', () => {
-      expect(routeSource).toContain('ADDITIONAL_REGULATIONS.map(r => r.id)')
+    it('validiert regulation zur Laufzeit gegen die DB-Slugs statt gegen ein statisches Enum (#246)', () => {
+      // Seit der Compliance-DB-Migration werden gültige Regulierungen aus
+      // compliance_regulations gelesen (getRegulationSlugs) — neue Regularien
+      // (z. B. bdsg) werden damit automatisch akzeptiert, ohne Enum-Nachzug.
+      expect(routeSource).toContain('getRegulationSlugs')
+      expect(routeSource).toContain('allowedRegulations')
     })
 
     it('CompliancePageClient prüft jetzt res.ok und macht das optimistische Update bei Fehlschlag rückgängig', () => {

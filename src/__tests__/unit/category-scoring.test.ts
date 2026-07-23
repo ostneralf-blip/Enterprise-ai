@@ -11,13 +11,35 @@ import { DSGVO_CHECKLIST, EU_AI_ACT_OBLIGATIONS, ADDITIONAL_REGULATIONS } from '
 
 const mockCreateClient = createClient as jest.Mock
 
+// Erzeugt Content-Mock-Zeilen (compliance_regulations + _items, locale-per-row)
+// aus der statischen Config — so rekonstruiert getComplianceContent identische
+// Item-IDs, und das Scoring wird gegen dieselben Daten geprüft wie zuvor (#246).
+function buildContentRows() {
+  const regRows: Record<string, unknown>[] = []
+  const itemRows: Record<string, unknown>[] = []
+  const pushReg = (slug: string) => {
+    for (const loc of ['de', 'en']) regRows.push({ id: `r_${slug}_${loc}`, slug, locale: loc, category: 'gesetz', short_label: slug, label: slug, description: null, applicability: null, display_order: 0 })
+  }
+  const pushItems = (slug: string, items: Array<{ id: string }>, risk: string | null = null) => {
+    items.forEach((it, i) => {
+      for (const loc of ['de', 'en']) itemRows.push({ regulation_id: `r_${slug}_${loc}`, item_key: it.id, locale: loc, risk_class: risk, article: null, source_url: null, last_verified: null, label: it.id, description: null, relevance: null, category: null, display_order: i })
+    })
+  }
+  pushReg('dsgvo'); pushItems('dsgvo', DSGVO_CHECKLIST)
+  pushReg('eu_ai_act')
+  ;(['prohibited', 'high', 'limited', 'minimal'] as const).forEach(rc => pushItems('eu_ai_act', EU_AI_ACT_OBLIGATIONS[rc], rc))
+  for (const reg of ADDITIONAL_REGULATIONS) { pushReg(reg.id); pushItems(reg.id, reg.items) }
+  return { regRows, itemRows }
+}
+
 function mockChecks(rows: Array<{ regulation: string; check_type: string; status: string; notes?: string | null }>) {
+  const { regRows, itemRows } = buildContentRows()
   mockCreateClient.mockResolvedValue({
-    from: () => ({
-      select: () => ({
-        eq: () => Promise.resolve({ data: rows.map(r => ({ notes: null, ...r })) }),
-      }),
-    }),
+    from: (table: string) => {
+      if (table === 'compliance_regulations') return { select: () => ({ eq: () => Promise.resolve({ data: regRows }) }) }
+      if (table === 'compliance_checklist_items') return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: itemRows }) }) }) }
+      return { select: () => ({ eq: () => Promise.resolve({ data: rows.map(r => ({ notes: null, ...r })) }) }) }
+    },
   })
 }
 

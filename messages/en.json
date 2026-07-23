@@ -600,7 +600,10 @@
       "rolesEmpty": "No roles in the catalog yet.",
       "rolesNoArch": "After running the Architecture Generator, the roles assigned in the RASIC will appear here.",
       "riskMatrixHintTitle": "How do I read the risk matrix?",
-      "riskMatrixHint": "Pick the estimated severity (impact) and the likelihood of occurrence. The cell turns green (low), amber (medium) or red (high risk) — the higher both are, the more urgent your mitigations."
+      "riskMatrixHint": "Pick the estimated severity (impact) and the likelihood of occurrence. The cell turns green (low), amber (medium) or red (high risk) — the higher both are, the more urgent your mitigations.",
+      "legalStatusChecked": "Legal status last verified on",
+      "sourceLink": "Source",
+      "lastVerified": "last verified:"
     },
     "architecture": {
       "title": "Architecture Generator",

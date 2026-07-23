@@ -11,7 +11,13 @@ Object.defineProperty(navigator, 'clipboard', {
   configurable: true,
 })
 
-const EMPTY_CHECKS = { initialChecks: [] as never[] }
+const EMPTY_CHECKS = {
+  initialChecks: [] as never[],
+  // Compliance-Inhalte kommen seit #246 als Props (DB) — für den a11y-Test leer.
+  dsgvoChecklist: [],
+  euAiActObligations: { prohibited: [], high: [], limited: [], minimal: [] },
+  additionalRegulations: [],
+}
 
 describe('Accessibility: Compliance Center', () => {
 

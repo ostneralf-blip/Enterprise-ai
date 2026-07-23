@@ -1,6 +1,6 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
-import { DSGVO_CHECKLIST, EU_AI_ACT_OBLIGATIONS, ADDITIONAL_REGULATIONS } from '@/config/compliance-data'
+import { getComplianceContent } from '@/lib/compliance/db'
 import type { LocaleString } from '@/lib/utils/locale-data'
 
 export interface RegulationProgress {
@@ -17,16 +17,7 @@ export interface RegulationProgress {
 // Regularien" (nis2, iso_27001, iso_42001, bait, lksg) werden vom Nutzer auf
 // der Compliance-Seite per Toggle aktiviert und in compliance_checks als
 // regulation='system', check_type='active_regulations' (JSON-Liste) hinterlegt).
-const CORE_CHECKLISTS: Array<{ id: string; label: LocaleString; itemIds: string[] }> = [
-  { id: 'dsgvo',    label: { de: 'DSGVO', en: 'GDPR' },            itemIds: DSGVO_CHECKLIST.map(i => i.id) },
-  { id: 'eu_ai_act', label: { de: 'EU AI Act', en: 'EU AI Act' }, itemIds: EU_AI_ACT_OBLIGATIONS.high.map(i => i.id) },
-]
-
-function additionalChecklist(id: string): { id: string; label: LocaleString; itemIds: string[] } | null {
-  const reg = ADDITIONAL_REGULATIONS.find(r => r.id === id)
-  if (!reg || reg.items.length === 0) return null
-  return { id: reg.id, label: reg.shortLabel, itemIds: reg.items.map(i => i.id) }
-}
+// Inhalte kommen seit #246 aus der DB (getComplianceContent), nicht mehr statisch.
 
 /**
  * Lädt den kontoweiten Fortschritt je AKTIVIERTER Regularie. Kern (DSGVO,
@@ -38,13 +29,26 @@ function additionalChecklist(id: string): { id: string; label: LocaleString; ite
 export async function computeRegulationProgress(userId: string): Promise<RegulationProgress[]> {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('compliance_checks')
-    .select('regulation, check_type, status, notes')
-    .eq('user_id', userId) as unknown as {
-    data: Array<{ regulation: string; check_type: string; status: string; notes: string | null }> | null
-  }
+  const [{ data }, content] = await Promise.all([
+    supabase
+      .from('compliance_checks')
+      .select('regulation, check_type, status, notes')
+      .eq('user_id', userId) as unknown as Promise<{
+        data: Array<{ regulation: string; check_type: string; status: string; notes: string | null }> | null
+      }>,
+    getComplianceContent(),
+  ])
   const checks = data ?? []
+
+  const CORE_CHECKLISTS: Array<{ id: string; label: LocaleString; itemIds: string[] }> = [
+    { id: 'dsgvo',     label: { de: 'DSGVO', en: 'GDPR' },       itemIds: content.dsgvo.map(i => i.id) },
+    { id: 'eu_ai_act', label: { de: 'EU AI Act', en: 'EU AI Act' }, itemIds: content.euAiActObligations.high.map(i => i.id) },
+  ]
+  const additionalChecklist = (id: string): { id: string; label: LocaleString; itemIds: string[] } | null => {
+    const reg = content.additional.find(r => r.id === id)
+    if (!reg || reg.items.length === 0) return null
+    return { id: reg.id, label: reg.shortLabel, itemIds: reg.items.map(i => i.id) }
+  }
 
   // Aktivierte Zusatz-Regularien aus der Meta-Zeile (regulation='system',
   // check_type='active_regulations', notes = JSON-Array der aktivierten IDs).
