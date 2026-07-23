@@ -103,46 +103,6 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
   )
 }
 
-interface HintBoxProps {
-  children: React.ReactNode
-  className?: string
-  dismissible?: boolean
-  variant?: 'info' | 'tip' | 'warning'
-}
-
-/**
- * @deprecated Kanonische Hinweis-/Fehlerbox ist `AlertBox` (`@/components/shared/AlertBox`,
- * #205 Element 4 — genau drei Varianten info/warning/error, semantische Tokens).
- * HintBox bleibt vorerst für die kompakte Inline-Optik bestehen; neue Boxen bitte
- * mit AlertBox bauen. Migration bestehender HintBox-Aufrufe = separater Adoptions-Sweep.
- */
-export function HintBox({ children, className, dismissible = false, variant = 'info' }: HintBoxProps) {
-  const [visible, setVisible] = useState(true)
-  if (!visible) return null
-
-  const colors = {
-    info:    'bg-primary-soft border-primary-border text-primary',
-    tip:     'bg-success-subtle border-success-border text-success-text',
-    warning: 'bg-warning-subtle border-warning-border text-warning-text',
-  }
-
-  return (
-    <div className={cn('rounded-xl border px-3 py-2.5 text-xs leading-relaxed', colors[variant], className)}>
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex-shrink-0 select-none" aria-hidden="true">
-          {variant === 'info' ? 'ℹ' : variant === 'tip' ? '✦' : '⚠'}
-        </span>
-        <div className="min-w-0 flex-1 break-words">{children}</div>
-        {dismissible && (
-          <button
-            onClick={() => setVisible(false)}
-            aria-label="Hinweis ausblenden"
-            className="text-current opacity-40 hover:opacity-70 text-sm leading-none flex-shrink-0 focus:outline-none"
-          >
-            ×
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
+// HintBox wurde entfernt (#205 Element 4): AlertBox ist die einzige kanonische
+// Hinweis-/Fehlerbox (info/warning/error). Frühere HintBox-Aufrufe (Compliance)
+// sind migriert.

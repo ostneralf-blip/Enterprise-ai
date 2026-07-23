@@ -152,12 +152,11 @@ EIN Komponenten-Set statt ad-hoc-Klassen. Neue/überarbeitete UI nutzt diese:
 | `<Badge tone="neutral\|info\|warning\|error\|success">` | Badge/Pill | `text-xs font-medium border rounded-full px-2 py-0.5` + Ton |
 
 ### 9.2 Hinweis-/Fehlerbox-Standard — EINE Komponente
-- **Kanonisch:** `<AlertBox variant="info|warning|error">` (`src/components/shared/AlertBox.tsx`) —
+- **Kanonisch & einzig:** `<AlertBox variant="info|warning|error">` (`src/components/shared/AlertBox.tsx`) —
   `role="alert"`, Icon-Slot, semantische Tokens (`info-/warning-/error-subtle`). **Genau drei Varianten.**
-- `HintBox` (in `InfoHint.tsx`) ist **@deprecated** — bleibt vorerst für die kompakte
-  Inline-Optik, neue Boxen aber immer als `AlertBox`. Migration bestehender HintBox-
-  Aufrufe (Compliance) = Teil des Adoptions-Sweeps.
-- **Regel:** kein drittes Box-Muster, keine ad-hoc `bg-*-50 border-*-200`-Box mehr für
+- `HintBox` wurde **entfernt** (23.07.2026) — die einzigen Aufrufe (Compliance, info/tip)
+  sind auf `AlertBox` migriert (tip→info, da AlertBox bewusst nur die drei Alert-Töne führt).
+- **Regel:** kein zweites/drittes Box-Muster, keine ad-hoc `bg-*-50 border-*-200`-Box mehr für
   Hinweise/Fehler (Kategorie-/Status-Farben sind davon unberührt).
 
 ### 9.3 Hilfsmarker + Wissensbasis
@@ -184,6 +183,10 @@ Legende: ✓ vorhanden · (n) Anzahl · — Adoptions-/Lücken-Kandidat für den
 
 ### 9.5 Was der Adoptions-Sweep noch umfasst (separater, screenshot-abgenommener Schritt)
 1. Hierarchie-Komponenten aus 9.1 in den Modulen ausrollen (uneinheitliche Titel-/Eyebrow-Größen ersetzen).
-2. HintBox-Aufrufe (Compliance) + echte ad-hoc Hinweis-/Fehlerboxen auf `AlertBox` migrieren.
+2. ~~HintBox-Aufrufe (Compliance) auf `AlertBox` migrieren~~ → **erledigt 23.07.2026** (HintBox entfernt).
+   Verbleibend: echte ad-hoc Hinweis-/Fehlerboxen (falsch-farbige `bg-*-50`-Boxen mit Alert-Semantik) sichten.
 3. Fehlende InfoHints aus der Inventur (9.4, Spalte „Lücken-Kandidaten") ergänzen, Texte in i18n.
 4. Screenshot-Serie vorher/nachher (1440/375) + Freigabe Daniel.
+
+**Sweep-Fortschritt:** E4-Box-Konsolidierung abgeschlossen (eine Box-Komponente). E3-Adoption
++ E1-Lückenfüllung folgen inkrementell, je mit Screenshot-Abnahme.

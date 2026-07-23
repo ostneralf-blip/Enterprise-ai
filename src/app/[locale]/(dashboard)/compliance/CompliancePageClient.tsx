@@ -26,7 +26,7 @@ interface DbPolicyTemplate {
   content: string
   display_order: number
 }
-import { InfoHint, HintBox } from '@/components/shared/InfoHint'
+import { InfoHint } from '@/components/shared/InfoHint'
 import { WatchlistCard } from '@/components/modules/WatchlistCard'
 import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import type { CatalogRole } from '@/types'
@@ -615,9 +615,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {/* ── WEITERE GESETZE ── */}
       {tab === 'extras' && (
         <div role="tabpanel" id="panel-extras" aria-labelledby="tab-extras" className="space-y-6">
-          <HintBox variant="info" className="mb-1">
+          <AlertBox variant="info" className="mb-1">
             <strong>{t('compliance.extrasInfoStrong')}</strong>, {t('compliance.extrasInfoBody')}
-          </HintBox>
+          </AlertBox>
 
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -740,9 +740,9 @@ export function CompliancePageClient({ initialChecks, policyTemplates = [], role
       {/* ── ROLLEN & VERANTWORTLICHKEITEN ── */}
       {tab === 'roles' && (
         <div role="tabpanel" id="panel-roles" aria-labelledby="tab-roles" className="space-y-4">
-          <HintBox variant="tip" className="mb-1">
+          <AlertBox variant="info" className="mb-1">
             {t('compliance.rolesDesc')}
-          </HintBox>
+          </AlertBox>
           {rolesCatalog.length === 0 ? (
             <p className="text-sm text-ink-muted">{t('compliance.rolesEmpty')}</p>
           ) : (
