@@ -8,6 +8,7 @@ import { ShareButton } from '@/components/shared/ShareButton'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { MeridianExportButton } from '@/components/shared/MeridianExportButton'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { CardTitle, SectionTitle } from '@/components/shared/typography'
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { getSelectionStats } from '@/lib/architecture/selection'
@@ -111,7 +112,7 @@ function CostIndicationCard({ patternId, companySize, locale }: {
   return (
     <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-sm font-semibold text-ink">{t('architecture.costTitle')}</h3>
+        <CardTitle>{t('architecture.costTitle')}</CardTitle>
         <InfoHint title={t('architecture.costHintTitle')}>
           <p>{t('architecture.costHintBody')}</p>
         </InfoHint>
@@ -873,7 +874,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
           roadmapContext={roadmapContext}
         />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-ink">{t('architecture.savedTitle', { count: architectures.length })}</h2>
+          <CardTitle as="h2">{t('architecture.savedTitle', { count: architectures.length })}</CardTitle>
           <button
             onClick={handleNewWizard}
             className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-ring focus:ring-offset-2"
@@ -1246,7 +1247,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       <div className="space-y-4">
                         <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5">
                           <div className="flex items-center gap-2 mb-3">
-                            <h3 className="text-sm font-semibold text-ink">{t('architecture.keyDecisions')}</h3>
+                            <CardTitle>{t('architecture.keyDecisions')}</CardTitle>
                             {aiNarrative && <AIBadge />}
                           </div>
                           {(() => {
@@ -1321,7 +1322,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                     <SortableSection key="decision" id="decision">
                       <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 space-y-3">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-ink">{t('architecture.decisionTitle')}</h3>
+                          <CardTitle>{t('architecture.decisionTitle')}</CardTitle>
                           {aiDecisionText && <AIBadge />}
                         </div>
                         <div className="space-y-1 text-xs text-ink-muted">
@@ -1752,7 +1753,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       {/* Question card */}
       <div id="wizard-question" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">{t('architecture.stepLabel', { step: step.step })}</p>
-        <h2 className="text-base sm:text-lg font-semibold text-ink mb-2">{pick(step.question, locale)}</h2>
+        <SectionTitle className="mb-2">{pick(step.question, locale)}</SectionTitle>
         <p className="text-sm text-ink-muted mb-5">{pick(step.context, locale)}</p>
 
         <fieldset>
@@ -1899,7 +1900,7 @@ function RoleDetailModal({ role, onClose, tc }: {
       <div className="relative bg-white rounded-2xl shadow-xl p-5 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h2 id="role-modal-title" className="text-sm font-semibold text-ink">{role.role_name}</h2>
+            <CardTitle as="h2" id="role-modal-title">{role.role_name}</CardTitle>
             {role.role_category && (
               <span className={cn('mt-1 inline-block text-[10px] font-medium px-2 py-0.5 border rounded-full', catClass)}>
                 {role.role_category}

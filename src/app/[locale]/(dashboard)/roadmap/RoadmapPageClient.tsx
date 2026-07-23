@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { ROADMAPS, PHASE_COLORS, ARCHETYPE_LABELS } from '@/config/roadmap-data'
 import { QUADRANT_META } from '@/config/usecase-data'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { SectionTitle } from '@/components/shared/typography'
 import { AlertBox } from '@/components/shared/AlertBox'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
@@ -418,7 +419,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
                       <span className="text-xs text-slate-500">{doneCount}/{phase.actions.length} erledigt</span>
                     )}
                   </div>
-                  <h2 id={`${phaseId}-heading`} className="text-base sm:text-lg font-semibold text-slate-900">{pick(phase.title, locale)}</h2>
+                  <SectionTitle as="h2" id={`${phaseId}-heading`}>{pick(phase.title, locale)}</SectionTitle>
                   <p className="text-sm text-slate-600 mt-0.5">{pick(phase.focus, locale)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">

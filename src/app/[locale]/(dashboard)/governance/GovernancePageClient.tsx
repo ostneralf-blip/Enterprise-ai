@@ -29,6 +29,7 @@ import {
 } from '@/config/governance-data'
 import { GovernanceHistory, type GovernanceSession } from '@/components/modules/governance/GovernanceHistory'
 import { InfoHint } from '@/components/shared/InfoHint'
+import { CardTitle, SectionTitle } from '@/components/shared/typography'
 import { ComplianceContextBanner } from '@/components/shared/ComplianceContextBanner'
 import { VersionsPanel } from '@/components/shared/VersionsPanel'
 import { ShareButton } from '@/components/shared/ShareButton'
@@ -230,7 +231,7 @@ export function GovernancePageClient({
       actions: actionItems.length > 0 ? (
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-slate-900">{t('governance.actionFieldsTitle')}</h3>
+            <CardTitle>{t('governance.actionFieldsTitle')}</CardTitle>
             <InfoHint title={t('governance.actionFieldsHintTitle')}>
               <p>{t('governance.actionFieldsHintP1')}</p>
               <p className="mt-1.5"><span className="inline-block w-2 h-2 rounded-full bg-warning-text mr-1" />{t('governance.actionFieldsHintYellow')}</p>
@@ -445,7 +446,7 @@ export function GovernancePageClient({
       {/* Gate card */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4">
         <p className="text-xs font-medium text-primary uppercase tracking-wide mb-2">Gate {gate.step}</p>
-        <h2 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">{pick(gate.question, locale)}</h2>
+        <SectionTitle className="mb-2">{pick(gate.question, locale)}</SectionTitle>
         <p className="text-sm text-slate-500 mb-5">{pick(gate.context, locale)}</p>
 
         <fieldset>

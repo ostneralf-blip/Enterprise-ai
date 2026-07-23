@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { pick } from '@/lib/utils/locale-data'
 import type { RasicMatrix, RasicPhase, RasicValue, CatalogComponent } from '@/types'
 import type { EamValidationResult } from '@/config/architecture-rules'
+import { CardTitle } from '@/components/shared/typography'
 
 export interface ValidationOverride {
   reason: string
@@ -34,7 +35,7 @@ export function AIPanelCard({ narrative, usage, aiModel, catalogComponents, reje
     <div className="bg-[color:var(--color-ai-soft)] border border-purple-200 rounded-2xl p-4 sm:p-5 space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-[color:var(--color-ai)] text-base" aria-hidden="true">◆</span>
-        <h3 className="text-sm font-semibold text-ink">{t('architecture.aiPanelTitle')}</h3>
+        <CardTitle>{t('architecture.aiPanelTitle')}</CardTitle>
       </div>
 
       {/* Usage Meter */}
@@ -159,7 +160,7 @@ export function RasicMatrixCard({ rasic, readOnly = false, onUpdate, componentOw
   return (
     <div id="rasic-matrix" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-ink">{t('architecture.rasicTitle')}</h3>
+        <CardTitle>{t('architecture.rasicTitle')}</CardTitle>
         <p className="text-xs text-ink-muted leading-relaxed mt-1">{t('architecture.rasicSectionDescription')}</p>
         {!readOnly && !preview && <p className="text-xs text-ink-subtle mt-0.5">{t('architecture.rasicHint')}</p>}
       </div>
@@ -439,7 +440,7 @@ export function ComplianceControlTable({ activeComponents, rasic }: ComplianceCo
 
   return (
     <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-4">
-      <h3 className="text-sm font-semibold text-ink">{t('architecture.complianceControlTitle')}</h3>
+      <CardTitle>{t('architecture.complianceControlTitle')}</CardTitle>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
