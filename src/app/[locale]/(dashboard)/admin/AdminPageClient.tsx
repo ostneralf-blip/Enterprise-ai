@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { AlertBox } from '@/components/shared/AlertBox'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 import { CatalogSuggestionsPanel } from './CatalogSuggestionsPanel'
+import { ComplianceRegulationsPanel } from './ComplianceRegulationsPanel'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
@@ -50,7 +51,7 @@ interface Props {
   initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'suggestions' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings'
+type Tab = 'content' | 'users' | 'catalog' | 'suggestions' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings' | 'compliance_regs'
 
 interface PromoQueueEntry {
   term: string; synonym: string; synonym_type: string
@@ -933,6 +934,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
           ['suggestions', 'KI-Vorschläge', 0],
           ['synonyms', 'Canvas-Synonyme', synonyms.length],
           ['scanner', 'Quellen-Monitor', drafts.filter(d => d.review_status === 'pending_review').length],
+          ['compliance_regs', 'Compliance-Regeln', 0],
           ['policy_templates', 'Policy Templates', policyTemplates.length],
           ['pricing', 'Preise & Aktionen', promotions.filter(p => p.is_active).length],
           ['app_settings', 'Einstellungen', 0],
@@ -1823,6 +1825,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
       {/* ─── KI-Vorschläge tab (catalog_suggestions) ─────────────────────────── */}
       {tab === 'suggestions' && <CatalogSuggestionsPanel />}
+
+      {tab === 'compliance_regs' && <ComplianceRegulationsPanel />}
 
       {/* ─── User management tab ─────────────────────────────────────────────── */}
       {tab === 'users' && (
