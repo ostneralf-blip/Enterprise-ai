@@ -252,6 +252,9 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
   const [scanResult, setScanResult] = useState<{ scanned: number; changed: number; drafts_created: number; sources: ScanSourceResult[] } | null>(null)
   const [showArchive, setShowArchive] = useState(false)
   const [sourceSnapshots, setSourceSnapshots] = useState<SourceScanStatus[]>(initialSourceSnapshots)
+  // „Jetzt" einmalig beim Mount (Staleness der Scan-Quellen, #248) — reine State-Init
+  // statt Date.now() im Render (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now())
 
   // ── Policy Templates state ───────────────────────────────────────────────────
   const [policyTemplates, setPolicyTemplates] = useState<PolicyTemplate[]>(initialPolicyTemplates)
@@ -2283,10 +2286,22 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
               </button>
             </div>
             <div className="divide-y divide-line-subtle">
-              {sourceSnapshots.map(src => (
+              {sourceSnapshots.map(src => {
+                // Staleness sichtbar machen (#248): fetched_at = letzter ERFOLGREICHER Scan.
+                // Eine still fehlschlagende Quelle bleibt „alt" oder nie erreichbar.
+                const daysSince = src.fetched_at
+                  ? Math.floor((nowMs - new Date(src.fetched_at).getTime()) / 86_400_000)
+                  : null
+                const stale = daysSince === null || daysSince > 45
+                return (
                 <div key={src.url} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
                   <span className="text-sm text-ink-secondary min-w-0 truncate flex-1">{src.label}</span>
-                  <span className="text-xs text-ink-subtle flex-shrink-0">
+                  {stale && (
+                    <span className="text-[10px] font-semibold text-warning-text bg-warning-subtle border border-warning-border rounded px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap">
+                      {daysSince === null ? 'nie erreichbar' : `seit ${daysSince} T. nicht erreichbar`}
+                    </span>
+                  )}
+                  <span className={cn('text-xs flex-shrink-0', stale ? 'text-warning-text' : 'text-ink-subtle')}>
                     {src.fetched_at
                       ? new Date(src.fetched_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
                       : 'Noch nie gescannt'}
@@ -2301,7 +2316,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                     ↗
                   </a>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 

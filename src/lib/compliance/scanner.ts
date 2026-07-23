@@ -9,12 +9,19 @@ const ScanSummarySchema = z.object({
   status_estimate:  z.enum(['final', 'entwurf', 'unklar']),
 })
 
+// Änderungs-Monitoring-Quellen (#248): Zwei Quellen wurden entfernt, weil sie sich
+// nicht per einfachem fetch() synchronisieren lassen und still dauerhaft fehlschlugen:
+//  - „EU AI Act Service Desk" (ai-act-service-desk.ec.europa.eu/s/): Salesforce-
+//    Experience-Cloud-SPA, clientseitig gerendert → fetch bekommt nur eine leere Hülle.
+//  - „EUR-Lex AI Act Volltext" (CELEX:32024R1689): aggressiver Bot-/WAF-Schutz lässt
+//    automatisierte Anfragen hängen (10s-Timeout → still null).
+// Als scrapebarer Stellvertreter für Volltextänderungen dient artificialintelligenceact.eu
+// (inoffiziell, aber verlässlich abrufbar — Kontrollabruf lieferte sauberes HTML).
 export const COMPLIANCE_SOURCES = [
   { url: 'https://www.edpb.europa.eu/news_de', label: 'EDPB Newsroom' },
   { url: 'https://www.datenschutzkonferenz-online.de/pressemitteilungen.html', label: 'DSK Pressemitteilungen' },
   { url: 'https://artificialintelligenceact.eu/implementation-timeline/', label: 'AI Act Timeline' },
-  { url: 'https://ai-act-service-desk.ec.europa.eu/s/', label: 'EU AI Act Service Desk' },
-  { url: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32024R1689', label: 'EUR-Lex AI Act Volltext' },
+  { url: 'https://artificialintelligenceact.eu/the-act/', label: 'EU AI Act Volltext (inoffiziell, artificialintelligenceact.eu)' },
 ] as const
 
 export type { ScanSourceResult }
@@ -36,7 +43,14 @@ export function stripHtml(html: string): string {
 export async function fetchText(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'AI-Navigator-ComplianceMonitor/1.0' },
+      // Realistischer Browser-UA (#248): manche öffentlichen Quellen weisen
+      // erkennbar automatisierte Clients ab. Bleibt best-effort — WAFs, die
+      // die Verbindung hängen lassen, fängt weiterhin der 10s-Timeout ab.
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'de,en;q=0.9',
+      },
       signal: AbortSignal.timeout(10000),
     })
     if (!res.ok) return null
