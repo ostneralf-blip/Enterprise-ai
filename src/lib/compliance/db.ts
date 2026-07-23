@@ -93,8 +93,11 @@ export const getComplianceContent = cache(async (): Promise<ComplianceContent> =
     if (risk && RISK_CLASSES.includes(risk as EuAiActRiskClass)) euAiActObligations[risk as EuAiActRiskClass].push(item)
   }
 
-  // Additional Regulations — reg-Metadaten aus DE/EN-Zeilenpaar rekonstruieren
-  const ADDITIONAL_SLUGS = ['iso_42001', 'nis2', 'iso_27001', 'bait', 'lksg']
+  // Additional Regulations = ALLE (published) Regularien AUSSER den Kern-Regularien
+  // dsgvo + eu_ai_act (die oben gesondert behandelt werden). DB-getrieben: neue
+  // Regularien aus dem Admin (z. B. BDSG) erscheinen automatisch, ohne diese Liste
+  // zu pflegen — früher war das eine hartcodierte Slug-Liste, in der BDSG fehlte.
+  const CORE_SLUGS = new Set(['dsgvo', 'eu_ai_act'])
   const regBySlug = new Map<string, { de?: RegRow; en?: RegRow }>()
   for (const r of regs) {
     let e = regBySlug.get(r.slug); if (!e) { e = {}; regBySlug.set(r.slug, e) }
@@ -102,7 +105,8 @@ export const getComplianceContent = cache(async (): Promise<ComplianceContent> =
   }
   const additional: AdditionalRegulation[] = []
   // Reihenfolge über display_order der DE-Regulierungszeile
-  const additionalOrdered = ADDITIONAL_SLUGS
+  const additionalOrdered = [...regBySlug.keys()]
+    .filter(slug => !CORE_SLUGS.has(slug))
     .map(slug => ({ slug, de: regBySlug.get(slug)?.de, en: regBySlug.get(slug)?.en }))
     .filter((x): x is { slug: string; de: RegRow; en: RegRow | undefined } => Boolean(x.de))
     .sort((a, b) => a.de.display_order - b.de.display_order)
