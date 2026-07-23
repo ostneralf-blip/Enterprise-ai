@@ -303,6 +303,11 @@ export function analyzeCanvas(canvas: Canvas, extraAliases?: Record<string, stri
     complianceDisplay.push('Gesundheitsdaten / MDR relevant')
   if (/finanz|banking|zahlungs|psd2|mifid|bafin/i.test(text))
     complianceDisplay.push('Finanzregulierung relevant')
+  // BDSG (deutsches Datenschutzrecht) — konkretisiert die DSGVO bei Beschäftigten-
+  // daten (§ 26) und Scoring (§ 31). Signal aus Beschäftigungs-/HR- bzw. Scoring-Bezug.
+  if (/beschäftigt|mitarbeiter|arbeitnehmer|bewerber|recruiting|human resources|\bhr\b|personalakte|personaldaten|personalverwaltung|leistungsbeurteilung|mitarbeiterüberwachung/i.test(text)
+      || /\bscoring\b|bonität|kreditwürdig|schufa/i.test(text))
+    complianceDisplay.push('BDSG (Beschäftigtendaten / Scoring) relevant')
 
   const filledCount = Object.values(canvas.data).filter(v => v?.trim()).length
 

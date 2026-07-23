@@ -172,4 +172,11 @@ describe('analyzeCanvas — Regression SAP-SuccessFactors-HR-Canvas', () => {
     const result = analyzeCanvas(canvas)
     expect(result.filledCount).toBe(8)
   })
+
+  it('erkennt BDSG bei Beschäftigtendaten und Scoring', () => {
+    // makeCanvas-Basis ist bereits ein HR-Canvas → BDSG-Signal aus Beschäftigungsbezug.
+    const BDSG = 'BDSG (Beschäftigtendaten / Scoring) relevant'
+    expect(analyzeCanvas(makeCanvas({}, 'KI zur Bewerberauswahl und Leistungsbeurteilung von Mitarbeitern')).compliance).toContain(BDSG)
+    expect(analyzeCanvas(makeCanvas({}, 'Automatisiertes Kredit-Scoring zur Bonitätsprüfung')).compliance).toContain(BDSG)
+  })
 })

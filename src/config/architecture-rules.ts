@@ -552,6 +552,13 @@ export function generateCrossModuleDecisions(ctx: CrossModuleContext): { de: str
     items.push({ de: `Governance-Check zeigt erhöhtes Risiko für "${name}" — Compliance-Anforderungen in Architektur-Design einbeziehen, nicht nachträglich ergänzen`, en: `Governance check flags elevated risk for "${name}" — embed compliance requirements in the architecture design upfront, not as an afterthought` })
   }
 
+  // BDSG-Relevanz aus dem Use-Case-Kontext (Beschäftigtendaten/Scoring) — das
+  // deutsche BDSG konkretisiert die DSGVO. Signal aus Canvas-/Governance-Use-Case-Namen.
+  const ctxNames = `${ctx.canvas?.useCase.name ?? ''} ${ctx.governance?.use_case_name ?? ''}`
+  if (/beschäftigt|mitarbeiter|arbeitnehmer|bewerber|recruiting|human resources|\bhr\b|personal(akte|daten|verwaltung)|leistungsbeurteilung|\bscoring\b|bonität|kreditwürdig/i.test(ctxNames)) {
+    items.push({ de: 'BDSG in der Architektur berücksichtigen — der Use-Case berührt Beschäftigtendaten oder Scoring: §§ 26/31 BDSG konkretisieren die DSGVO. Menschliche Kontrolle, Zweckbindung und Protokollierung von Anfang an einplanen.', en: 'Factor the BDSG into the architecture — the use case touches employee data or scoring: §§ 26/31 BDSG specify the GDPR. Plan human oversight, purpose limitation and logging in from the start.' })
+  }
+
   if (ctx.roadmap && ctx.roadmap.phasesCount > 0) {
     items.push({ de: `Architektur-Entscheidungen mit Roadmap "${ctx.roadmap.title}" abstimmen — ${ctx.roadmap.phasesCount} Phasen als Umsetzungs-Zeitrahmen für schrittweise Komponenten-Einführung nutzen`, en: `Align architecture decisions with roadmap "${ctx.roadmap.title}" — use its ${ctx.roadmap.phasesCount} phases as the rollout schedule for incremental component adoption` })
   }
