@@ -10,6 +10,7 @@ export interface ShareLinkRow {
 
 export function SharedLinksClient({ initialLinks }: { initialLinks: ShareLinkRow[] }) {
   const t = useTranslations('sharedLinks')
+  const tNav = useTranslations('nav')
   const locale = useLocale()
   const [links, setLinks] = useState(initialLinks)
   const [busy, setBusy] = useState<string | null>(null)
@@ -49,7 +50,7 @@ export function SharedLinksClient({ initialLinks }: { initialLinks: ShareLinkRow
           <tbody className="divide-y divide-line-subtle">
             {links.map(l => (
               <tr key={l.id} className={isExpired(l) ? 'opacity-50' : ''}>
-                <td className="py-2.5 pr-3 font-medium text-ink capitalize">{l.module}</td>
+                <td className="py-2.5 pr-3 font-medium text-ink">{tNav(l.module)}</td>
                 <td className="py-2.5 pr-3 text-ink-secondary">
                   {l.expires_at ? fmt(l.expires_at) : t('never')}
                   {isExpired(l) && <span className="ml-1.5 text-xs">({t('expired')})</span>}

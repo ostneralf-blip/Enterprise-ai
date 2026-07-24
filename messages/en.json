@@ -975,7 +975,12 @@
     "artTogaf": "TOGAF (coming soon)",
     "artDatenfluss": "Data flow (coming soon)",
     "presetHint": "Can be saved as default in settings",
-    "capabilityEmpty": "No use cases in your portfolio yet — create some in the Use-Case module."
+    "capabilityEmpty": "No use cases in your portfolio yet — create some in the Use-Case module.",
+    "maturityLabel": "Maturity",
+    "maturityGeplant": "planned",
+    "maturityEvaluiert": "evaluated",
+    "maturityPilot": "pilot",
+    "maturityProduktiv": "in production"
   },
   "settings": {
     "title": "Settings",

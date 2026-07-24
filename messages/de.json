@@ -975,7 +975,12 @@
     "artTogaf": "TOGAF (demnächst)",
     "artDatenfluss": "Datenfluss (demnächst)",
     "presetHint": "Als Standard in den Einstellungen speicherbar",
-    "capabilityEmpty": "Noch keine Use-Cases im Portfolio — legen Sie im Use-Case-Modul welche an."
+    "capabilityEmpty": "Noch keine Use-Cases im Portfolio — legen Sie im Use-Case-Modul welche an.",
+    "maturityLabel": "Reifegrad",
+    "maturityGeplant": "geplant",
+    "maturityEvaluiert": "evaluiert",
+    "maturityPilot": "Pilot",
+    "maturityProduktiv": "produktiv"
   },
   "settings": {
     "title": "Einstellungen",
