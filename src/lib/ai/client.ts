@@ -207,7 +207,26 @@ export async function callLLM<T>(
           return noData('bedrock', 'NO_JSON')
         }
 
-        const parsed = schema.safeParse(JSON.parse(jsonStr))
+        // Modell-JSON gesondert parsen: ein ungültiges JSON (z. B. unescaptes
+        // Anführungszeichen im String-Wert — ein bekanntes LLM-Problem) ist ein
+        // CONTENT-Fehler, KEIN Bedrock-Infrastruktur-Fehler. Würde er in den
+        // generischen catch unten laufen, öffnete er fälschlich den Circuit-Breaker
+        // und alle Folge-Sektionen scheiterten mit CIRCUIT_OPEN. Stattdessen: einmal
+        // neu generieren lassen (ein zweiter Versuch liefert meist gültiges JSON),
+        // sonst als Content-Fehler zurückgeben, ohne den Breaker zu öffnen.
+        let modelJson: unknown
+        try {
+          modelJson = JSON.parse(jsonStr)
+        } catch (parseErr) {
+          if (attempt === 1) {
+            console.warn('[ai/client] Bedrock: ungültiges Modell-JSON, Retry 2/2', moduleName, (parseErr as Error).message)
+            continue
+          }
+          console.error('[ai/client] Bedrock: Modell lieferte ungültiges JSON', moduleName, (parseErr as Error).message, { snippet: jsonStr.slice(0, 200) })
+          return noData('bedrock', 'BAD_JSON')
+        }
+
+        const parsed = schema.safeParse(modelJson)
         if (!parsed.success) {
           // path.join(): verschachtelte Arrays werden von Node/Vercels Log-Viewer
           // sonst ab einer gewissen Tiefe zu "[Array]" zusammengeklappt.
