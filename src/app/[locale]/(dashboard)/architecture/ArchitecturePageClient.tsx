@@ -12,6 +12,10 @@ import { CardTitle, SectionTitle, Eyebrow } from '@/components/shared/typography
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
+import { DiagramView } from '@/components/modules/architecture/diagram/DiagramView'
+import { DiagramStyleSwitcher } from '@/components/modules/architecture/diagram/DiagramStyleSwitcher'
+import { deriveCapabilityMap } from '@/lib/architecture/capability'
+import { resolvePreset, PERSONA_PRESETS, type DiagramStyle } from '@/config/diagram-styles'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
@@ -22,7 +26,6 @@ import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import type { CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
 import { ArchitekturLandkarte } from './ArchitekturLandkarte'
-import { EamMap } from './EamMap'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
 import { extractCanvasContext, type CanvasContext } from '@/lib/canvas-context'
@@ -92,6 +95,8 @@ interface Props {
   tier?: string
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
   complianceTriggers?: ComplianceTriggerDisplay[]
+  portfolioUseCases?: UseCase[]
+  initialDiagramStyle?: DiagramStyle | null
   roadmapContext?: RoadmapContext | null
   synonyms?: CanvasSynonym[]
   rolesCatalog?: RoleCatalogEntry[]
@@ -442,9 +447,25 @@ const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'rasic', 'decisions',
 type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
 const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, complianceTriggers = [], roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, complianceTriggers = [], portfolioUseCases = [], initialDiagramStyle = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
+  const tDiagram = useTranslations('diagram')
   const locale = useLocale()
+  // Diagramm-Stil-Preset (Persona) — steuert Capability- vs. Schichten-Sicht.
+  const [activePreset, setActivePreset] = useState<string>(() => {
+    const s = initialDiagramStyle
+    const match = s ? Object.values(PERSONA_PRESETS).find(p =>
+      p.style.art === s.art && p.style.connections === s.connections && p.style.density === s.density) : undefined
+    return match?.key ?? 'architect'
+  })
+  const diagramStyle: DiagramStyle = resolvePreset(activePreset)
+  const changePreset = (key: string) => {
+    setActivePreset(key)
+    void fetch('/api/preferences', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ diagram_style: resolvePreset(key) }),
+    }).catch(() => {})
+  }
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
@@ -1230,25 +1251,33 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                       </SortableSection>
                     )
                   }
-                  if (resultAudience !== 'exec') {
-                    return (
-                      <SortableSection key="eam" id="eam">
-                        <EamMap
-                          result={result}
-                          activeComponents={selStats.activeComponents}
-                          componentSources={componentSources}
-                          componentOwners={componentOwners}
-                          componentOpsNotes={componentOpsNotes}
-                          eamResults={eamResults}
-                          roleNames={catalogRecs?.roleNames ?? []}
-                          detailLevel={resultLevel}
-                          locale={locale}
-                          compliance={answers.compliance}
-                        />
-                      </SortableSection>
-                    )
-                  }
-                  return null
+                  // Diagramm-Sektion: der gewählte Stil (Preset) entscheidet über die
+                  // Sicht (Capability für Executive, Schichten sonst), nicht mehr die
+                  // Audience. Der Umschalter erlaubt den Wechsel direkt hier.
+                  return (
+                    <SortableSection key="eam" id="eam">
+                      <div className="mb-3">
+                        <DiagramStyleSwitcher activePreset={activePreset} onChange={changePreset} />
+                      </div>
+                      <DiagramView
+                        style={diagramStyle}
+                        capabilityGroups={deriveCapabilityMap(portfolioUseCases)}
+                        capabilityEmptyLabel={tDiagram('capabilityEmpty')}
+                        eamProps={{
+                          result,
+                          activeComponents: selStats.activeComponents,
+                          componentSources,
+                          componentOwners,
+                          componentOpsNotes,
+                          eamResults,
+                          roleNames: catalogRecs?.roleNames ?? [],
+                          detailLevel: resultLevel,
+                          locale,
+                          compliance: answers.compliance,
+                        }}
+                      />
+                    </SortableSection>
+                  )
                 }
                 if (sectionId === 'decisions') {
                   return (
