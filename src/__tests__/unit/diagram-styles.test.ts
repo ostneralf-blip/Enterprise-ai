@@ -1,4 +1,4 @@
-import { PERSONA_PRESETS, resolvePreset, DEFAULT_STYLE, type DiagramStyle } from '@/config/diagram-styles'
+import { PERSONA_PRESETS, resolvePreset, renderableArt, DEFAULT_STYLE, type DiagramStyle } from '@/config/diagram-styles'
 
 describe('diagram-styles', () => {
   it('Executive-Preset = Capability + Bebauungsplan + sparsam', () => {
@@ -15,5 +15,11 @@ describe('diagram-styles', () => {
       const r: DiagramStyle = resolvePreset(key)
       expect(r.art).toBeDefined()
     }
+  })
+  it('renderableArt liefert ab Phase 2 alle Arten 1:1', () => {
+    expect(renderableArt('schichten')).toBe('schichten')
+    expect(renderableArt('togaf')).toBe('togaf')
+    expect(renderableArt('datenfluss')).toBe('datenfluss')
+    expect(renderableArt('capability')).toBe('capability')
   })
 })
