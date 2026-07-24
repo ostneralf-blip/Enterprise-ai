@@ -92,7 +92,6 @@ export default async function LandingPage({
     <div className="min-h-screen bg-ivory text-slate-900">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
       />
       <PaperNoise />
@@ -114,7 +113,6 @@ export default async function LandingPage({
           </p>
           <p
             className="text-slate-600 text-lg max-w-2xl mx-auto leading-relaxed mb-10"
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: t.raw('heroP2') }}
           />
           <div className="flex items-center justify-center gap-4">

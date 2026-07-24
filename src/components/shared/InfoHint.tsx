@@ -43,6 +43,10 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
     }
   }, [resolvedSide, resolvedAlign])
 
+  // Tooltip-Positionierung: Reset beim Schließen bzw. Neu-Messung nach Paint.
+  // Legitimer Effect (hängt an DOM-Layout/Paint) — set-state-in-effect ist hier
+  // kein cascading-render-Problem, sondern das Ergebnis der Layout-Synchronisation.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!open) {
       // Position beim Schließen zurücksetzen
@@ -53,6 +57,7 @@ export function InfoHint({ title, children, className, side = 'top', align = 'le
     // Nach nächstem Paint messen
     requestAnimationFrame(adjustPosition)
   }, [open, side, align, adjustPosition])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!open) return

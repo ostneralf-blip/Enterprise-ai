@@ -3,7 +3,6 @@ import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
 import type { ReactElement } from 'react'
 import { ASSESSMENT_DIMENSIONS, getMaturityLevel } from '@/config/assessment-data'
 import { EU_AI_ACT_RISK_CLASSES, RISK_MATRIX, getRiskLevel } from '@/config/compliance-data'
-import { formatDate } from '@/lib/utils'
 import { resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 
 // ─── DESIGN TOKENS ──────────────────────────────────────────────────────────
@@ -1254,7 +1253,7 @@ function archRecs(data: ExecutiveSummaryPdfData): string[] {
 }
 
 export function renderExecutiveSummaryPdf(data: ExecutiveSummaryPdfData, locale = 'de'): ReactElement {
-  const l = pdfLoc(locale)
+  const _l = pdfLoc(locale)
   const dimLabels = locale === 'en' ? DIM_LABELS_EN : DIM_LABELS_ES
   const govCfgEs  = locale === 'en' ? GOV_CFG_ES_EN : GOV_CFG_ES
   const quadrantEs = locale === 'en' ? QUADRANT_ES_EN : QUADRANT_ES

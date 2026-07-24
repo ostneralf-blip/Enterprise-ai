@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { CatalogComponent } from '@/types'
@@ -462,10 +463,10 @@ export function ArchitectureDiagram({ recs, components, tier = 'free', pattern, 
           <p className="text-xs text-slate-500 text-center max-w-52">
             {t('diagramLayersCount', { count: totalComponents, layers: mainLayers.length })}
           </p>
-          <a href="/upgrade"
+          <Link href="/upgrade"
             className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-xl hover:bg-primary transition-colors">
             Jetzt upgraden →
-          </a>
+          </Link>
         </div>
       )}
     </div>

@@ -40,7 +40,6 @@ export default function ImpressumPage() {
     <div className="min-h-screen bg-slate-50">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <div className="max-w-2xl mx-auto px-4 py-12">
@@ -57,7 +56,7 @@ export default function ImpressumPage() {
             25474 Ellerbek<br />
             Deutschland
           </p>
-          <p>Handelnd unter der Bezeichnung „AI Navigator" (Einzelunternehmen)</p>
+          <p>Handelnd unter der Bezeichnung „AI Navigator“ (Einzelunternehmen)</p>
 
           <h2>Kontakt</h2>
           <p>

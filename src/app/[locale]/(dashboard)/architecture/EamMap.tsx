@@ -131,10 +131,8 @@ export function EamMap({
   componentSources,
   componentOwners,
   componentOpsNotes,
-  eamResults,
   roleNames,
   detailLevel,
-  locale,
   compliance,
 }: EamMapProps) {
   const t = useTranslations('modules.architecture')

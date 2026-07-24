@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import type { ArchitectureResult } from '@/config/architecture-data'
 import { ARCHETYPE_LABELS } from '@/config/roadmap-data'
@@ -83,12 +84,12 @@ export function VersionsPanel({ module, entityId, tier, currentData }: Props) {
 
   if (!isPro) {
     return (
-      <a
+      <Link
         href="/upgrade"
         className="px-4 py-2 text-sm font-medium border border-violet-200 text-violet-700 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
       >
         {t('versions.panelButtonPro')}
-      </a>
+      </Link>
     )
   }
 

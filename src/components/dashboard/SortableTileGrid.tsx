@@ -140,6 +140,7 @@ export function SortableTileGrid({ tiles: defaultTiles }: SortableTileGridProps)
         // neue Module (nicht in localStorage) ans Ende hängen — forward-kompatibel
         ...defaultTiles.filter(t => !savedOrder.includes(t.id)),
       ]
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage-Sync (externer Store), kein cascading render
       setTiles(reordered)
     } catch {
       // localStorage nicht verfügbar oder JSON ungültig

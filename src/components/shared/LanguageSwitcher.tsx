@@ -17,7 +17,10 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const switchTo = async (next: Locale) => {
     if (next === locale) return
 
-    // next-intl liest NEXT_LOCALE-Cookie für Persistenz
+    // next-intl liest NEXT_LOCALE-Cookie für Persistenz. (document.cookie = … ist
+    // das Standard-API zum Setzen eines Cookies; react-hooks/immutability meldet
+    // hier fälschlich eine „unveränderbare" Mutation.)
+    // eslint-disable-next-line react-hooks/immutability
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
 
     // Sprache in DB persistieren (D2)

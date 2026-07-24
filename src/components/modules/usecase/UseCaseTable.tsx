@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from 'next-intl'
 import { QUADRANT_META } from '@/config/usecase-data'
 import { pick } from '@/lib/utils/locale-data'
@@ -95,14 +96,14 @@ export function UseCaseTable({ useCases, onEdit, onDelete, canvases = [] }: UseC
                   {uc.canvas_id && (() => {
                     const canvasTitle = canvases.find(c => c.id === uc.canvas_id)?.title
                     return (
-                      <a
+                      <Link
                         href="/canvas"
                         className="inline-flex items-center gap-1 text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5 mt-1 hover:bg-indigo-100 transition-colors"
                         title="Canvas öffnen"
                         onClick={e => e.stopPropagation()}
                       >
                         □ Canvas{canvasTitle ? `: ${canvasTitle}` : ' verknüpft'}
-                      </a>
+                      </Link>
                     )
                   })()}
                 </td>

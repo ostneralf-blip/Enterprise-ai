@@ -159,9 +159,9 @@ export default async function DashboardPage() {
             <p className="text-sm font-semibold text-error-text">Zahlung fehlgeschlagen</p>
             <p className="text-xs text-error-text mt-0.5">Ihre letzte Zahlung konnte nicht verarbeitet werden. Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihren Pro-Zugang zu behalten.</p>
           </div>
-          <a href="/einstellungen" className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors whitespace-nowrap">
+          <Link href="/einstellungen" className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors whitespace-nowrap">
             Zahlungsmethode aktualisieren
-          </a>
+          </Link>
         </div>
       )}
       {/* Header */}

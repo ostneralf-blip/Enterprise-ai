@@ -78,7 +78,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans antialiased bg-ivory text-slate-900">
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         {children}

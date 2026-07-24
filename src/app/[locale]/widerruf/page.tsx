@@ -95,7 +95,7 @@ export default function WiderrufPage() {
             </p>
             <p>
               Hiermit widerrufe(n) ich/wir den von mir/uns abgeschlossenen Vertrag über die
-              Nutzung des Dienstes „AI Navigator"
+              Nutzung des Dienstes „AI Navigator“
             </p>
             <div className="space-y-2 pt-1">
               <p>Bestellt am: <span className="inline-block w-40 border-b border-slate-400">&nbsp;</span></p>

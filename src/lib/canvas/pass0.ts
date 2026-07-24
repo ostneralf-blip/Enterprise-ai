@@ -4,7 +4,7 @@
 
 import type { Canvas } from '@/types'
 import { matchesTerm, type CanvasComplianceFlag } from './detection'
-import { FIELD_PRIORS, FIELD_PRIOR_MAP, isHarvestField, type EntityPrior } from './field-priors'
+import { FIELD_PRIORS, isHarvestField, type EntityPrior } from './field-priors'
 
 // ─── Anhang-III-Bereiche (EU AI Act, Hochrisiko-Kategorien) ───────────────────
 export type AnnexIIIArea =

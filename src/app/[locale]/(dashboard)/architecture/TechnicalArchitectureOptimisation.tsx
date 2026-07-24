@@ -79,7 +79,7 @@ export function TechnicalArchitectureOptimisation({
 
   const toggle = (name: string, checked: boolean) => {
     const next = new Set(effective)
-    checked ? next.add(name) : next.delete(name)
+    if (checked) next.add(name); else next.delete(name)
     onCheckedChange(next)
   }
 

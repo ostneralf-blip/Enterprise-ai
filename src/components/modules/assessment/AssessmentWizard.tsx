@@ -247,7 +247,7 @@ function AssessmentIntro({ tier, variant, onVariantChange, onStart }: {
           {!isPro && (
             <span className="block mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
               {t.rich('introShortVersion', {
-                pro: (chunks) => <a href="/upgrade" className="underline font-medium">{chunks}</a>,
+                pro: (chunks) => <Link href="/upgrade" className="underline font-medium">{chunks}</Link>,
               })}
             </span>
           )}

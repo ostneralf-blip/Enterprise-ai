@@ -44,7 +44,7 @@ export default function DatenschutzPage() {
             Hasenheide 8b, 25474 Ellerbek, Deutschland<br />
             E-Mail: <a href="mailto:webmaster@enterprise-ai.biz">webmaster@enterprise-ai.biz</a>
           </p>
-          <p>(im Folgenden „wir" / „AI Navigator")</p>
+          <p>(im Folgenden „wir“ / „AI Navigator“)</p>
 
           <h2>2. Überblick der Verarbeitungen</h2>
           <p>

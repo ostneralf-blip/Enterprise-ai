@@ -43,9 +43,9 @@ export default function AgbPage() {
           <h2>§ 1 Geltungsbereich</h2>
           <p>
             (1) Diese AGB gelten für alle Verträge über die Nutzung der
-            Software-as-a-Service-Anwendung „AI Navigator" (nachfolgend „Dienst") zwischen
-            Daniel Ostner, Hasenheide 8b, 25474 Ellerbek (nachfolgend „Anbieter") und den
-            Nutzern des Dienstes (nachfolgend „Kunde").
+            Software-as-a-Service-Anwendung „AI Navigator“ (nachfolgend „Dienst“) zwischen
+            Daniel Ostner, Hasenheide 8b, 25474 Ellerbek (nachfolgend „Anbieter“) und den
+            Nutzern des Dienstes (nachfolgend „Kunde“).
           </p>
           <p>
             (2) Der Dienst richtet sich sowohl an Unternehmer im Sinne des § 14 BGB als auch
@@ -158,7 +158,7 @@ export default function AgbPage() {
           <p>
             (3) Für Verbraucherverträge, die über eine Online-Benutzeroberfläche geschlossen
             werden, stellt der Anbieter eine elektronische Widerrufsfunktion
-            („Widerrufsbutton", § 356a BGB) im Kundenkonto sowie im Footer der Website bereit.
+            („Widerrufsbutton“, § 356a BGB) im Kundenkonto sowie im Footer der Website bereit.
           </p>
 
           <h2>§ 8 Pflichten des Kunden</h2>

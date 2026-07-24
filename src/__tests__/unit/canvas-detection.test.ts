@@ -116,7 +116,6 @@ describe('detectUseCaseTypes — Multi-Label', () => {
   it('gibt null zurück bei leerem Canvas', () => {
     const canvas = makeCanvas({ problem: '', solution: '', data_sources: '' })
     const text = buildDetectionText(canvas)
-    const result = detectUseCaseTypes(text)
     // Kann null oder einen Type haben (stakeholder/kpis/risks/next_steps haben noch Content)
     // Hauptsache kein Crash
     expect(() => detectUseCaseTypes(text)).not.toThrow()
@@ -149,7 +148,7 @@ describe('analyzeCanvas — Regression SAP-SuccessFactors-HR-Canvas', () => {
     // Canvas-Box nutzt analyzeCanvas
     const boxResult = analyzeCanvas(canvas)
     // Architektur-Prefill nutzt extractCanvasContext aus canvas-context.ts
-    const { extractCanvasContext, buildVocabFromCatalog } = await import('@/lib/canvas-context')
+    const { extractCanvasContext } = await import('@/lib/canvas-context')
     const fakeUseCase = {
       id: 'uc1', portfolio_id: 'p1', name: 'HR Onboarding', domain: null,
       description: null, scores: { value: 3, feasibility: 3, data_readiness: 3, risk: 3, speed: 3 },

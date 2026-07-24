@@ -1,5 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 export function ComplianceContextBanner({ riskClass }: { riskClass: string | null | undefined }) {
   const t = useTranslations('modules')
@@ -40,12 +41,12 @@ export function ComplianceContextBanner({ riskClass }: { riskClass: string | nul
           {cfg.label}
         </p>
         <p className={`text-sm ${cfg.text}`}>{cfg.message}</p>
-        <a
+        <Link
           href="/compliance"
           className={`text-xs underline mt-1 inline-block ${cfg.text} opacity-60 hover:opacity-100 transition-opacity`}
         >
           {t('compliance.bannerLink')}
-        </a>
+        </Link>
       </div>
     </div>
   )

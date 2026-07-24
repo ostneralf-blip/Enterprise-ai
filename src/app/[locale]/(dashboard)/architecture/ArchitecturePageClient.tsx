@@ -13,7 +13,7 @@ import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scal
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
 import { getSelectionStats } from '@/lib/architecture/selection'
-import { findConflicts, explainConflict } from '@/lib/utils/catalog-compatibility'
+import { findConflicts } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
 import { SECTION_TO_AUDIENCE } from '@/lib/ai/section-audience'
 import { AIAnalysisButton, AIBadge } from '@/components/shared/AIAnalysisButton'
@@ -25,12 +25,10 @@ import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { EamMap } from './EamMap'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
-import { ArchitectureDiagram } from '@/components/modules/ArchitectureDiagram'
 import { extractCanvasContext, type CanvasContext } from '@/lib/canvas-context'
 import { UnifiedContextBanner, type AssessmentContext, type GovernanceContext, type RoadmapContext } from '@/components/shared/UnifiedContextBanner'
 import { mergeCanvasContexts } from '@/lib/utils/merge-canvas-contexts'
 import { CanvasScopeStep } from './CanvasScopeStep'
-import { TechnicalArchitectureOptimisation } from './TechnicalArchitectureOptimisation'
 import { ArchitectureWorkbench } from './ArchitectureWorkbench'
 import {
   DndContext,
@@ -51,7 +49,6 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { AlertBox } from '@/components/shared/AlertBox'
 
-const NOW = Date.now()
 
 
 interface SavedArchitecture {
@@ -279,7 +276,6 @@ function ResultBar({
   onLevel,
   tier,
   presentationTemplate,
-  onPresentation,
   savedId,
   locale,
 }: {
@@ -370,10 +366,6 @@ const DSGVO_BADGE: Record<string, string> = {
 }
 const DSGVO_LABEL: Record<string, string> = {
   compliant: 'DSGVO ✓', conditional: 'DSGVO ~', non_compliant: 'DSGVO ✗',
-}
-const LAYER_LABEL: Record<string, string> = {
-  data: 'Daten', model: 'Modell', mlops: 'MLOps', serving: 'Serving',
-  governance: 'Governance', security: 'Security', application: 'Anwendung',
 }
 
 
@@ -482,7 +474,7 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
     [canvasContext, complianceTriggers],
   )
   const [showCanvasBanner, setShowCanvasBanner] = useState(!!canvasContext)
-  const [selectedCanvasIds, setSelectedCanvasIds] = useState<string[]>(canvasContext ? [canvasContext.canvas.id] : [])
+  const [, setSelectedCanvasIds] = useState<string[]>(canvasContext ? [canvasContext.canvas.id] : [])
   const [result, setResult] = useState<ArchitectureResult | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -506,7 +498,6 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const [recComponents, setRecComponents] = useState<CatalogComponent[]>([])
   const [activeComponentNames, setActiveComponentNames] = useState<Set<string>>(new Set())
   const [componentSources, setComponentSources] = useState<Record<string, 'rule' | 'ai' | 'manual'>>({})
-  const [resultShowAltFor, setResultShowAltFor] = useState<Set<string>>(new Set())
   const catalogFetched = useRef(false)
   const [resultAudience, setResultAudience] = useState<ResultAudience>('architect')
   const aiNarrative = aiNarrativeByAudience[resultAudience] ?? null
@@ -1905,6 +1896,7 @@ function ComponentDetailModal({ comp, onClose }: { comp: CatalogComponent; onClo
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Rollen-Detail-Modal, aktuell nicht eingebunden (Reserve)
 function RoleDetailModal({ role, onClose, tc }: {
   role: RoleCatalogEntry
   onClose: () => void

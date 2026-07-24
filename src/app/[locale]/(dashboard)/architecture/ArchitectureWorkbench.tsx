@@ -55,6 +55,9 @@ export function ArchitectureWorkbench({
   const [search, setSearch] = useState('')
   const [expandedConflicts, setExpandedConflicts] = useState<Set<string>>(new Set())
 
+  // Öffnet die Workbench auf dem per Prop erzwungenen Tab + persistiert das in
+  // localStorage. Prop-Sync mit Seiteneffekt (localStorage) — legitimer Effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!forceOpenTab) return
     setOpen(true)
@@ -62,6 +65,7 @@ export function ArchitectureWorkbench({
     localStorage.setItem(LS_OPEN, 'true')
     localStorage.setItem(LS_TAB, forceOpenTab)
   }, [forceOpenTab])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Gate D (#182): Zählen ausschließlich über den zentralen Selektor —
   // Header, KI-Panel und Validierung lesen damit dieselbe Quelle.
@@ -175,7 +179,7 @@ export function ArchitectureWorkbench({
                                 type="button"
                                 onClick={() => setExpandedConflicts(prev => {
                                   const next = new Set(prev)
-                                  next.has(key) ? next.delete(key) : next.add(key)
+                                  if (next.has(key)) next.delete(key); else next.add(key)
                                   return next
                                 })}
                                 className="text-[10px] font-semibold text-error-text border border-error-border rounded-lg px-2 py-1 hover:bg-error-subtle transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-error-border"
@@ -302,7 +306,7 @@ export function ArchitectureWorkbench({
                       <button
                         onClick={() => {
                           const next = new Set(effective)
-                          effective.has(comp.name) ? next.delete(comp.name) : next.add(comp.name)
+                          if (effective.has(comp.name)) next.delete(comp.name); else next.add(comp.name)
                           onCheckedChange(next)
                         }}
                         className="shrink-0 text-xs px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"

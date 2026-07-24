@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { track } from '@/lib/posthog/client'
@@ -31,12 +32,12 @@ export function ShareButton({ module, entityId, tier }: Props) {
 
   if (!isPro) {
     return (
-      <a
+      <Link
         href="/upgrade"
         className="px-4 py-2 text-sm font-medium border border-violet-200 text-violet-700 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
       >
         {t('shareProLabel')}
-      </a>
+      </Link>
     )
   }
 

@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { AlertBox } from '@/components/shared/AlertBox'
@@ -152,9 +153,9 @@ export function AIPanel({
         <div className="bg-white border border-purple-200 rounded-xl px-3 py-3 text-center space-y-1.5">
           <p className="text-xs font-semibold text-slate-800">{t('architecture.aiPanelFreeTeaserTitle')}</p>
           <p className="text-[10px] text-slate-500 leading-relaxed">{t('architecture.aiPanelFreeTeaserBody')}</p>
-          <a href="/pricing" className="inline-block text-xs font-semibold text-[color:var(--color-ai)] hover:underline focus:outline-none focus:ring-1 focus:ring-purple-400 rounded">
+          <Link href="/pricing" className="inline-block text-xs font-semibold text-[color:var(--color-ai)] hover:underline focus:outline-none focus:ring-1 focus:ring-purple-400 rounded">
             {t('architecture.aiPanelFreeTeaserCta')}
-          </a>
+          </Link>
         </div>
       )}
 

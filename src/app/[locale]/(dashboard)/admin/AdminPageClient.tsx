@@ -2105,7 +2105,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
             <p className="text-sm font-medium text-ink-secondary">Neues Synonym</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
-                <label className="block text-xs font-medium text-ink-secondary mb-1">Term (z.B. "Microsoft")</label>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">Term (z.B. „Microsoft“)</label>
                 <input
                   type="text"
                   value={synForm.term}
@@ -2115,7 +2115,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-secondary mb-1">Synonym (z.B. "navision")</label>
+                <label className="block text-xs font-medium text-ink-secondary mb-1">Synonym (z.B. „navision“)</label>
                 <input
                   type="text"
                   value={synForm.synonym}
@@ -2436,7 +2436,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         <p className="text-sm text-ink-secondary">{draft.summary}</p>
                         {draft.suggested_value && (
                           <p className="text-xs text-warning-text bg-warning-subtle border border-warning-border rounded-lg px-2.5 py-1.5">
-                            Korrekturvorschlag: <span className="font-semibold">{draft.suggested_value}</span> — „Berücksichtigt" schreibt diesen Wert in den Checklistenpunkt.
+                            Korrekturvorschlag: <span className="font-semibold">{draft.suggested_value}</span> — „Berücksichtigt“ schreibt diesen Wert in den Checklistenpunkt.
                           </p>
                         )}
                         <div className="flex gap-2">
