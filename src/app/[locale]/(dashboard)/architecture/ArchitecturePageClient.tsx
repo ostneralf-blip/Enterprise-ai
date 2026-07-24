@@ -25,7 +25,6 @@ import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft
 import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import type { CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
-import { ArchitekturLandkarte } from './ArchitekturLandkarte'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
 import { extractCanvasContext, type CanvasContext } from '@/lib/canvas-context'
@@ -458,9 +457,12 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       p.style.art === s.art && p.style.connections === s.connections && p.style.density === s.density) : undefined
     return match?.key ?? 'architect'
   })
-  const diagramStyle: DiagramStyle = resolvePreset(activePreset)
+  // Wurde der Stil in dieser Ergebnisansicht bewusst umgeschaltet? Solange nicht,
+  // zeigt der Executive-Zielgruppen-Tab standardmäßig die Capability-Sicht.
+  const [presetTouched, setPresetTouched] = useState(false)
   const changePreset = (key: string) => {
     setActivePreset(key)
+    setPresetTouched(true)
     void fetch('/api/preferences', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ diagram_style: resolvePreset(key) }),
@@ -1034,9 +1036,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       acceptedSuggestions: aiAccepted,
     })
     const activeCompsForEam = selStats.activeComponents
-    const eamResults = resultAudience !== 'exec'
-      ? runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount)
-      : []
+    // Immer berechnen: der Executive-Tab kann per Umschalter auf die Schichten-Sicht
+    // (EamMap) wechseln, die diese Validierung benötigt.
+    const eamResults = runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount)
 
     // Key Decisions + Next Steps — VOR dem return-Statement (für DnD-Mapping)
     const kpComponents = selStats.activeComponents
@@ -1228,39 +1230,20 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   )
                 }
                 if (sectionId === 'eam') {
-                  if (resultAudience === 'exec' && catalogRecs) {
-                    const effectiveNamesLk = selStats.effectiveNames
-                    const eamOk = runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount).every(r => r.passed)
-                    return (
-                      <SortableSection key="eam" id="eam">
-                        <div className="space-y-4">
-                          <ArchitekturLandkarte
-                            catalogRecs={catalogRecs}
-                            components={recComponents}
-                            activeNames={effectiveNamesLk}
-                            aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
-                            complianceMode={false}
-                            execMode={true}
-                            level={resultLevel}
-                            answers={answers}
-                            useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
-                            eamValid={eamOk}
-                          />
-                          <ExecRecommendationCard result={result} locale={locale} />
-                        </div>
-                      </SortableSection>
-                    )
-                  }
                   // Diagramm-Sektion: der gewählte Stil (Preset) entscheidet über die
-                  // Sicht (Capability für Executive, Schichten sonst), nicht mehr die
-                  // Audience. Der Umschalter erlaubt den Wechsel direkt hier.
+                  // Sicht (Capability vs. Schichten), nicht mehr die Audience. Im
+                  // Executive-Tab ist Capability der Standard, solange der Nutzer den
+                  // Umschalter nicht bewusst betätigt hat. Die Empfehlungs-Card bleibt
+                  // im Executive-Tab erhalten.
+                  const eamEffectivePreset = resultAudience === 'exec' && !presetTouched ? 'executive' : activePreset
+                  const eamEffectiveStyle = resolvePreset(eamEffectivePreset)
                   return (
                     <SortableSection key="eam" id="eam">
                       <div className="mb-3">
-                        <DiagramStyleSwitcher activePreset={activePreset} onChange={changePreset} />
+                        <DiagramStyleSwitcher activePreset={eamEffectivePreset} onChange={changePreset} />
                       </div>
                       <DiagramView
-                        style={diagramStyle}
+                        style={eamEffectiveStyle}
                         capabilityGroups={deriveCapabilityMap(portfolioUseCases)}
                         capabilityEmptyLabel={tDiagram('capabilityEmpty')}
                         eamProps={{
@@ -1276,6 +1259,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                           compliance: answers.compliance,
                         }}
                       />
+                      {resultAudience === 'exec' && (
+                        <div className="mt-4">
+                          <ExecRecommendationCard result={result} locale={locale} />
+                        </div>
+                      )}
                     </SortableSection>
                   )
                 }
