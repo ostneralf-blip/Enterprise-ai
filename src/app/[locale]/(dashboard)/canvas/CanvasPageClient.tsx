@@ -1,7 +1,7 @@
 'use client'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
@@ -151,23 +151,26 @@ export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: 
   const [aiActOpen, setAiActOpen] = useState(false)
   const [aiActAnswers, setAiActAnswers] = useState<AiActPartialAnswers>(EMPTY_ACT_ANSWERS)
   const [aiActCopied, setAiActCopied] = useState(false)
-  const activeIdRef = useRef<string | null>(null)
+  const [prevCanvasId, setPrevCanvasId] = useState<string | null>(null)
 
-  // Reset EU AI Act answers when switching to a different canvas; restore from saved if available
-  useEffect(() => {
-    if (!active || activeIdRef.current === active.id) return
-    activeIdRef.current = active.id
+  // EU-AI-Act-Antworten beim Canvas-Wechsel zurücksetzen bzw. aus dem gespeicherten
+  // Assessment wiederherstellen. Anpassung ZUR RENDER-ZEIT (dokumentiertes React-
+  // Muster „adjusting state when a prop changes") statt via useEffect — vermeidet
+  // die vom set-state-in-effect-Lint gemeldeten cascading renders. Der prevCanvasId-
+  // Guard verhindert eine Endlosschleife (Reset nur beim tatsächlichen ID-Wechsel).
+  if (active && active.id !== prevCanvasId) {
+    setPrevCanvasId(active.id)
     const saved = active.ai_act_assessment as AiActAssessment | null
-    if (saved?.answers) {
-      setAiActAnswers(saved.answers)
-      setAiActOpen(true)
-    } else {
-      setAiActAnswers(EMPTY_ACT_ANSWERS)
-      setAiActOpen(false)
-    }
-  }, [active])
+    setAiActAnswers(saved?.answers ?? EMPTY_ACT_ANSWERS)
+    setAiActOpen(!!saved?.answers)
+  }
 
-  // Draft-Prüfung: falls Canvas kein ai_enrichment hat, aber Draft vorhanden ist
+  // Draft-Prüfung: liest bzw. löscht den lokalen KI-Ergebnis-Draft (localStorage) —
+  // ein echter Sync mit einem externen Store, daher legitim als Effect. Die setState-
+  // Aufrufe sind das Ergebnis dieses Syncs; set-state-in-effect ist hier ein False
+  // Positive (der Wert kann wegen des localStorage-Zugriffs nicht zur Render-Zeit
+  // abgeleitet werden, und clearDraft ist ein Seiteneffekt, der nicht rendern darf).
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!active) { setCanvasDraftBanner(null); return }
     if (active.ai_enrichment) {
@@ -183,6 +186,7 @@ export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active?.id, active?.ai_enrichment])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const aiActResult = useMemo<AiActAssessment | null>(() => {
     const { affectsPersons, involvesProfiling, isNarrowProcedural, humanReviewsBefore } = aiActAnswers
