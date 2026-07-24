@@ -973,6 +973,8 @@
     "subtitle": "Profil und Konto verwalten",
     "paymentFailedBanner": "Ihre letzte Zahlung ist fehlgeschlagen. Bitte aktualisieren Sie Ihre Zahlungsmethode, um Ihren Pro-Zugang zu behalten.",
     "updatePaymentButton": "Zahlungsmethode aktualisieren",
+    "welcomeTitle": "Willkommen bei AI Navigator!",
+    "welcomeText": "Bitte vervollständigen Sie Ihr Profil, bevor Sie loslegen.",
     "profileSection": "Profil",
     "fullName": "Vollständiger Name",
     "company": "Unternehmen",

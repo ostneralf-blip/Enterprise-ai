@@ -1,6 +1,7 @@
 'use client'
 import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -48,6 +49,7 @@ const labelClass = 'block text-xs font-medium text-ink-muted uppercase tracking-
 
 export function SettingsPageClient({ profile, email }: Props) {
   const t = useTranslations('settings')
+  const showWelcome = useSearchParams().get('welcome') === '1'
   const locale = useLocale()
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [company, setCompany] = useState(profile.company ?? '')
@@ -187,6 +189,13 @@ export function SettingsPageClient({ profile, email }: Props) {
 
   return (
     <div className="max-w-xl space-y-6">
+
+      {showWelcome && (
+        <div role="status" className="rounded-2xl border border-primary-border bg-primary-soft px-4 py-3">
+          <p className="text-sm font-semibold text-primary">{t('welcomeTitle')}</p>
+          <p className="text-xs text-ink-secondary mt-0.5">{t('welcomeText')}</p>
+        </div>
+      )}
 
       {/* Profil */}
       <section aria-labelledby="profile-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">

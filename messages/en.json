@@ -973,6 +973,8 @@
     "subtitle": "Manage profile and account",
     "paymentFailedBanner": "Your last payment failed. Please update your payment method to keep your Pro access.",
     "updatePaymentButton": "Update payment method",
+    "welcomeTitle": "Welcome to AI Navigator!",
+    "welcomeText": "Please complete your profile before you get started.",
     "profileSection": "Profile",
     "fullName": "Full name",
     "company": "Company",
