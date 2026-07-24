@@ -5,6 +5,7 @@ import type { ArchitectureResult } from '@/config/architecture-data'
 import type { EamValidationResult } from '@/config/architecture-rules'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { togafComps } from '@/lib/architecture/diagram-grouping'
 
 type MapFilter = 'all' | 'managed' | 'selfhosted'
 
@@ -19,19 +20,23 @@ interface EamMapProps {
   detailLevel: 1 | 2 | 3
   locale: string
   compliance?: string
+  grouping?: 'layers' | 'togaf'
 }
 
 function EamBand({
   label,
   children,
   dashed = false,
+  bandId,
 }: {
   label: string
   children: React.ReactNode
   dashed?: boolean
+  bandId?: string
 }) {
   return (
     <div
+      data-band={bandId}
       className={cn(
         'flex flex-col sm:flex-row gap-2 rounded-xl p-3',
         dashed
@@ -134,6 +139,7 @@ export function EamMap({
   roleNames,
   detailLevel,
   compliance,
+  grouping = 'layers',
 }: EamMapProps) {
   const t = useTranslations('modules.architecture')
   const [mapFilter, setMapFilter] = useState<MapFilter>('all')
@@ -159,6 +165,21 @@ export function EamMap({
     ['governance', 'security'].includes(c.architecture_layer ?? ''),
   ).filter(filterComp)
 
+  // TOGAF-Gruppierung derselben Bausteine (data / application+serving / model+mlops / cross)
+  const togaf = togafComps(activeComponents.filter(filterComp))
+
+  const cards = (comps: CatalogComponent[]) =>
+    comps.map((c) => (
+      <ComponentCard
+        key={c.id}
+        comp={c}
+        source={componentSources?.[c.name]}
+        detailLevel={detailLevel}
+        owner={componentOwners?.[c.name]}
+        opsNote={componentOpsNotes?.[c.name]}
+      />
+    ))
+
   const FILTERS: { id: MapFilter; label: string }[] = [
     { id: 'all', label: t('mapFilterAll') },
     { id: 'managed', label: t('mapFilterManaged') },
@@ -166,7 +187,7 @@ export function EamMap({
   ]
 
   return (
-    <div className="space-y-2">
+    <div className="relative space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
         <h3 className="text-sm font-semibold text-slate-700">{t('eamLandkarte')}</h3>
         <div className="flex items-center gap-1" role="group" aria-label={t('mapFilterAll')}>
@@ -202,58 +223,61 @@ export function EamMap({
       </EamBand>
 
       {/* Band 2: Business */}
-      <EamBand label={t('eamBusiness')}>
+      <EamBand label={grouping === 'togaf' ? t('togafBusiness') : t('eamBusiness')}>
         {roleNames.map((role) => (
           <RoleChip key={role} name={role} />
         ))}
         {roleNames.length === 0 && <EmptyBandHint />}
       </EamBand>
 
-      {/* Band 3: Applikation — ausgeblendet wenn leer (#202) */}
-      {appComps.length > 0 && (
-        <EamBand label={t('eamApplication')}>
-          {appComps.map((c) => (
-            <ComponentCard
-              key={c.id}
-              comp={c}
-              source={componentSources?.[c.name]}
-              detailLevel={detailLevel}
-              owner={componentOwners?.[c.name]}
-              opsNote={componentOpsNotes?.[c.name]}
-            />
-          ))}
-        </EamBand>
+      {grouping === 'togaf' ? (
+        <>
+          {/* TOGAF: Daten */}
+          <EamBand label={t('togafData')} bandId="data">
+            {cards(togaf.data)}
+            {togaf.data.length === 0 && <EmptyBandHint />}
+          </EamBand>
+
+          {/* TOGAF: Anwendung */}
+          <EamBand label={t('togafApplication')} bandId="application">
+            {cards(togaf.application)}
+            {togaf.application.length === 0 && <EmptyBandHint />}
+          </EamBand>
+
+          {/* TOGAF: Technologie */}
+          <EamBand label={t('togafTechnology')} bandId="technology">
+            {cards(togaf.technology)}
+            {togaf.technology.length === 0 && <EmptyBandHint />}
+          </EamBand>
+
+          {/* TOGAF: Querschnitt */}
+          <EamBand label={t('eamCross')} dashed>
+            {cards(togaf.cross)}
+            {togaf.cross.length === 0 && <EmptyBandHint />}
+          </EamBand>
+        </>
+      ) : (
+        <>
+          {/* Band 3: Applikation — ausgeblendet wenn leer (#202) */}
+          {appComps.length > 0 && (
+            <EamBand label={t('eamApplication')} bandId="application">
+              {cards(appComps)}
+            </EamBand>
+          )}
+
+          {/* Band 4: Daten & Technologie */}
+          <EamBand label={t('eamData')} bandId="dataTech">
+            {cards(dataComps)}
+            {dataComps.length === 0 && <EmptyBandHint />}
+          </EamBand>
+
+          {/* Band 5: Querschnitt */}
+          <EamBand label={t('eamCross')}>
+            {cards(crossComps)}
+            {crossComps.length === 0 && <EmptyBandHint />}
+          </EamBand>
+        </>
       )}
-
-      {/* Band 4: Daten & Technologie */}
-      <EamBand label={t('eamData')}>
-        {dataComps.map((c) => (
-          <ComponentCard
-            key={c.id}
-            comp={c}
-            source={componentSources?.[c.name]}
-            detailLevel={detailLevel}
-            owner={componentOwners?.[c.name]}
-            opsNote={componentOpsNotes?.[c.name]}
-          />
-        ))}
-        {dataComps.length === 0 && <EmptyBandHint />}
-      </EamBand>
-
-      {/* Band 5: Querschnitt */}
-      <EamBand label={t('eamCross')}>
-        {crossComps.map((c) => (
-          <ComponentCard
-            key={c.id}
-            comp={c}
-            source={componentSources?.[c.name]}
-            detailLevel={detailLevel}
-            owner={componentOwners?.[c.name]}
-            opsNote={componentOpsNotes?.[c.name]}
-          />
-        ))}
-        {crossComps.length === 0 && <EmptyBandHint />}
-      </EamBand>
     </div>
   )
 }
