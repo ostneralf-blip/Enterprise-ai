@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { SettingsPageClient } from './SettingsPageClient'
 import type { Metadata } from 'next'
 import type { Tier } from '@/types'
-import { PERSONA_PRESETS, type DiagramStyle } from '@/config/diagram-styles'
+import type { DiagramStyle } from '@/config/diagram-styles'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Einstellungen' }
@@ -56,12 +56,6 @@ export default async function SettingsPage() {
     .maybeSingle() as { data: { diagram_style: DiagramStyle | null } | null }
 
   const diagramStyle = prefsData?.diagram_style ?? null
-  const initialDiagramPreset = diagramStyle
-    ? (Object.values(PERSONA_PRESETS).find(p =>
-        p.style.art === diagramStyle.art &&
-        p.style.connections === diagramStyle.connections &&
-        p.style.density === diagramStyle.density)?.key ?? 'architect')
-    : 'architect'
 
   return (
     <div>
@@ -69,7 +63,7 @@ export default async function SettingsPage() {
         <h1 className="text-xl sm:text-2xl font-semibold font-serif text-slate-900">Einstellungen</h1>
         <p className="text-slate-500 text-sm mt-1">Profil und Konto verwalten</p>
       </div>
-      <SettingsPageClient profile={profile} email={user.email ?? ''} initialDiagramPreset={initialDiagramPreset} />
+      <SettingsPageClient profile={profile} email={user.email ?? ''} initialDiagramStyle={diagramStyle} />
     </div>
   )
 }
