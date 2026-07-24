@@ -968,6 +968,15 @@
       "deselectAriaLabel": "{name} abwählen"
     }
   },
+  "diagram": {
+    "styleLabel": "Diagramm-Stil",
+    "artSchichten": "Schichten",
+    "artCapability": "Capability",
+    "artTogaf": "TOGAF (demnächst)",
+    "artDatenfluss": "Datenfluss (demnächst)",
+    "presetHint": "Als Standard in den Einstellungen speicherbar",
+    "capabilityEmpty": "Noch keine Use-Cases im Portfolio — legen Sie im Use-Case-Modul welche an."
+  },
   "settings": {
     "title": "Einstellungen",
     "subtitle": "Profil und Konto verwalten",

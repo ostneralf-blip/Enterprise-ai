@@ -968,6 +968,15 @@
       "deselectAriaLabel": "Deselect {name}"
     }
   },
+  "diagram": {
+    "styleLabel": "Diagram style",
+    "artSchichten": "Layers",
+    "artCapability": "Capability",
+    "artTogaf": "TOGAF (coming soon)",
+    "artDatenfluss": "Data flow (coming soon)",
+    "presetHint": "Can be saved as default in settings",
+    "capabilityEmpty": "No use cases in your portfolio yet — create some in the Use-Case module."
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage profile and account",
