@@ -1059,6 +1059,7 @@
   "upgrade": {
     "title": "Upgrade to Professional",
     "subtitle": "Unlock all features",
+    "saveLimitReason": "You have reached today's save limit for this tool (Free: 5 per day). With Professional you save without limits.",
     "priceLabel": "€49 / month",
     "upgradeButton": "Upgrade now",
     "features": {

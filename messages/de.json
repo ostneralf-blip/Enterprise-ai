@@ -1059,6 +1059,7 @@
   "upgrade": {
     "title": "Auf Professional upgraden",
     "subtitle": "Schalten Sie alle Features frei",
+    "saveLimitReason": "Sie haben das heutige Speicherlimit für dieses Tool erreicht (Free: 5 pro Tag). Mit Professional speichern Sie unbegrenzt.",
     "priceLabel": "€49 / Monat",
     "upgradeButton": "Jetzt upgraden",
     "features": {

@@ -3,6 +3,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useSaveLimit } from '@/components/shared/useSaveLimit'
 import {
   DndContext,
   type DragEndEvent,
@@ -113,6 +114,7 @@ export function GovernancePageClient({
 }) {
   const t = useTranslations('modules')
   const locale = useLocale()
+  const { checkSaveLimit, saveLimitModal } = useSaveLimit()
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<GateAnswers>({})
   const [useCaseIds, setUseCaseIds] = useState<string[]>(initialUseCaseId ? [initialUseCaseId] : [])
@@ -198,6 +200,7 @@ export function GovernancePageClient({
           result: VERDICT_TO_API[verdictLevel],
         }),
       })
+      if (await checkSaveLimit(res)) return
       if (res.ok) {
         const { data } = await res.json() as { data: { id: string } | null }
         if (data?.id) setSavedId(data.id)
@@ -275,6 +278,7 @@ export function GovernancePageClient({
 
     return (
       <div className="max-w-2xl space-y-5">
+        {saveLimitModal}
         <DndContext
           sensors={dndSensors}
           onDragEnd={(event: DragEndEvent) => {

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CANVAS_FIELDS } from '@/config/canvas-data'
 import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
+import { useSaveLimit } from '@/components/shared/useSaveLimit'
 import { detectAiActDomain, classifyAiAct, generateDocumentationText } from '@/lib/eu-ai-act/classifier'
 import type { AiActAnswers, AiActAssessment } from '@/lib/eu-ai-act/classifier'
 import { InfoHint } from '@/components/shared/InfoHint'
@@ -123,6 +124,7 @@ export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: 
   const t = useTranslations('modules')
   const tAi = useTranslations('ai')
   const locale = useLocale()
+  const { checkSaveLimit, saveLimitModal } = useSaveLimit()
   const [canvases, setCanvases] = useState<Canvas[]>(initialCanvases)
   const [active, setActive] = useState<Canvas | null>(null)
   const [saving, setSaving] = useState(false)
@@ -242,6 +244,7 @@ export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: 
 
   const handleCreate = async () => {
     const res = await fetch('/api/canvas', { method: 'POST' })
+    if (await checkSaveLimit(res)) return
     if (!res.ok) return
     const { data } = await res.json() as { data: Canvas }
     setCanvases(prev => [data, ...prev])
@@ -581,6 +584,7 @@ export function CanvasPageClient({ initialCanvases, tier, complianceTriggers }: 
 
   return (
     <div>
+      {saveLimitModal}
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-slate-500">
           {canvases.length === 0 ? t('canvas.noCanvasYet') : t('canvas.canvasCount', { count: canvases.length })}

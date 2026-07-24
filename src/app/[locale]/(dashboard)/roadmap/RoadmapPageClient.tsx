@@ -3,6 +3,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useSaveLimit } from '@/components/shared/useSaveLimit'
 import {
   DndContext,
   type DragEndEvent,
@@ -124,6 +125,7 @@ function milestonesFromPhases(phases: unknown[]): Record<string, MilestoneStatus
 export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topUseCases, savedRoadmap, linkedCanvas, archKeyDecisions }: Props) {
   const t = useTranslations('modules')
   const locale = useLocale()
+  const { checkSaveLimit, saveLimitModal } = useSaveLimit()
   const governanceBadgeLabel: Record<GovernanceVerdict, string> = {
     approve:    `✓ ${t('architecture.governanceApprove')}`,
     improve:    `⚠ ${t('architecture.governanceImprove')}`,
@@ -193,6 +195,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ archetype, phases }),
     })
+    if (await checkSaveLimit(res)) return null
     if (!res.ok) return null
     const { data } = await res.json()
     const id = (data?.id as string | undefined) ?? savedId
@@ -235,6 +238,7 @@ export function RoadmapPageClient({ initialArchetype, fromAssessment, tier, topU
 
   return (
     <div>
+      {saveLimitModal}
       {/* Kontext & Konfiguration — eine gemeinsame Card statt drei getrennter
           Blöcke (#205-Folgeissue „Roadmap-Boxen verschmelzen", UX-Review 22.07.2026):
           Archetyp-Auswahl + Top-Use-Cases im Standard-Kartendesign, Canvas-Kontext

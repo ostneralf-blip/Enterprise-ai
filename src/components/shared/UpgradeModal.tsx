@@ -6,9 +6,12 @@ import type { PricingData } from '@/app/api/pricing/route'
 interface UpgradeModalProps {
   feature: string
   onClose: () => void
+  // Optionaler Grund-Text, der den Standardsatz „<feature> ist im Professional
+  // Plan verfügbar" ersetzt (z. B. „Sie haben das Speicherlimit erreicht").
+  reason?: string
 }
 
-export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
+export function UpgradeModal({ feature, onClose, reason }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false)
   const [pricing, setPricing] = useState<PricingData | null>(null)
 
@@ -51,7 +54,7 @@ export function UpgradeModal({ feature, onClose }: UpgradeModalProps) {
           <div className="text-3xl mb-3">⬡</div>
           <h2 className="text-xl font-semibold text-ink mb-2">Upgrade auf Professional</h2>
           <p className="text-ink-muted text-sm">
-            <strong className="text-ink-secondary">{feature}</strong> ist im Professional Plan verfügbar.
+            {reason ? reason : <><strong className="text-ink-secondary">{feature}</strong> ist im Professional Plan verfügbar.</>}
           </p>
           {promo?.description && (
             <p className="mt-2 text-xs text-warning-text bg-warning-subtle rounded-lg px-3 py-1.5">{promo.description}</p>

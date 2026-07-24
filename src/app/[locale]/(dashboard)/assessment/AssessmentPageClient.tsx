@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { AssessmentWizard, type AssessmentResultData } from '@/components/modules/assessment/AssessmentWizard'
 import { AssessmentResults } from '@/components/modules/assessment/AssessmentResults'
 import type { Tier } from '@/types'
+import { useSaveLimit } from '@/components/shared/useSaveLimit'
 
 interface SavedResult {
   archetype: 'starter' | 'scaler' | 'transformer'
@@ -27,6 +28,7 @@ interface AssessmentPageClientProps {
 export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPageClientProps) {
   const t = useTranslations('modules.assessment')
   const isPro = tier !== 'free'
+  const { checkSaveLimit, saveLimitModal } = useSaveLimit()
 
   // Startmodus: offener Draft → Fortsetzen-Abfrage; sonst gespeichertes Ergebnis
   // → Ergebnisansicht; sonst frischer Wizard.
@@ -97,9 +99,10 @@ export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPag
         archetype: result.archetype,
       }),
     })
+    if (await checkSaveLimit(res)) return // Free-Tageslimit erreicht → Upgrade-Modal statt Fehler
     if (!res.ok) throw new Error('Speichern fehlgeschlagen')
     draftIdRef.current = null // finalisiert — ein „Neu starten" legt einen frischen Draft an
-  }, [])
+  }, [checkSaveLimit])
 
   const handleResume = () => {
     setResumeAnswers(draft!.answers)
@@ -157,13 +160,16 @@ export function AssessmentPageClient({ tier, savedResult, draft }: AssessmentPag
   }
 
   return (
-    <AssessmentWizard
-      tier={tier}
-      onSave={handleSave}
-      onStart={isPro ? handleStart : undefined}
-      onAnswerChange={isPro ? handleAnswerChange : undefined}
-      initialAnswers={resumeAnswers}
-      initialVariant={resumeAnswers ? draft?.type : undefined}
-    />
+    <>
+      {saveLimitModal}
+      <AssessmentWizard
+        tier={tier}
+        onSave={handleSave}
+        onStart={isPro ? handleStart : undefined}
+        onAnswerChange={isPro ? handleAnswerChange : undefined}
+        initialAnswers={resumeAnswers}
+        initialVariant={resumeAnswers ? draft?.type : undefined}
+      />
+    </>
   )
 }
