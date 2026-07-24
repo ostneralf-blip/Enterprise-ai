@@ -66,7 +66,7 @@ function ComponentCard({
   opsNote?: string
 }) {
   return (
-    <div className="relative bg-white border border-slate-200 rounded-lg px-3 py-2 min-w-[120px] max-w-[200px]">
+    <div data-comp={comp.name} className="relative bg-white border border-slate-200 rounded-lg px-3 py-2 min-w-[120px] max-w-[200px]">
       {source === 'ai' && (
         <span className="absolute top-1 right-1 text-[8px] font-bold text-[color:var(--color-ai)]">
           ◆
