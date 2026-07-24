@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { pick } from '@/lib/utils/locale-data'
 import { PERSONA_PRESETS, type DiagramStyle, type DiagramArt, type DiagramConnections } from '@/config/diagram-styles'
+import { InfoHint } from '@/components/shared/InfoHint'
 import { cn } from '@/lib/utils'
 
 // Leitet den aktiven Persona-Preset-Key aus dem aktuellen Style ab (Reverse-Match).
@@ -47,6 +48,7 @@ export function DiagramStyleSwitcher({ style, onPreset, onStyleChange }: {
             {pick(p.label, locale)}
           </button>
         ))}
+        <InfoHint title={t('styleHintTitle')}>{t('styleHint')}</InfoHint>
       </div>
 
       <div>
