@@ -233,19 +233,19 @@ export function EamMap({
       {grouping === 'togaf' ? (
         <>
           {/* TOGAF: Daten */}
-          <EamBand label={t('togafData')} bandId="data">
+          <EamBand label={t('togafData')} bandId={togaf.data.length > 0 ? 'data' : undefined}>
             {cards(togaf.data)}
             {togaf.data.length === 0 && <EmptyBandHint />}
           </EamBand>
 
           {/* TOGAF: Anwendung */}
-          <EamBand label={t('togafApplication')} bandId="application">
+          <EamBand label={t('togafApplication')} bandId={togaf.application.length > 0 ? 'application' : undefined}>
             {cards(togaf.application)}
             {togaf.application.length === 0 && <EmptyBandHint />}
           </EamBand>
 
           {/* TOGAF: Technologie */}
-          <EamBand label={t('togafTechnology')} bandId="technology">
+          <EamBand label={t('togafTechnology')} bandId={togaf.technology.length > 0 ? 'technology' : undefined}>
             {cards(togaf.technology)}
             {togaf.technology.length === 0 && <EmptyBandHint />}
           </EamBand>
@@ -266,7 +266,7 @@ export function EamMap({
           )}
 
           {/* Band 4: Daten & Technologie */}
-          <EamBand label={t('eamData')} bandId="dataTech">
+          <EamBand label={t('eamData')} bandId={dataComps.length > 0 ? 'dataTech' : undefined}>
             {cards(dataComps)}
             {dataComps.length === 0 && <EmptyBandHint />}
           </EamBand>
