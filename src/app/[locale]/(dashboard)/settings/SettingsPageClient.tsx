@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { DiagramStyleSwitcher } from '@/components/modules/architecture/diagram/DiagramStyleSwitcher'
-import { resolvePreset } from '@/config/diagram-styles'
+import { resolvePreset, type DiagramStyle } from '@/config/diagram-styles'
 import type { Tier } from '@/types'
 
 interface Props {
@@ -25,7 +25,7 @@ interface Props {
     theme: 'book' | 'teal' | 'indigo' | 'dark'
   }
   email: string
-  initialDiagramPreset?: string
+  initialDiagramStyle?: DiagramStyle | null
 }
 
 const THEMES = [
@@ -50,7 +50,7 @@ const TIER_COLORS: Record<Tier, string> = {
 const inputClass = 'w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring disabled:bg-surface-raised disabled:text-ink-subtle'
 const labelClass = 'block text-xs font-medium text-ink-muted uppercase tracking-wide mb-1.5'
 
-export function SettingsPageClient({ profile, email, initialDiagramPreset = 'architect' }: Props) {
+export function SettingsPageClient({ profile, email, initialDiagramStyle = null }: Props) {
   const t = useTranslations('settings')
   const showWelcome = useSearchParams().get('welcome') === '1'
   const locale = useLocale()
@@ -96,15 +96,24 @@ export function SettingsPageClient({ profile, email, initialDiagramPreset = 'arc
     }
   }
 
-  const [diagramPreset, setDiagramPreset] = useState<string>(initialDiagramPreset)
+  const [diagramStyle, setDiagramStyle] = useState<DiagramStyle>(initialDiagramStyle ?? resolvePreset('architect'))
 
-  const changeDiagramPreset = (key: string) => {
-    setDiagramPreset(key)
+  const persistDiagramStyle = (s: DiagramStyle) => {
     void fetch('/api/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ diagram_style: resolvePreset(key) }),
+      body: JSON.stringify({ diagram_style: s }),
     }).catch(() => {})
+  }
+  const changeDiagramPreset = (key: string) => {
+    const s = resolvePreset(key)
+    setDiagramStyle(s)
+    persistDiagramStyle(s)
+  }
+  const changeDiagramStyle = (patch: Partial<DiagramStyle>) => {
+    const next = { ...diagramStyle, ...patch }
+    setDiagramStyle(next)
+    persistDiagramStyle(next)
   }
 
   const [wizardResetting, setWizardResetting] = useState(false)
@@ -510,7 +519,7 @@ export function SettingsPageClient({ profile, email, initialDiagramPreset = 'arc
       <section aria-labelledby="diagram-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
         <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-ink mb-1">{t('archDiagramSection')}</h2>
         <p className="text-sm text-ink-subtle mb-4">{t('archDiagramDesc')}</p>
-        <DiagramStyleSwitcher activePreset={diagramPreset} onChange={changeDiagramPreset} />
+        <DiagramStyleSwitcher style={diagramStyle} onPreset={changeDiagramPreset} onStyleChange={changeDiagramStyle} />
       </section>
 
       {/* Geteilte Links */}

@@ -15,7 +15,7 @@ import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detec
 import { DiagramView } from '@/components/modules/architecture/diagram/DiagramView'
 import { DiagramStyleSwitcher } from '@/components/modules/architecture/diagram/DiagramStyleSwitcher'
 import { deriveCapabilityMap } from '@/lib/architecture/capability'
-import { resolvePreset, PERSONA_PRESETS, type DiagramStyle } from '@/config/diagram-styles'
+import { resolvePreset, type DiagramStyle } from '@/config/diagram-styles'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
@@ -450,23 +450,31 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
   const t = useTranslations('modules')
   const tDiagram = useTranslations('diagram')
   const locale = useLocale()
-  // Diagramm-Stil-Preset (Persona) — steuert Capability- vs. Schichten-Sicht.
-  const [activePreset, setActivePreset] = useState<string>(() => {
-    const s = initialDiagramStyle
-    const match = s ? Object.values(PERSONA_PRESETS).find(p =>
-      p.style.art === s.art && p.style.connections === s.connections && p.style.density === s.density) : undefined
-    return match?.key ?? 'architect'
-  })
+  // Diagramm-Stil (art/connections/density) — steuert Sicht + UML-Verknüpfung.
+  const [diagramStyle, setDiagramStyle] = useState<DiagramStyle>(() => initialDiagramStyle ?? resolvePreset('architect'))
   // Wurde der Stil in dieser Ergebnisansicht bewusst umgeschaltet? Solange nicht,
   // zeigt der Executive-Zielgruppen-Tab standardmäßig die Capability-Sicht.
   const [presetTouched, setPresetTouched] = useState(false)
-  const changePreset = (key: string) => {
-    setActivePreset(key)
-    setPresetTouched(true)
+  const persistDiagramStyle = (s: DiagramStyle) => {
     void fetch('/api/preferences', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ diagram_style: resolvePreset(key) }),
+      body: JSON.stringify({ diagram_style: s }),
     }).catch(() => {})
+  }
+  const changePreset = (key: string) => {
+    const s = resolvePreset(key)
+    setDiagramStyle(s)
+    setPresetTouched(true)
+    persistDiagramStyle(s)
+  }
+  // Einzelne Art/Verknüpfung übersteuern — basiert auf der aktuell GEZEIGTEN Sicht
+  // (im Executive-Tab ggf. Capability), damit die Bearbeitung vorhersehbar ist.
+  const changeDiagramStyle = (patch: Partial<DiagramStyle>) => {
+    const base = resultAudience === 'exec' && !presetTouched ? resolvePreset('executive') : diagramStyle
+    const next = { ...base, ...patch }
+    setDiagramStyle(next)
+    setPresetTouched(true)
+    persistDiagramStyle(next)
   }
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
@@ -1235,12 +1243,11 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   // Executive-Tab ist Capability der Standard, solange der Nutzer den
                   // Umschalter nicht bewusst betätigt hat. Die Empfehlungs-Card bleibt
                   // im Executive-Tab erhalten.
-                  const eamEffectivePreset = resultAudience === 'exec' && !presetTouched ? 'executive' : activePreset
-                  const eamEffectiveStyle = resolvePreset(eamEffectivePreset)
+                  const eamEffectiveStyle = resultAudience === 'exec' && !presetTouched ? resolvePreset('executive') : diagramStyle
                   return (
                     <SortableSection key="eam" id="eam">
                       <div className="mb-3">
-                        <DiagramStyleSwitcher activePreset={eamEffectivePreset} onChange={changePreset} />
+                        <DiagramStyleSwitcher style={eamEffectiveStyle} onPreset={changePreset} onStyleChange={changeDiagramStyle} />
                       </div>
                       <DiagramView
                         style={eamEffectiveStyle}

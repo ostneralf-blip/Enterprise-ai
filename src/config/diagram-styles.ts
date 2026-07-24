@@ -47,8 +47,12 @@ export const PERSONA_PRESETS: Record<string, PersonaPreset> = {
 }
 
 // Phase 1: nur 'schichten' + 'capability' haben eigene Renderer; 'togaf'/'datenfluss' fallen auf 'schichten' zurück.
+// Ab Phase 2 werden alle Arten real gerendert (togaf/datenfluss haben eigene
+// Renderer bzw. eine eigene Gruppierung). Die Funktion gibt die Art daher 1:1
+// zurück; sie bleibt als Erweiterungspunkt bestehen, falls künftig doch eine
+// Art auf eine andere abgebildet werden muss.
 export function renderableArt(art: DiagramArt): DiagramArt {
-  return art === 'capability' ? 'capability' : 'schichten'
+  return art
 }
 
 export function resolvePreset(name: string | null | undefined): DiagramStyle {
