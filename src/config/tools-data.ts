@@ -472,3 +472,28 @@ export const TOOLS: ToolLanding[] = [
 export function getTool(slug: string): ToolLanding | undefined {
   return TOOLS.find((t) => t.slug === slug)
 }
+
+// Interne Verlinkung Guide → Tool (#221, Empfehlung 2): jeder Guide führt zu seinem
+// primären BOFU-Tool. Der Anker-Text ist das Kaufabsichts-Keyword (nicht generisch),
+// damit die informationale Guide-Seite Relevanz auf die Tool-Landingpage überträgt.
+export const GUIDE_PRIMARY_TOOL: Record<string, string> = {
+  'warum-ai-projekte-scheitern':             'ai-readiness-assessment',
+  'ai-readiness-quick-scan':                 'ai-readiness-assessment',
+  'ai-reifegrad-starter-scaler-transformer': 'ai-readiness-assessment',
+  'ai-governance-aufbauen':                  'governance-check',
+  'governance-entscheidungsbaum':            'governance-check',
+  'ai-business-case':                        'use-case-scoring',
+  'eu-ai-act-risikoklassen':                 'compliance-center',
+  '8-architekturprinzipien':                 'architektur-generator',
+}
+
+/** Keyword-reicher Anker-Text je Tool für die Guide→Tool-CTA. */
+export const TOOL_CTA_ANCHOR: Record<string, Bi> = {
+  'ai-readiness-assessment': { de: 'AI-Readiness Assessment starten →', en: 'Start the AI Readiness Assessment →' },
+  'ai-use-case-canvas':      { de: 'AI Use-Case Canvas öffnen →',       en: 'Open the AI Use-Case Canvas →' },
+  'use-case-scoring':        { de: 'Use-Case Scoring öffnen →',          en: 'Open the Use-Case Scoring →' },
+  'governance-check':        { de: 'AI Governance Check starten →',      en: 'Start the AI Governance Check →' },
+  'roadmap-generator':       { de: 'AI Roadmap Generator öffnen →',      en: 'Open the AI Roadmap Generator →' },
+  'compliance-center':       { de: 'EU AI Act Compliance Tool öffnen →', en: 'Open the EU AI Act Compliance Tool →' },
+  'architektur-generator':   { de: 'Architektur-Generator öffnen →',     en: 'Open the Architecture Generator →' },
+}

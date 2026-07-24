@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getGuide, AMAZON_BOOK_URL, GUIDES_REVIEWED_AT, type Bi } from '@/config/leitfaden-data'
+import { GUIDE_PRIMARY_TOOL, TOOL_CTA_ANCHOR } from '@/config/tools-data'
 import { PublicNav } from '@/components/shared/PublicNav'
 import { GuideViewTracker, GuideCtaLink } from '@/components/shared/GuideAnalytics'
 
@@ -64,6 +65,12 @@ export default async function GuidePage({
   const p = (bi: Bi) => pick(locale, bi)
 
   const related = guide.relatedSlugs.map((s) => getGuide(s)).filter((g): g is NonNullable<typeof g> => Boolean(g))
+
+  // Guide → primäres BOFU-Tool (interne Verlinkung #221): CTA führt auf die Tool-
+  // Landingpage mit dem Kaufabsichts-Keyword als Anker-Text, statt generisch /register.
+  const primaryToolSlug = GUIDE_PRIMARY_TOOL[slug] as string | undefined
+  const ctaAnchor = primaryToolSlug ? TOOL_CTA_ANCHOR[primaryToolSlug] : null
+  const ctaHref = primaryToolSlug ? `${prefix}/tools/${primaryToolSlug}` : `${prefix}/register`
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -181,8 +188,8 @@ export default async function GuidePage({
         <section className="bg-primary rounded-2xl p-6 text-white mb-12">
           <h2 className="text-xl font-semibold font-serif mb-2">{p(guide.ctaBand.title)}</h2>
           <p className="text-white/80 text-sm leading-relaxed mb-4">{p(guide.ctaBand.body)}</p>
-          <GuideCtaLink href={`${prefix}/register`} slug={slug} className="inline-block bg-white text-primary font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/90 transition-colors">
-            {p(guide.ctaBand.linkLabel)}
+          <GuideCtaLink href={ctaHref} slug={slug} className="inline-block bg-white text-primary font-semibold px-5 py-2.5 rounded-xl text-sm hover:bg-white/90 transition-colors">
+            {ctaAnchor ? p(ctaAnchor) : p(guide.ctaBand.linkLabel)}
           </GuideCtaLink>
         </section>
 
