@@ -6,6 +6,7 @@ import { BfcacheGuard } from '@/components/shared/BfcacheGuard'
 import { MobileNavProvider } from '@/components/layout/MobileNavContext'
 import { PaperNoise } from '@/components/shared/PaperNoise'
 import { PostHogInit } from '@/components/shared/PostHogInit'
+import { SubscriptionBanner } from '@/components/shared/SubscriptionBanner'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -38,6 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <TopBar profile={profile} />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">
+              <SubscriptionBanner status={profile?.subscription_status} />
               {children}
             </div>
           </main>

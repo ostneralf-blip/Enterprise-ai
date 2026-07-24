@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from '@/i18n/navigation'
+import { GoogleAuthButton } from './GoogleAuthButton'
 import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
@@ -153,6 +154,8 @@ export function RegisterForm() {
           {loading ? t('registerLoading') : t('registerButton2')}
         </button>
       </form>
+
+      <GoogleAuthButton />
 
       <p className="text-center text-slate-500 text-xs mt-4">
         {t('hasAccount')}{' '}

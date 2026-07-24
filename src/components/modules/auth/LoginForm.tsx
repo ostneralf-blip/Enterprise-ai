@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { createClient } from '@/lib/supabase/client'
 import { track, identify } from '@/lib/posthog/client'
+import { GoogleAuthButton } from './GoogleAuthButton'
 
 interface LoginFormProps {
   searchParams: Promise<{ redirect?: string; message?: string }>
@@ -16,7 +17,6 @@ export function LoginForm({ searchParams }: LoginFormProps) {
   const supabase = createClient()
   const captchaRef = useRef<HCaptcha>(null)
   const t = useTranslations('auth')
-  const tc = useTranslations('common')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
@@ -103,13 +103,6 @@ export function LoginForm({ searchParams }: LoginFormProps) {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` }
-    })
-  }
-
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-8">
       <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-6">{t('loginTitle')}</h1>
@@ -159,17 +152,7 @@ export function LoginForm({ searchParams }: LoginFormProps) {
         </button>
       </form>
 
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
-        <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs text-slate-400">{tc('or')}</span>
-        </div>
-      </div>
-
-      <button onClick={handleGoogleLogin}
-        className="w-full border border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900 font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
-        <span>G</span> {t('googleLogin')}
-      </button>
+      <GoogleAuthButton />
 
       <p className="text-center text-slate-500 text-xs mt-6">
         {t('noAccount')}{' '}

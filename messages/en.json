@@ -971,6 +971,8 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Manage profile and account",
+    "paymentFailedBanner": "Your last payment failed. Please update your payment method to keep your Pro access.",
+    "updatePaymentButton": "Update payment method",
     "profileSection": "Profile",
     "fullName": "Full name",
     "company": "Company",
