@@ -1,23 +1,64 @@
 'use client'
 import { useId, useLayoutEffect, useState, type RefObject } from 'react'
 import { ruleEdges, type BandId } from '@/lib/architecture/diagram-grouping'
+import type { CompEdge, CompConflict } from '@/lib/architecture/catalog-edges'
 
 interface Props {
   containerRef: RefObject<HTMLElement | null>
   grouping: 'layers' | 'togaf'
+  // Phase 3: echte Katalog-Kanten. Sind welche vorhanden, werden component-to-component-
+  // Kanten gezeichnet; sonst Fallback auf regelbasierte Band-Flüsse (Phase 2).
+  compEdges?: CompEdge[]
+  conflicts?: CompConflict[]
 }
 
 interface Rect { x: number; y: number; w: number; h: number }
-interface Path { key: string; d: string }
-interface Overlay { w: number; h: number; paths: Path[] }
+interface DrawPath { key: string; d: string; kind: 'requires' | 'suggests' | 'conflict' | 'rule' }
+interface Overlay { w: number; h: number; paths: DrawPath[] }
 
-// Regelbasierte UML-Schichtflüsse als SVG-Overlay über der Schichten-/TOGAF-Sicht.
-// Gebündelt = eine Kante je Band-Paar (kein Baustein-Spaghetti). Die Band-Positionen
-// werden per `data-band`-Attribut aus dem DOM gemessen (relativ zum Container) und
-// bei Resize/Umbruch via ResizeObserver neu berechnet.
-export function ConnectionLayer({ containerRef, grouping }: Props) {
+function collect(container: HTMLElement, selector: string): Map<string, Rect> {
+  const cRect = container.getBoundingClientRect()
+  const map = new Map<string, Rect>()
+  container.querySelectorAll(selector).forEach((el) => {
+    const key = el.getAttribute(selector === '[data-band]' ? 'data-band' : 'data-comp')
+    if (!key || map.has(key)) return
+    const r = el.getBoundingClientRect()
+    map.set(key, { x: r.left - cRect.left, y: r.top - cRect.top, w: r.width, h: r.height })
+  })
+  return map
+}
+
+// Ankerpunkte auf den zugewandten Kanten zweier Rechtecke (dominante Achse).
+function anchors(from: Rect, to: Rect) {
+  const fcx = from.x + from.w / 2, fcy = from.y + from.h / 2
+  const tcx = to.x + to.w / 2, tcy = to.y + to.h / 2
+  const dx = tcx - fcx, dy = tcy - fcy
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return { sx: dx > 0 ? from.x + from.w : from.x, sy: fcy, tx: dx > 0 ? to.x : to.x + to.w, ty: tcy }
+  }
+  return { sx: fcx, sy: dy > 0 ? from.y + from.h : from.y, tx: tcx, ty: dy > 0 ? to.y : to.y + to.h }
+}
+
+function curve(from: Rect, to: Rect, bow: number) {
+  const { sx, sy, tx, ty } = anchors(from, to)
+  const mx = (sx + tx) / 2, my = (sy + ty) / 2
+  const dx = tx - sx, dy = ty - sy
+  const len = Math.hypot(dx, dy) || 1
+  // Kontrollpunkt senkrecht zur Verbindung versetzt (fächert Mehrfachkanten auf).
+  const cx = mx + (-dy / len) * bow
+  const cy = my + (dx / len) * bow
+  return `M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}`
+}
+
+// Regelbasierte UML-Verknüpfung als SVG-Overlay. Bevorzugt echte Katalog-Kanten
+// (requires/suggests/incompatible), fällt sonst auf gebündelte Schicht-Flüsse zurück.
+export function ConnectionLayer({ containerRef, grouping, compEdges = [], conflicts = [] }: Props) {
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const uid = useId()
+
+  const hasCatalog = compEdges.length > 0 || conflicts.length > 0
+  // Stabiler Effekt-Trigger, ohne Objekt-Referenzen als Dependency.
+  const catalogKey = JSON.stringify({ compEdges, conflicts })
 
   useLayoutEffect(() => {
     const container = containerRef.current
@@ -25,32 +66,36 @@ export function ConnectionLayer({ containerRef, grouping }: Props) {
 
     const measure = () => {
       const cRect = container.getBoundingClientRect()
-      const bands = new Map<BandId, Rect>()
-      container.querySelectorAll('[data-band]').forEach((el) => {
-        const id = el.getAttribute('data-band') as BandId | null
-        if (!id) return
-        const r = el.getBoundingClientRect()
-        bands.set(id, { x: r.left - cRect.left, y: r.top - cRect.top, w: r.width, h: r.height })
-      })
-      const present = new Set<BandId>(bands.keys())
-      const edges = ruleEdges(grouping, present)
+      let paths: DrawPath[] = []
 
-      const paths: Path[] = edges.flatMap(([fromId, toId], i) => {
-        const from = bands.get(fromId)
-        const to = bands.get(toId)
-        if (!from || !to) return []
-        const fromAbove = from.y < to.y
-        const sx = from.x + from.w / 2
-        const sy = fromAbove ? from.y + from.h : from.y
-        const tx = to.x + to.w / 2
-        const ty = fromAbove ? to.y : to.y + to.h
-        // Kontrollpunkt seitlich versetzt, je Kante gefächert, damit sich mehrere
-        // Kanten nicht überlagern.
-        const bow = 40 + i * 34
-        const cx = Math.max(sx, tx, from.x + from.w, to.x + to.w) - bow
-        const cy = (sy + ty) / 2
-        return [{ key: `${fromId}-${toId}`, d: `M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}` }]
-      })
+      if (hasCatalog) {
+        const comps = collect(container, '[data-comp]')
+        const edgePaths: DrawPath[] = compEdges.flatMap((e, i) => {
+          const from = comps.get(e.from), to = comps.get(e.to)
+          if (!from || !to) return []
+          return [{ key: `e-${e.from}-${e.to}-${e.kind}`, d: curve(from, to, 24 + (i % 4) * 16), kind: e.kind }]
+        })
+        const conflictPaths: DrawPath[] = conflicts.flatMap((c, i) => {
+          const a = comps.get(c.a), b = comps.get(c.b)
+          if (!a || !b) return []
+          return [{ key: `c-${c.a}-${c.b}`, d: curve(a, b, 20 + (i % 3) * 14), kind: 'conflict' }]
+        })
+        paths = [...edgePaths, ...conflictPaths]
+      } else {
+        const bands = collect(container, '[data-band]')
+        const present = new Set(Array.from(bands.keys()) as BandId[])
+        paths = ruleEdges(grouping, present).flatMap(([fromId, toId], i) => {
+          const from = bands.get(fromId), to = bands.get(toId)
+          if (!from || !to) return []
+          const fromAbove = from.y < to.y
+          const sx = from.x + from.w / 2
+          const sy = fromAbove ? from.y + from.h : from.y
+          const tx = to.x + to.w / 2
+          const ty = fromAbove ? to.y : to.y + to.h
+          const bx = Math.max(sx, tx, from.x + from.w, to.x + to.w) - (40 + i * 34)
+          return [{ key: `rule-${fromId}-${toId}`, d: `M ${sx} ${sy} Q ${bx} ${(sy + ty) / 2} ${tx} ${ty}`, kind: 'rule' as const }]
+        })
+      }
 
       setOverlay({ w: cRect.width, h: cRect.height, paths })
     }
@@ -62,35 +107,38 @@ export function ConnectionLayer({ containerRef, grouping }: Props) {
       ro.observe(container)
     }
     return () => ro?.disconnect()
-  }, [containerRef, grouping])
+  }, [containerRef, grouping, hasCatalog, catalogKey, compEdges, conflicts])
 
   if (!overlay || overlay.paths.length === 0) return null
 
-  const markerId = `${uid}-arrow`.replace(/:/g, "-")
+  const arrowId = `${uid}-arrow`.replace(/:/g, '-')
+  const line = 'var(--color-line-strong, #94a3b8)'
+  const danger = 'var(--color-error-text, #dc2626)'
+
   return (
-    <svg
-      className="absolute inset-0 pointer-events-none overflow-visible"
-      width={overlay.w}
-      height={overlay.h}
-      aria-hidden="true"
-    >
+    <svg className="absolute inset-0 pointer-events-none overflow-visible" width={overlay.w} height={overlay.h} aria-hidden="true">
       <defs>
-        <marker id={markerId} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0,0 L8,4 L0,8 Z" fill="var(--color-line-strong, #94a3b8)" />
+        <marker id={arrowId} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 Z" fill={line} />
         </marker>
       </defs>
-      {overlay.paths.map((p) => (
-        <path
-          key={p.key}
-          d={p.d}
-          fill="none"
-          stroke="var(--color-line-strong, #94a3b8)"
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-          markerEnd={`url(#${markerId})`}
-          opacity={0.7}
-        />
-      ))}
+      {overlay.paths.map((p) => {
+        if (p.kind === 'conflict') {
+          return <path key={p.key} d={p.d} fill="none" stroke={danger} strokeWidth={1.5} strokeDasharray="2 3" opacity={0.85} />
+        }
+        return (
+          <path
+            key={p.key}
+            d={p.d}
+            fill="none"
+            stroke={line}
+            strokeWidth={1.5}
+            strokeDasharray={p.kind === 'suggests' ? '4 3' : undefined}
+            markerEnd={`url(#${arrowId})`}
+            opacity={0.7}
+          />
+        )
+      })}
     </svg>
   )
 }
