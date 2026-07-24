@@ -1070,6 +1070,7 @@
     "revoke": "Widerrufen",
     "revoking": "Wird widerrufen…",
     "openLink": "Link öffnen",
+    "revokeError": "Widerruf fehlgeschlagen. Bitte erneut versuchen.",
     "confirmRevoke": "Diesen Link widerrufen? Er funktioniert danach nicht mehr."
   },
   "upgrade": {

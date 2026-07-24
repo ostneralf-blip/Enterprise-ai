@@ -28,7 +28,7 @@ export function SharedLinksClient({ initialLinks }: { initialLinks: ShareLinkRow
       const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
     } catch {
-      setLinks(prev); setError('Fehler')
+      setLinks(prev); setError(t('revokeError'))
     } finally { setBusy(null) }
   }
 
