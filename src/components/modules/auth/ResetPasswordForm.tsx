@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { AlertBox } from '@/components/shared/AlertBox'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
@@ -76,9 +77,7 @@ export function ResetPasswordForm() {
       <h1 className="text-slate-900 text-xl sm:text-2xl font-semibold font-serif mb-6">{t('resetPasswordTitle')}</h1>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">
-          {error}
-        </div>
+        <AlertBox variant="error" className="mb-4">{error}</AlertBox>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
+import { AlertBox } from '@/components/shared/AlertBox'
 import Link from 'next/link'
 import { useRouter } from '@/i18n/navigation'
 import { GoogleAuthButton } from './GoogleAuthButton'
@@ -99,7 +100,7 @@ export function RegisterForm() {
       <p className="text-slate-500 text-sm mb-6">{t('registerSubtitle')}</p>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-sm">{error}</div>
+        <AlertBox variant="error" className="mb-4">{error}</AlertBox>
       )}
 
       <form onSubmit={handleRegister} className="space-y-4">
