@@ -12,6 +12,10 @@ import { CardTitle, SectionTitle, Eyebrow } from '@/components/shared/typography
 import { WIZARD_STEPS, generateArchitecture, generateRasic, COST_ESTIMATES, scaleCostEstimate, selectPatternReason, getPatternSummary, type WizardAnswers, type ArchitectureResult, type PatternId } from '@/config/architecture-data'
 import { recommendFromWizard, recommendFromCatalog, recommendPackagedApps, generateDynamicKeyDecisions, generateDynamicNextSteps, generateCrossModuleDecisions, generateCrossModuleNextSteps, isSAP, runEamValidation, type CatalogRecommendations } from '@/config/architecture-rules'
 import { analyzeCanvas, type ComplianceTriggerDisplay } from '@/lib/canvas/detection'
+import { DiagramView } from '@/components/modules/architecture/diagram/DiagramView'
+import { DiagramStyleSwitcher } from '@/components/modules/architecture/diagram/DiagramStyleSwitcher'
+import { deriveCapabilityMap } from '@/lib/architecture/capability'
+import { resolvePreset, PERSONA_PRESETS, type DiagramStyle } from '@/config/diagram-styles'
 import { getSelectionStats } from '@/lib/architecture/selection'
 import { findConflicts } from '@/lib/utils/catalog-compatibility'
 import { buildAnalysisContext, contextHash } from '@/lib/ai/context'
@@ -21,8 +25,6 @@ import { saveDraft, loadDraft, clearDraft, formatDraftAge } from '@/lib/ai/draft
 import { AiDraftBanner } from '@/components/shared/AiDraftBanner'
 import type { CatalogComponent, Canvas, UseCase, CanvasSynonym, RasicMatrix, RasicPhase, RasicValue } from '@/types'
 import { RasicMatrixCard, EamValidationBanner, ComplianceControlTable, type ValidationOverride } from './RasicSection'
-import { ArchitekturLandkarte } from './ArchitekturLandkarte'
-import { EamMap } from './EamMap'
 import { ComponentSelectionStep } from './ComponentSelectionStep'
 import { AIPanel } from './AIPanel'
 import { extractCanvasContext, type CanvasContext } from '@/lib/canvas-context'
@@ -92,6 +94,8 @@ interface Props {
   tier?: string
   canvasContext?: { canvas: Canvas; useCase: UseCase } | null
   complianceTriggers?: ComplianceTriggerDisplay[]
+  portfolioUseCases?: UseCase[]
+  initialDiagramStyle?: DiagramStyle | null
   roadmapContext?: RoadmapContext | null
   synonyms?: CanvasSynonym[]
   rolesCatalog?: RoleCatalogEntry[]
@@ -442,9 +446,28 @@ const DEFAULT_RESULT_SECTIONS = ['cost', 'pattern', 'eam', 'rasic', 'decisions',
 type ResultSectionId = typeof DEFAULT_RESULT_SECTIONS[number]
 const SECTION_ORDER_KEY = 'arch_result_section_order_v1'
 
-export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, complianceTriggers = [], roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
+export function ArchitecturePageClient({ initialArchitectures = [], assessmentContext = null, governanceContext = null, compliancePreset, tier = 'free', canvasContext = null, complianceTriggers = [], portfolioUseCases = [], initialDiagramStyle = null, roadmapContext = null, synonyms = [], rolesCatalog = [] }: Props) {
   const t = useTranslations('modules')
+  const tDiagram = useTranslations('diagram')
   const locale = useLocale()
+  // Diagramm-Stil-Preset (Persona) — steuert Capability- vs. Schichten-Sicht.
+  const [activePreset, setActivePreset] = useState<string>(() => {
+    const s = initialDiagramStyle
+    const match = s ? Object.values(PERSONA_PRESETS).find(p =>
+      p.style.art === s.art && p.style.connections === s.connections && p.style.density === s.density) : undefined
+    return match?.key ?? 'architect'
+  })
+  // Wurde der Stil in dieser Ergebnisansicht bewusst umgeschaltet? Solange nicht,
+  // zeigt der Executive-Zielgruppen-Tab standardmäßig die Capability-Sicht.
+  const [presetTouched, setPresetTouched] = useState(false)
+  const changePreset = (key: string) => {
+    setActivePreset(key)
+    setPresetTouched(true)
+    void fetch('/api/preferences', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ diagram_style: resolvePreset(key) }),
+    }).catch(() => {})
+  }
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>(initialArchitectures)
   const [view, setView] = useState<View>(initialArchitectures.length === 0 ? 'wizard' : 'list')
   const [selectedComp, setSelectedComp] = useState<CatalogComponent | null>(null)
@@ -1013,9 +1036,9 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
       acceptedSuggestions: aiAccepted,
     })
     const activeCompsForEam = selStats.activeComponents
-    const eamResults = resultAudience !== 'exec'
-      ? runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount)
-      : []
+    // Immer berechnen: der Executive-Tab kann per Umschalter auf die Schichten-Sicht
+    // (EamMap) wechseln, die diese Validierung benötigt.
+    const eamResults = runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount)
 
     // Key Decisions + Next Steps — VOR dem return-Statement (für DnD-Mapping)
     const kpComponents = selStats.activeComponents
@@ -1207,48 +1230,42 @@ export function ArchitecturePageClient({ initialArchitectures = [], assessmentCo
                   )
                 }
                 if (sectionId === 'eam') {
-                  if (resultAudience === 'exec' && catalogRecs) {
-                    const effectiveNamesLk = selStats.effectiveNames
-                    const eamOk = runEamValidation(rasic ?? undefined, selStats.activeComponents, answers.compliance, selStats.activeCount).every(r => r.passed)
-                    return (
-                      <SortableSection key="eam" id="eam">
-                        <div className="space-y-4">
-                          <ArchitekturLandkarte
-                            catalogRecs={catalogRecs}
-                            components={recComponents}
-                            activeNames={effectiveNamesLk}
-                            aiSuggested={new Set(aiNarrative?.component_suggestions ?? [])}
-                            complianceMode={false}
-                            execMode={true}
-                            level={resultLevel}
-                            answers={answers}
-                            useCaseName={governanceContext?.use_case_name ?? canvasContext?.useCase?.name ?? null}
-                            eamValid={eamOk}
-                          />
+                  // Diagramm-Sektion: der gewählte Stil (Preset) entscheidet über die
+                  // Sicht (Capability vs. Schichten), nicht mehr die Audience. Im
+                  // Executive-Tab ist Capability der Standard, solange der Nutzer den
+                  // Umschalter nicht bewusst betätigt hat. Die Empfehlungs-Card bleibt
+                  // im Executive-Tab erhalten.
+                  const eamEffectivePreset = resultAudience === 'exec' && !presetTouched ? 'executive' : activePreset
+                  const eamEffectiveStyle = resolvePreset(eamEffectivePreset)
+                  return (
+                    <SortableSection key="eam" id="eam">
+                      <div className="mb-3">
+                        <DiagramStyleSwitcher activePreset={eamEffectivePreset} onChange={changePreset} />
+                      </div>
+                      <DiagramView
+                        style={eamEffectiveStyle}
+                        capabilityGroups={deriveCapabilityMap(portfolioUseCases)}
+                        capabilityEmptyLabel={tDiagram('capabilityEmpty')}
+                        eamProps={{
+                          result,
+                          activeComponents: selStats.activeComponents,
+                          componentSources,
+                          componentOwners,
+                          componentOpsNotes,
+                          eamResults,
+                          roleNames: catalogRecs?.roleNames ?? [],
+                          detailLevel: resultLevel,
+                          locale,
+                          compliance: answers.compliance,
+                        }}
+                      />
+                      {resultAudience === 'exec' && (
+                        <div className="mt-4">
                           <ExecRecommendationCard result={result} locale={locale} />
                         </div>
-                      </SortableSection>
-                    )
-                  }
-                  if (resultAudience !== 'exec') {
-                    return (
-                      <SortableSection key="eam" id="eam">
-                        <EamMap
-                          result={result}
-                          activeComponents={selStats.activeComponents}
-                          componentSources={componentSources}
-                          componentOwners={componentOwners}
-                          componentOpsNotes={componentOpsNotes}
-                          eamResults={eamResults}
-                          roleNames={catalogRecs?.roleNames ?? []}
-                          detailLevel={resultLevel}
-                          locale={locale}
-                          compliance={answers.compliance}
-                        />
-                      </SortableSection>
-                    )
-                  }
-                  return null
+                      )}
+                    </SortableSection>
+                  )
                 }
                 if (sectionId === 'decisions') {
                   return (

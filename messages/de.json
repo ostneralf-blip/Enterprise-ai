@@ -968,6 +968,20 @@
       "deselectAriaLabel": "{name} abwählen"
     }
   },
+  "diagram": {
+    "styleLabel": "Diagramm-Stil",
+    "artSchichten": "Schichten",
+    "artCapability": "Capability",
+    "artTogaf": "TOGAF (demnächst)",
+    "artDatenfluss": "Datenfluss (demnächst)",
+    "presetHint": "Als Standard in den Einstellungen speicherbar",
+    "capabilityEmpty": "Noch keine Use-Cases im Portfolio — legen Sie im Use-Case-Modul welche an.",
+    "maturityLabel": "Reifegrad",
+    "maturityGeplant": "geplant",
+    "maturityEvaluiert": "evaluiert",
+    "maturityPilot": "Pilot",
+    "maturityProduktiv": "produktiv"
+  },
   "settings": {
     "title": "Einstellungen",
     "subtitle": "Profil und Konto verwalten",
@@ -1055,6 +1069,23 @@
     "impressum": "Impressum",
     "datenschutz": "Datenschutz",
     "agb": "AGB"
+  },
+  "sharedLinks": {
+    "title": "Geteilte Links",
+    "subtitle": "Alle aktiven Freigabe-Links mit Ablauf und Zugriffen",
+    "empty": "Sie haben noch keine Inhalte geteilt.",
+    "colModule": "Modul",
+    "colExpires": "Ablauf",
+    "colViews": "Zugriffe",
+    "colCreated": "Erstellt",
+    "colAction": "Aktion",
+    "never": "unbegrenzt",
+    "expired": "abgelaufen",
+    "revoke": "Widerrufen",
+    "revoking": "Wird widerrufen…",
+    "openLink": "Link öffnen",
+    "revokeError": "Widerruf fehlgeschlagen. Bitte erneut versuchen.",
+    "confirmRevoke": "Diesen Link widerrufen? Er funktioniert danach nicht mehr."
   },
   "upgrade": {
     "title": "Auf Professional upgraden",

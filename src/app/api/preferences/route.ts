@@ -12,6 +12,11 @@ const PreferencesSchema = z.object({
   primary_canvas_id:       uuidOrNull,
   primary_compliance_id:   uuidOrNull,
   primary_usecase_id:      uuidOrNull,
+  diagram_style: z.object({
+    art:         z.enum(['schichten', 'togaf', 'datenfluss', 'capability']),
+    connections: z.enum(['bebauungsplan', 'uml']),
+    density:     z.enum(['sparsam', 'detailliert']),
+  }).nullable().optional(),
 })
 
 export async function GET() {
@@ -21,7 +26,7 @@ export async function GET() {
 
   const { data } = await supabase
     .from('user_preferences')
-    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id')
+    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id, diagram_style')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -42,7 +47,7 @@ export async function PUT(req: Request) {
   const { data, error } = await supabase
     .from('user_preferences')
     .upsert({ user_id: user.id, ...parsed.data }, { onConflict: 'user_id' })
-    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id')
+    .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, primary_architecture_id, primary_canvas_id, primary_compliance_id, primary_usecase_id, diagram_style')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

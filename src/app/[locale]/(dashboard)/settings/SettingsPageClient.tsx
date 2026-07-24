@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { DiagramStyleSwitcher } from '@/components/modules/architecture/diagram/DiagramStyleSwitcher'
+import { resolvePreset } from '@/config/diagram-styles'
 import type { Tier } from '@/types'
 
 interface Props {
@@ -23,6 +25,7 @@ interface Props {
     theme: 'book' | 'teal' | 'indigo' | 'dark'
   }
   email: string
+  initialDiagramPreset?: string
 }
 
 const THEMES = [
@@ -47,7 +50,7 @@ const TIER_COLORS: Record<Tier, string> = {
 const inputClass = 'w-full border border-line rounded-lg px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-ring focus:border-primary-ring disabled:bg-surface-raised disabled:text-ink-subtle'
 const labelClass = 'block text-xs font-medium text-ink-muted uppercase tracking-wide mb-1.5'
 
-export function SettingsPageClient({ profile, email }: Props) {
+export function SettingsPageClient({ profile, email, initialDiagramPreset = 'architect' }: Props) {
   const t = useTranslations('settings')
   const showWelcome = useSearchParams().get('welcome') === '1'
   const locale = useLocale()
@@ -91,6 +94,17 @@ export function SettingsPageClient({ profile, email }: Props) {
     } finally {
       setThemeSaving(false)
     }
+  }
+
+  const [diagramPreset, setDiagramPreset] = useState<string>(initialDiagramPreset)
+
+  const changeDiagramPreset = (key: string) => {
+    setDiagramPreset(key)
+    void fetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ diagram_style: resolvePreset(key) }),
+    }).catch(() => {})
   }
 
   const [wizardResetting, setWizardResetting] = useState(false)
@@ -492,23 +506,19 @@ export function SettingsPageClient({ profile, email }: Props) {
         </div>
       </section>
 
-      {/* Architektur-Diagramm — Demnächst */}
-      <section aria-labelledby="diagram-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 opacity-60">
-        <div className="flex items-center gap-2 mb-1">
-          <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-ink">{t('archDiagramSection')}</h2>
-          <span className="text-xs bg-surface-input text-ink-muted px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
-        </div>
-        <p className="text-sm text-ink-subtle">{t('archDiagramDesc')}</p>
+      {/* Architektur-Diagramm */}
+      <section aria-labelledby="diagram-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
+        <h2 id="diagram-heading" className="text-base sm:text-lg font-semibold text-ink mb-1">{t('archDiagramSection')}</h2>
+        <p className="text-sm text-ink-subtle mb-4">{t('archDiagramDesc')}</p>
+        <DiagramStyleSwitcher activePreset={diagramPreset} onChange={changeDiagramPreset} />
       </section>
 
-      {/* Geteilte Links — Demnächst */}
-      <section aria-labelledby="shared-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 opacity-60">
-        <div className="flex items-center gap-2 mb-1">
-          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-ink">{t('sharedLinksSection')}</h2>
-          <span className="text-xs bg-surface-input text-ink-muted px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
-        </div>
+      {/* Geteilte Links */}
+      <Link href="/geteilte-links" aria-labelledby="shared-heading"
+        className="block bg-surface border border-line rounded-2xl p-4 sm:p-6 hover:border-line-strong transition-colors">
+        <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-ink mb-1">{t('sharedLinksSection')}</h2>
         <p className="text-sm text-ink-subtle">{t('sharedLinksDesc')}</p>
-      </section>
+      </Link>
 
       {/* Gefahrenzone */}
       <section aria-labelledby="danger-heading" className="bg-surface border border-error-border rounded-2xl p-4 sm:p-6">

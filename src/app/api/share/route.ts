@@ -61,3 +61,24 @@ export async function POST(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
   return NextResponse.json({ data: { ...link, url: `${appUrl}/share/${link.token}` } })
 }
+
+// Widerruf: harte Löschung des eigenen Links (RLS „share_own" + expliziter user_id-Filter).
+// Danach greift der Link nicht mehr und verschwindet aus der Übersicht.
+export async function DELETE(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const id = new URL(req.url).searchParams.get('id')
+  const parsed = z.string().uuid().safeParse(id)
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('share_links')
+    .delete()
+    .eq('id', parsed.data)
+    .eq('user_id', user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

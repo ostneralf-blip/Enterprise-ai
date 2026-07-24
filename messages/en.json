@@ -968,6 +968,20 @@
       "deselectAriaLabel": "Deselect {name}"
     }
   },
+  "diagram": {
+    "styleLabel": "Diagram style",
+    "artSchichten": "Layers",
+    "artCapability": "Capability",
+    "artTogaf": "TOGAF (coming soon)",
+    "artDatenfluss": "Data flow (coming soon)",
+    "presetHint": "Can be saved as default in settings",
+    "capabilityEmpty": "No use cases in your portfolio yet — create some in the Use-Case module.",
+    "maturityLabel": "Maturity",
+    "maturityGeplant": "planned",
+    "maturityEvaluiert": "evaluated",
+    "maturityPilot": "pilot",
+    "maturityProduktiv": "in production"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage profile and account",
@@ -1055,6 +1069,23 @@
     "impressum": "Imprint",
     "datenschutz": "Privacy Policy",
     "agb": "Terms of Service"
+  },
+  "sharedLinks": {
+    "title": "Shared links",
+    "subtitle": "All active share links with expiry and views",
+    "empty": "You have not shared anything yet.",
+    "colModule": "Module",
+    "colExpires": "Expires",
+    "colViews": "Views",
+    "colCreated": "Created",
+    "colAction": "Action",
+    "never": "unlimited",
+    "expired": "expired",
+    "revoke": "Revoke",
+    "revoking": "Revoking…",
+    "openLink": "Open link",
+    "revokeError": "Revoke failed. Please try again.",
+    "confirmRevoke": "Revoke this link? It will stop working."
   },
   "upgrade": {
     "title": "Upgrade to Professional",

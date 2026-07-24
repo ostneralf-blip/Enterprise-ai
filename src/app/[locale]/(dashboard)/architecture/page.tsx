@@ -63,10 +63,10 @@ export default async function ArchitecturePage({
   const tier = (profileData?.tier ?? 'free') as Tier
   if (!hasAccess(tier, 'pro')) redirect('/upgrade')
 
-  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }, { data: synonyms }, { data: rolesCatalog }] = await Promise.all([
+  const [{ data: architectures }, { data: prefs }, { data: complianceRiskClass }, { data: latestRoadmap }, { data: synonyms }, { data: rolesCatalog }, { data: portfolioUseCasesRaw }] = await Promise.all([
     supabase.from('architectures').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
     supabase.from('user_preferences')
-      .select('primary_assessment_id, primary_governance_id, primary_roadmap_id')
+      .select('primary_assessment_id, primary_governance_id, primary_roadmap_id, diagram_style')
       .eq('user_id', user.id)
       .maybeSingle(),
     supabase.from('compliance_checks')
@@ -88,9 +88,14 @@ export default async function ArchitecturePage({
     supabase.from('roles_catalog')
       .select('role_name, role_category, description, responsibilities, raci_activities')
       .eq('is_active', true),
+    // Portfolio-Use-Cases des Nutzers → Capability-Sicht (Diagramm-Stil).
+    supabase.from('use_cases')
+      .select('*, uc_portfolios!inner(user_id)')
+      .eq('uc_portfolios.user_id', user.id),
   ])
 
-  const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null; primary_roadmap_id: string | null } | null
+  const prefData = prefs as { primary_assessment_id: string | null; primary_governance_id: string | null; primary_roadmap_id: string | null; diagram_style: import('@/config/diagram-styles').DiagramStyle | null } | null
+  const portfolioUseCases = (portfolioUseCasesRaw ?? []) as unknown as import('@/types').UseCase[]
 
   // Map EU AI Act risk class → architecture compliance answer
   const riskClassNote = (complianceRiskClass as { notes: string | null } | null)?.notes
@@ -166,6 +171,8 @@ export default async function ArchitecturePage({
         tier={tier}
         canvasContext={canvasContext}
         complianceTriggers={complianceTriggers}
+        portfolioUseCases={portfolioUseCases}
+        initialDiagramStyle={prefData?.diagram_style ?? null}
         roadmapContext={roadmapContext}
         synonyms={(synonyms ?? []) as CanvasSynonym[]}
         rolesCatalog={(rolesCatalog ?? []) as { role_name: string; role_category: string | null; description: string | null; responsibilities: string[] | null; raci_activities: { activity: string; type: string }[] | null }[]}
