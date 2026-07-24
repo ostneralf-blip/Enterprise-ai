@@ -1056,6 +1056,22 @@
     "datenschutz": "Datenschutz",
     "agb": "AGB"
   },
+  "sharedLinks": {
+    "title": "Geteilte Links",
+    "subtitle": "Alle aktiven Freigabe-Links mit Ablauf und Zugriffen",
+    "empty": "Sie haben noch keine Inhalte geteilt.",
+    "colModule": "Modul",
+    "colExpires": "Ablauf",
+    "colViews": "Zugriffe",
+    "colCreated": "Erstellt",
+    "colAction": "Aktion",
+    "never": "unbegrenzt",
+    "expired": "abgelaufen",
+    "revoke": "Widerrufen",
+    "revoking": "Wird widerrufen…",
+    "openLink": "Link öffnen",
+    "confirmRevoke": "Diesen Link widerrufen? Er funktioniert danach nicht mehr."
+  },
   "upgrade": {
     "title": "Auf Professional upgraden",
     "subtitle": "Schalten Sie alle Features frei",

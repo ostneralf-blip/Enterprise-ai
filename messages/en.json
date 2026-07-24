@@ -1056,6 +1056,22 @@
     "datenschutz": "Privacy Policy",
     "agb": "Terms of Service"
   },
+  "sharedLinks": {
+    "title": "Shared links",
+    "subtitle": "All active share links with expiry and views",
+    "empty": "You have not shared anything yet.",
+    "colModule": "Module",
+    "colExpires": "Expires",
+    "colViews": "Views",
+    "colCreated": "Created",
+    "colAction": "Action",
+    "never": "unlimited",
+    "expired": "expired",
+    "revoke": "Revoke",
+    "revoking": "Revoking…",
+    "openLink": "Open link",
+    "confirmRevoke": "Revoke this link? It will stop working."
+  },
   "upgrade": {
     "title": "Upgrade to Professional",
     "subtitle": "Unlock all features",
