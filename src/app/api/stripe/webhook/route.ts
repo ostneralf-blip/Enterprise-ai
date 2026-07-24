@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { getStripe } from '@/lib/stripe/client'
 import { deriveTier, safePeriodEnd } from '@/lib/stripe/tier-logic'
 import { createAdminClient } from '@/lib/supabase/server'
@@ -18,12 +19,17 @@ async function profileByCustomer(supabase: Awaited<ReturnType<typeof createAdmin
 
 async function updateProfile(supabase: Awaited<ReturnType<typeof createAdminClient>>, id: string, patch: Record<string, unknown>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase.from('profiles') as any).update(patch).eq('id', id)
+  const { error } = await (supabase.from('profiles') as any).update(patch).eq('id', id)
+  // Fehler NICHT verschlucken: ein stiller Schreibfehler (z. B. deaktivierter
+  // Service-Key) ließ den Webhook früher mit 200 quittieren, obwohl das Tier nie
+  // aktualisiert wurde. Werfen → 500 → Stripe wiederholt + Sentry alarmiert.
+  if (error) throw new Error(`profiles.update fehlgeschlagen (${id}): ${error.message}`)
 }
 
 async function markProcessed(supabase: Awaited<ReturnType<typeof createAdminClient>>, eventId: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase.from('processed_stripe_events') as any).insert({ event_id: eventId })
+  const { error } = await (supabase.from('processed_stripe_events') as any).insert({ event_id: eventId })
+  if (error) throw new Error(`processed_stripe_events.insert fehlgeschlagen (${eventId}): ${error.message}`)
 }
 
 async function sendPaymentFailedEmail(userEmail: string) {
@@ -77,6 +83,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true })
   }
 
+  try {
   switch (event.type) {
 
     // ── Checkout abgeschlossen ────────────────────────────────────────────────
@@ -143,5 +150,13 @@ export async function POST(req: Request) {
   }
 
   await markProcessed(supabase, event.id)
+  } catch (err) {
+    // Schreibfehler in der Event-Verarbeitung: mit 500 antworten, damit Stripe
+    // den Webhook automatisch wiederholt, und Sentry alarmieren. Kein stilles 200.
+    console.error('[Webhook] Verarbeitung fehlgeschlagen:', err)
+    Sentry.captureException(err, { tags: { module: 'stripe', feature: 'webhook' }, extra: { event_id: event.id, event_type: event.type } })
+    return NextResponse.json({ error: 'Verarbeitung fehlgeschlagen' }, { status: 500 })
+  }
+
   return NextResponse.json({ received: true })
 }
