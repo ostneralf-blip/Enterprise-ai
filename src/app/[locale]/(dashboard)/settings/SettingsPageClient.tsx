@@ -501,14 +501,12 @@ export function SettingsPageClient({ profile, email }: Props) {
         <p className="text-sm text-ink-subtle">{t('archDiagramDesc')}</p>
       </section>
 
-      {/* Geteilte Links — Demnächst */}
-      <section aria-labelledby="shared-heading" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 opacity-60">
-        <div className="flex items-center gap-2 mb-1">
-          <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-ink">{t('sharedLinksSection')}</h2>
-          <span className="text-xs bg-surface-input text-ink-muted px-2 py-0.5 rounded-full font-medium">{t('comingSoon')}</span>
-        </div>
+      {/* Geteilte Links */}
+      <Link href="/geteilte-links" aria-labelledby="shared-heading"
+        className="block bg-surface border border-line rounded-2xl p-4 sm:p-6 hover:border-line-strong transition-colors">
+        <h2 id="shared-heading" className="text-base sm:text-lg font-semibold text-ink mb-1">{t('sharedLinksSection')}</h2>
         <p className="text-sm text-ink-subtle">{t('sharedLinksDesc')}</p>
-      </section>
+      </Link>
 
       {/* Gefahrenzone */}
       <section aria-labelledby="danger-heading" className="bg-surface border border-error-border rounded-2xl p-4 sm:p-6">
