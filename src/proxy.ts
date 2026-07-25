@@ -22,7 +22,9 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/_next/') ||
     pathname === '/sitemap.xml' ||
     pathname === '/robots.txt' ||
-    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js)$/)
+    pathname === '/manifest.webmanifest' ||
+    pathname.startsWith('/opengraph-image') ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|webmanifest)$/)
   ) {
     return NextResponse.next()
   }
