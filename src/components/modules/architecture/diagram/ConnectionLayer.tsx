@@ -101,21 +101,26 @@ export function ConnectionLayer({ containerRef, grouping, compEdges = [], confli
     }
 
     measure()
-    // Nachmessung nach dem nächsten Layout/Paint: beim Öffnen der Vergrößern-Ansicht
-    // (Modal) steht die endgültige Breite/Position der Bausteine erst nach dem Mount
-    // fest — die reine useLayoutEffect-Messung liefert sonst evtl. keine Kanten.
+    // Nachmessungen nach Layout/Paint: beim Öffnen der Vergrößern-Ansicht (Modal)
+    // steht die endgültige Breite/Position der Bausteine erst nach dem Mount fest —
+    // die reine useLayoutEffect-Messung liefert sonst evtl. keine Kanten. Mehrere
+    // gestaffelte Messungen (rAF + verzögert) decken langsameres Modal-Layout ab.
     const rafIds: number[] = []
     rafIds.push(requestAnimationFrame(() => {
       rafIds.push(requestAnimationFrame(measure))
     }))
+    const timers = [setTimeout(measure, 80), setTimeout(measure, 250), setTimeout(measure, 600)]
     let ro: ResizeObserver | null = null
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(measure)
       ro.observe(container)
     }
+    window.addEventListener('resize', measure)
     return () => {
       ro?.disconnect()
       rafIds.forEach(id => cancelAnimationFrame(id))
+      timers.forEach(id => clearTimeout(id))
+      window.removeEventListener('resize', measure)
     }
     // catalogKey kodiert compEdges+conflicts inhaltsstabil; die Array-Referenzen
     // selbst NICHT als Deps, sonst läuft der Effekt bei jedem Render neu.
