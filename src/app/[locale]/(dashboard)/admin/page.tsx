@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { loadUsersWithAuth } from '@/lib/admin/load-users'
 import { AdminPageClient } from './AdminPageClient'
 import type { ContentLibraryEntry, UserProfile, CatalogComponent, CatalogSource, CatalogUploadLog, ComplianceSourceDraft, SourceScanStatus } from '@/types'
 import { COMPLIANCE_SOURCES } from '@/lib/compliance/scanner'
@@ -51,10 +52,7 @@ export default async function AdminPage() {
       .select('*')
       .order('module', { ascending: true })
       .order('created_at', { ascending: false }),
-    adminClient
-      .from('profiles')
-      .select('id, email, full_name, company, tier, is_admin, is_banned, feature_flags, stripe_customer_id, subscription_status, subscription_period_end, created_at')
-      .order('created_at', { ascending: false }),
+    loadUsersWithAuth(adminClient).then(u => ({ data: u })),
     fetchAllComponents(),
     adminClient
       .from('component_catalog')
@@ -100,7 +98,7 @@ export default async function AdminPage() {
   return (
     <AdminPageClient
       initialEntries={(entries ?? []) as ContentLibraryEntry[]}
-      initialUsers={(users ?? []) as UserProfile[]}
+      initialUsers={(users ?? []) as unknown as UserProfile[]}
       initialComponents={(components ?? []) as CatalogComponent[]}
       componentCount={componentCount ?? 0}
       initialSources={(sources ?? []) as CatalogSource[]}

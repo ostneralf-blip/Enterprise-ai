@@ -415,6 +415,21 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
     patchUser(user.id, { feature_flags: { ...current, [flag]: !current[flag] } })
   }
 
+  async function deleteUser(u: UserProfile) {
+    if (!confirm(`Konto "${u.email}" endgültig löschen? Profil, Auth-Zugang UND alle Nutzerdaten (Assessments, Use Cases, Roadmaps …) werden unwiderruflich entfernt.`)) return
+    setUpdatingUserId(u.id)
+    try {
+      const res = await fetch(`/api/admin/users/${u.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Fehler')
+      setUsers(prev => prev.filter(x => x.id !== u.id))
+      if (expandedUserId === u.id) setExpandedUserId(null)
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Unbekannter Fehler')
+    } finally {
+      setUpdatingUserId(null)
+    }
+  }
+
   // ── Tag editing handlers ────────────────────────────────────────────────────
   async function patchComponentTags(id: string, tags: string[]) {
     setTagSavingId(id)
@@ -1915,6 +1930,17 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                         {u.is_banned ? 'Gesperrt — entsperren' : 'Sperren'}
                       </button>
 
+                      {/* Delete (Admins geschützt) */}
+                      <button
+                        onClick={() => deleteUser(u)}
+                        disabled={isUpdating || u.is_admin}
+                        aria-label={`${u.email} löschen`}
+                        title={u.is_admin ? 'Admin-Konten können nicht über das Panel gelöscht werden' : undefined}
+                        className="px-3 py-1 text-xs font-medium rounded-lg border border-error-border text-error-text hover:bg-error-subtle transition-colors whitespace-nowrap disabled:opacity-40"
+                      >
+                        Löschen
+                      </button>
+
                       {/* Expand features */}
                       <button
                         onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
@@ -1958,9 +1984,33 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
                             )}
                             {u.stripe_customer_id && (
                               <p className="font-mono text-[10px] text-ink-muted truncate">
-                                Stripe: {u.stripe_customer_id}
+                                Stripe-Kunde: {u.stripe_customer_id}
+                                {u.stripe_subscription_id && ` · Abo: ${u.stripe_subscription_id}`}
                               </p>
                             )}
+                          </div>
+                        </div>
+
+                        {/* Anmeldedaten */}
+                        <div>
+                          <p className="text-xs font-medium text-ink-muted mb-1.5">Anmeldedaten</p>
+                          <div className="text-xs text-ink-secondary space-y-0.5">
+                            <p>
+                              <span className="text-ink-muted">Letzter Login:</span>{' '}
+                              {u.last_sign_in_at
+                                ? new Date(u.last_sign_in_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                : 'nie'}
+                            </p>
+                            <p>
+                              <span className="text-ink-muted">E-Mail bestätigt:</span>{' '}
+                              {u.email_confirmed_at
+                                ? <span className="text-success-text font-medium">ja</span>
+                                : <span className="text-warning-text font-medium">nein</span>}
+                            </p>
+                            <p>
+                              <span className="text-ink-muted">Anmeldeart:</span>{' '}
+                              {u.auth_provider === 'google' ? 'Google' : u.auth_provider === 'email' ? 'E-Mail/Passwort' : (u.auth_provider ?? '—')}
+                            </p>
                           </div>
                         </div>
 

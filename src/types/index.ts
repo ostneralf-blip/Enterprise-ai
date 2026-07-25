@@ -12,12 +12,17 @@ export interface UserProfile {
   role: string | null
   tier: Tier
   stripe_customer_id: string | null
+  stripe_subscription_id: string | null
   subscription_status: string | null
   subscription_period_end: string | null
   is_admin: boolean
   is_banned: boolean
   feature_flags: Record<string, boolean>
   created_at: string
+  // Aus auth.users gemergt (Anmelde-Daten)
+  last_sign_in_at?: string | null
+  email_confirmed_at?: string | null
+  auth_provider?: string | null
 }
 
 // ─── CONTENT LIBRARY ─────────────────────────────────────────────────────────

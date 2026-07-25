@@ -66,3 +66,30 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ data })
 }
+
+// Nutzer vollständig löschen: Profil (kaskadiert alle Nutzerdaten) UND Auth-User.
+// Nur so bleiben keine verwaisten Auth-User zurück (Incident 25.07.2026).
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: admin } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+  if (!admin?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  // Self-Delete-Schutz: ein Admin darf sich nicht selbst über das Panel löschen.
+  if (id === user.id) return NextResponse.json({ error: 'Sie können Ihr eigenes Konto nicht über das Admin-Panel löschen.' }, { status: 400 })
+
+  const adminClient = await createAdminClient()
+
+  // Profil zuerst (FK-Cascade räumt Nutzerdaten), dann Auth-User.
+  const { error: profileError } = await adminClient.from('profiles').delete().eq('id', id)
+  if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
+
+  const { error: authError } = await adminClient.auth.admin.deleteUser(id)
+  if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}
