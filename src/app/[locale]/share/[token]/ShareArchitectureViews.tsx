@@ -1,7 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { togafComps, dataFlowComps } from '@/lib/architecture/diagram-grouping'
+import { ConnectionLayer } from '@/components/modules/architecture/diagram/ConnectionLayer'
+import type { CompEdge, CompConflict } from '@/lib/architecture/catalog-edges'
 
 interface PatternLayer { name: string; role: string; components: string[] }
 interface Comp { name: string; architecture_layer: string | null }
@@ -11,6 +13,12 @@ interface Labels {
   schichten: string
   togaf: string
   datenfluss: string
+  connectionsLabel: string
+  connBebauungsplan: string
+  connUml: string
+  legendRequires: string
+  legendSuggests: string
+  legendConflict: string
   bandData: string
   bandApplication: string
   bandTechnology: string
@@ -30,7 +38,7 @@ const LAYER_ICONS = ['▤', '◈', '⬡', '◎']
 
 function Chip({ name, ai }: { name: string; ai?: boolean }) {
   return (
-    <span className="text-xs bg-surface-raised text-ink-secondary px-2 py-0.5 rounded-full">
+    <span data-comp={name} className="text-xs bg-surface-raised text-ink-secondary px-2 py-0.5 rounded-full">
       {(ai ? '◆ ' : '') + name}
     </span>
   )
@@ -51,13 +59,19 @@ function Band({ label, names, componentSources, emptyLabel, dashed }: {
   )
 }
 
-export function ShareArchitectureViews({ patternLayers, componentLayers, componentSources, labels }: {
+export function ShareArchitectureViews({ patternLayers, componentLayers, componentSources, compEdges = [], conflicts = [], labels }: {
   patternLayers: PatternLayer[]
   componentLayers: Record<string, string | null>
   componentSources?: Record<string, string>
+  compEdges?: CompEdge[]
+  conflicts?: CompConflict[]
   labels: Labels
 }) {
   const [mode, setMode] = useState<Mode>('schichten')
+  const [connections, setConnections] = useState<'bebauungsplan' | 'uml'>('bebauungsplan')
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const hasCatalog = compEdges.length > 0 || conflicts.length > 0
+  const showUml = connections === 'uml' && hasCatalog
 
   // Alle Bausteine als {name, architecture_layer} (aus dem Katalog-Lookup).
   const comps: Comp[] = Object.entries(componentLayers).map(([name, layer]) => ({ name, architecture_layer: layer }))
@@ -130,8 +144,33 @@ export function ShareArchitectureViews({ patternLayers, componentLayers, compone
             {m.label}
           </button>
         ))}
+        {hasCatalog && (
+          <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-line" role="group" aria-label={labels.connectionsLabel}>
+            {(['bebauungsplan', 'uml'] as const).map(c => (
+              <button key={c} type="button" onClick={() => setConnections(c)} aria-pressed={connections === c} className={seg(connections === c)}>
+                {c === 'uml' ? labels.connUml : labels.connBebauungsplan}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      {content}
+
+      <div className="relative" ref={containerRef}>
+        {content}
+        {showUml && <ConnectionLayer containerRef={containerRef} grouping="layers" compEdges={compEdges} conflicts={conflicts} />}
+      </div>
+
+      {showUml && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-ink-muted">
+          <span className="inline-flex items-center gap-1"><span className="w-4 border-t border-line-strong" aria-hidden="true" />{labels.legendRequires}</span>
+          {compEdges.some(e => e.kind === 'suggests') && (
+            <span className="inline-flex items-center gap-1"><span className="w-4 border-t border-dashed border-line-strong" aria-hidden="true" />{labels.legendSuggests}</span>
+          )}
+          {conflicts.length > 0 && (
+            <span className="inline-flex items-center gap-1"><span className="w-4 border-t border-dashed border-error-border" aria-hidden="true" /><span className="text-error-text">{labels.legendConflict}</span></span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

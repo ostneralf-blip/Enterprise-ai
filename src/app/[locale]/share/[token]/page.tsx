@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { ShareArchitectureViews } from './ShareArchitectureViews'
+import { catalogEdges } from '@/lib/architecture/catalog-edges'
 import { cn } from '@/lib/utils'
 import { getPatternSummary, type ArchitectureResult } from '@/config/architecture-data'
 import type { CanvasData, GovernanceVerdict } from '@/types'
@@ -195,18 +196,25 @@ async function ArchitectureShareView({
 }) {
   const result = entity.result
 
-  // Katalog-Lookup: architecture_layer je Baustein-Name (für TOGAF/Datenfluss-Sicht).
+  // Katalog-Lookup: architecture_layer + requires/suggests/incompatible_with je Baustein.
   // Wachstumssicher via .in('name', …) (Katalog wächst; Lessons Learned 19.07.2026).
   const names = [...new Set(result.layers.flatMap(l => l.components))]
   const componentLayers: Record<string, string | null> = {}
   for (const n of names) componentLayers[n] = null
+  const catalogRows: { name: string; requires: string[]; suggests: string[]; incompatible_with: string[] }[] = []
   if (names.length > 0) {
     const admin = await createAdminClient()
-    const { data } = await admin.from('component_catalog').select('name, architecture_layer').in('name', names)
-    for (const row of (data ?? []) as { name: string; architecture_layer: string | null }[]) {
+    const { data } = await admin
+      .from('component_catalog')
+      .select('name, architecture_layer, requires, suggests, incompatible_with')
+      .in('name', names)
+    for (const row of (data ?? []) as { name: string; architecture_layer: string | null; requires: string[] | null; suggests: string[] | null; incompatible_with: string[] | null }[]) {
       componentLayers[row.name] = row.architecture_layer
+      catalogRows.push({ name: row.name, requires: row.requires ?? [], suggests: row.suggests ?? [], incompatible_with: row.incompatible_with ?? [] })
     }
   }
+  // Echte Katalog-Kanten (requires/suggests) + Konflikte (nur zwischen geteilten Bausteinen).
+  const { edges: compEdges, conflicts } = catalogEdges(catalogRows as unknown as import('@/types').CatalogComponent[])
 
   const [td, tm] = await Promise.all([
     getTranslations({ locale, namespace: 'diagram' }),
@@ -217,6 +225,12 @@ async function ArchitectureShareView({
     schichten: td('artSchichten'),
     togaf: td('artTogaf'),
     datenfluss: td('artDatenfluss'),
+    connectionsLabel: td('connectionsLabel'),
+    connBebauungsplan: td('connBebauungsplan'),
+    connUml: td('connUml'),
+    legendRequires: td('legendRequires'),
+    legendSuggests: td('legendSuggests'),
+    legendConflict: td('legendConflict'),
     bandData: tm('togafData'),
     bandApplication: tm('togafApplication'),
     bandTechnology: tm('togafTechnology'),
@@ -255,6 +269,8 @@ async function ArchitectureShareView({
           patternLayers={result.layers}
           componentLayers={componentLayers}
           componentSources={result.componentSources}
+          compEdges={compEdges}
+          conflicts={conflicts}
           labels={labels}
         />
       </div>
