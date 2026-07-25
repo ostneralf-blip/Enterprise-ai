@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
+import { ShareArchitectureViews } from './ShareArchitectureViews'
 import { cn } from '@/lib/utils'
 import { getPatternSummary, type ArchitectureResult } from '@/config/architecture-data'
 import type { CanvasData, GovernanceVerdict } from '@/types'
@@ -9,7 +10,6 @@ import type { Locale } from '@/i18n/routing'
 import { pick } from '@/lib/utils/locale-data'
 import * as Sentry from '@sentry/nextjs'
 
-const LAYER_ICONS = ['⬡', '◈', '◉', '◎', '⊞']
 
 type ShareReason = 'token_not_found' | 'expired' | 'entity_not_found' | 'module_unsupported'
 type ShareData =
@@ -184,7 +184,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
 type ShareT = Awaited<ReturnType<typeof getTranslations<'share'>>>
 
-function ArchitectureShareView({
+async function ArchitectureShareView({
   entity,
   t,
   locale,
@@ -194,6 +194,42 @@ function ArchitectureShareView({
   locale: Locale
 }) {
   const result = entity.result
+
+  // Katalog-Lookup: architecture_layer je Baustein-Name (für TOGAF/Datenfluss-Sicht).
+  // Wachstumssicher via .in('name', …) (Katalog wächst; Lessons Learned 19.07.2026).
+  const names = [...new Set(result.layers.flatMap(l => l.components))]
+  const componentLayers: Record<string, string | null> = {}
+  for (const n of names) componentLayers[n] = null
+  if (names.length > 0) {
+    const admin = await createAdminClient()
+    const { data } = await admin.from('component_catalog').select('name, architecture_layer').in('name', names)
+    for (const row of (data ?? []) as { name: string; architecture_layer: string | null }[]) {
+      componentLayers[row.name] = row.architecture_layer
+    }
+  }
+
+  const [td, tm] = await Promise.all([
+    getTranslations({ locale, namespace: 'diagram' }),
+    getTranslations({ locale, namespace: 'modules.architecture' }),
+  ])
+  const labels = {
+    viewLabel: td('styleLabel'),
+    schichten: td('artSchichten'),
+    togaf: td('artTogaf'),
+    datenfluss: td('artDatenfluss'),
+    bandData: tm('togafData'),
+    bandApplication: tm('togafApplication'),
+    bandTechnology: tm('togafTechnology'),
+    bandCross: tm('eamCross'),
+    bandOther: td('bandOther'),
+    flowSources: td('flowSources'),
+    flowPlatform: td('flowPlatform'),
+    flowModels: td('flowModels'),
+    flowConsumption: td('flowConsumption'),
+    flowCross: td('flowCross'),
+    emptyBand: td('flowEmpty'),
+  }
+
   return (
     <>
       <div className="flex items-center justify-between gap-3">
@@ -215,22 +251,12 @@ function ArchitectureShareView({
 
       <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6">
         <h3 className="text-sm font-semibold text-ink mb-4">{t('architectureLayers')}</h3>
-        <div className="space-y-3">
-          {result.layers.map((layer, i) => (
-            <div key={i} className="border border-line-subtle rounded-xl p-3.5">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-ink-subtle text-sm">{LAYER_ICONS[i]}</span>
-                <span className="text-sm font-semibold text-ink">{layer.name}</span>
-              </div>
-              <p className="text-xs text-ink-muted mb-2">{layer.role}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {layer.components.map((comp, j) => (
-                  <span key={j} className="text-xs bg-surface-raised text-ink-secondary px-2 py-0.5 rounded-full">{(result.componentSources?.[comp] === 'ai' ? '◆ ' : '') + comp}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <ShareArchitectureViews
+          patternLayers={result.layers}
+          componentLayers={componentLayers}
+          componentSources={result.componentSources}
+          labels={labels}
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

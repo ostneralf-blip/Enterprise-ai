@@ -991,6 +991,7 @@
     "flowConsumption": "Consumption",
     "flowCross": "Cross-cutting",
     "flowEmpty": "No components",
+    "bandOther": "Other",
     "legendRequires": "requires",
     "legendSuggests": "suggested",
     "legendConflict": "incompatible",
