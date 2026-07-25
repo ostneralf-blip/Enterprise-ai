@@ -15,6 +15,68 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.6.0',
+    date: { de: '25. Juli 2026', en: 'July 25, 2026' },
+    label: { de: 'Architektur-Visualisierung & Portfolio-Sicht', en: 'Architecture Visualization & Portfolio View' },
+    features: [
+      {
+        title: { de: 'Diagramm-Stile im Architektur-Generator', en: 'Diagram styles in the architecture generator' },
+        description: {
+          de: 'Die Architektur-Ergebnisansicht lässt sich jetzt an die Zielgruppe anpassen: Persona-Voreinstellungen (Executive, Architekt, Compliance, Data) und über „Ansicht anpassen" die Darstellungsart — Schichten, TOGAF, Datenfluss oder Capability. Die Wahl wird als Standard gespeichert.',
+          en: 'The architecture result view now adapts to the audience: persona presets (Executive, Architect, Compliance, Data) and, via "Customize view", the presentation type — layers, TOGAF, data flow or capability. Your choice is saved as the default.',
+        },
+        bookContext: {
+          de: 'Der Enterprise AI Leitfaden betont, dass eine Architektur je nach Publikum unterschiedlich erzählt werden muss: Das C-Level braucht Geschäftsfähigkeiten, der Architekt Struktur und Abhängigkeiten. Eine Darstellung, mehrere Sichten.',
+          en: 'The Enterprise AI Guide stresses that an architecture must be told differently depending on the audience: the C-level needs business capabilities, the architect needs structure and dependencies. One model, several views.',
+        },
+      },
+      {
+        title: { de: 'UML-Verknüpfungen aus dem Komponenten-Katalog', en: 'UML connections from the component catalog' },
+        description: {
+          de: 'In der Schichten- und TOGAF-Sicht zeigen echte Kanten zwischen Bausteinen deren Abhängigkeiten — benötigt (durchgezogen), empfohlen (gepunktet) und inkompatible Kombinationen (rot). Wo keine kuratierte Katalog-Beziehung vorliegt, werden die typischen Schicht-Flüsse als Orientierung gezeigt.',
+          en: 'In the layered and TOGAF views, real edges between building blocks show their dependencies — required (solid), suggested (dotted) and incompatible combinations (red). Where no curated catalog relation exists, the typical layer flows are shown for orientation.',
+        },
+        bookContext: {
+          de: 'Abhängigkeiten und Inkompatibilitäten früh sichtbar zu machen ist laut Buch entscheidend, um teure Architektur-Sackgassen zu vermeiden — bevor die erste Zeile Code geschrieben ist.',
+          en: 'Making dependencies and incompatibilities visible early is, per the book, key to avoiding costly architecture dead ends — before the first line of code is written.',
+        },
+      },
+      {
+        title: { de: 'Diagramm vergrößern', en: 'Enlarge the diagram' },
+        description: {
+          de: 'Das Architektur-Diagramm lässt sich per Klick auf Vollbild vergrößern und passt sich dynamisch an — für Präsentationen und die Detailarbeit an großen Landschaften.',
+          en: 'The architecture diagram can be enlarged to full screen with one click and adapts dynamically — for presentations and detailed work on large landscapes.',
+        },
+        bookContext: {
+          de: 'Architektur-Kommunikation ist Führungsarbeit: Der Leitfaden empfiehlt, komplexe Landschaften im Workshop gemeinsam am großen Bild zu erarbeiten.',
+          en: 'Architecture communication is leadership work: the guide recommends working through complex landscapes together on a large canvas in workshops.',
+        },
+      },
+      {
+        title: { de: 'Capability-Portfolio in der Executive Summary', en: 'Capability portfolio in the executive summary' },
+        description: {
+          de: 'Die Executive Summary zeigt jetzt Ihre Use Cases als Geschäftsfähigkeiten nach Domäne, eingefärbt nach Reifegrad (geplant → produktiv) — der Blick, der CIO und CEO interessiert.',
+          en: 'The executive summary now shows your use cases as business capabilities by domain, shaded by maturity (planned → in production) — the view that matters to CIO and CEO.',
+        },
+        bookContext: {
+          de: 'Das Buch beschreibt die Capability-Sicht als Brücke zwischen Business und Technik: Nicht „welche Tools", sondern „welche Geschäftsfähigkeiten stehen wo im Reifegrad".',
+          en: 'The book describes the capability view as the bridge between business and technology: not "which tools", but "which business capabilities are at what maturity".',
+        },
+      },
+      {
+        title: { de: 'Stil-treue geteilte Links & PDF-Reports', en: 'Style-faithful shared links & PDF reports' },
+        description: {
+          de: 'Geteilte Architektur-Links lassen sich zwischen Schichten, TOGAF und Datenfluss umschalten; der PDF-Architektur-Report übernimmt den gewählten Diagramm-Stil. Zusätzlich: eine Übersicht aller aktiven geteilten Links mit Widerruf.',
+          en: 'Shared architecture links can be switched between layers, TOGAF and data flow; the PDF architecture report adopts the chosen diagram style. Plus: an overview of all active shared links with revoke.',
+        },
+        bookContext: {
+          de: 'Ergebnisse konsistent über alle Kanäle — App, Link, PDF — zu teilen, unterstreicht laut Leitfaden die Professionalität der AI-Governance nach außen.',
+          en: 'Sharing results consistently across all channels — app, link, PDF — underlines, per the guide, the professionalism of AI governance externally.',
+        },
+      },
+    ],
+  },
+  {
     version: '0.5.0',
     date: { de: '3. Juli 2026', en: 'July 3, 2026' },
     label: { de: 'Katalog-Management', en: 'Catalog Management' },
