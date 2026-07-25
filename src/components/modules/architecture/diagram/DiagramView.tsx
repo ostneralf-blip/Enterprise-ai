@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, type ComponentProps } from 'react'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 import type { DiagramStyle } from '@/config/diagram-styles'
 import { renderableArt } from '@/config/diagram-styles'
 import type { CapabilityGroup } from '@/lib/architecture/capability'
@@ -89,32 +90,31 @@ export function DiagramView(props: DiagramProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [expanded])
 
+  // EINE Instanz: der Vergrößern-Knopf schaltet denselben Container per CSS auf
+  // Vollbild. Nur die Größe ändert sich → der bestehende ResizeObserver im
+  // ConnectionLayer misst neu und zeichnet die Kanten (kein zweites Mount, keine
+  // fragile Zweitmessung wie beim früheren Modal-Ansatz).
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-end">
-        <button type="button" onClick={() => setExpanded(true)}
-          className="text-xs text-ink-muted hover:text-ink-secondary inline-flex items-center gap-1">
-          {t('enlarge')} <span aria-hidden="true">⤢</span>
-        </button>
-      </div>
-
-      <DiagramBody {...props} />
-
+    <>
       {expanded && (
-        <div role="dialog" aria-modal="true" aria-label={t('enlarge')}
-          className="fixed inset-0 z-50 bg-ink/70 p-3 sm:p-6 overflow-auto"
-          onClick={() => setExpanded(false)}>
-          <div className="bg-surface rounded-2xl shadow-xl p-4 sm:p-6 min-h-full" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-end mb-3">
-              <button type="button" onClick={() => setExpanded(false)}
-                className="text-xs font-medium text-ink-secondary hover:text-ink inline-flex items-center gap-1">
-                <span aria-hidden="true">✕</span> {t('close')}
-              </button>
-            </div>
-            <DiagramBody {...props} />
-          </div>
-        </div>
+        <div className="fixed inset-0 z-40 bg-ink/70" aria-hidden="true" onClick={() => setExpanded(false)} />
       )}
-    </div>
+      <div
+        role={expanded ? 'dialog' : undefined}
+        aria-modal={expanded ? true : undefined}
+        aria-label={expanded ? t('enlarge') : undefined}
+        className={cn('space-y-1', expanded && 'fixed inset-2 sm:inset-6 z-50 bg-surface rounded-2xl shadow-xl overflow-auto p-4 sm:p-6')}
+      >
+        <div className="flex items-center justify-end">
+          <button type="button" onClick={() => setExpanded(e => !e)}
+            className="text-xs text-ink-muted hover:text-ink-secondary inline-flex items-center gap-1">
+            {expanded
+              ? <><span aria-hidden="true">✕</span> {t('close')}</>
+              : <>{t('enlarge')} <span aria-hidden="true">⤢</span></>}
+          </button>
+        </div>
+        <DiagramBody {...props} />
+      </div>
+    </>
   )
 }
