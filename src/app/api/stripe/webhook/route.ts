@@ -93,6 +93,7 @@ export async function POST(req: Request) {
       if (!userId) break
       await updateProfile(supabase, userId, {
         stripe_customer_id:      session.customer as string,
+        stripe_subscription_id:  (session.subscription as string) ?? null,
         tier:                    'pro',
         subscription_status:     'active',
       })
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
       if (!profile) break
       const periodEnd = safePeriodEnd(sub)
       const { tier, subscription_status } = await deriveTier(sub.status, periodEnd)
-      const patch: Record<string, unknown> = { tier, subscription_status }
+      const patch: Record<string, unknown> = { tier, subscription_status, stripe_subscription_id: sub.id }
       if (periodEnd) {
         patch.subscription_period_end = new Date(periodEnd * 1000).toISOString()
       }
