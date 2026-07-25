@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Clickjacking-Schutz + verhindert, dass Seiten (z. B. der Passwort-Reset)
+        // in fremden/sandboxed iframes (Webmail-Vorschau) landen und dort tot sind.
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+        ],
+      },
+      {
         // Alle Dashboard-Routen: Browser-Cache komplett deaktivieren (mit und ohne /en/-Prefix)
         source: '/(en/)?(dashboard|assessment|usecase|governance|roadmap|canvas|compliance|architecture)(.*)',
         headers: [
