@@ -66,13 +66,24 @@ Legende: ✅ erledigt · 🔶 bestätigen/verifizieren (Daniel) · ⬜ offen
 - [ ] Favicon im Tab + PWA-Installierbarkeit + OG-Preview (z. B. Slack/LinkedIn-Debugger)
 - [ ] Mobile 375px (iOS Safari) + 768px
 
+## E2. Auth (verifiziert 25.07.2026)
+
+| Punkt | Status | Notiz |
+|---|---|---|
+| E-Mail-Bestätigung (Double-Opt-in) | ✅ | Supabase „Confirm email" AN (`mailer_autoconfirm:false`); RegisterForm + Callback fertig; verifiziert (neuer User unbestätigt + Mail via Resend) |
+| Google-OAuth | ✅ | auto-bestätigt (korrekt, keine Mail) |
+| Passwort-Reset | ✅ | Eigene Route `/api/auth/reset-request` (Admin-generateLink → sauberer token_hash → Resend), `/reset-password` löst via verifyOtp ein; live getestet; PKCE/Template-unabhängig |
+| Security-Header | ✅ | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` (Clickjacking-Schutz + kein kaputter Webmail-Frame) |
+| Supabase SMTP (Resend) | 🔶 | funktioniert (echte Mails kommen an); Auth-Bestätigungsmails laufen darüber |
+
 ## F. Verbleibende 🔶-Punkte vor „Launch" (Daniel)
 
-1. Stripe: Webhook-Events + `whsec` gegenprüfen, Konto aktiviert, **einen Live-Lebenszyklus verifizieren**.
-2. Resend-Domain verifizieren + Testmail.
-3. `supabase migration list` synchron.
-4. Finale rechtliche Gegenprüfung.
-5. Manueller Smoke-Test (Abschnitt E) auf Produktion.
+1. ~~Stripe Live-Lebenszyklus verifizieren~~ → ✅ verifiziert (25.07., Event landete, tier/status/period_end/subscription_id korrekt). Nur noch: Konto-Aktivierung + 5 Webhook-Events gegenprüfen.
+2. ~~Resend-Domain~~ → ✅ getestet.
+3. ~~Migrationen synchron~~ → ✅ `supabase migration list` sauber (88 Migrationen, Local=Remote).
+4. Finale rechtliche Gegenprüfung (extern).
+5. Manueller Smoke-Test (Abschnitt E) auf Produktion — Rest.
+6. Optionaler Schliff: Passwort-Reset einmal über die neue Route real gegentesten (Formular → Mail → Link → neues Passwort).
 
 ## Post-Launch (siehe `docs/backlog/2026-07-25-post-launch-backlog.md`)
 Jest-ESM-Transform · sharp-Pin · EAM PDF/Share je Stil (#257/#258) · Capability in Exec Summary (#259).
