@@ -27,7 +27,8 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-line flex items-center justify-between">
         <Link href="/dashboard" onClick={close} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-sm font-bold text-white">N</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/app-icon/app-icon.svg" alt="AI Navigator" width={32} height={32} className="w-8 h-8 shrink-0" />
           <div>
             <div className="font-semibold text-sm tracking-wide text-ink">AI Navigator</div>
             <div className="text-xs text-ink-subtle">enterprise-ai.biz</div>

@@ -11,10 +11,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="relative flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-lg">N</div>
-              <span className="text-slate-900 text-xl font-serif">AI Navigator</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/lockup-vertical.svg" alt="AI Navigator" width={220} height={101} className="mx-auto mb-3 h-20 w-auto" />
             <p className="text-slate-400 text-xs tracking-widest uppercase font-medium">Enterprise-AI.biz</p>
           </div>
           {children}

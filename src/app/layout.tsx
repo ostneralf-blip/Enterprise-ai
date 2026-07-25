@@ -48,7 +48,7 @@ const organizationJsonLd = {
   '@type': 'Organization',
   name: 'AI Navigator',
   url: BASE,
-  logo: `${BASE}/favicon.ico`,
+  logo: `${BASE}/brand/app-icon/app-icon-512.png`,
   founder: {
     '@type': 'Person',
     name: 'Daniel Ostner',

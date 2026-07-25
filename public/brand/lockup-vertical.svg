@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 101" width="220" height="101">
+<g transform="translate(82.0,0) scale(0.875)"><circle cx="32" cy="32" r="24" fill="none" stroke="#1D4ED8" stroke-width="2.5"/><rect x="20.0" y="17" width="3.5" height="30" fill="#1D4ED8"/><rect x="40.5" y="17" width="3.5" height="30" fill="#1D4ED8"/><polygon points="23.5,17 36.35,29.53 27.65,34.47" fill="#C7913A"/><polygon points="36.35,29.53 40.5,47 27.65,34.47" fill="#1D4ED8"/></g>
+<text x="50%" y="92.28" text-anchor="middle" font-family="Lora" font-size="26">
+<tspan font-weight="600" fill="#1D4ED8">AI</tspan><tspan font-weight="500" fill="#0F172A"> Navigator</tspan>
+</text>
+</svg>
