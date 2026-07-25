@@ -1,8 +1,59 @@
 import 'server-only'
-import { createClient } from '@/lib/supabase/server'
+import { getTranslations } from 'next-intl/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { normalizeArchitectureResult, resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 import type { RawArchitectureResult } from '@/lib/pdf/normalize-architecture'
+import { togafComps, dataFlowComps } from '@/lib/architecture/diagram-grouping'
 import type { Locale } from '@/i18n/routing'
+
+// Layer im gewählten Diagramm-Stil (togaf/datenfluss) neu gruppieren — reuse der
+// reinen Grouping-Logik. Bausteine ohne Katalog-Treffer landen unter „Sonstige".
+async function regroupLayers(
+  patternLayers: { name: string; components: string[] }[],
+  art: string,
+  locale: Locale,
+): Promise<{ name: string; components: string[] }[] | null> {
+  if (art !== 'togaf' && art !== 'datenfluss') return null
+  const names = [...new Set(patternLayers.flatMap(l => l.components))]
+  if (names.length === 0) return null
+
+  const admin = await createAdminClient()
+  const { data } = await admin.from('component_catalog').select('name, architecture_layer').in('name', names)
+  const layerByName = new Map<string, string | null>()
+  for (const n of names) layerByName.set(n, null)
+  for (const row of (data ?? []) as { name: string; architecture_layer: string | null }[]) layerByName.set(row.name, row.architecture_layer)
+  const comps = names.map(n => ({ name: n, architecture_layer: layerByName.get(n) ?? null }))
+
+  const [td, tm] = await Promise.all([
+    getTranslations({ locale, namespace: 'diagram' }),
+    getTranslations({ locale, namespace: 'modules.architecture' }),
+  ])
+
+  const known = new Set<string>()
+  const out: { name: string; components: string[] }[] = []
+  const push = (label: string, list: { name: string }[]) => {
+    list.forEach(c => known.add(c.name))
+    if (list.length > 0) out.push({ name: label, components: list.map(c => c.name) })
+  }
+
+  if (art === 'togaf') {
+    const g = togafComps(comps)
+    push(tm('togafData'), g.data)
+    push(tm('togafApplication'), g.application)
+    push(tm('togafTechnology'), g.technology)
+    push(tm('eamCross'), g.cross)
+  } else {
+    const g = dataFlowComps(comps)
+    push(td('flowSources'), g.sources)
+    push(td('flowPlatform'), g.platform)
+    push(td('flowModels'), g.models)
+    push(td('flowConsumption'), g.consumption)
+    push(td('flowCross'), g.cross)
+  }
+  const other = comps.filter(c => !known.has(c.name))
+  if (other.length > 0) out.push({ name: td('bandOther'), components: other.map(c => c.name) })
+  return out
+}
 
 type MaybeLocale = string | { de: string; en: string }
 interface InvestmentFramework {
@@ -62,7 +113,7 @@ export interface ArchitectureStatusData {
 export async function getArchitectureStatusData(userId: string, locale: Locale): Promise<ArchitectureStatusData | null> {
   const supabase = await createClient()
 
-  const [profileRes, archRes] = await Promise.all([
+  const [profileRes, archRes, prefRes] = await Promise.all([
     supabase.from('profiles').select('company').eq('id', userId).single() as unknown as Promise<{
       data: { company: string | null } | null
     }>,
@@ -79,6 +130,9 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
         ai_narrative: Record<string, NarrativeSection> | null
         narrative_locale: 'de' | 'en' | null
       } | null
+    }>,
+    supabase.from('user_preferences').select('diagram_style').eq('user_id', userId).maybeSingle() as unknown as Promise<{
+      data: { diagram_style: { art?: string } | null } | null
     }>,
   ])
 
@@ -108,6 +162,14 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     ? resolveList(exec.next_steps)
     : normalized.nextSteps
 
+  const patternLayers = normalized.layers
+    .filter(l => l.components.length > 0)
+    .map(l => ({ name: l.name, components: l.components }))
+
+  // Diagramm-Stil des Nutzers (togaf/datenfluss) → Layer entsprechend gruppieren (#257).
+  const art = prefRes.data?.diagram_style?.art ?? 'schichten'
+  const styledLayers = await regroupLayers(patternLayers, art, locale)
+
   return {
     companyName: profileRes.data?.company ?? null,
     generatedAt: new Date().toISOString(),
@@ -118,8 +180,6 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     investmentFramework,
     keyDecisions,
     nextSteps,
-    layers: normalized.layers
-      .filter(l => l.components.length > 0)
-      .map(l => ({ name: l.name, components: l.components })),
+    layers: styledLayers ?? patternLayers,
   }
 }
