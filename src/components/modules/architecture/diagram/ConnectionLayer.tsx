@@ -101,13 +101,26 @@ export function ConnectionLayer({ containerRef, grouping, compEdges = [], confli
     }
 
     measure()
+    // Nachmessung nach dem nächsten Layout/Paint: beim Öffnen der Vergrößern-Ansicht
+    // (Modal) steht die endgültige Breite/Position der Bausteine erst nach dem Mount
+    // fest — die reine useLayoutEffect-Messung liefert sonst evtl. keine Kanten.
+    const rafIds: number[] = []
+    rafIds.push(requestAnimationFrame(() => {
+      rafIds.push(requestAnimationFrame(measure))
+    }))
     let ro: ResizeObserver | null = null
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(measure)
       ro.observe(container)
     }
-    return () => ro?.disconnect()
-  }, [containerRef, grouping, hasCatalog, catalogKey, compEdges, conflicts])
+    return () => {
+      ro?.disconnect()
+      rafIds.forEach(id => cancelAnimationFrame(id))
+    }
+    // catalogKey kodiert compEdges+conflicts inhaltsstabil; die Array-Referenzen
+    // selbst NICHT als Deps, sonst läuft der Effekt bei jedem Render neu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [containerRef, grouping, hasCatalog, catalogKey])
 
   if (!overlay || overlay.paths.length === 0) return null
 
