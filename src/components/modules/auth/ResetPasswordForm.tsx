@@ -19,22 +19,20 @@ export function ResetPasswordForm() {
 
   useEffect(() => {
     const establish = async () => {
-      // Der Browser-Client (PKCE, detectSessionInUrl) verarbeitet ?code= und
-      // #-Fragmente beim Init automatisch — zuerst prüfen, ob dadurch schon eine
-      // Recovery-Session besteht.
-      const existing = await supabase.auth.getSession()
-      if (existing.data.session) { setHasValidSession(true); return }
-
-      // Sonst Token aus der URL explizit einlösen (token_hash/recovery oder code).
       const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
       const tokenHash = params.get('token_hash')
       const type = params.get('type')
+      const code = params.get('code')
       try {
         if (tokenHash && type === 'recovery') {
+          // Robuster Weg: kein PKCE-code_verifier nötig — verifyOtp löst den
+          // token_hash direkt ein (funktioniert browser-/kontextübergreifend).
           await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
         } else if (code) {
-          await supabase.auth.exchangeCodeForSession(code)
+          // Legacy-PKCE-Pfad: detectSessionInUrl hat den Code beim Init evtl. schon
+          // eingelöst — nur nachlegen, wenn noch keine Session besteht.
+          const { data } = await supabase.auth.getSession()
+          if (!data.session) await supabase.auth.exchangeCodeForSession(code)
         }
       } catch {
         // getSession unten entscheidet über gültig/ungültig
