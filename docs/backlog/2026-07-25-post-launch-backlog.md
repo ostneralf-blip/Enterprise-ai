@@ -18,6 +18,19 @@ Bis Launch nur noch: Stabilisierung, Bugfixes, Release-Vorbereitung, Branding/Fe
 4. **Weitere Diagramm-Ideen (Daniel)** — noch nicht spezifiziert; sammeln, wenn wir das
    Thema nach Launch wieder aufnehmen. Platzhalter, bis Daniel die Ideen konkretisiert.
 
+## Admin-Bereich
+
+5. **Admin-User-Management verbessern** (Daniel, 25.07.2026) — das bestehende Panel kann
+   `is_admin`/`is_banned`/`feature_flags` setzen, aber Nutzer NICHT vollständig löschen.
+   Anforderungen (u. a.): Nutzer vollständig löschen direkt aus dem Admin-Panel (Profil
+   **und** `auth.users`-Eintrag via `admin.deleteUser` — analog `/api/account/delete`,
+   damit keine verwaisten Auth-User entstehen, siehe Incident 25.07.), Nutzerliste mit
+   Suche/Filter (Tier, bestätigt/unbestätigt, gebannt), Detailansicht (Abo-Status, letzte
+   Aktivität), ggf. Bestätigungsmail erneut senden. → GitHub-Issue.
+   **Merke (Betrieb):** Konten NIEMALS per SQL/Tabellen-Editor löschen — nur über die
+   DSGVO-Route (`/api/account/delete`) oder Supabase → Authentication → Users. Reines
+   Löschen der `profiles`-Zeile lässt den Auth-User bestehen (kann sich weiter anmelden).
+
 ## Bereits gebaut & live (zur Abgrenzung, NICHT offen)
 
 - EAM Phase 1 (Presets, CapabilityView, MaturityPips theme-sicher, Bebauungsplan).
