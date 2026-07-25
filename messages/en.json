@@ -1194,6 +1194,9 @@
     "urgencyNext": "Next step",
     "dimStatusTitle": "Maturity by dimension",
     "dimStatusSubtext": "A recommendation per assessment dimension based on your maturity and archetype.",
+    "capabilityTitle": "Business capabilities & maturity",
+    "capabilitySubtext": "Your use cases by business domain, shaded by maturity (planned → in production).",
+    "capabilityEmpty": "No use cases in your portfolio yet.",
     "dimStatusWeakLabel": "Action needed",
     "dimStatusGoodLabel": "Solid",
     "dimStatus": {

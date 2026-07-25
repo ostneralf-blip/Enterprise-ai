@@ -2,9 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import type { Tier } from '@/types'
+import type { Tier, UseCase } from '@/types'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { generateSummaryBlock, generateDimensionStatuses } from '@/lib/utils/summary-priorities'
+import { deriveCapabilityMap } from '@/lib/architecture/capability'
+import { CapabilityView } from '@/components/modules/architecture/diagram/CapabilityView'
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
 import { pick } from '@/lib/utils/locale-data'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -62,6 +64,7 @@ export default async function ZusammenfassungPage() {
     { count: usecaseCount },
     { data: topUsecase },
     { data: latestCompliance },
+    { data: capabilityUseCases },
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, company, tier').eq('id', user.id).single(),
     supabase.from('assessment_sessions')
@@ -95,6 +98,8 @@ export default async function ZusammenfassungPage() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    // Use-Cases fürs Capability-Portfolio (Reifegrad-Heatmap, #259). RLS-gescoped.
+    supabase.from('use_cases').select('id, name, domain, governance_result, canvas_id'),
   ])
 
   const profileData = profileResult.data as { full_name: string | null; company: string | null; tier: string } | null
@@ -265,6 +270,9 @@ export default async function ZusammenfassungPage() {
   const assessmentArchetype = latestAssessment?.archetype ?? null
   const dimStatuses = generateDimensionStatuses(dimScores, assessmentArchetype)
 
+  // Capability-Portfolio (Geschäftsfähigkeiten nach Reifegrad, #259).
+  const capabilityGroups = deriveCapabilityMap((capabilityUseCases ?? []) as unknown as UseCase[])
+
   // Admin-editierbare Empfehlungstexte aus content_library (Content-Library-Editor).
   // Fallback ist die i18n-Ebene (summary.dimStatus.*), damit fehlende/unveröffentlichte
   // Zeilen die Seite nie brechen. Gezielte, wachstumssichere Abfrage (max. 48 Zeilen).
@@ -375,6 +383,15 @@ export default async function ZusammenfassungPage() {
               )
             })}
           </ul>
+        </div>
+      )}
+
+      {/* ── Geschäftsfähigkeiten & Reifegrad (Capability-Portfolio, #259) ── */}
+      {capabilityGroups.length > 0 && (
+        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-ink mb-1">{t('capabilityTitle')}</h2>
+          <p className="text-xs text-ink-secondary mb-4">{t('capabilitySubtext')}</p>
+          <CapabilityView groups={capabilityGroups} emptyLabel={t('capabilityEmpty')} />
         </div>
       )}
 

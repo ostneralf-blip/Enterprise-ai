@@ -1194,6 +1194,9 @@
     "urgencyNext": "Nächster Schritt",
     "dimStatusTitle": "Reifegrad je Dimension",
     "dimStatusSubtext": "Empfehlung je Assessment-Dimension auf Basis Ihres Reifegrads und Archetyps.",
+    "capabilityTitle": "Geschäftsfähigkeiten & Reifegrad",
+    "capabilitySubtext": "Ihre Use Cases nach Geschäftsbereich, eingefärbt nach Reifegrad (geplant → produktiv).",
+    "capabilityEmpty": "Noch keine Use Cases im Portfolio.",
     "dimStatusWeakLabel": "Handlungsbedarf",
     "dimStatusGoodLabel": "Tragfähig",
     "dimStatus": {
