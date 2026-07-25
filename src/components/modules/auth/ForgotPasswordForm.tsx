@@ -20,7 +20,10 @@ export function ForgotPasswordForm() {
     setLoading(true)
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
+      // Direkt auf die Reset-Seite (clientseitige Token-Verarbeitung), NICHT über den
+      // Server-Callback: dort ist der PKCE-code_verifier nicht zugänglich → Exchange
+      // scheitert und der Nutzer landet auf der Anmeldeseite statt beim Passwort-Formular.
+      redirectTo: `${window.location.origin}/reset-password`,
       captchaToken,
     })
 

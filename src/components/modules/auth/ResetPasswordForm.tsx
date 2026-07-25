@@ -18,11 +18,32 @@ export function ResetPasswordForm() {
   const [hasValidSession, setHasValidSession] = useState<boolean | null>(null)
 
   useEffect(() => {
-    // Supabase setzt nach Klick auf den Reset-Link automatisch eine
-    // temporäre Recovery-Session. Wir prüfen, ob diese vorhanden ist.
-    supabase.auth.getSession().then(({ data }) => {
+    const establish = async () => {
+      // Der Browser-Client (PKCE, detectSessionInUrl) verarbeitet ?code= und
+      // #-Fragmente beim Init automatisch — zuerst prüfen, ob dadurch schon eine
+      // Recovery-Session besteht.
+      const existing = await supabase.auth.getSession()
+      if (existing.data.session) { setHasValidSession(true); return }
+
+      // Sonst Token aus der URL explizit einlösen (token_hash/recovery oder code).
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
+      const tokenHash = params.get('token_hash')
+      const type = params.get('type')
+      try {
+        if (tokenHash && type === 'recovery') {
+          await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+        } else if (code) {
+          await supabase.auth.exchangeCodeForSession(code)
+        }
+      } catch {
+        // getSession unten entscheidet über gültig/ungültig
+      }
+
+      const { data } = await supabase.auth.getSession()
       setHasValidSession(!!data.session)
-    })
+    }
+    void establish()
   }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
