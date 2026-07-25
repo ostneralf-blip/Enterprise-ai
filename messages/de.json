@@ -1572,6 +1572,10 @@
       "noNextSteps": "Noch keine nächsten Schritte dokumentiert.",
       "stackLabel": "KOMPONENTEN-STACK",
       "noStack": "Noch keine Komponenten ausgewählt.",
+      "connectionsLabel": "VERKNÜPFUNGEN & KONFLIKTE",
+      "connRequires": "benötigt",
+      "connSuggests": "empfiehlt",
+      "connConflict": "inkompatibel mit",
       "confidential": "VERTRAULICH",
       "exportButton": "Architektur (MERIDIAN)",
       "exportHintEmpty": "Erst nach dem Speichern einer Architektur verfügbar."

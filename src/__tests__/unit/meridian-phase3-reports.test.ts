@@ -111,6 +111,8 @@ const architectureData: ArchitectureStatusData = {
   keyDecisions: ['Kubernetes als primäre Orchestrierung.'],
   nextSteps: ['Pilot in Non-Production starten.'],
   layers: [{ name: 'Governance', components: ['SAP MDG', 'HashiCorp Vault'] }],
+  dependencies: [{ from: 'SAP MDG', to: 'HashiCorp Vault', kind: 'requires' }],
+  conflicts: [],
 }
 
 const executiveSummaryData: ExecutiveSummaryData = {

@@ -4,7 +4,31 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { normalizeArchitectureResult, resolveLocaleField } from '@/lib/pdf/normalize-architecture'
 import type { RawArchitectureResult } from '@/lib/pdf/normalize-architecture'
 import { togafComps, dataFlowComps } from '@/lib/architecture/diagram-grouping'
+import { catalogEdges } from '@/lib/architecture/catalog-edges'
+import type { CompEdge, CompConflict } from '@/lib/architecture/catalog-edges'
+import type { CatalogComponent } from '@/types'
 import type { Locale } from '@/i18n/routing'
+
+// Lädt die kuratierten Katalog-Relationen (requires/suggests/incompatible_with) für
+// die aktiven Bausteine und leitet daraus die gerichteten Kanten + Konflikte ab (#257
+// Stufe 2). Gezielter .in()-Lookup statt Volltabelle (component_catalog > 1000 Zeilen,
+// PostgREST-max_rows — siehe CLAUDE.md). Nur Kanten zwischen aktiven Bausteinen.
+async function loadCatalogEdges(names: string[]): Promise<{ edges: CompEdge[]; conflicts: CompConflict[] }> {
+  if (names.length === 0) return { edges: [], conflicts: [] }
+  const admin = await createAdminClient()
+  const { data } = await admin
+    .from('component_catalog')
+    .select('name, requires, suggests, incompatible_with')
+    .in('name', names)
+  const rows = (data ?? []) as { name: string; requires: string[] | null; suggests: string[] | null; incompatible_with: string[] | null }[]
+  const active = rows.map(r => ({
+    name: r.name,
+    requires: r.requires ?? [],
+    suggests: r.suggests ?? [],
+    incompatible_with: r.incompatible_with ?? [],
+  }))
+  return catalogEdges(active as unknown as CatalogComponent[])
+}
 
 // Layer im gewählten Diagramm-Stil (togaf/datenfluss) neu gruppieren — reuse der
 // reinen Grouping-Logik. Bausteine ohne Katalog-Treffer landen unter „Sonstige".
@@ -88,6 +112,8 @@ export interface ArchitectureStatusData {
   keyDecisions: string[]
   nextSteps: string[]
   layers: ArchitectureLayerStack[]
+  dependencies: CompEdge[] // gerichtete requires/suggests-Kanten aus dem Katalog (#257 Stufe 2)
+  conflicts: CompConflict[] // ungerichtete incompatible_with-Konflikte
 }
 
 /**
@@ -168,7 +194,11 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
 
   // Diagramm-Stil des Nutzers (togaf/datenfluss) → Layer entsprechend gruppieren (#257).
   const art = prefRes.data?.diagram_style?.art ?? 'schichten'
-  const styledLayers = await regroupLayers(patternLayers, art, locale)
+  const allNames = [...new Set(patternLayers.flatMap(l => l.components))]
+  const [styledLayers, catEdges] = await Promise.all([
+    regroupLayers(patternLayers, art, locale),
+    loadCatalogEdges(allNames),
+  ])
 
   return {
     companyName: profileRes.data?.company ?? null,
@@ -181,5 +211,7 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     keyDecisions,
     nextSteps,
     layers: styledLayers ?? patternLayers,
+    dependencies: catEdges.edges,
+    conflicts: catEdges.conflicts,
   }
 }

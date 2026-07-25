@@ -41,6 +41,10 @@ const styles = StyleSheet.create({
   stackLayerLabel: { ...reportType.eyebrow, marginBottom: 4 },
   stackBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   emptyState: { ...reportType.bodyMuted, fontStyle: 'italic', fontSize: 8 },
+  connRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' },
+  connNode: { ...reportType.body, fontSize: 8, fontWeight: 700, color: reportColors.ink },
+  connVerb: { fontFamily: reportFonts.mono, fontSize: 7, color: reportColors.primary, textTransform: 'uppercase' },
+  connVerbConflict: { fontFamily: reportFonts.mono, fontSize: 7, color: reportColors.warningText, textTransform: 'uppercase' },
   statRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
   estimateNote: { ...reportType.bodyMuted, fontStyle: 'italic', fontSize: 7, marginTop: 5 },
   recommendationText: { ...reportType.body, fontSize: 8.5, lineHeight: 1.45 },
@@ -149,6 +153,26 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
               </View>
             </View>
           ))
+        )}
+
+        {(data.dependencies.length > 0 || data.conflicts.length > 0) && (
+          <>
+            <Text style={styles.sectionEyebrow}>{t('connectionsLabel')}</Text>
+            {data.dependencies.map((e, i) => (
+              <View key={`e${i}`} style={styles.connRow}>
+                <Text style={styles.connNode}>{e.from}</Text>
+                <Text style={styles.connVerb}>{e.kind === 'requires' ? t('connRequires') : t('connSuggests')} →</Text>
+                <Text style={styles.connNode}>{e.to}</Text>
+              </View>
+            ))}
+            {data.conflicts.map((c, i) => (
+              <View key={`c${i}`} style={styles.connRow}>
+                <Text style={styles.connNode}>{c.a}</Text>
+                <Text style={styles.connVerbConflict}>⚠ {t('connConflict')}</Text>
+                <Text style={styles.connNode}>{c.b}</Text>
+              </View>
+            ))}
+          </>
         )}
 
         <ReportFooter confidentialLabel={t('confidential')} />
