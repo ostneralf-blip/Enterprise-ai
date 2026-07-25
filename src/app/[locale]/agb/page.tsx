@@ -51,7 +51,7 @@ export default function AgbPage() {
             (2) Der Dienst richtet sich sowohl an Unternehmer im Sinne des § 14 BGB als auch
             an Verbraucher im Sinne des § 13 BGB. Abweichende, entgegenstehende oder ergänzende
             Geschäftsbedingungen des Kunden werden nicht Vertragsbestandteil, es sei denn, der
-            Anbieter stimmt ihrer Geltung ausdrücklich schriftlich zu.
+            Anbieter stimmt ihrer Geltung ausdrücklich in Textform zu.
           </p>
 
           <h2>§ 2 Vertragsgegenstand</h2>
@@ -108,7 +108,7 @@ export default function AgbPage() {
             (1) Es gelten die zum Zeitpunkt der Bestellung auf der Website ausgewiesenen Preise.
           </p>
           <p>
-            (2) Gemäß § 19 UStG wird derzeit keine Umsatzsteuer berechnet und ausgewiesen
+            (2) Gemäß § 19 Abs. 1 UStG wird derzeit keine Umsatzsteuer berechnet und ausgewiesen
             (Kleinunternehmerregelung).
           </p>
           <p>
@@ -137,6 +137,13 @@ export default function AgbPage() {
           <p>
             (4) Der Anbieter kann den kostenlosen Free-Tarif jederzeit mit angemessener
             Ankündigungsfrist ändern oder einstellen.
+          </p>
+          <p>
+            (5) Für Verbraucherverträge, die über eine Online-Benutzeroberfläche geschlossen
+            werden, stellt der Anbieter gemäß § 312k BGB eine ständig verfügbare
+            Kündigungsschaltfläche („Kündigungsbutton“) in den Kontoeinstellungen sowie im
+            Footer der Website bereit, über die der Kunde den Vertrag unmittelbar kündigen und
+            eine Bestätigung der Kündigung erhalten kann.
           </p>
 
           <h2>§ 7 Widerrufsrecht für Verbraucher</h2>
@@ -173,8 +180,15 @@ export default function AgbPage() {
             Grundlage verfügt.
           </p>
           <p>
-            (3) Der Kunde hat seine Zugangsdaten vertraulich zu behandeln und uns unverzüglich
-            zu informieren, wenn er von einem Missbrauch seines Kontos Kenntnis erlangt.
+            (3) Der Kunde hat seine Zugangsdaten vertraulich zu behandeln und den Anbieter
+            unverzüglich zu informieren, wenn er von einem Missbrauch seines Kontos Kenntnis
+            erlangt.
+          </p>
+          <p>
+            (4) Verarbeitet der Kunde über den Dienst personenbezogene Daten Dritter (z. B.
+            eigener Mitarbeiter oder Kunden), schließen Anbieter und Kunde hierfür auf Anfrage
+            einen gesonderten Auftragsverarbeitungsvertrag (AVV) gemäß Art. 28 DSGVO ab; die
+            Einzelheiten ergeben sich aus der Datenschutzerklärung.
           </p>
 
           <h2>§ 9 Verfügbarkeit</h2>
@@ -240,7 +254,10 @@ export default function AgbPage() {
             öffentlich-rechtliches Sondervermögen, ist Gerichtsstand der Sitz des Anbieters.
           </p>
           <p>
-            (3) Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die Wirksamkeit
+            (3) Vertragssprache ist Deutsch.
+          </p>
+          <p>
+            (4) Sollten einzelne Bestimmungen dieser AGB unwirksam sein, bleibt die Wirksamkeit
             der übrigen Bestimmungen unberührt.
           </p>
 
