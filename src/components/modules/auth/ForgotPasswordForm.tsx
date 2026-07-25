@@ -3,10 +3,8 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
-import { createClient } from '@/lib/supabase/client'
 
 export function ForgotPasswordForm() {
-  const supabase = createClient()
   const captchaRef = useRef<HCaptcha>(null)
   const t = useTranslations('auth')
   const [email, setEmail] = useState('')
@@ -19,21 +17,16 @@ export function ForgotPasswordForm() {
     if (!captchaToken) return
     setLoading(true)
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // Direkt auf die Reset-Seite (clientseitige Token-Verarbeitung), NICHT über den
-      // Server-Callback: dort ist der PKCE-code_verifier nicht zugänglich → Exchange
-      // scheitert und der Nutzer landet auf der Anmeldeseite statt beim Passwort-Formular.
-      redirectTo: `${window.location.origin}/reset-password`,
-      captchaToken,
-    })
+    // Eigene Route: erzeugt einen sauberen token_hash-Recovery-Link (kein PKCE) und
+    // versendet ihn via Resend. Antwortet immer 200 (kein Enumeration-Leak).
+    await fetch('/api/auth/reset-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, captchaToken }),
+    }).catch(err => console.error('Password reset error:', err))
 
     captchaRef.current?.resetCaptcha()
     setCaptchaToken(null)
-
-    // Bewusst KEINE Fehlermeldung bei "User nicht gefunden" —
-    // verhindert E-Mail-Enumeration (gleiche Logik wie LoginForm).
-    if (error) console.error('Password reset error:', error)
-
     setLoading(false)
     setSent(true)
   }
