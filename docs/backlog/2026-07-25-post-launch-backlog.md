@@ -18,6 +18,14 @@ Bis Launch nur noch: Stabilisierung, Bugfixes, Release-Vorbereitung, Branding/Fe
 4. **Weitere Diagramm-Ideen (Daniel)** — noch nicht spezifiziert; sammeln, wenn wir das
    Thema nach Launch wieder aufnehmen. Platzhalter, bis Daniel die Ideen konkretisiert.
 
+## Daten / DSGVO
+
+6. **Anonymisierte Analyse-Daten bei Konto-Löschung behalten** (Daniel, 25.07.2026) →
+   GitHub-Issue **#261**. Ziel: bei DSGVO-Löschung strukturelle/analytische Daten
+   anonymisiert (kein user_id, keine PII, Freitext gescrubbt) in `analytics_snapshots`
+   behalten für AI-Learnings. **DSGVO-sensibel — echte Anonymisierung + Datenschutz-Text +
+   Rechts-Check nötig.** Für Launch bleibt die konservative Volllöschung (verifiziert 25.07.).
+
 ## Admin-Bereich
 
 5. **Admin-User-Management verbessern** (Daniel, 25.07.2026) — das bestehende Panel kann
