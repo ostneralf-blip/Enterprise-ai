@@ -118,11 +118,15 @@ const architectureData: ArchitectureStatusData = {
     application: ['SAP Integration Suite'],
     dataTech: ['Snowflake', 'MLflow'],
     cross: ['HashiCorp Vault', 'SAP MDG'],
+    compliance: 'moderate',
     ruleComps: 5,
     total: 5,
     addComps: 0,
     openViolations: 0,
   },
+  capabilities: [
+    { domain: 'Finance', tiles: [{ id: 'u1', name: 'E-Invoicing', level: 4 }, { id: 'u2', name: 'Warehouse', level: 2 }] },
+  ],
 }
 
 const executiveSummaryData: ExecutiveSummaryData = {

@@ -7,6 +7,8 @@ import { togafComps, dataFlowComps } from '@/lib/architecture/diagram-grouping'
 import { catalogEdges } from '@/lib/architecture/catalog-edges'
 import type { CompEdge, CompConflict } from '@/lib/architecture/catalog-edges'
 import { loadSummaryEamData } from '@/lib/architecture/summary-eam'
+import { deriveCapabilityMap, type CapabilityGroup } from '@/lib/architecture/capability'
+import type { UseCase } from '@/types'
 import type { CatalogComponent } from '@/types'
 import type { Locale } from '@/i18n/routing'
 
@@ -110,6 +112,7 @@ export interface ArchitectureEamData {
   application: string[]
   dataTech: string[]
   cross: string[]
+  compliance?: string // steuert das Motivation-Band (EU AI Act / DSGVO)
   ruleComps: number
   total: number
   addComps: number
@@ -130,6 +133,7 @@ export interface ArchitectureStatusData {
   dependencies: CompEdge[] // gerichtete requires/suggests-Kanten aus dem Katalog (#257 Stufe 2)
   conflicts: CompConflict[] // ungerichtete incompatible_with-Konflikte
   eam: ArchitectureEamData | null // EAM-Landkarte (Business-Rollen + EA-Bänder), wie in der Executive Summary
+  capabilities: CapabilityGroup[] // Geschäftsfähigkeiten & Reifegrad (#259), wie in der Executive Summary
 }
 
 /**
@@ -211,14 +215,18 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
   // Diagramm-Stil des Nutzers (togaf/datenfluss) → Layer entsprechend gruppieren (#257).
   const art = prefRes.data?.diagram_style?.art ?? 'schichten'
   const allNames = [...new Set(patternLayers.flatMap(l => l.components))]
-  const [styledLayers, catEdges, eamRaw] = await Promise.all([
+  const [styledLayers, catEdges, eamRaw, ucRes] = await Promise.all([
     regroupLayers(patternLayers, art, locale),
     loadCatalogEdges(allNames),
     // EAM-Landkarte (Business-Rollen + echte Komponenten je EA-Band) — dieselbe
     // Rekonstruktion wie in der Executive-Summary-Seite, damit PDF und Bildschirm
     // identisch sind (#256-Folge: Landkarte fehlte im PDF).
     loadSummaryEamData(supabase, await createAdminClient(), userId, locale),
+    // Geschäftsfähigkeiten & Reifegrad (#259) — Use-Cases nach Domäne/Reifegrad.
+    supabase.from('use_cases').select('id, name, domain, governance_result, canvas_id'),
   ])
+
+  const capabilities = deriveCapabilityMap((ucRes.data ?? []) as unknown as UseCase[])
 
   // activeComponents in EA-Bänder gruppieren (identische Zuordnung wie EamMap).
   const eam: ArchitectureEamData | null = eamRaw
@@ -227,6 +235,7 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
         application: eamRaw.activeComponents.filter(c => c.architecture_layer === 'application').map(c => c.name),
         dataTech: eamRaw.activeComponents.filter(c => ['data', 'model', 'serving', 'mlops'].includes(c.architecture_layer ?? '')).map(c => c.name),
         cross: eamRaw.activeComponents.filter(c => ['governance', 'security'].includes(c.architecture_layer ?? '')).map(c => c.name),
+        compliance: eamRaw.compliance,
         ruleComps: eamRaw.ruleComps,
         total: eamRaw.activeCount,
         addComps: eamRaw.addComps,
@@ -248,5 +257,6 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     dependencies: catEdges.edges,
     conflicts: catEdges.conflicts,
     eam,
+    capabilities,
   }
 }

@@ -40,7 +40,27 @@ const styles = StyleSheet.create({
   stackLayer: { marginBottom: 7 },
   stackLayerLabel: { ...reportType.eyebrow, marginBottom: 4 },
   stackBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  // EAM-Landkarte im Band-Layout (umrandete Bänder mit Label-Spalte links — wie
+  // die Bildschirm-Landkarte), damit es als Architektur erkennbar ist.
+  eamBand: { flexDirection: 'row', gap: 6, marginBottom: 5, borderWidth: 1, borderColor: reportColors.line, borderRadius: 6, padding: 6, backgroundColor: reportColors.white },
+  eamBandDashed: { borderStyle: 'dashed', borderColor: reportColors.lineStrong, backgroundColor: reportColors.ivory },
+  eamBandLabel: { width: 82, fontFamily: reportFonts.sans, fontSize: 6.5, fontWeight: 700, color: reportColors.inkMuted, textTransform: 'uppercase', paddingTop: 2 },
+  eamBandChips: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  motivNode: { backgroundColor: reportColors.primarySoft, borderWidth: 1, borderColor: reportColors.primaryBorder, borderRadius: 6, paddingVertical: 3, paddingHorizontal: 7 },
+  motivNodeLabel: { fontFamily: reportFonts.sans, fontSize: 8, fontWeight: 700, color: reportColors.ink },
+  motivNodeSub: { fontFamily: reportFonts.mono, fontSize: 5.5, fontWeight: 700, color: reportColors.warningText, textTransform: 'uppercase', marginTop: 1 },
+  roleChip: { backgroundColor: reportColors.lineSubtle, borderRadius: 8, paddingVertical: 3, paddingHorizontal: 7 },
+  roleChipText: { fontFamily: reportFonts.sans, fontSize: 7, color: reportColors.inkSecondary },
   eamValidationLine: { ...reportType.bodyMuted, fontSize: 7.5, marginTop: 6, marginBottom: 2 },
+  // Geschäftsfähigkeiten & Reifegrad (#259)
+  capGroup: { borderWidth: 1, borderColor: reportColors.line, borderRadius: 6, padding: 6, marginBottom: 5, backgroundColor: reportColors.white },
+  capDomain: { fontFamily: reportFonts.sans, fontSize: 6.5, fontWeight: 700, color: reportColors.inkSecondary, textTransform: 'uppercase', marginBottom: 4 },
+  capTilesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  capTile: { borderWidth: 1, borderColor: reportColors.line, borderRadius: 5, paddingVertical: 3, paddingHorizontal: 6, backgroundColor: reportColors.ivory, minWidth: 108 },
+  capTileName: { fontFamily: reportFonts.sans, fontSize: 7.5, fontWeight: 700, color: reportColors.ink, marginBottom: 3 },
+  capPipsRow: { flexDirection: 'row', gap: 2, alignItems: 'center' },
+  pip: { width: 5, height: 5, borderRadius: 1 },
+  capLegend: { ...reportType.bodyMuted, fontSize: 7, marginTop: 2 },
   emptyState: { ...reportType.bodyMuted, fontStyle: 'italic', fontSize: 8 },
   connRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' },
   connNode: { ...reportType.body, fontSize: 8, fontWeight: 700, color: reportColors.ink },
@@ -51,10 +71,56 @@ const styles = StyleSheet.create({
   recommendationText: { ...reportType.body, fontSize: 8.5, lineHeight: 1.45 },
 })
 
+// Ein EAM-Band: Label-Spalte links, Chips rechts (Bildschirm-Landkarte nachgebaut).
+function EamBand({ label, dashed, children }: { label: string; dashed?: boolean; children: React.ReactNode }) {
+  return (
+    <View style={dashed ? [styles.eamBand, styles.eamBandDashed] : styles.eamBand} wrap={false}>
+      <Text style={styles.eamBandLabel}>{label}</Text>
+      <View style={styles.eamBandChips}>{children}</View>
+    </View>
+  )
+}
+
+function RoleChip({ name }: { name: string }) {
+  return (
+    <View style={styles.roleChip}>
+      <Text style={styles.roleChipText}>{name}</Text>
+    </View>
+  )
+}
+
+// Reifegrad-Pips analog MaturityPips (4 Kästchen, Füllzahl = level; Primary nur bei 4).
+function PdfMaturityPips({ level }: { level: 1 | 2 | 3 | 4 }) {
+  return (
+    <View style={styles.capPipsRow}>
+      {[1, 2, 3, 4].map(i => (
+        <View
+          key={i}
+          style={[
+            styles.pip,
+            { backgroundColor: i > level ? reportColors.line : level === 4 ? reportColors.primary : reportColors.inkSecondary },
+          ]}
+        />
+      ))}
+    </View>
+  )
+}
+
 export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, locale: Locale) {
   registerMeridianFonts()
   const t = getArchitectureTranslator(locale)
   const contentWidth = reportPage.width - reportPage.margin * 2
+
+  // Motivation-Band der EAM-Landkarte (Compliance-Treiber + Business-Treiber).
+  const eam = data.eam
+  const motiv: { label: string; sub?: string }[] = []
+  if (eam) {
+    if (eam.compliance === 'strict' || eam.compliance === 'moderate') {
+      motiv.push({ label: 'EU AI Act', sub: eam.compliance === 'strict' ? t('eamRiskHigh') : t('eamRiskLimited') })
+      motiv.push({ label: 'DSGVO', sub: t('eamEuHosting') })
+    }
+    motiv.push({ label: t('eamBizGoal') })
+  }
 
   return (
     <Document>
@@ -140,65 +206,65 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
           ))
         )}
 
-        {data.eam && (data.eam.roleNames.length + data.eam.application.length + data.eam.dataTech.length + data.eam.cross.length > 0) && (
+        {eam && (eam.roleNames.length + eam.application.length + eam.dataTech.length + eam.cross.length > 0) && (
           <>
             <Text style={styles.sectionEyebrow}>{t('eamLabel')}</Text>
-            {data.eam.roleNames.length > 0 && (
-              <View style={styles.stackLayer}>
-                <Text style={styles.stackLayerLabel}>{t('eamRoles')}</Text>
-                <View style={styles.stackBadgeRow}>
-                  {data.eam.roleNames.map((r, i) => <Badge key={i} label={r} variant="ai" />)}
+            <EamBand label={t('eamMotivation')} dashed>
+              {motiv.map((n, i) => (
+                <View key={i} style={styles.motivNode}>
+                  <Text style={styles.motivNodeLabel}>◎ {n.label}</Text>
+                  {n.sub && <Text style={styles.motivNodeSub}>{n.sub}</Text>}
                 </View>
-              </View>
+              ))}
+            </EamBand>
+            {eam.roleNames.length > 0 && (
+              <EamBand label={t('eamBusiness')}>
+                {eam.roleNames.map((r, i) => <RoleChip key={i} name={r} />)}
+              </EamBand>
             )}
-            {data.eam.application.length > 0 && (
-              <View style={styles.stackLayer}>
-                <Text style={styles.stackLayerLabel}>{t('eamApplication')}</Text>
-                <View style={styles.stackBadgeRow}>
-                  {data.eam.application.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
-                </View>
-              </View>
+            {eam.application.length > 0 && (
+              <EamBand label={t('eamApplication')}>
+                {eam.application.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+              </EamBand>
             )}
-            {data.eam.dataTech.length > 0 && (
-              <View style={styles.stackLayer}>
-                <Text style={styles.stackLayerLabel}>{t('eamDataTech')}</Text>
-                <View style={styles.stackBadgeRow}>
-                  {data.eam.dataTech.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
-                </View>
-              </View>
+            {eam.dataTech.length > 0 && (
+              <EamBand label={t('eamDataTech')}>
+                {eam.dataTech.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+              </EamBand>
             )}
-            {data.eam.cross.length > 0 && (
-              <View style={styles.stackLayer}>
-                <Text style={styles.stackLayerLabel}>{t('eamCross')}</Text>
-                <View style={styles.stackBadgeRow}>
-                  {data.eam.cross.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
-                </View>
-              </View>
+            {eam.cross.length > 0 && (
+              <EamBand label={t('eamCross')} dashed>
+                {eam.cross.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+              </EamBand>
             )}
             <Text style={styles.eamValidationLine}>
-              {t('eamComponentsLine', { rule: data.eam.ruleComps, total: data.eam.total, add: data.eam.addComps })}
+              {t('eamComponentsLine', { rule: eam.ruleComps, total: eam.total, add: eam.addComps })}
               {'  ·  '}
-              {data.eam.openViolations === 0
+              {eam.openViolations === 0
                 ? t('eamValidationOk')
-                : t('eamValidationFail', { n: data.eam.openViolations })}
+                : t('eamValidationFail', { n: eam.openViolations })}
             </Text>
           </>
         )}
 
-        <Text style={styles.sectionEyebrow}>{t('stackLabel')}</Text>
-        {data.layers.length === 0 ? (
-          <Text style={styles.emptyState}>{t('noStack')}</Text>
-        ) : (
-          data.layers.map((layer, i) => (
-            <View key={i} style={styles.stackLayer}>
-              <Text style={styles.stackLayerLabel}>{layer.name.toUpperCase()}</Text>
-              <View style={styles.stackBadgeRow}>
-                {layer.components.map((c, ci) => (
-                  <Badge key={ci} label={c} variant="primary" />
-                ))}
+        {data.capabilities.length > 0 && (
+          <>
+            <Text style={styles.sectionEyebrow}>{t('capabilityLabel')}</Text>
+            {data.capabilities.map((g, gi) => (
+              <View key={gi} style={styles.capGroup} wrap={false}>
+                <Text style={styles.capDomain}>{g.domain}  ·  {g.tiles.length}</Text>
+                <View style={styles.capTilesRow}>
+                  {g.tiles.map((tile, ti) => (
+                    <View key={ti} style={styles.capTile}>
+                      <Text style={styles.capTileName}>{tile.name}</Text>
+                      <PdfMaturityPips level={tile.level} />
+                    </View>
+                  ))}
+                </View>
               </View>
-            </View>
-          ))
+            ))}
+            <Text style={styles.capLegend}>{t('capabilityLegend')}</Text>
+          </>
         )}
 
         {(data.dependencies.length > 0 || data.conflicts.length > 0) && (
