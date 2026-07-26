@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getGuide, AMAZON_BOOK_URL, GUIDES_REVIEWED_AT, type Bi } from '@/config/leitfaden-data'
 import { GUIDE_PRIMARY_TOOL, TOOL_CTA_ANCHOR } from '@/config/tools-data'
-import { PublicNav } from '@/components/shared/PublicNav'
 import { GuideViewTracker, GuideCtaLink } from '@/components/shared/GuideAnalytics'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
@@ -98,12 +97,10 @@ export default async function GuidePage({
   }
 
   return (
-    <div className="min-h-screen bg-ivory text-slate-900">
+    <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
-
-      <PublicNav locale={locale} />
 
       <article className="max-w-3xl mx-auto px-6 py-12">
         <Link href={`${prefix}/leitfaden`} className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
@@ -235,12 +232,6 @@ export default async function GuidePage({
           </section>
         )}
       </article>
-
-      <footer className="border-t border-slate-200 py-6 text-center text-slate-500 text-xs">
-        © 2026 AI Navigator · enterprise-ai.biz ·{' '}
-        <Link href={`${prefix}/datenschutz`} className="hover:text-slate-700">{isEn ? 'Privacy' : 'Datenschutz'}</Link> ·{' '}
-        <Link href={`${prefix}/impressum`} className="hover:text-slate-700">{isEn ? 'Imprint' : 'Impressum'}</Link>
-      </footer>
-    </div>
+    </>
   )
 }

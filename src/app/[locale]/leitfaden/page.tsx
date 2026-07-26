@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { GUIDES, HUB_CATEGORIES, HUB_GLOSSARY, getGuide, type Bi } from '@/config/leitfaden-data'
-import { PublicNav } from '@/components/shared/PublicNav'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -67,7 +66,7 @@ export default async function LeitfadenHubPage({
   }
 
   return (
-    <div className="min-h-screen bg-ivory text-slate-900">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -76,8 +75,6 @@ export default async function LeitfadenHubPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
-
-      <PublicNav locale={locale} />
 
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-10 text-center">
         <div className="inline-block bg-primary-soft border border-primary-border text-primary tracking-widest text-xs font-semibold uppercase px-3 py-1 rounded-full mb-6">
@@ -140,11 +137,6 @@ export default async function LeitfadenHubPage({
         </div>
       </div>
 
-      <footer className="border-t border-slate-200 py-6 text-center text-slate-500 text-xs">
-        © 2026 AI Navigator · enterprise-ai.biz ·{' '}
-        <Link href={`${prefix}/datenschutz`} className="hover:text-slate-700">{isEn ? 'Privacy' : 'Datenschutz'}</Link> ·{' '}
-        <Link href={`${prefix}/impressum`} className="hover:text-slate-700">{isEn ? 'Imprint' : 'Impressum'}</Link>
-      </footer>
-    </div>
+    </>
   )
 }
