@@ -66,6 +66,13 @@ interface CallLLMOptions {
   systemPrompt?: string
   timeoutMs?: number
   module?: string
+  // Anzahl der Bedrock-Versuche (Default 2 = ein Timeout-/BAD_JSON-Retry). Für
+  // große, langsam generierende Sektionen (z. B. Architektur-Narrative, #256)
+  // bewusst auf 1 setzen und stattdessen timeoutMs erhöhen: ein zweiter Versuch
+  // mit demselben zu knappen Budget scheitert bei einer legitim langen Antwort
+  // genauso — ein einziger, großzügiger Versuch ist strikt besser und hält das
+  // Gesamt-Timeout-Budget (Bedrock × Versuche + Direct-Fallback < maxDuration) ein.
+  maxBedrockAttempts?: number
   // Wenn gesetzt: wird als cache_control-Block in Anthropic-Direct-Calls markiert (#210)
   // Für Bedrock: wird als normales Präfix vorangestellt
   cacheControlPrefix?: string
@@ -125,6 +132,7 @@ export async function callLLM<T>(
   const modelId   = await getBedrockModelId(model)
   const maxTokens = opts.maxTokens ?? 1024
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT
+  const maxAttempts = Math.max(1, opts.maxBedrockAttempts ?? 2)
   const t0        = Date.now()
   const moduleName = opts.module ?? 'unknown'
 
@@ -182,7 +190,7 @@ export async function callLLM<T>(
     // Problem hat — ein zweiter Versuch bleibt komplett innerhalb von
     // Bedrock/EU (keine Compliance-Frage wie beim Non-EU-Direct-Fallback)
     // und macht parallele Sektions-Calls spürbar stabiler.
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const controller = new AbortController()
         const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -218,8 +226,8 @@ export async function callLLM<T>(
         try {
           modelJson = JSON.parse(jsonStr)
         } catch (parseErr) {
-          if (attempt === 1) {
-            console.warn('[ai/client] Bedrock: ungültiges Modell-JSON, Retry 2/2', moduleName, (parseErr as Error).message)
+          if (attempt < maxAttempts) {
+            console.warn('[ai/client] Bedrock: ungültiges Modell-JSON, Retry', `${attempt + 1}/${maxAttempts}`, moduleName, (parseErr as Error).message)
             continue
           }
           console.error('[ai/client] Bedrock: Modell lieferte ungültiges JSON', moduleName, (parseErr as Error).message, { snippet: jsonStr.slice(0, 200) })
@@ -248,8 +256,8 @@ export async function callLLM<T>(
         return { data: parsed.data, meta: { provider: 'bedrock', modelId, latencyMs: Date.now() - t0, region: REGION } }
       } catch (err) {
         bedrockErrorCode = classifyBedrockError(err)
-        if (bedrockErrorCode === 'Timeout' && attempt === 1) {
-          console.warn('[ai/client] Bedrock-Timeout, Retry-Versuch 2/2', moduleName)
+        if (bedrockErrorCode === 'Timeout' && attempt < maxAttempts) {
+          console.warn('[ai/client] Bedrock-Timeout, Retry-Versuch', `${attempt + 1}/${maxAttempts}`, moduleName)
           continue
         }
         _bedrockFailureAt = Date.now() // Breaker öffnen — nächste Calls überspringen Bedrock (#180)

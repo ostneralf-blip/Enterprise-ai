@@ -88,10 +88,26 @@ export async function POST(
     // Schema zu prüfen (das lieferte "key_decisions/next_steps: undefined",
     // weil sie tatsächlich eine Ebene tiefer liegen).
     const wrapperSchema = z.object({ [section]: SECTION_SCHEMAS[section] as z.ZodType<unknown> })
+    // #256: Die narrative_*-Sektionen erzeugen die längsten JSON-Antworten
+    // (summary + key_decisions[] + next_steps[] + decision_recommendation +
+    // investment_framework) und liefen bei 10 s regelmäßig in einen Bedrock-
+    // Timeout. Ein einzelner großzügiger Versuch (18 s) deckt die reale
+    // Generierungsdauer ab; ein Retry mit demselben zu knappen Budget half
+    // nachweislich nicht. Budget: 18 s Bedrock + 30 s Direct-Fallback < maxDuration 60.
+    // Die leichteren Sektionen (rasic/compliance_hints/decision) behalten das
+    // schnellere 10-s-Budget mit dem bestehenden Timeout-/BAD_JSON-Retry.
+    const isNarrative = section.startsWith('narrative_')
     const { data: wrapped, meta, errorCode } = await callLLM(
       buildSectionBlocks([section]),
       wrapperSchema,
-      { model: 'haiku', maxTokens: 2048, timeoutMs: 10000, module: 'architecture', cacheControlPrefix: sharedContext },
+      {
+        model: 'haiku',
+        maxTokens: 2048,
+        timeoutMs: isNarrative ? 18000 : 10000,
+        maxBedrockAttempts: isNarrative ? 1 : 2,
+        module: 'architecture',
+        cacheControlPrefix: sharedContext,
+      },
     )
     const data = wrapped ? (wrapped as Record<string, unknown>)[section] : null
     return { section, data, meta, errorCode }
