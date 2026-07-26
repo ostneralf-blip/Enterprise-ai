@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
   stackLayer: { marginBottom: 7 },
   stackLayerLabel: { ...reportType.eyebrow, marginBottom: 4 },
   stackBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  eamValidationLine: { ...reportType.bodyMuted, fontSize: 7.5, marginTop: 6, marginBottom: 2 },
   emptyState: { ...reportType.bodyMuted, fontStyle: 'italic', fontSize: 8 },
   connRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' },
   connNode: { ...reportType.body, fontSize: 8, fontWeight: 700, color: reportColors.ink },
@@ -137,6 +138,51 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
               <Text style={styles.listText}>{s}</Text>
             </View>
           ))
+        )}
+
+        {data.eam && (data.eam.roleNames.length + data.eam.application.length + data.eam.dataTech.length + data.eam.cross.length > 0) && (
+          <>
+            <Text style={styles.sectionEyebrow}>{t('eamLabel')}</Text>
+            {data.eam.roleNames.length > 0 && (
+              <View style={styles.stackLayer}>
+                <Text style={styles.stackLayerLabel}>{t('eamRoles')}</Text>
+                <View style={styles.stackBadgeRow}>
+                  {data.eam.roleNames.map((r, i) => <Badge key={i} label={r} variant="ai" />)}
+                </View>
+              </View>
+            )}
+            {data.eam.application.length > 0 && (
+              <View style={styles.stackLayer}>
+                <Text style={styles.stackLayerLabel}>{t('eamApplication')}</Text>
+                <View style={styles.stackBadgeRow}>
+                  {data.eam.application.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+                </View>
+              </View>
+            )}
+            {data.eam.dataTech.length > 0 && (
+              <View style={styles.stackLayer}>
+                <Text style={styles.stackLayerLabel}>{t('eamDataTech')}</Text>
+                <View style={styles.stackBadgeRow}>
+                  {data.eam.dataTech.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+                </View>
+              </View>
+            )}
+            {data.eam.cross.length > 0 && (
+              <View style={styles.stackLayer}>
+                <Text style={styles.stackLayerLabel}>{t('eamCross')}</Text>
+                <View style={styles.stackBadgeRow}>
+                  {data.eam.cross.map((c, i) => <Badge key={i} label={c} variant="primary" />)}
+                </View>
+              </View>
+            )}
+            <Text style={styles.eamValidationLine}>
+              {t('eamComponentsLine', { rule: data.eam.ruleComps, total: data.eam.total, add: data.eam.addComps })}
+              {'  ·  '}
+              {data.eam.openViolations === 0
+                ? t('eamValidationOk')
+                : t('eamValidationFail', { n: data.eam.openViolations })}
+            </Text>
+          </>
         )}
 
         <Text style={styles.sectionEyebrow}>{t('stackLabel')}</Text>

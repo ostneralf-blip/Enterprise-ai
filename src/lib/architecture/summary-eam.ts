@@ -33,15 +33,14 @@ export async function loadSummaryEamData(
   userId: string,
   locale: string,
 ): Promise<SummaryEamData | null> {
-  const { data: arch, error: archErr } = await supabase
+  const { data: arch } = await supabase
     .from('architectures')
     .select('result, wizard_data, ai_narrative, narrative_locale')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(1)
     .maybeSingle()
-  if (archErr) console.error('[summary-eam] arch query error', archErr.message)
-  if (!arch) { console.warn('[summary-eam] DIAG: keine Architektur gefunden'); return null }
+  if (!arch) return null
 
   const result = (arch.result ?? {}) as ArchitectureResult & { selectedComponents?: string[] }
   const wizard = (arch.wizard_data ?? {}) as WizardAnswers
@@ -49,17 +48,15 @@ export async function loadSummaryEamData(
   // Komponenten-Namen: gespeicherte Auswahl, sonst Fallback aus den Muster-Layern.
   const layerNames = (result.layers ?? []).flatMap(l => l.components)
   const allNames = [...new Set([...(result.selectedComponents ?? []), ...layerNames])]
-  if (allNames.length === 0) { console.warn('[summary-eam] DIAG: allNames leer', { hasResult: !!result, layers: (result.layers ?? []).length, selected: (result.selectedComponents ?? []).length }); return null }
+  if (allNames.length === 0) return null
 
   // Katalog-Objekte GEZIELT laden (.in — wachstumssicher, siehe CLAUDE.md-Lektion
   // zum PostGREST-max_rows-Limit). Nur die tatsächlich relevanten ~5–30 Zeilen.
-  const { data: catRows, error: catErr } = await admin
+  const { data: catRows } = await admin
     .from('component_catalog')
     .select('*')
     .in('name', allNames)
-  if (catErr) console.error('[summary-eam] catalog query error', catErr.message)
   const components = (catRows ?? []) as CatalogComponent[]
-  console.warn('[summary-eam] DIAG', { allNames: allNames.length, catRows: components.length, selected: (result.selectedComponents ?? []).length })
   if (components.length === 0) return null
 
   const selStats = getSelectionStats({

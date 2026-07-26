@@ -6,6 +6,7 @@ import type { RawArchitectureResult } from '@/lib/pdf/normalize-architecture'
 import { togafComps, dataFlowComps } from '@/lib/architecture/diagram-grouping'
 import { catalogEdges } from '@/lib/architecture/catalog-edges'
 import type { CompEdge, CompConflict } from '@/lib/architecture/catalog-edges'
+import { loadSummaryEamData } from '@/lib/architecture/summary-eam'
 import type { CatalogComponent } from '@/types'
 import type { Locale } from '@/i18n/routing'
 
@@ -101,6 +102,20 @@ export interface ArchitectureLayerStack {
   components: string[]
 }
 
+// EAM-Landkarte für den PDF-Report (Business-Rollen + EA-Bänder mit den echten
+// gewählten Komponenten + Validierungs-Kennzahlen). Analog zur On-Screen-Landkarte
+// in der Executive Summary; null, wenn keine Komponenten rekonstruierbar sind.
+export interface ArchitectureEamData {
+  roleNames: string[]
+  application: string[]
+  dataTech: string[]
+  cross: string[]
+  ruleComps: number
+  total: number
+  addComps: number
+  openViolations: number
+}
+
 export interface ArchitectureStatusData {
   companyName: string | null
   generatedAt: string
@@ -114,6 +129,7 @@ export interface ArchitectureStatusData {
   layers: ArchitectureLayerStack[]
   dependencies: CompEdge[] // gerichtete requires/suggests-Kanten aus dem Katalog (#257 Stufe 2)
   conflicts: CompConflict[] // ungerichtete incompatible_with-Konflikte
+  eam: ArchitectureEamData | null // EAM-Landkarte (Business-Rollen + EA-Bänder), wie in der Executive Summary
 }
 
 /**
@@ -195,10 +211,28 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
   // Diagramm-Stil des Nutzers (togaf/datenfluss) → Layer entsprechend gruppieren (#257).
   const art = prefRes.data?.diagram_style?.art ?? 'schichten'
   const allNames = [...new Set(patternLayers.flatMap(l => l.components))]
-  const [styledLayers, catEdges] = await Promise.all([
+  const [styledLayers, catEdges, eamRaw] = await Promise.all([
     regroupLayers(patternLayers, art, locale),
     loadCatalogEdges(allNames),
+    // EAM-Landkarte (Business-Rollen + echte Komponenten je EA-Band) — dieselbe
+    // Rekonstruktion wie in der Executive-Summary-Seite, damit PDF und Bildschirm
+    // identisch sind (#256-Folge: Landkarte fehlte im PDF).
+    loadSummaryEamData(supabase, await createAdminClient(), userId, locale),
   ])
+
+  // activeComponents in EA-Bänder gruppieren (identische Zuordnung wie EamMap).
+  const eam: ArchitectureEamData | null = eamRaw
+    ? {
+        roleNames: eamRaw.roleNames,
+        application: eamRaw.activeComponents.filter(c => c.architecture_layer === 'application').map(c => c.name),
+        dataTech: eamRaw.activeComponents.filter(c => ['data', 'model', 'serving', 'mlops'].includes(c.architecture_layer ?? '')).map(c => c.name),
+        cross: eamRaw.activeComponents.filter(c => ['governance', 'security'].includes(c.architecture_layer ?? '')).map(c => c.name),
+        ruleComps: eamRaw.ruleComps,
+        total: eamRaw.activeCount,
+        addComps: eamRaw.addComps,
+        openViolations: eamRaw.openViolations,
+      }
+    : null
 
   return {
     companyName: profileRes.data?.company ?? null,
@@ -213,5 +247,6 @@ export async function getArchitectureStatusData(userId: string, locale: Locale):
     layers: styledLayers ?? patternLayers,
     dependencies: catEdges.edges,
     conflicts: catEdges.conflicts,
+    eam,
   }
 }

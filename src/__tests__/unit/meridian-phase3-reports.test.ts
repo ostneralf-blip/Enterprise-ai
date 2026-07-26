@@ -113,6 +113,16 @@ const architectureData: ArchitectureStatusData = {
   layers: [{ name: 'Governance', components: ['SAP MDG', 'HashiCorp Vault'] }],
   dependencies: [{ from: 'SAP MDG', to: 'HashiCorp Vault', kind: 'requires' }],
   conflicts: [],
+  eam: {
+    roleNames: ['Data Engineer', 'SAP AI Architect'],
+    application: ['SAP Integration Suite'],
+    dataTech: ['Snowflake', 'MLflow'],
+    cross: ['HashiCorp Vault', 'SAP MDG'],
+    ruleComps: 5,
+    total: 5,
+    addComps: 0,
+    openViolations: 0,
+  },
 }
 
 const executiveSummaryData: ExecutiveSummaryData = {
