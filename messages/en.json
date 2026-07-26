@@ -1198,6 +1198,8 @@
     "capabilityTitle": "Business capabilities & maturity",
     "capabilitySubtext": "Your use cases by business domain, shaded by maturity (planned → in production).",
     "capabilityEmpty": "No use cases in your portfolio yet.",
+    "architectureTitle": "Target architecture (EAM map)",
+    "architectureSubtext": "Your reference architecture by enterprise-architecture bands (business roles, application, data & technology, cross-cutting), including validation and AI risk assessment.",
     "dimStatusWeakLabel": "Action needed",
     "dimStatusGoodLabel": "Solid",
     "dimStatus": {

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -6,7 +6,9 @@ import type { Tier, UseCase } from '@/types'
 import { hasAccess } from '@/lib/utils/tier-check'
 import { generateSummaryBlock, generateDimensionStatuses } from '@/lib/utils/summary-priorities'
 import { deriveCapabilityMap } from '@/lib/architecture/capability'
+import { loadSummaryEamData } from '@/lib/architecture/summary-eam'
 import { CapabilityView } from '@/components/modules/architecture/diagram/CapabilityView'
+import { EamMap } from '@/app/[locale]/(dashboard)/architecture/EamMap'
 import { ASSESSMENT_DIMENSIONS } from '@/config/assessment-data'
 import { pick } from '@/lib/utils/locale-data'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -273,6 +275,12 @@ export default async function ZusammenfassungPage() {
   // Capability-Portfolio (Geschäftsfähigkeiten nach Reifegrad, #259).
   const capabilityGroups = deriveCapabilityMap((capabilityUseCases ?? []) as unknown as UseCase[])
 
+  // Zielarchitektur: EAM-Landkarte + KI-Entscheidungs-/Risiko-Block. Server-seitig
+  // aus der zuletzt gespeicherten Architektur rekonstruiert (nur wenn vorhanden).
+  const eamData = latestArchitecture
+    ? await loadSummaryEamData(supabase, await createAdminClient(), user.id, locale)
+    : null
+
   // Admin-editierbare Empfehlungstexte aus content_library (Content-Library-Editor).
   // Fallback ist die i18n-Ebene (summary.dimStatus.*), damit fehlende/unveröffentlichte
   // Zeilen die Seite nie brechen. Gezielte, wachstumssichere Abfrage (max. 48 Zeilen).
@@ -301,7 +309,7 @@ export default async function ZusammenfassungPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold font-serif text-ink">{t('title')}</h1>
@@ -392,6 +400,44 @@ export default async function ZusammenfassungPage() {
           <h2 className="text-sm font-semibold text-ink mb-1">{t('capabilityTitle')}</h2>
           <p className="text-xs text-ink-secondary mb-4">{t('capabilitySubtext')}</p>
           <CapabilityView groups={capabilityGroups} emptyLabel={t('capabilityEmpty')} />
+        </div>
+      )}
+
+      {/* ── Zielarchitektur: EAM-Landkarte + KI-Entscheidungs-/Risiko-Block ── */}
+      {eamData && (
+        <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 mb-6">
+          <h2 className="text-sm font-semibold text-ink mb-1">{t('architectureTitle')}</h2>
+          <p className="text-xs text-ink-secondary mb-4">{t('architectureSubtext')}</p>
+
+          <EamMap
+            result={eamData.result}
+            activeComponents={eamData.activeComponents}
+            componentSources={eamData.componentSources}
+            eamResults={eamData.eamResults}
+            roleNames={eamData.roleNames}
+            detailLevel={1}
+            locale={locale}
+            compliance={eamData.compliance}
+          />
+
+          {/* Empfehlung für die Entscheidung (Risikoabschätzung, Bild #76) */}
+          <div className="mt-4 bg-surface-raised border border-line rounded-xl p-4 space-y-2">
+            <h3 className="text-sm font-semibold text-ink">{tm('architecture.decisionTitle')}</h3>
+            <div className="space-y-1 text-xs text-ink-muted">
+              <p>{tm('architecture.decisionSkeletonComponents', { rule: eamData.ruleComps, total: eamData.activeCount, add: eamData.addComps })}</p>
+              <p>
+                {eamData.openViolations === 0
+                  ? tm('architecture.decisionSkeletonValidationOk')
+                  : tm('architecture.decisionSkeletonValidationFail', { n: eamData.openViolations })}
+              </p>
+            </div>
+            {eamData.decisionRecommendation && (
+              <p className="text-xs text-ink-secondary leading-relaxed border-l-2 border-purple-200 pl-3">
+                <span className="text-[color:var(--color-ai)] mr-1" aria-hidden="true">◆</span>
+                {eamData.decisionRecommendation}
+              </p>
+            )}
+          </div>
         </div>
       )}
 

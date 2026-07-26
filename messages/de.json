@@ -1198,6 +1198,8 @@
     "capabilityTitle": "Geschäftsfähigkeiten & Reifegrad",
     "capabilitySubtext": "Ihre Use Cases nach Geschäftsbereich, eingefärbt nach Reifegrad (geplant → produktiv).",
     "capabilityEmpty": "Noch keine Use Cases im Portfolio.",
+    "architectureTitle": "Zielarchitektur (EAM-Landkarte)",
+    "architectureSubtext": "Ihre Referenzarchitektur nach Enterprise-Architektur-Bändern (Business-Rollen, Applikation, Daten & Technologie, Querschnitt) inkl. Validierung und KI-Risikoeinordnung.",
     "dimStatusWeakLabel": "Handlungsbedarf",
     "dimStatusGoodLabel": "Tragfähig",
     "dimStatus": {
