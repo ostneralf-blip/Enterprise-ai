@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs><style>.serif{font-family:'Lora',Georgia,'Times New Roman',serif}</style></defs>
+  <rect width="1200" height="760" fill="#FCFCFA"/>
+  <rect width="1200" height="46" fill="#F1F5F9"/>
+  <circle cx="26" cy="23" r="5" fill="#CBD5E1"/><circle cx="46" cy="23" r="5" fill="#CBD5E1"/><circle cx="66" cy="23" r="5" fill="#CBD5E1"/>
+  <rect x="96" y="12" width="360" height="22" rx="11" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="112" y="27" font-size="12" fill="#94A3B8">enterprise-ai.biz/architecture</text>
+  <line x1="0" y1="46" x2="1200" y2="46" stroke="#E2E8F0"/>
+
+  <text x="48" y="90" class="serif" font-size="13" letter-spacing="2" fill="#1D4ED8" font-weight="600">ARCHITEKTUR</text>
+  <text x="48" y="122" class="serif" font-size="28" fill="#0F172A" font-weight="600">Referenzarchitektur — EAM-Landkarte (5 Bänder)</text>
+
+  <!-- band label column width 150, tiles area from x=210 -->
+  <!-- Motivation band -->
+  <g>
+    <rect x="48" y="146" width="1104" height="86" rx="12" fill="#FFFBEB" stroke="#F0E0C0"/>
+    <text x="66" y="176" font-size="12" letter-spacing="1" fill="#A0791E" font-weight="700">MOTIVATION</text>
+    <text x="66" y="196" font-size="11" fill="#C7913A">Treiber &amp; Compliance</text>
+    <g font-size="13" text-anchor="middle">
+      <rect x="210" y="164" width="150" height="50" rx="10" fill="#FFFFFF" stroke="#F0E0C0"/><text x="285" y="185" fill="#8A6410" font-weight="600">Skonto-Effizienz</text><text x="285" y="202" fill="#A0791E" font-size="11">Business-Ziel</text>
+      <rect x="372" y="164" width="150" height="50" rx="10" fill="#FFFFFF" stroke="#F0E0C0"/><text x="447" y="185" fill="#8A6410" font-weight="600">EU AI Act</text><text x="447" y="202" fill="#A0791E" font-size="11">Begrenztes Risiko</text>
+      <rect x="534" y="164" width="150" height="50" rx="10" fill="#FFFFFF" stroke="#F0E0C0"/><text x="609" y="185" fill="#8A6410" font-weight="600">DSGVO</text><text x="609" y="202" fill="#A0791E" font-size="11">personenbez. Daten</text>
+      <rect x="696" y="164" width="150" height="50" rx="10" fill="#FFFFFF" stroke="#F0E0C0"/><text x="771" y="185" fill="#8A6410" font-weight="600">EU-Hosting</text><text x="771" y="202" fill="#A0791E" font-size="11">Datensouveränität</text>
+    </g>
+  </g>
+
+  <!-- Business band -->
+  <g>
+    <rect x="48" y="240" width="1104" height="86" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+    <text x="66" y="270" font-size="12" letter-spacing="1" fill="#1D4ED8" font-weight="700">BUSINESS</text>
+    <text x="66" y="290" font-size="11" fill="#94A3B8">Rollen &amp; Prozesse</text>
+    <g font-size="13" text-anchor="middle">
+      <rect x="210" y="258" width="140" height="50" rx="25" fill="#EFF6FF" stroke="#BFDBFE"/><text x="280" y="288" fill="#1D4ED8">Kreditorenbuchhaltung</text>
+      <rect x="362" y="258" width="120" height="50" rx="25" fill="#EFF6FF" stroke="#BFDBFE"/><text x="422" y="288" fill="#1D4ED8">Einkauf</text>
+      <rect x="494" y="258" width="120" height="50" rx="25" fill="#EFF6FF" stroke="#BFDBFE"/><text x="554" y="288" fill="#1D4ED8">Fachbereich</text>
+      <rect x="626" y="258" width="120" height="50" rx="25" fill="#EFF6FF" stroke="#BFDBFE"/><text x="686" y="288" fill="#1D4ED8">Revision</text>
+    </g>
+  </g>
+
+  <!-- Application band -->
+  <g>
+    <rect x="48" y="334" width="1104" height="120" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+    <text x="66" y="364" font-size="12" letter-spacing="1" fill="#1D4ED8" font-weight="700">APPLIKATION</text>
+    <text x="66" y="384" font-size="11" fill="#94A3B8">Dienste &amp; Modelle</text>
+    <g font-size="13" text-anchor="middle">
+      <rect x="210" y="352" width="150" height="42" rx="10" fill="#1D4ED8"/><text x="285" y="378" fill="#FFFFFF">IDP / OCR-Service</text>
+      <rect x="372" y="352" width="150" height="42" rx="10" fill="#1D4ED8"/><text x="447" y="378" fill="#FFFFFF">LLM-Extraktion</text>
+      <rect x="534" y="352" width="150" height="42" rx="10" fill="#1D4ED8"/><text x="609" y="378" fill="#FFFFFF">Regel-Engine</text>
+      <rect x="696" y="352" width="150" height="42" rx="10" fill="#1D4ED8"/><text x="771" y="378" fill="#FFFFFF">SAP-Konnektor</text>
+      <!-- component with conflict badge -->
+      <rect x="858" y="352" width="150" height="42" rx="10" fill="#1D4ED8"/><text x="933" y="378" fill="#FFFFFF">Modell-Serving</text>
+      <rect x="210" y="404" width="150" height="42" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/><text x="285" y="430" fill="#1D4ED8">Review-Cockpit</text>
+      <rect x="372" y="404" width="150" height="42" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/><text x="447" y="430" fill="#1D4ED8">Workflow / BPM</text>
+      <rect x="534" y="404" width="150" height="42" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/><text x="609" y="430" fill="#1D4ED8">Audit-Log</text>
+    </g>
+    <!-- conflict badge on Modell-Serving -->
+    <circle cx="1004" cy="352" r="12" fill="#C7913A"/><text x="1004" y="357" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="700">!</text>
+  </g>
+
+  <!-- Data & Tech band -->
+  <g>
+    <rect x="48" y="462" width="1104" height="86" rx="12" fill="#FFFFFF" stroke="#E2E8F0"/>
+    <text x="66" y="492" font-size="12" letter-spacing="1" fill="#1D4ED8" font-weight="700">DATEN &amp; TECH</text>
+    <text x="66" y="512" font-size="11" fill="#94A3B8">Plattform &amp; Infrastruktur</text>
+    <g font-size="13" text-anchor="middle">
+      <rect x="210" y="480" width="150" height="50" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/><text x="285" y="502" fill="#334155" font-weight="600">SAP S/4HANA</text><text x="285" y="519" fill="#94A3B8" font-size="11">System of Record</text>
+      <rect x="372" y="480" width="150" height="50" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/><text x="447" y="502" fill="#334155" font-weight="600">Data Lake</text><text x="447" y="519" fill="#94A3B8" font-size="11">EU-Region</text>
+      <rect x="534" y="480" width="150" height="50" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/><text x="609" y="502" fill="#334155" font-weight="600">Vector Store</text><text x="609" y="519" fill="#94A3B8" font-size="11">Retrieval</text>
+      <rect x="696" y="480" width="150" height="50" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/><text x="771" y="502" fill="#334155" font-weight="600">Container-Platf.</text><text x="771" y="519" fill="#94A3B8" font-size="11">Kubernetes</text>
+    </g>
+  </g>
+
+  <!-- Cross-cutting band -->
+  <g>
+    <rect x="48" y="556" width="1104" height="70" rx="12" fill="#0F172A"/>
+    <text x="66" y="586" font-size="12" letter-spacing="1" fill="#93C5FD" font-weight="700">QUERSCHNITT</text>
+    <text x="66" y="604" font-size="11" fill="#64748B">Sicherheit &amp; Betrieb</text>
+    <g font-size="13" text-anchor="middle" fill="#E2E8F0">
+      <rect x="210" y="574" width="130" height="34" rx="8" fill="#1E293B"/><text x="275" y="596">IAM / SSO</text>
+      <rect x="352" y="574" width="130" height="34" rx="8" fill="#1E293B"/><text x="417" y="596">Verschlüsselung</text>
+      <rect x="494" y="574" width="130" height="34" rx="8" fill="#1E293B"/><text x="559" y="596">Monitoring</text>
+      <rect x="636" y="574" width="130" height="34" rx="8" fill="#1E293B"/><text x="701" y="596">MLOps</text>
+      <rect x="778" y="574" width="130" height="34" rx="8" fill="#1E293B"/><text x="843" y="596">Audit &amp; Logging</text>
+    </g>
+  </g>
+
+  <!-- legend / AI note -->
+  <g font-size="12" fill="#64748B">
+    <circle cx="60" cy="654" r="6" fill="#1D4ED8"/><text x="74" y="659">Empfohlene Komponente</text>
+    <circle cx="270" cy="654" r="6" fill="#C7913A"/><text x="284" y="659" fill="#8A6410">! Konflikt erkannt (Serving ↔ Konnektor-Version)</text>
+    <rect x="640" y="642" width="14" height="14" rx="4" fill="#EFF6FF" stroke="#BFDBFE"/><text x="662" y="659">SAP-Fokus aktiv</text>
+  </g>
+  <rect x="48" y="676" width="1104" height="40" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="66" y="701" font-size="13" fill="#1D4ED8">KI-Einordnung: grober Investitionsrahmen Jahr 1 ~ €180–260 k · Risikoprofil moderat · Empfehlung: gestufter Rollout.</text>
+</svg>

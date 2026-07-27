@@ -98,6 +98,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['warum-ai-projekte-scheitern', 'ai-readiness-quick-scan'],
+    screenshot: '/tools/ai-readiness-assessment.svg',
   },
 
   // ─── 2. AI Use-Case Canvas ───────────────────────────────────────────────
@@ -160,6 +161,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['ai-business-case', 'ai-reifegrad-starter-scaler-transformer'],
+    screenshot: '/tools/ai-use-case-canvas.svg',
   },
 
   // ─── 3. Use-Case Scoring ─────────────────────────────────────────────────
@@ -222,6 +224,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['ai-business-case', 'warum-ai-projekte-scheitern'],
+    screenshot: '/tools/use-case-scoring.svg',
   },
 
   // ─── 4. Governance-Check ─────────────────────────────────────────────────
@@ -284,6 +287,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['ai-governance-aufbauen', 'governance-entscheidungsbaum'],
+    screenshot: '/tools/governance-check.svg',
   },
 
   // ─── 5. Roadmap-Generator ────────────────────────────────────────────────
@@ -346,6 +350,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['ai-reifegrad-starter-scaler-transformer', 'ai-readiness-quick-scan'],
+    screenshot: '/tools/roadmap-generator.svg',
   },
 
   // ─── 6. Compliance Center ────────────────────────────────────────────────
@@ -406,6 +411,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['eu-ai-act-risikoklassen', 'ai-governance-aufbauen'],
+    screenshot: '/tools/compliance-center.svg',
   },
 
   // ─── 7. Architektur-Generator ────────────────────────────────────────────
@@ -466,6 +472,7 @@ export const TOOLS: ToolLanding[] = [
       },
     ],
     relatedGuideSlugs: ['8-architekturprinzipien', 'ai-business-case'],
+    screenshot: '/tools/architektur-generator.svg',
   },
 ]
 

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs><style>.serif{font-family:'Lora',Georgia,'Times New Roman',serif}</style></defs>
+  <rect width="1200" height="760" fill="#FCFCFA"/>
+  <rect width="1200" height="46" fill="#F1F5F9"/>
+  <circle cx="26" cy="23" r="5" fill="#CBD5E1"/><circle cx="46" cy="23" r="5" fill="#CBD5E1"/><circle cx="66" cy="23" r="5" fill="#CBD5E1"/>
+  <rect x="96" y="12" width="360" height="22" rx="11" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="112" y="27" font-size="12" fill="#94A3B8">enterprise-ai.biz/governance</text>
+  <line x1="0" y1="46" x2="1200" y2="46" stroke="#E2E8F0"/>
+
+  <text x="48" y="98" class="serif" font-size="13" letter-spacing="2" fill="#1D4ED8" font-weight="600">GOVERNANCE</text>
+  <text x="48" y="132" class="serif" font-size="30" fill="#0F172A" font-weight="600">Governance-Check — 6 ethische &amp; rechtliche Gates</text>
+
+  <!-- verdict card -->
+  <rect x="48" y="164" width="1104" height="96" rx="16" fill="#FFFBEB" stroke="#F0E0C0"/>
+  <circle cx="104" cy="212" r="30" fill="#C7913A"/>
+  <path d="M92 212 l9 9 l17 -19" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="156" y="200" font-size="12" letter-spacing="1.5" fill="#A0791E" font-weight="600">GESAMT-VERDIKT</text>
+  <text x="156" y="230" class="serif" font-size="24" fill="#8A6410" font-weight="600">Nachbessern — 4 von 6 Gates bestanden</text>
+  <text x="156" y="252" font-size="13" fill="#A0791E">Freigabe nach Behebung von Gate 3 (Transparenz) und Gate 5 (Risikomanagement).</text>
+  <rect x="984" y="188" width="140" height="48" rx="10" fill="#FFFFFF" stroke="#F0E0C0"/>
+  <text x="1054" y="207" font-size="12" fill="#A0791E" text-anchor="middle">Use Case</text>
+  <text x="1054" y="225" font-size="13" fill="#8A6410" text-anchor="middle" font-weight="600">Rechnungsprüfung</text>
+
+  <!-- gates: 2 columns x 3 -->
+  <!-- gate template: card 528 wide, 128 tall -->
+  <!-- G1 pass -->
+  <rect x="48" y="284" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <circle cx="80" cy="316" r="12" fill="#059669"/><path d="M74 316 l4 4 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="104" y="313" font-size="12" fill="#94A3B8">GATE 1</text>
+  <text x="104" y="335" font-size="16" fill="#0F172A" font-weight="600">Rechtmäßigkeit der Datenverarbeitung</text>
+  <text x="104" y="360" font-size="13" fill="#475569">AVV vorhanden, Rechtsgrundlage Art. 6 dokumentiert.</text>
+  <rect x="104" y="374" width="86" height="22" rx="11" fill="#ECFDF5"/><text x="147" y="389" font-size="12" fill="#059669" text-anchor="middle">Bestanden</text>
+
+  <!-- G2 pass -->
+  <rect x="612" y="284" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <circle cx="644" cy="316" r="12" fill="#059669"/><path d="M638 316 l4 4 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="668" y="313" font-size="12" fill="#94A3B8">GATE 2</text>
+  <text x="668" y="335" font-size="16" fill="#0F172A" font-weight="600">Fairness &amp; Nichtdiskriminierung</text>
+  <text x="668" y="360" font-size="13" fill="#475569">Kein Personenbezug in der Kontierungslogik.</text>
+  <rect x="668" y="374" width="86" height="22" rx="11" fill="#ECFDF5"/><text x="711" y="389" font-size="12" fill="#059669" text-anchor="middle">Bestanden</text>
+
+  <!-- G3 fail -->
+  <rect x="48" y="424" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#FCA5A5"/>
+  <circle cx="80" cy="456" r="12" fill="#DC2626"/><path d="M75 451 l10 10 M85 451 l-10 10" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="104" y="453" font-size="12" fill="#94A3B8">GATE 3</text>
+  <text x="104" y="475" font-size="16" fill="#0F172A" font-weight="600">Transparenz &amp; Erklärbarkeit</text>
+  <text x="104" y="500" font-size="13" fill="#475569">Kein Hinweis auf KI-Nutzung ggü. Lieferanten.</text>
+  <rect x="104" y="514" width="118" height="22" rx="11" fill="#FEF2F2"/><text x="163" y="529" font-size="12" fill="#DC2626" text-anchor="middle">Nachbessern</text>
+
+  <!-- G4 pass -->
+  <rect x="612" y="424" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <circle cx="644" cy="456" r="12" fill="#059669"/><path d="M638 456 l4 4 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="668" y="453" font-size="12" fill="#94A3B8">GATE 4</text>
+  <text x="668" y="475" font-size="16" fill="#0F172A" font-weight="600">Datensicherheit</text>
+  <text x="668" y="500" font-size="13" fill="#475569">EU-Hosting, Verschlüsselung, Zugriffskonzept ok.</text>
+  <rect x="668" y="514" width="86" height="22" rx="11" fill="#ECFDF5"/><text x="711" y="529" font-size="12" fill="#059669" text-anchor="middle">Bestanden</text>
+
+  <!-- G5 fail -->
+  <rect x="48" y="564" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#FCA5A5"/>
+  <circle cx="80" cy="596" r="12" fill="#DC2626"/><path d="M75 591 l10 10 M85 591 l-10 10" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="104" y="593" font-size="12" fill="#94A3B8">GATE 5</text>
+  <text x="104" y="615" font-size="16" fill="#0F172A" font-weight="600">Risiko- &amp; Qualitätsmanagement</text>
+  <text x="104" y="640" font-size="13" fill="#475569">Kein Monitoring der Trefferquote definiert.</text>
+  <rect x="104" y="654" width="118" height="22" rx="11" fill="#FEF2F2"/><text x="163" y="669" font-size="12" fill="#DC2626" text-anchor="middle">Nachbessern</text>
+
+  <!-- G6 pass -->
+  <rect x="612" y="564" width="540" height="128" rx="14" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <circle cx="644" cy="596" r="12" fill="#059669"/><path d="M638 596 l4 4 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="668" y="593" font-size="12" fill="#94A3B8">GATE 6</text>
+  <text x="668" y="615" font-size="16" fill="#0F172A" font-weight="600">Verantwortlichkeit (RACI)</text>
+  <text x="668" y="640" font-size="13" fill="#475569">Owner benannt, Eskalationspfad definiert.</text>
+  <rect x="668" y="654" width="86" height="22" rx="11" fill="#ECFDF5"/><text x="711" y="669" font-size="12" fill="#059669" text-anchor="middle">Bestanden</text>
+</svg>

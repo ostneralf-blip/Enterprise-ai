@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs>
+    <style>.serif{font-family:'Lora',Georgia,'Times New Roman',serif}</style>
+  </defs>
+  <!-- frame -->
+  <rect width="1200" height="760" fill="#FCFCFA"/>
+  <!-- browser chrome -->
+  <rect width="1200" height="46" fill="#F1F5F9"/>
+  <circle cx="26" cy="23" r="5" fill="#CBD5E1"/><circle cx="46" cy="23" r="5" fill="#CBD5E1"/><circle cx="66" cy="23" r="5" fill="#CBD5E1"/>
+  <rect x="96" y="12" width="360" height="22" rx="11" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="112" y="27" font-size="12" fill="#94A3B8">enterprise-ai.biz/assessment</text>
+  <line x1="0" y1="46" x2="1200" y2="46" stroke="#E2E8F0"/>
+
+  <!-- eyebrow + title -->
+  <text x="48" y="98" class="serif" font-size="13" letter-spacing="2" fill="#1D4ED8" font-weight="600">AI-READINESS</text>
+  <text x="48" y="132" class="serif" font-size="30" fill="#0F172A" font-weight="600">Ihr KI-Reifegrad über 6 Dimensionen</text>
+
+  <!-- radar card -->
+  <rect x="48" y="164" width="560" height="540" rx="16" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <g transform="translate(0,44)">
+    <!-- rings -->
+    <polygon points="330,255 481.6,342.5 481.6,517.5 330,605 178.4,517.5 178.4,342.5" fill="#EFF6FF" stroke="#BFDBFE"/>
+    <polygon points="330,314.5 430,372.25 430,487.75 330,545.5 230,487.75 230,372.25" fill="none" stroke="#DBEAFE"/>
+    <polygon points="330,371.7 380.5,400.85 380.5,459.15 330,488.3 279.5,459.15 279.5,400.85" fill="none" stroke="#DBEAFE"/>
+    <!-- spokes -->
+    <g stroke="#DBEAFE"><line x1="330" y1="430" x2="330" y2="255"/><line x1="330" y1="430" x2="481.6" y2="342.5"/><line x1="330" y1="430" x2="481.6" y2="517.5"/><line x1="330" y1="430" x2="330" y2="605"/><line x1="330" y1="430" x2="178.4" y2="517.5"/><line x1="330" y1="430" x2="178.4" y2="342.5"/></g>
+    <!-- data polygon -->
+    <polygon points="330,286.5 420.9,377.5 439.1,493 330,538.5 254.2,473.75 246.6,381.9" fill="#1D4ED8" fill-opacity="0.18" stroke="#1D4ED8" stroke-width="2.5"/>
+    <g fill="#1D4ED8"><circle cx="330" cy="286.5" r="4"/><circle cx="420.9" cy="377.5" r="4"/><circle cx="439.1" cy="493" r="4"/><circle cx="330" cy="538.5" r="4"/><circle cx="254.2" cy="473.75" r="4"/><circle cx="246.6" cy="381.9" r="4"/></g>
+    <!-- axis labels -->
+    <g font-size="13" fill="#475569" text-anchor="middle">
+      <text x="330" y="243">Daten</text>
+      <text x="505" y="338">Skills</text>
+      <text x="505" y="527">Technik</text>
+      <text x="330" y="628">Strategie</text>
+      <text x="152" y="527">Governance</text>
+      <text x="152" y="338">Kultur</text>
+    </g>
+  </g>
+
+  <!-- archetype badge -->
+  <rect x="640" y="164" width="512" height="132" rx="16" fill="#1D4ED8"/>
+  <text x="668" y="204" font-size="12" letter-spacing="2" fill="#BFDBFE" font-weight="600">IHR ARCHETYP</text>
+  <text x="668" y="248" class="serif" font-size="34" fill="#FFFFFF" font-weight="600">Scaler</text>
+  <text x="668" y="278" font-size="13" fill="#DBEAFE">Fundament steht — jetzt gezielt skalieren.</text>
+  <circle cx="1088" cy="228" r="42" fill="none" stroke="#3B82F6" stroke-width="8"/>
+  <circle cx="1088" cy="228" r="42" fill="none" stroke="#C7913A" stroke-width="8" stroke-dasharray="184 264" stroke-linecap="round" transform="rotate(-90 1088 228)"/>
+  <text x="1088" y="234" font-size="22" fill="#FFFFFF" text-anchor="middle" font-weight="700">3.4</text>
+
+  <!-- dimension bars -->
+  <rect x="640" y="316" width="512" height="388" rx="16" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="668" y="352" class="serif" font-size="18" fill="#0F172A" font-weight="600">Reifegrad je Dimension</text>
+  <g font-size="14">
+    <!-- rows: label, value, barwidth (max 300 @ x=820) -->
+    <g transform="translate(0,376)">
+      <text x="668" y="16" fill="#334155">Daten</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="246" height="12" rx="6" fill="#1D4ED8"/><text x="1130" y="17" fill="#1D4ED8" text-anchor="end" font-weight="600">4.1</text>
+    </g>
+    <g transform="translate(0,420)">
+      <text x="668" y="16" fill="#334155">Skills</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="180" height="12" rx="6" fill="#1D4ED8"/><text x="1130" y="17" fill="#1D4ED8" text-anchor="end" font-weight="600">3.0</text>
+    </g>
+    <g transform="translate(0,464)">
+      <text x="668" y="16" fill="#334155">Governance</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="150" height="12" rx="6" fill="#C7913A"/><text x="1130" y="17" fill="#C7913A" text-anchor="end" font-weight="600">2.5</text>
+    </g>
+    <g transform="translate(0,508)">
+      <text x="668" y="16" fill="#334155">Technik</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="216" height="12" rx="6" fill="#1D4ED8"/><text x="1130" y="17" fill="#1D4ED8" text-anchor="end" font-weight="600">3.6</text>
+    </g>
+    <g transform="translate(0,552)">
+      <text x="668" y="16" fill="#334155">Strategie</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="186" height="12" rx="6" fill="#1D4ED8"/><text x="1130" y="17" fill="#1D4ED8" text-anchor="end" font-weight="600">3.1</text>
+    </g>
+    <g transform="translate(0,596)">
+      <text x="668" y="16" fill="#334155">Kultur</text><rect x="820" y="6" width="300" height="12" rx="6" fill="#EFF6FF"/><rect x="820" y="6" width="165" height="12" rx="6" fill="#1D4ED8"/><text x="1130" y="17" fill="#1D4ED8" text-anchor="end" font-weight="600">2.8</text>
+    </g>
+  </g>
+  <!-- recommendation strip -->
+  <rect x="668" y="648" width="456" height="40" rx="10" fill="#FEF9F0" stroke="#F0E0C0"/>
+  <text x="686" y="673" font-size="13" fill="#8A6410">Empfehlung: Governance-Fundament als nächsten Schritt priorisieren.</text>
+</svg>

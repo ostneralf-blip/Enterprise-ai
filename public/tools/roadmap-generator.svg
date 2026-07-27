@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">
+  <defs><style>.serif{font-family:'Lora',Georgia,'Times New Roman',serif}</style></defs>
+  <rect width="1200" height="760" fill="#FCFCFA"/>
+  <rect width="1200" height="46" fill="#F1F5F9"/>
+  <circle cx="26" cy="23" r="5" fill="#CBD5E1"/><circle cx="46" cy="23" r="5" fill="#CBD5E1"/><circle cx="66" cy="23" r="5" fill="#CBD5E1"/>
+  <rect x="96" y="12" width="360" height="22" rx="11" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="112" y="27" font-size="12" fill="#94A3B8">enterprise-ai.biz/roadmap</text>
+  <line x1="0" y1="46" x2="1200" y2="46" stroke="#E2E8F0"/>
+
+  <text x="48" y="98" class="serif" font-size="13" letter-spacing="2" fill="#1D4ED8" font-weight="600">UMSETZUNG</text>
+  <text x="48" y="132" class="serif" font-size="30" fill="#0F172A" font-weight="600">KI-Roadmap — phasenbasiert für Archetyp „Scaler"</text>
+
+  <!-- timeline axis -->
+  <line x1="80" y1="196" x2="1120" y2="196" stroke="#E2E8F0" stroke-width="2"/>
+  <g text-anchor="middle" font-size="12" fill="#94A3B8">
+    <circle cx="80" cy="196" r="5" fill="#1D4ED8"/><text x="80" y="180">HEUTE</text>
+    <circle cx="426" cy="196" r="5" fill="#CBD5E1"/><text x="426" y="180">+3 M</text>
+    <circle cx="773" cy="196" r="5" fill="#CBD5E1"/><text x="773" y="180">+6 M</text>
+    <circle cx="1120" cy="196" r="5" fill="#CBD5E1"/><text x="1120" y="180">+12 M</text>
+  </g>
+
+  <!-- Phase 1 -->
+  <rect x="48" y="224" width="352" height="456" rx="16" fill="#FFFFFF" stroke="#BFDBFE"/>
+  <rect x="48" y="224" width="352" height="64" rx="16" fill="#EFF6FF"/>
+  <rect x="48" y="256" width="352" height="32" fill="#EFF6FF"/>
+  <text x="76" y="252" font-size="12" letter-spacing="1.5" fill="#1D4ED8" font-weight="600">PHASE 1 · FUNDAMENT</text>
+  <text x="76" y="278" font-size="13" fill="#64748B">Monat 0–3</text>
+  <g font-size="14" fill="#334155">
+    <circle cx="80" cy="322" r="4" fill="#1D4ED8"/><text x="96" y="327">Data-Governance-Board etablieren</text>
+    <circle cx="80" cy="358" r="4" fill="#1D4ED8"/><text x="96" y="363">Rechnungs-PoC aufsetzen</text>
+    <circle cx="80" cy="394" r="4" fill="#1D4ED8"/><text x="96" y="399">EU-AI-Act-Klassifizierung</text>
+  </g>
+  <rect x="76" y="424" width="150" height="24" rx="12" fill="#FFFBEB" stroke="#F0E0C0"/><text x="151" y="440" font-size="11" fill="#A0791E" text-anchor="middle">⬣ Governance-Freigabe</text>
+  <!-- KPI + milestone -->
+  <line x1="76" y1="472" x2="372" y2="472" stroke="#F1F5F9"/>
+  <text x="76" y="500" font-size="12" fill="#94A3B8">KPI</text>
+  <text x="76" y="522" font-size="14" fill="#0F172A" font-weight="600">PoC-Trefferquote &gt; 85 %</text>
+  <text x="76" y="560" font-size="12" fill="#94A3B8">MEILENSTEIN</text>
+  <text x="76" y="582" font-size="14" fill="#0F172A" font-weight="600">Go/No-Go-Entscheid</text>
+  <rect x="76" y="608" width="296" height="14" rx="7" fill="#EFF6FF"/><rect x="76" y="608" width="207" height="14" rx="7" fill="#1D4ED8"/>
+  <text x="76" y="648" font-size="12" fill="#1D4ED8">70 % erreicht</text>
+
+  <!-- Phase 2 -->
+  <rect x="424" y="224" width="352" height="456" rx="16" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <rect x="424" y="224" width="352" height="64" rx="16" fill="#F8FAFC"/>
+  <rect x="424" y="256" width="352" height="32" fill="#F8FAFC"/>
+  <text x="452" y="252" font-size="12" letter-spacing="1.5" fill="#475569" font-weight="600">PHASE 2 · SKALIERUNG</text>
+  <text x="452" y="278" font-size="13" fill="#94A3B8">Monat 3–6</text>
+  <g font-size="14" fill="#334155">
+    <circle cx="456" cy="322" r="4" fill="#94A3B8"/><text x="472" y="327">Rollout auf 3 Fachbereiche</text>
+    <circle cx="456" cy="358" r="4" fill="#94A3B8"/><text x="472" y="363">MLOps-Pipeline &amp; Monitoring</text>
+    <circle cx="456" cy="394" r="4" fill="#94A3B8"/><text x="472" y="399">Zweiten Use Case starten</text>
+  </g>
+  <rect x="452" y="424" width="150" height="24" rx="12" fill="#FFFBEB" stroke="#F0E0C0"/><text x="527" y="440" font-size="11" fill="#A0791E" text-anchor="middle">⬣ Governance-Freigabe</text>
+  <line x1="452" y1="472" x2="748" y2="472" stroke="#F1F5F9"/>
+  <text x="452" y="500" font-size="12" fill="#94A3B8">KPI</text>
+  <text x="452" y="522" font-size="14" fill="#0F172A" font-weight="600">Durchlaufzeit &lt; 24 h</text>
+  <text x="452" y="560" font-size="12" fill="#94A3B8">MEILENSTEIN</text>
+  <text x="452" y="582" font-size="14" fill="#0F172A" font-weight="600">Produktivbetrieb Finance</text>
+  <rect x="452" y="608" width="296" height="14" rx="7" fill="#F1F5F9"/><rect x="452" y="608" width="59" height="14" rx="7" fill="#94A3B8"/>
+  <text x="452" y="648" font-size="12" fill="#94A3B8">20 % erreicht</text>
+
+  <!-- Phase 3 -->
+  <rect x="800" y="224" width="352" height="456" rx="16" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <rect x="800" y="224" width="352" height="64" rx="16" fill="#F8FAFC"/>
+  <rect x="800" y="256" width="352" height="32" fill="#F8FAFC"/>
+  <text x="828" y="252" font-size="12" letter-spacing="1.5" fill="#475569" font-weight="600">PHASE 3 · TRANSFORMATION</text>
+  <text x="828" y="278" font-size="13" fill="#94A3B8">Monat 6–12</text>
+  <g font-size="14" fill="#334155">
+    <circle cx="832" cy="322" r="4" fill="#CBD5E1"/><text x="848" y="327">KI-Portfolio unternehmensweit</text>
+    <circle cx="832" cy="358" r="4" fill="#CBD5E1"/><text x="848" y="363">Center of Excellence</text>
+    <circle cx="832" cy="394" r="4" fill="#CBD5E1"/><text x="848" y="399">Kontinuierliche Compliance</text>
+  </g>
+  <line x1="828" y1="472" x2="1124" y2="472" stroke="#F1F5F9"/>
+  <text x="828" y="500" font-size="12" fill="#94A3B8">KPI</text>
+  <text x="828" y="522" font-size="14" fill="#0F172A" font-weight="600">ROI positiv über Portfolio</text>
+  <text x="828" y="560" font-size="12" fill="#94A3B8">MEILENSTEIN</text>
+  <text x="828" y="582" font-size="14" fill="#0F172A" font-weight="600">Skalierte KI-Organisation</text>
+  <rect x="828" y="608" width="296" height="14" rx="7" fill="#F1F5F9"/>
+  <text x="828" y="648" font-size="12" fill="#CBD5E1">geplant</text>
+</svg>

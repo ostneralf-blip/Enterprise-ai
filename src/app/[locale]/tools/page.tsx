@@ -98,16 +98,22 @@ export default async function ToolsHubPage({
             <Link
               key={tool.slug}
               href={`${prefix}/tools/${tool.slug}`}
-              className="block bg-white border border-slate-200 rounded-2xl p-5 hover:border-primary-border transition-colors"
+              className="block bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-primary-border transition-colors"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="w-9 h-9 rounded-lg bg-primary-soft border border-primary-border flex items-center justify-center text-primary" aria-hidden="true">
-                  {tool.icon}
-                </span>
-                <div className="text-xs text-primary font-medium uppercase tracking-wide">{p(tool.eyebrow)}</div>
+              {tool.screenshot && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={tool.screenshot} alt="" aria-hidden="true" className="w-full block border-b border-slate-100 bg-slate-50" />
+              )}
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="w-9 h-9 rounded-lg bg-primary-soft border border-primary-border flex items-center justify-center text-primary" aria-hidden="true">
+                    {tool.icon}
+                  </span>
+                  <div className="text-xs text-primary font-medium uppercase tracking-wide">{p(tool.eyebrow)}</div>
+                </div>
+                <h2 className="font-semibold text-base mb-2 leading-snug">{p(tool.navLabel)}</h2>
+                <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">{p(tool.metaDescription)}</p>
               </div>
-              <h2 className="font-semibold text-base mb-2 leading-snug">{p(tool.navLabel)}</h2>
-              <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">{p(tool.metaDescription)}</p>
             </Link>
           ))}
         </div>
