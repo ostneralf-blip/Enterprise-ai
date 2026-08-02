@@ -3,7 +3,7 @@ import { createTranslator } from 'next-intl'
 import deMessages from '../../../../../messages/de.json'
 import enMessages from '../../../../../messages/en.json'
 import { registerMeridianFonts } from '@/lib/pdf/meridian/fonts'
-import { ReportHeader, ReportFooter, AiCalloutBlock, Badge, StatCard } from '@/lib/pdf/meridian/components'
+import { ReportHeader, ReportFooter, AiCalloutBlock, AiSectionEyebrow, AiDisclosureNote, Badge, StatCard } from '@/lib/pdf/meridian/components'
 import { reportColors, reportFonts, reportPage, reportType } from '@/config/report-tokens'
 import type { ArchitectureStatusData } from '@/lib/pdf/meridian/data/architecture-status'
 import type { Locale } from '@/i18n/routing'
@@ -122,8 +122,28 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
     motiv.push({ label: t('eamBizGoal') })
   }
 
+  // Führt dieser Report überhaupt KI-generierte Inhalte? Steuert Fußnote und
+  // Dokument-Metadaten — ein rein regelbasierter Report darf NICHT als
+  // KI-generiert markiert werden (falsche Kennzeichnung entwertet die echten).
+  const hasAiContent = Boolean(data.aiSummary || data.decisionRecommendation || data.investmentFramework)
+
   return (
-    <Document>
+    <Document
+      title={t('title')}
+      author="AI Navigator"
+      creator="AI Navigator (enterprise-ai.biz)"
+      producer="AI Navigator (enterprise-ai.biz)"
+      subject={t('documentType')}
+      // Maschinenlesbare Kennzeichnung nach Art. 50 Abs. 2 EU AI Act. Für Text
+      // schreibt der Code of Practice (10.06.2026) keine Wasserzeichentechnik vor —
+      // die Dokument-Metadaten sind der etablierte Weg, ein PDF als teilweise
+      // KI-generiert auszuweisen. Schonfrist für Bestandssysteme: 02.12.2026.
+      keywords={
+        hasAiContent
+          ? 'ai-generated-content=partial; generator=AI Navigator; eu-ai-act-article=50'
+          : 'ai-generated-content=none; generator=AI Navigator'
+      }
+    >
       <Page size="A4" style={styles.page}>
         <ReportHeader refId={`AR·${data.generatedAt.slice(0, 10)}`} documentType={t('documentType')} contentWidth={contentWidth} />
 
@@ -141,7 +161,10 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
 
         {data.investmentFramework && (
           <>
-            <Text style={styles.sectionEyebrow}>{t('investmentLabel')}</Text>
+            {/* Kennzeichnungspflicht Art. 50 EU AI Act: Die Schätzwerte stammen aus
+                derselben KI-Generierung wie die Einordnung oben und müssen als solche
+                erkennbar sein — bisher wies nur die Fußnote darunter darauf hin. */}
+            <AiSectionEyebrow label={t('investmentLabel')} badgeLabel={t('badgeGenerated')} />
             <View style={styles.statRow}>
               <StatCard
                 eyebrow={t('investmentYear1Label')}
@@ -177,7 +200,10 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
 
         {data.decisionRecommendation && (
           <>
-            <Text style={styles.sectionEyebrow}>{t('recommendationLabel')}</Text>
+            {/* Ebenfalls KI-generiert (ai_narrative.exec.decision_recommendation) und
+                bis 02.08.2026 ohne jeden Hinweis im PDF — die auffälligste Lücke,
+                weil eine Handlungsempfehlung als redaktionelle Aussage gelesen wird. */}
+            <AiSectionEyebrow label={t('recommendationLabel')} badgeLabel={t('badgeGenerated')} />
             <Text style={styles.recommendationText}>{data.decisionRecommendation}</Text>
           </>
         )}
@@ -286,6 +312,11 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
             ))}
           </>
         )}
+
+        {/* Einmalige Offenlegung, wenn der Report überhaupt KI-Inhalte führt.
+            Art. 50 Abs. 5 verlangt eine klare, unterscheidbare Information —
+            die Badges allein benennen nicht, was sie bedeuten. */}
+        {hasAiContent && <AiDisclosureNote text={t('aiDisclosureNote')} width={contentWidth} />}
 
         <ReportFooter confidentialLabel={t('confidential')} />
       </Page>

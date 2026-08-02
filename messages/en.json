@@ -1563,6 +1563,7 @@
       "title": "Architecture",
       "subtitle": "Executive Summary · Target Architecture »{pattern}«",
       "aiCalloutLabel": "AI ASSESSMENT",
+      "aiDisclosureNote": "This report contains sections marked “AI-generated”. They were produced by a language model from your inputs, are suggestions to inform your own decision, and do not replace professional or legal advice. Labelled in accordance with Article 50 of the EU AI Act.",
       "badgeGenerated": "GENERATED",
       "badgeExecutive": "EXECUTIVE",
       "investmentLabel": "INVESTMENT FRAMEWORK",

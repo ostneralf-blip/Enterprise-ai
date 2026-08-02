@@ -1,6 +1,6 @@
 # Plan: Kennzeichnung KI-generierter Inhalte (Art. 50 EU AI Act)
 
-**Stand:** 02.08.2026 · **Status:** abgestimmt mit Daniel, noch nicht umgesetzt
+**Stand:** 02.08.2026 · **Status:** M1–M4 umgesetzt und deployt; anwaltliche Prüfung des Datenschutztexts offen
 **Auslöser:** Art. 50 EU AI Act gilt seit dem 02.08.2026.
 
 > **Kein Rechtsrat.** Dieses Dokument fasst eine Recherche zusammen und leitet daraus
@@ -113,7 +113,21 @@ Oberflächliche Freigaben genügen ausdrücklich nicht.
   deiner Durchsicht formal ungeprüft. Entweder zeitnah lesen und freigeben oder
   vorübergehend depublizieren.
 
-### M2 — PDF-Export: fehlende Blöcke, Fußnote, Metadaten
+### M2 — PDF-Export: fehlende Blöcke, Fußnote, Metadaten — ✅ UMGESETZT (02.08.2026)
+
+- `AiSectionEyebrow` und `AiDisclosureNote` in `lib/pdf/meridian/components.tsx` ergänzt.
+- `EMPFEHLUNG` und `INVESTITIONSRAHMEN` tragen jetzt denselben `GENERIERT`-Badge wie die
+  KI-Einordnung; Fußnote einmal pro Seite statt Label pro Absatz.
+- Maschinenlesbar über die `<Document>`-Metadaten: `ai-generated-content=partial` bzw.
+  `=none`, abhängig vom tatsächlichen Inhalt — ein rein regelbasierter Report wird
+  ausdrücklich als NICHT KI-generiert ausgewiesen.
+- **Mit echtem react-pdf-Render verifiziert** (nicht nur Jest-Mock): 50.198 Bytes mit
+  KI-Inhalt inkl. korrektem Metadaten-Marker, 37.541 Bytes ohne — dort `=none`.
+  Seiten 1 und 2 visuell geprüft.
+- 14 Tests, darunter die Gegenrichtung: readiness/usecase-portfolio/compliance-status/
+  roadmap-status dürfen keine KI-Kennzeichnung tragen.
+
+#### Ursprüngliche Planung
 - `EMPFEHLUNG` und `INVESTITIONSRAHMEN` erhalten denselben `badgeGenerated`-Badge wie der
   bestehende `AiCalloutBlock` — gleiche Komponente, kein neues Gestaltungselement.
 - Einmalige Fußzeile auf jeder Seite, die KI-Inhalte trägt: „Enthält KI-generierte
@@ -126,7 +140,26 @@ Oberflächliche Freigaben genügen ausdrücklich nicht.
 - Betrifft nur Reports, die tatsächlich KI-Text führen (aktuell `architecture-status`,
   `executive-summary`, `full-report`). Die rein regelbasierten Reports bleiben unberührt.
 
-### M3 — Datenschutzerklärung: Entwurf für anwaltliche Prüfung
+### M3 — Datenschutzerklärung — ✅ UMGESETZT (02.08.2026), Rechtsprüfung offen
+
+Neuer Abschnitt „5. KI-gestützte Auswertungen" in DE und EN, Folgeabschnitte auf 6–10
+umnummeriert; Amazon Bedrock zusätzlich in der Verarbeitertabelle.
+
+**Beide zuvor mit ⚠ markierten Punkte sind jetzt belegt statt behauptet:**
+- `BEDROCK_REGION="eu-west-1"` (Irland) und `ALLOW_NON_EU_AI_FALLBACK="false"` direkt aus
+  der Vercel-Production-Konfiguration verifiziert → die EU-only-Aussage trägt, keine
+  Drittlandsübermittlung.
+- Die Nicht-Nutzung zum Modelltraining ist durch die offizielle AWS-Bedrock-FAQ gedeckt
+  („your content is not used to improve the base models", „inputs and model outputs are
+  not shared with any model providers", Speicherung in der gewählten Region). Der Text
+  schreibt das bewusst als **Angabe von AWS** und nicht als eigene Zusage.
+- Ein Test hält Region und Formulierung fest: Ändert sich `BEDROCK_REGION`, wird er rot.
+
+**Weiterhin offen:** anwaltliche Prüfung des Wortlauts sowie die exakte AWS-Vertragspartei
+(steht in den AWS-Kontoeinstellungen; im Text bewusst nur „Amazon Web Services" ohne
+Gesellschaftsangabe).
+
+#### Ursprüngliche Planung
 Ich formuliere einen Abschnitt auf Basis dessen, was im Code tatsächlich passiert.
 Zu klären und im Entwurf abzudecken:
 - Zweck (KI-gestützte Einordnung, Vorschläge, Textgenerierung)
@@ -165,11 +198,11 @@ gesucht werden muss.
 
 | Priorität | Maßnahme | Frist |
 |---|---|---|
-| 1 | M3 Datenschutz-Entwurf (DSGVO-Lücke, bußgeldbewehrt, betrifft alle Nutzer) | sofort |
+| ~~1~~ | ~~M3 Datenschutz~~ → umgesetzt, Rechtsprüfung offen | ✅ |
 | 2 | M1 Blog — Review des bereits live stehenden Beitrags | sofort |
 | 3 | M4 Regelwerk | mit der Umsetzung |
-| 4 | M2 PDF sichtbare Kennzeichnung (L1/L2) | zeitnah |
-| 5 | M2 PDF Metadaten (L3) | **vor 02.12.2026** (Ende der Schonfrist) |
+| ~~4~~ | ~~M2 PDF sichtbare Kennzeichnung (L1/L2)~~ | ✅ |
+| ~~5~~ | ~~M2 PDF Metadaten (L3)~~ → vorgezogen umgesetzt | ✅ |
 
 ## 6. Anhang: Entwurf Datenschutz-Abschnitt (M3)
 

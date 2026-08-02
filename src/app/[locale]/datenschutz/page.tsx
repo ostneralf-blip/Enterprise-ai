@@ -160,6 +160,13 @@ function DatenschutzContentDe() {
             <td>Stripe Payments Europe Ltd. (Dublin); ggf. Datenübermittlung in die USA auf Grundlage von SCC</td>
           </tr>
           <tr>
+            <td>Amazon Web Services (Amazon Bedrock)</td>
+            <td>KI-gestützte Auswertungen (siehe Abschnitt 5)</td>
+            <td>EU (Irland, eu-west-1). AWS verwendet Ein- und Ausgaben nach eigenen
+                Angaben nicht zum Training von Modellen und gibt sie nicht an die
+                Modellanbieter weiter; die Verarbeitung bleibt in der gewählten Region.</td>
+          </tr>
+          <tr>
             <td>PostHog</td>
             <td>Produktanalyse (cookielos)</td>
             <td>EU-Cloud-Instanz</td>
@@ -179,7 +186,50 @@ function DatenschutzContentDe() {
         (z. B. EU-Standardvertragsklauseln) zur Verfügung.
       </p>
 
-      <h2 id="cookies">5. Cookies und Tracking</h2>
+      <h2 id="ki">5. KI-gestützte Auswertungen</h2>
+      <p>
+        Einzelne Funktionen des AI Navigator nutzen ein KI-Sprachmodell, um Ihre Eingaben
+        auszuwerten — etwa die Einordnung Ihrer Zielarchitektur, Vorschläge für Komponenten
+        und Verantwortlichkeiten oder die Anreicherung Ihres Use-Case-Canvas. Diese
+        Funktionen sind in der Anwendung jeweils als KI-gestützt gekennzeichnet und werden
+        ausschließlich auf Ihre ausdrückliche Aktion hin ausgeführt — es findet keine
+        automatische Auswertung im Hintergrund statt.
+      </p>
+      <p>
+        <strong>Verarbeitete Daten:</strong> Übermittelt werden ausschließlich die Inhalte,
+        die Sie im jeweiligen Modul erfasst haben (z. B. Beschreibung des Use Cases,
+        ausgewählte Komponenten, Assessment-Antworten). Kontakt- und Zahlungsdaten werden
+        nicht übermittelt.
+      </p>
+      <p>
+        <strong>Empfänger und Ort der Verarbeitung:</strong> Die Auswertung läuft über
+        Amazon Bedrock (Amazon Web Services) in der Region Europa (Irland, eu-west-1). Eine
+        Übermittlung in ein Drittland findet dabei nicht statt.
+      </p>
+      <p>
+        <strong>Keine Nutzung zum Modelltraining:</strong> Nach den Angaben von Amazon Web
+        Services werden Ein- und Ausgaben von Amazon Bedrock nicht zum Training der zugrunde
+        liegenden Modelle verwendet und nicht an die Modellanbieter weitergegeben; die
+        Verarbeitung bleibt in der gewählten Region.
+      </p>
+      <p>
+        <strong>Rechtsgrundlage:</strong> Erfüllung des Nutzungsvertrags, Art. 6 Abs. 1
+        lit. b DSGVO — die Auswertung ist Teil der von Ihnen abgerufenen Leistung.
+      </p>
+      <p>
+        <strong>Speicherdauer:</strong> Ergebnisse werden Ihrem Konto zugeordnet gespeichert,
+        bis Sie sie löschen oder Ihr Konto auflösen. Um wiederholte identische Anfragen zu
+        vermeiden, wird die Antwort zusätzlich für 24 Stunden zwischengespeichert; dieser
+        Zwischenspeicher enthält keine Zuordnung zu Ihrer Person und läuft automatisch ab.
+      </p>
+      <p>
+        <strong>Kennzeichnung:</strong> KI-generierte Inhalte sind in der Anwendung und in
+        exportierten Berichten als solche gekennzeichnet (Art. 50 EU AI Act). Die Ergebnisse
+        sind Vorschläge zur Vorbereitung Ihrer eigenen Entscheidung und ersetzen keine
+        fachliche oder rechtliche Beratung.
+      </p>
+
+      <h2 id="cookies">6. Cookies und Tracking</h2>
       <p>
         Wir setzen für die Produktanalyse PostHog in einer cookielosen Konfiguration ein —
         es werden keine dauerhaften Tracking-Cookies gesetzt. Für den Login-Status verwenden
@@ -188,7 +238,7 @@ function DatenschutzContentDe() {
         § 25 Abs. 2 Nr. 2 TDDDG) und bedürfen keiner gesonderten Einwilligung.
       </p>
 
-      <h2 id="speicherdauer">6. Speicherdauer und Löschung</h2>
+      <h2 id="speicherdauer">7. Speicherdauer und Löschung</h2>
       <p>
         Wir speichern personenbezogene Daten nur so lange, wie es für die genannten Zwecke
         erforderlich ist oder gesetzliche Aufbewahrungsfristen (z. B. handels-/steuerrechtlich,
@@ -198,7 +248,7 @@ function DatenschutzContentDe() {
         <a href="mailto:webmaster@enterprise-ai.biz">webmaster@enterprise-ai.biz</a> kontaktieren.
       </p>
 
-      <h2 id="rechte">7. Ihre Rechte</h2>
+      <h2 id="rechte">8. Ihre Rechte</h2>
       <p>
         Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16),
         Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18),
@@ -210,7 +260,7 @@ function DatenschutzContentDe() {
         Schleswig-Holstein (ULD).
       </p>
 
-      <h2 id="automatisierte-entscheidung">8. Keine automatisierte Entscheidungsfindung im Sinne Art. 22 DSGVO</h2>
+      <h2 id="automatisierte-entscheidung">9. Keine automatisierte Entscheidungsfindung im Sinne Art. 22 DSGVO</h2>
       <p>
         AI Navigator erstellt auf Basis Ihrer Eingaben Auswertungen, Scores und Empfehlungen
         zu Unternehmensprozessen (z. B. Governance-Einschätzungen, Architektur-Vorschläge).
@@ -220,7 +270,7 @@ function DatenschutzContentDe() {
         DSGVO statt.
       </p>
 
-      <h2 id="aenderungen">9. Änderungen dieser Datenschutzerklärung</h2>
+      <h2 id="aenderungen">10. Änderungen dieser Datenschutzerklärung</h2>
       <p>
         Wir passen diese Datenschutzerklärung an, wenn sich die Rechtslage oder unsere
         Datenverarbeitung ändert. Die jeweils aktuelle Fassung finden Sie auf dieser Seite.
@@ -339,6 +389,13 @@ function DatenschutzContentEn() {
             <td>Stripe Payments Europe Ltd. (Dublin); where applicable, data transfer to the USA on the basis of SCC</td>
           </tr>
           <tr>
+            <td>Amazon Web Services (Amazon Bedrock)</td>
+            <td>AI-assisted analyses (see section 5)</td>
+            <td>EU (Ireland, eu-west-1). According to AWS, inputs and outputs are not used
+                to train models and are not shared with the model providers; processing stays
+                in the selected region.</td>
+          </tr>
+          <tr>
             <td>PostHog</td>
             <td>Product analytics (cookieless)</td>
             <td>EU cloud instance</td>
@@ -358,7 +415,46 @@ function DatenschutzContentEn() {
         (e.g. EU Standard Contractual Clauses).
       </p>
 
-      <h2 id="cookies">5. Cookies and tracking</h2>
+      <h2 id="ki">5. AI-assisted analyses</h2>
+      <p>
+        Some AI Navigator features use an AI language model to analyse your input — for
+        example the assessment of your target architecture, suggestions for components and
+        responsibilities, or the enrichment of your use-case canvas. These features are
+        labelled as AI-assisted within the application and only run when you explicitly
+        trigger them; there is no automatic analysis in the background.
+      </p>
+      <p>
+        <strong>Data processed:</strong> Only the content you entered in the respective
+        module is transmitted (e.g. use-case description, selected components, assessment
+        answers). Contact and payment data are not transmitted.
+      </p>
+      <p>
+        <strong>Recipient and place of processing:</strong> The analysis runs via Amazon
+        Bedrock (Amazon Web Services) in the Europe region (Ireland, eu-west-1). No transfer
+        to a third country takes place.
+      </p>
+      <p>
+        <strong>No use for model training:</strong> According to Amazon Web Services, inputs
+        to and outputs from Amazon Bedrock are not used to train the underlying models and
+        are not shared with the model providers; processing stays within the selected region.
+      </p>
+      <p>
+        <strong>Legal basis:</strong> Performance of the contract, Art. 6(1)(b) GDPR — the
+        analysis is part of the service you requested.
+      </p>
+      <p>
+        <strong>Storage period:</strong> Results are stored with your account until you
+        delete them or close your account. To avoid repeating identical requests, the
+        response is additionally cached for 24 hours; this cache contains no link to your
+        person and expires automatically.
+      </p>
+      <p>
+        <strong>Labelling:</strong> AI-generated content is labelled as such within the
+        application and in exported reports (Article 50 EU AI Act). Results are suggestions
+        to inform your own decision and do not replace professional or legal advice.
+      </p>
+
+      <h2 id="cookies">6. Cookies and tracking</h2>
       <p>
         For product analytics we use PostHog in a cookieless configuration — no persistent
         tracking cookies are set. For login status we use technically necessary session cookies
@@ -366,7 +462,7 @@ function DatenschutzContentEn() {
         § 25 (2) no. 2 TDDDG) and do not require separate consent.
       </p>
 
-      <h2 id="speicherdauer">6. Storage period and deletion</h2>
+      <h2 id="speicherdauer">7. Storage period and deletion</h2>
       <p>
         We store personal data only for as long as necessary for the stated purposes or as
         required by statutory retention periods (e.g. under commercial/tax law, generally
@@ -376,7 +472,7 @@ function DatenschutzContentEn() {
         <a href="mailto:webmaster@enterprise-ai.biz">webmaster@enterprise-ai.biz</a>.
       </p>
 
-      <h2 id="rechte">7. Your rights</h2>
+      <h2 id="rechte">8. Your rights</h2>
       <p>
         You have the right to information (Art. 15 GDPR), rectification (Art. 16), erasure
         (Art. 17), restriction of processing (Art. 18), data portability (Art. 20) and objection
@@ -387,7 +483,7 @@ function DatenschutzContentEn() {
         Protection Schleswig-Holstein (ULD).
       </p>
 
-      <h2 id="automatisierte-entscheidung">8. No automated decision-making within the meaning of Art. 22 GDPR</h2>
+      <h2 id="automatisierte-entscheidung">9. No automated decision-making within the meaning of Art. 22 GDPR</h2>
       <p>
         Based on your inputs, AI Navigator generates analyses, scores and recommendations on
         business processes (e.g. governance assessments, architecture proposals). These analyses
@@ -396,7 +492,7 @@ function DatenschutzContentEn() {
         the meaning of Art. 22 GDPR.
       </p>
 
-      <h2 id="aenderungen">9. Changes to this privacy policy</h2>
+      <h2 id="aenderungen">10. Changes to this privacy policy</h2>
       <p>
         We adapt this privacy policy when the legal situation or our data processing changes. You
         will always find the current version on this page.

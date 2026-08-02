@@ -190,6 +190,48 @@ export function Badge({ label, variant = 'primary' }: BadgeProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// AiSectionEyebrow — Abschnitts-Überschrift mit KI-Kennzeichen.
+//
+// Pflichtkennzeichnung nach Art. 50 EU AI Act (gilt seit 02.08.2026): Jeder
+// Abschnitt, dessen Inhalt aus einem Sprachmodell stammt, muss dort gekennzeichnet
+// sein, wo er dem Leser begegnet. Ein PDF verlässt die Anwendung und wird
+// weitergereicht — der Hinweis in der Oberfläche reicht dafür nicht.
+//
+// Bewusst nur die Überschrift plus ein Badge und kein zusätzlicher Erklärtext:
+// Ein Label an jedem Absatz würde den Report unlesbar machen. Die Einordnung
+// liefert die einmalige Fußnote am Seitenende (siehe AiDisclosureNote).
+// ─────────────────────────────────────────────────────────────────────────
+interface AiSectionEyebrowProps {
+  label: string
+  badgeLabel: string
+}
+// Abstände bewusst fest verdrahtet und identisch zu `sectionEyebrow` in den
+// Reports (marginTop 12 / marginBottom 7), damit gekennzeichnete und nicht
+// gekennzeichnete Abschnitte im Satzspiegel exakt gleich sitzen.
+export function AiSectionEyebrow({ label, badgeLabel }: AiSectionEyebrowProps) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, marginBottom: 7 }}>
+      <Text style={reportType.eyebrow}>{label}</Text>
+      <Badge label={badgeLabel} variant="ai" />
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// AiDisclosureNote — einmalige Fußnote auf Seiten mit KI-Inhalten.
+//
+// Ergänzt die Abschnitts-Badges um die Einordnung, die Art. 50 Abs. 5 verlangt
+// („clear and distinguishable"). Steht einmal pro Seite statt an jedem Block.
+// ─────────────────────────────────────────────────────────────────────────
+export function AiDisclosureNote({ text, width }: { text: string; width: number }) {
+  return (
+    <View style={{ width, marginTop: 10, paddingTop: 6, borderTopWidth: 0.5, borderTopColor: reportColors.line }}>
+      <Text style={{ ...reportType.bodyMuted, fontSize: 6.5, color: reportColors.ai }}>{text}</Text>
+    </View>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // StatCard — Kennzahl-Karte mit farbigem Akzentbalken links.
 // ─────────────────────────────────────────────────────────────────────────
 interface StatCardProps {

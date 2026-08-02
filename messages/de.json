@@ -1563,6 +1563,7 @@
       "title": "Architektur",
       "subtitle": "Executive Summary · Zielarchitektur »{pattern}«",
       "aiCalloutLabel": "KI-EINORDNUNG",
+      "aiDisclosureNote": "Dieser Report enthält mit „KI-generiert“ gekennzeichnete Abschnitte. Sie wurden von einem Sprachmodell auf Basis Ihrer Eingaben erzeugt, sind Vorschläge zur Vorbereitung Ihrer Entscheidung und ersetzen keine fachliche oder rechtliche Beratung. Kennzeichnung nach Art. 50 EU AI Act.",
       "badgeGenerated": "GENERIERT",
       "badgeExecutive": "EXECUTIVE",
       "investmentLabel": "INVESTITIONSRAHMEN",
