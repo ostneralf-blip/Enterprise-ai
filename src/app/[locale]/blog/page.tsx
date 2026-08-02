@@ -1,9 +1,15 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getSortedBlogPosts, type Bi } from '@/config/blog-data'
+import { getPublishedPosts, type BlogLocale } from '@/lib/blog'
 import { setRequestLocale } from 'next-intl/server'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+// Inhalte kommen aus der Datenbank (admin-pflegbar), die Seite bleibt trotzdem
+// statisch: createPublicClient liest ohne Cookies. Damit eine Freigabe im Admin
+// zeitnah sichtbar wird, revalidiert die Seite alle 5 Minuten; zusätzlich stößt
+// die Admin-API nach jeder Statusänderung eine sofortige Neuvalidierung an.
+export const revalidate = 300
 
 export async function generateMetadata({
   params,
@@ -15,7 +21,7 @@ export async function generateMetadata({
   const prefix = isEn ? '/en' : ''
   const canonical = `${BASE}${prefix}/blog`
   return {
-    title: isEn ? 'Blog' : 'Blog',
+    title: 'Blog',
     description: isEn
       ? 'Notes on enterprise AI in practice: governance operating models, prioritization, EU AI Act and what actually holds initiatives back.'
       : 'Notizen zu Enterprise-KI aus der Praxis: Governance-Betriebsmodelle, Priorisierung, EU AI Act und woran Vorhaben tatsächlich hängen.',
@@ -35,10 +41,6 @@ export async function generateMetadata({
   }
 }
 
-function pick(locale: string, bi: Bi): string {
-  return locale === 'en' ? bi.en : bi.de
-}
-
 export default async function BlogHubPage({
   params,
 }: {
@@ -48,15 +50,16 @@ export default async function BlogHubPage({
   setRequestLocale(locale)
   const isEn = locale === 'en'
   const prefix = isEn ? '/en' : ''
-  const p = (bi: Bi) => pick(locale, bi)
-  const posts = getSortedBlogPosts()
+  const posts = await getPublishedPosts((isEn ? 'en' : 'de') as BlogLocale)
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(isEn ? 'en-GB' : 'de-DE', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
+    iso
+      ? new Date(iso).toLocaleDateString(isEn ? 'en-GB' : 'de-DE', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        })
+      : ''
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -73,7 +76,7 @@ export default async function BlogHubPage({
     url: `${BASE}${prefix}/blog`,
     blogPost: posts.map((post) => ({
       '@type': 'BlogPosting',
-      headline: p(post.title),
+      headline: post.title,
       datePublished: post.publishedAt,
       url: `${BASE}${prefix}/blog/${post.slug}`,
     })),
@@ -115,15 +118,15 @@ export default async function BlogHubPage({
                 className="block bg-white border border-slate-200 rounded-2xl p-6 hover:border-primary-border transition-colors"
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
-                  <span className="text-xs text-primary font-semibold uppercase tracking-wide">{p(post.category)}</span>
+                  <span className="text-xs text-primary font-semibold uppercase tracking-wide">{post.category}</span>
                   <span className="text-xs text-slate-500">
                     <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
                     {' · '}
                     {isEn ? `${post.readingMinutes} min read` : `${post.readingMinutes} Min. Lesezeit`}
                   </span>
                 </div>
-                <h2 className="font-semibold text-lg mb-2 leading-snug">{p(post.title)}</h2>
-                <p className="text-slate-600 text-sm leading-relaxed">{p(post.metaDescription)}</p>
+                <h2 className="font-semibold text-lg mb-2 leading-snug">{post.title}</h2>
+                <p className="text-slate-600 text-sm leading-relaxed">{post.metaDescription}</p>
               </Link>
             ))}
           </div>

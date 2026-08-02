@@ -7,6 +7,7 @@ import { AlertBox } from '@/components/shared/AlertBox'
 import { SOURCE_TYPE_SCHEMAS, KNOWN_SOURCE_TYPES } from '@/config/catalog-source-schemas'
 import { CatalogSuggestionsPanel } from './CatalogSuggestionsPanel'
 import { ComplianceRegulationsPanel } from './ComplianceRegulationsPanel'
+import { BlogPanel } from './BlogPanel'
 
 const MODULES = ['assessment', 'usecase', 'governance', 'roadmap', 'canvas', 'compliance', 'architecture']
 const TIERS: Tier[] = ['free', 'pro', 'enterprise']
@@ -51,7 +52,7 @@ interface Props {
   initialPolicyTemplates?: PolicyTemplate[]
 }
 
-type Tab = 'content' | 'users' | 'catalog' | 'suggestions' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings' | 'compliance_regs'
+type Tab = 'content' | 'users' | 'catalog' | 'suggestions' | 'synonyms' | 'scanner' | 'policy_templates' | 'pricing' | 'app_settings' | 'compliance_regs' | 'blog'
 
 interface PromoQueueEntry {
   term: string; synonym: string; synonym_type: string
@@ -968,6 +969,7 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
       {(() => {
         const ADMIN_TABS: [Tab, string, number][] = [
           ['content', 'Content Library', entries.length],
+          ['blog', 'Blog', 0],
           ['users', 'Nutzer-Verwaltung', users.length],
           ['catalog', 'Komponenten-Katalog', componentCount],
           ['suggestions', 'KI-Vorschläge', 0],
@@ -1864,6 +1866,8 @@ export function AdminPageClient({ initialEntries, initialUsers = [], initialComp
 
       {/* ─── KI-Vorschläge tab (catalog_suggestions) ─────────────────────────── */}
       {tab === 'suggestions' && <CatalogSuggestionsPanel />}
+
+      {tab === 'blog' && <BlogPanel />}
 
       {tab === 'compliance_regs' && <ComplianceRegulationsPanel />}
 

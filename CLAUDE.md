@@ -111,6 +111,48 @@ Vollständiges Regelwerk: `docs/design/design-system-handoff.md`. Kurzfassung:
 - NIEMALS `.env*`-Dateien oder Backups davon (`.env.local.backup` etc.) committen — vor jedem `git add .` einen `git status`-Check auf unerwartete Dateien durchführen (siehe Incident vom 20.06.2026 in `docs/testing/rls-verification-results.md`)
 - NIEMALS Migrationen manuell im SQL-Editor ausführen — immer `supabase migration new` + `db push` (siehe Abschnitt oben)
 - NIEMALS `package.json` ohne begleitendes `package-lock.json` ändern — nach jedem Dependency-Change lokal `npm ci` als Gegenprobe (Lektion #140, 12.07.2026: desynchrones Lockfile machte CI für mehrere Commits blind)
+- NIEMALS eine KI-generierte Ausgabe ohne Kennzeichnung ausliefern — siehe Abschnitt „KI-Kennzeichnungspflicht" unten (Art. 50 EU AI Act, verbindlich seit 02.08.2026)
+
+### KI-Kennzeichnungspflicht (PFLICHT, seit 02.08.2026 — Art. 50 EU AI Act)
+Art. 50 EU AI Act gilt seit dem 02.08.2026 und wurde vom Digital Omnibus **ausdrücklich nicht**
+verschoben. Vollständige Recherche, Ist-Aufnahme und Maßnahmenplan:
+`docs/sprints/2026-08-02-ki-kennzeichnung-art-50-ai-act-plan.md`.
+
+**Grundregel:** Jede Ausgabe, die von einem Sprachmodell stammt, wird an der Stelle gekennzeichnet,
+an der sie dem Menschen begegnet — in der Oberfläche, im PDF, im öffentlichen Text. Ein Hinweis
+allein in AGB oder Datenschutzerklärung genügt NICHT: Art. 50 Abs. 5 verlangt die Information
+„in a clear and distinguishable manner at the latest at the time of the first interaction", und die
+Kommissions-Leitlinien vom 20.07.2026 verlangen ausdrücklich visuelle Prominenz in der Oberfläche.
+
+**Beim Bau jeder neuen KI-Funktion mitliefern:**
+1. **Sichtbare Kennzeichnung am Ort der Ausgabe** — bestehende Bausteine wiederverwenden, nichts
+   Neues erfinden: i18n-Key `badgeGenerated` („KI-generiert"), `aiSuggestionBadge` („KI-Vorschlag"),
+   der ◆-Herkunftsmarker, `AiCalloutBlock` im PDF. Bilingual, wie jede UI-Anforderung.
+2. **Verlässt die Ausgabe die App?** (PDF-Export, Share-Link, öffentliche Seite, E-Mail) Dann
+   zusätzlich eine maschinenlesbare Markierung — bei PDFs über die `<Document>`-Metadaten von
+   react-pdf. Für Systeme, die vor dem 02.08.2026 am Markt waren, läuft die Schonfrist für die
+   maschinenlesbare Kennzeichnung bis **02.12.2026**; für alles Neue gilt sie ab sofort.
+3. **Öffentlich publizierter Text** (Blog, Leitfaden, Marketing): Art. 50 Abs. 4. Die
+   Kennzeichnungspflicht entfällt nur bei **echter** menschlicher Prüfung mit benannter
+   redaktioneller Verantwortung — oberflächliche Freigaben genügen laut Code of Practice
+   ausdrücklich nicht. Für den Blog ist das seit 02.08.2026 technisch erzwungen: Beiträge
+   liegen in `blog_posts` mit Redaktionsstatus (`draft` → `in_review` → `published`,
+   dazu `archived` zum Deaktivieren) und werden im Admin-Panel unter „Blog" gepflegt.
+   Eine Freigabe ohne Prüfernamen ist nicht möglich — das sichert eine CHECK-Constraint in
+   der Datenbank ab, nicht nur die API. Öffentlich sichtbar ist ausschließlich `published`,
+   durchgesetzt per RLS. Neue öffentliche Content-Bereiche sollen demselben Muster folgen.
+
+**Ebenso wichtig — NICHT überkennzeichnen:** Assessment-Score, Use-Case-Scoring, Roadmap-Ableitung,
+Compliance-Checklisten und der Art.-6-Klassifikator (`lib/eu-ai-act/classifier.ts`) sind
+**deterministisch und ohne LLM**. Sie fallen nicht unter Art. 50 und dürfen nicht als KI-generiert
+markiert werden — eine falsche Kennzeichnung entwertet die echten Marker und beschädigt die
+Glaubwürdigkeit eines Produkts, das Governance verkauft. Keine Wasserzeichen im Text (für Text nicht
+gefordert), kein EU-Icon (optional, bricht das MERIDIAN-Layout).
+
+**Nicht vergessen — DSGVO ist die separate Baustelle:** Die Kennzeichnung nach AI Act ersetzt NICHT
+die Informationspflicht nach Art. 13 DSGVO. Wer Nutzereingaben an ein Modell schickt, muss Zweck,
+Rechtsgrundlage und Empfänger (AWS Bedrock, EU-Region) in der Datenschutzerklärung nennen. Stand
+02.08.2026 fehlt das dort vollständig — offener Punkt im Plandokument.
 
 ### Obsidian Vault — Pflicht nach jedem finalen Push (seit 06.07.2026)
 Nach jedem `git push origin main` (finaler Push, nicht feature-branch) muss der Obsidian Vault

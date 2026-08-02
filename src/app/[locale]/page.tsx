@@ -4,9 +4,14 @@ import { PaperNoise } from '@/components/shared/PaperNoise'
 import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { PublicNav } from '@/components/shared/PublicNav'
-import { getSortedBlogPosts } from '@/config/blog-data'
+import { getPublishedPosts, type BlogLocale } from '@/lib/blog'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
+
+// Der Blog-Absprung unten zeigt den neuesten veröffentlichten Beitrag aus der
+// Datenbank. Gelesen wird cookielos, die Seite bleibt daher statisch; die
+// Neuvalidierung hält den Teaser nach einer Freigabe im Admin aktuell.
+export const revalidate = 300
 
 export async function generateMetadata({
   params,
@@ -93,10 +98,10 @@ export default async function LandingPage({
 
   // Absprung in den Blog: Ohne diesen Block war der Blog von der Startseite aus nur
   // über die obere Navigation erreichbar — der Leitfaden bekommt dort drei Teaser-
-  // Karten plus FAQ-Abschlusslink. Gezeigt wird der jeweils neueste Beitrag, damit
-  // der Abschnitt bei neuen Veröffentlichungen ohne Codeänderung aktuell bleibt.
-  const latestPost = getSortedBlogPosts()[0]
+  // Karten plus FAQ-Abschlusslink. Gezeigt wird der jeweils neueste veröffentlichte
+  // Beitrag; ist noch keiner freigegeben, entfällt der Abschnitt vollständig.
   const isEn = locale === 'en'
+  const latestPost = (await getPublishedPosts((isEn ? 'en' : 'de') as BlogLocale))[0]
   const postDate = latestPost
     ? new Date(latestPost.publishedAt).toLocaleDateString(isEn ? 'en-GB' : 'de-DE', {
         day: '2-digit',
@@ -264,7 +269,7 @@ export default async function LandingPage({
               >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
                   <span className="text-xs text-primary font-semibold uppercase tracking-wide">
-                    {isEn ? latestPost.category.en : latestPost.category.de}
+                    {latestPost.category}
                   </span>
                   <span className="text-xs text-slate-500">
                     <time dateTime={latestPost.publishedAt}>{postDate}</time>
@@ -272,12 +277,8 @@ export default async function LandingPage({
                     {isEn ? `${latestPost.readingMinutes} min read` : `${latestPost.readingMinutes} Min. Lesezeit`}
                   </span>
                 </div>
-                <h3 className="font-semibold text-lg mb-2 leading-snug">
-                  {isEn ? latestPost.title.en : latestPost.title.de}
-                </h3>
-                <p className="text-slate-600 text-sm leading-relaxed mb-3">
-                  {isEn ? latestPost.metaDescription.en : latestPost.metaDescription.de}
-                </p>
+                <h3 className="font-semibold text-lg mb-2 leading-snug">{latestPost.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed mb-3">{latestPost.metaDescription}</p>
                 <span className="text-primary text-sm font-medium">{t('blogReadLink')}</span>
               </Link>
 

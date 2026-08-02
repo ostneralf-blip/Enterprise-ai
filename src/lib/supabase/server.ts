@@ -54,3 +54,28 @@ export async function createAdminClient() {
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
 }
+
+/**
+ * Cookieloser Anon-Client für ÖFFENTLICHE Inhalte (Blog, Marketing).
+ *
+ * Zwei Gründe, warum das eine eigene Funktion ist und nicht `createClient()`:
+ *
+ * 1. **Statisches Rendering.** `createClient()` liest Cookies. Jede Seite, die das
+ *    tut, wird von Next.js dynamisch gerendert und ist nicht CDN-cachebar — genau
+ *    das Problem, das am 02.08.2026 die gesamte App betraf (siehe Kommentar in
+ *    src/app/[locale]/layout.tsx). Ohne Cookies bleiben die Seiten `●` statisch.
+ *
+ * 2. **RLS bleibt aktiv.** Anders als `createAdminClient()` umgeht dieser Client
+ *    die Row-Level-Security NICHT. Für den Blog heißt das: die Policy
+ *    `public_read_published` filtert Entwürfe und Beiträge in Prüfung serverseitig
+ *    heraus. Ein Fehler im Anwendungscode kann keinen unveröffentlichten Beitrag
+ *    nach außen geben. Deshalb hier bewusst NICHT den Admin-Client verwenden.
+ */
+export async function createPublicClient() {
+  const { createClient } = await import('@supabase/supabase-js')
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
