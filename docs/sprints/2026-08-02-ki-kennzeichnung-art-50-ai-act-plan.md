@@ -1,6 +1,8 @@
 # Plan: Kennzeichnung KI-generierter Inhalte (Art. 50 EU AI Act)
 
-**Stand:** 02.08.2026 · **Status:** M1–M4 umgesetzt und deployt; anwaltliche Prüfung des Datenschutztexts offen
+**Stand:** 02.08.2026 · **Status:** M1–M4 umgesetzt, deployt und in Produktion verifiziert.
+Blogbeitrag am 02.08.2026 von Daniel Ostner freigegeben. Offen nur noch: anwaltliche Prüfung
+des Datenschutztexts und die exakte AWS-Vertragspartei.
 **Auslöser:** Art. 50 EU AI Act gilt seit dem 02.08.2026.
 
 > **Kein Rechtsrat.** Dieses Dokument fasst eine Recherche zusammen und leitet daraus
@@ -93,6 +95,14 @@ unter „Blog" angelegt, bearbeitet, geprüft, freigegeben und deaktiviert.
 **Nachweisführung:** „Veröffentlicht" ist ohne Prüfernamen und Prüfzeitpunkt nicht
 erreichbar — abgesichert per CHECK-Constraint in der Datenbank, nicht nur in der API.
 Der Transparenzhinweis im Autorenkasten erscheint automatisch bei `ai_assisted` + Freigabe.
+
+**Durchlaufen und verifiziert (02.08.2026):** Daniel hat den Beitrag über das Dashboard
+freigegeben. Ergebnis in Produktion geprüft — `status='published'`,
+`reviewed_by='Daniel Ostner'`, `reviewed_at=2026-08-02T13:34:28Z`; Beitrag in DE und EN
+erreichbar, Hub und Startseiten-Teaser zeigen ihn, Sitemap enthält beide Sprachfassungen,
+der Autorenkasten trägt den Hinweis auf KI-Unterstützung und redaktionelle Prüfung, das
+`BlogPosting`-Schema nennt den Prüfer als Autor, axe-core meldet 0 Verstöße. Damit greift
+die Ausnahme des Art. 50 Abs. 4 belegbar.
 
 **Bewusst nicht enthalten** (Entscheidung Daniel): kein separates Änderungsprotokoll. Eine
 spätere Freigabe überschreibt den vorherigen Vermerk; eine lückenlose Historie entsteht
