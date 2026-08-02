@@ -4,6 +4,7 @@ import { PaperNoise } from '@/components/shared/PaperNoise'
 import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { PublicNav } from '@/components/shared/PublicNav'
+import { getSortedBlogPosts } from '@/config/blog-data'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -89,6 +90,20 @@ export default async function LandingPage({
     q: t(`faq${n}Q`),
     a: t(`faq${n}A`),
   }))
+
+  // Absprung in den Blog: Ohne diesen Block war der Blog von der Startseite aus nur
+  // über die obere Navigation erreichbar — der Leitfaden bekommt dort drei Teaser-
+  // Karten plus FAQ-Abschlusslink. Gezeigt wird der jeweils neueste Beitrag, damit
+  // der Abschnitt bei neuen Veröffentlichungen ohne Codeänderung aktuell bleibt.
+  const latestPost = getSortedBlogPosts()[0]
+  const isEn = locale === 'en'
+  const postDate = latestPost
+    ? new Date(latestPost.publishedAt).toLocaleDateString(isEn ? 'en-GB' : 'de-DE', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null
 
   return (
     <div className="min-h-screen bg-ivory text-slate-900">
@@ -235,6 +250,45 @@ export default async function LandingPage({
             </p>
           </div>
         </section>
+
+        {/* Aus dem Blog */}
+        {latestPost && (
+          <section className="border-t border-slate-200 py-20">
+            <div className="max-w-3xl mx-auto px-6">
+              <h2 className="text-3xl font-semibold font-serif text-center mb-2">{t('blogTitle')}</h2>
+              <p className="text-slate-600 text-center mb-10">{t('blogSub')}</p>
+
+              <Link
+                href={`${prefix}/blog/${latestPost.slug}`}
+                className="block bg-white border border-slate-200 rounded-2xl p-6 hover:border-primary-border transition-colors"
+              >
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+                  <span className="text-xs text-primary font-semibold uppercase tracking-wide">
+                    {isEn ? latestPost.category.en : latestPost.category.de}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    <time dateTime={latestPost.publishedAt}>{postDate}</time>
+                    {' · '}
+                    {isEn ? `${latestPost.readingMinutes} min read` : `${latestPost.readingMinutes} Min. Lesezeit`}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-lg mb-2 leading-snug">
+                  {isEn ? latestPost.title.en : latestPost.title.de}
+                </h3>
+                <p className="text-slate-600 text-sm leading-relaxed mb-3">
+                  {isEn ? latestPost.metaDescription.en : latestPost.metaDescription.de}
+                </p>
+                <span className="text-primary text-sm font-medium">{t('blogReadLink')}</span>
+              </Link>
+
+              <p className="text-center mt-8">
+                <Link href={`${prefix}/blog`} className="text-primary text-sm font-medium hover:underline">
+                  {t('blogAllLink')}
+                </Link>
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* Closing CTA */}
         <section className="bg-primary py-20 text-center text-white">

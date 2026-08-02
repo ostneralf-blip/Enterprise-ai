@@ -91,6 +91,11 @@ export default async function LeitfadenHubPage({
             ? 'Practical answers to the questions that decide whether an AI project succeeds — grounded in real enterprise projects, not theory.'
             : 'Praxisnahe Antworten auf die Fragen, die über Erfolg oder Scheitern eines AI-Projekts entscheiden — aus echten Enterprise-Projekten, nicht aus der Theorie.'}
         </p>
+        {/* Gegenrichtung zum „Zum Leitfaden"-Link auf dem Blog-Hub — beide
+            Content-Bereiche verweisen aufeinander. */}
+        <Link href={`${prefix}/blog`} className="inline-block mt-4 text-primary text-sm font-medium hover:underline">
+          {isEn ? 'To the blog →' : 'Zum Blog →'}
+        </Link>
       </div>
 
       <div className="max-w-5xl mx-auto px-6 pb-20 space-y-12">

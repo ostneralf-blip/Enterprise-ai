@@ -650,7 +650,10 @@ drei neuen Lektionen oben. Umgesetzt wurde:
   `leitfaden-data.ts` (TypeScript statt MDX — der `Bi`-Typ erzwingt DE+EN zur Compile-Zeit,
   keine zweite Content-Pipeline), Hub + Beitragsseite, `BlogPosting`- und
   `BreadcrumbList`-Schema, hreflang inkl. `x-default`, Sitemap- und Navigationseintrag,
-  interne Verlinkung auf Tool und passende Leitfäden. Erster Beitrag
+  interne Verlinkung auf Tool und passende Leitfäden. **Absprünge:** Abschnitt „Aus dem
+  Blog" auf der Startseite mit dem jeweils neuesten Beitrag (aktualisiert sich ohne
+  Codeänderung) plus wechselseitige Verlinkung Leitfaden-Hub ↔ Blog-Hub — die obere
+  Navigation allein war als einziger Einstieg zu wenig. Erster Beitrag
   `ki-governance-betriebsmodelle` (DE+EN) — **Redaktionsentwurf, vor Veröffentlichung von
   Daniel gegenzulesen**; bewusst ohne Statistiken oder Zahlenangaben, um keine nicht
   belegbaren Fakten zu behaupten.
