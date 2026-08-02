@@ -5,6 +5,7 @@ import { BrandWordcloud } from '@/components/shared/BrandWordcloud'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { PublicNav } from '@/components/shared/PublicNav'
 import { getPublishedPosts, type BlogLocale } from '@/lib/blog'
+import { OG_IMAGES } from '@/lib/seo'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -35,7 +36,7 @@ export async function generateMetadata({
       locale: isEn ? 'en_GB' : 'de_DE',
       siteName: 'AI Navigator',
       url: canonical,
-      images: [{ url: `${BASE}/opengraph-image`, width: 1200, height: 630 }],
+      images: OG_IMAGES,
     },
     alternates: {
       canonical,

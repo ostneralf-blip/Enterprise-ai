@@ -6,6 +6,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { PostHogPageView } from '@/components/shared/PostHogPageView'
+import { OG_IMAGES } from '@/lib/seo'
 
 // Dies ist das Wurzel-Layout der App (es rendert <html>/<body>). Vorher lag es in
 // src/app/layout.tsx, also OBERHALB des [locale]-Segments — und musste dort per
@@ -46,6 +47,7 @@ export const metadata: Metadata = {
   description: 'Enterprise AI. Structured navigation. Strategic frameworks for AI readiness, governance and use-case prioritization.',
   metadataBase: new URL(BASE),
   openGraph: {
+    images: OG_IMAGES,
     type: 'website',
     siteName: 'AI Navigator',
   },

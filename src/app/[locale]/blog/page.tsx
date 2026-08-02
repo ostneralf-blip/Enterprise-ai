@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPublishedPosts, type BlogLocale } from '@/lib/blog'
 import { setRequestLocale } from 'next-intl/server'
+import { OG_IMAGES } from '@/lib/seo'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -34,6 +35,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      images: OG_IMAGES,
       type: 'website',
       locale: isEn ? 'en_GB' : 'de_DE',
       url: canonical,

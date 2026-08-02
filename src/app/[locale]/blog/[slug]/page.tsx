@@ -6,6 +6,7 @@ import { getGuide, AMAZON_BOOK_URL } from '@/config/leitfaden-data'
 import { getTool, TOOL_CTA_ANCHOR } from '@/config/tools-data'
 import { setRequestLocale } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
+import { OG_IMAGES } from '@/lib/seo'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -45,6 +46,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      images: OG_IMAGES,
       type: 'article',
       locale: isEn ? 'en_GB' : 'de_DE',
       title: post.title,

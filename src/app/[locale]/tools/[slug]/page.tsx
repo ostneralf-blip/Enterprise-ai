@@ -5,6 +5,7 @@ import { getTool, AMAZON_BOOK_URL, type Bi } from '@/config/tools-data'
 import { getGuide } from '@/config/leitfaden-data'
 import { PublicNav } from '@/components/shared/PublicNav'
 import { getPublicPricing, formatPrice } from '@/lib/pricing'
+import { OG_IMAGES } from '@/lib/seo'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -41,6 +42,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      images: OG_IMAGES,
       type: 'website',
       locale: isEn ? 'en_GB' : 'de_DE',
       title,

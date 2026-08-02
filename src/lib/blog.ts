@@ -146,7 +146,7 @@ export async function getPublishedPost(slug: string, locale: BlogLocale): Promis
 }
 
 /**
- * Nur die Slugs veröffentlichter Beiträge — für generateStaticParams und die Sitemap.
+ * Nur die Slugs veröffentlichter Beiträge — für generateStaticParams.
  * Sprachunabhängig, daher ohne Übersetzungs-Join.
  */
 export async function getPublishedSlugs(): Promise<string[]> {
@@ -159,4 +159,32 @@ export async function getPublishedSlugs(): Promise<string[]> {
 
   if (error || !data) return []
   return data.map((r) => r.slug as string)
+}
+
+/**
+ * Slug plus tatsächliches Änderungsdatum — für die Sitemap.
+ *
+ * Bewusst nicht `getPublishedSlugs` mitbenutzt: Die Sitemap soll ein ECHTES
+ * `lastModified` melden statt des Build-Zeitpunkts. Ein Datum, das sich bei jedem
+ * Deployment ändert, ist für Suchmaschinen kein Signal, sondern Rauschen.
+ * Vorrang hat das Überarbeitungsdatum, sonst das Veröffentlichungsdatum.
+ */
+export async function getPublishedSlugsWithDates(): Promise<{ slug: string; lastModified: Date }[]> {
+  const sb = await createPublicClient()
+  const { data, error } = await sb
+    .from('blog_posts')
+    .select('slug, published_at, content_updated_at, updated_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+
+  if (error || !data) return []
+  return data.map((r) => {
+    const row = r as { slug: string; published_at: string | null; content_updated_at: string | null; updated_at: string | null }
+    const iso = row.content_updated_at ?? row.published_at ?? row.updated_at
+    const parsed = iso ? new Date(iso) : new Date()
+    return {
+      slug: row.slug,
+      lastModified: Number.isNaN(parsed.getTime()) ? new Date() : parsed,
+    }
+  })
 }
