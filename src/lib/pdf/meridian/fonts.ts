@@ -64,3 +64,23 @@ export function registerMeridianFonts() {
   // umgebrochen (siehe react-pdf-Doku zu Font.registerHyphenationCallback).
   Font.registerHyphenationCallback(word => [word])
 }
+
+/**
+ * Zeichen, die KEINE der drei registrierten Fonts darstellen kann.
+ *
+ * Empirisch ermittelt am 02.08.2026 durch ein reales react-pdf-Rendering aller im
+ * Projekt verwendeten Sonderzeichen in Work Sans, Lora und IBM Plex Mono. react-pdf
+ * meldet fehlende Glyphen NICHT — es rendert ein falsches Zeichen oder gar nichts.
+ * Im Architektur-Report erschien „◎ EU AI Act" deshalb monatelang als „Î EU AI Act",
+ * und das „⚠" vor Konflikten war schlicht unsichtbar.
+ *
+ * Nicht abschließend, sondern der geprüfte Bestand. Bei Bedarf erweitern — und vorher
+ * mit einem echten Render prüfen, nicht mit dem Jest-Mock (der prüft keine Glyphen).
+ */
+export const UNSUPPORTED_PDF_GLYPHS = ['◎', '⚠', '●', '◆', '✓', '─'] as const
+
+/**
+ * Nur in IBM Plex Mono (reportFonts.mono) vorhanden — in Work Sans und Lora kaputt.
+ * Verwendung daher ausschließlich in Textelementen mit `fontFamily: reportFonts.mono`.
+ */
+export const MONO_ONLY_PDF_GLYPHS = ['→', '≥'] as const

@@ -238,7 +238,12 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
             <EamBand label={t('eamMotivation')} dashed>
               {motiv.map((n, i) => (
                 <View key={i} style={styles.motivNode}>
-                  <Text style={styles.motivNodeLabel}>◎ {n.label}</Text>
+                  {/* Bewusst ohne Symbol: Die Bildschirm-Landkarte (EamMap.tsx) setzt hier
+                      je Knotentyp ein eigenes Zeichen (Waage, Schild, Zielscheibe) — keines
+                      davon existiert in Work Sans, Lora oder IBM Plex Mono. U+25CE wurde
+                      im PDF bis 02.08.2026 als lateinisches I mit Zirkumflex ausgegeben.
+                      Siehe UNSUPPORTED_PDF_GLYPHS in fonts.ts. */}
+                  <Text style={styles.motivNodeLabel}>{n.label}</Text>
                   {n.sub && <Text style={styles.motivNodeSub}>{n.sub}</Text>}
                 </View>
               ))}
@@ -306,7 +311,9 @@ export function renderMeridianArchitectureStatus(data: ArchitectureStatusData, l
             {data.conflicts.map((c, i) => (
               <View key={`c${i}`} style={styles.connRow}>
                 <Text style={styles.connNode}>{c.a}</Text>
-                <Text style={styles.connVerbConflict}>⚠ {t('connConflict')}</Text>
+                {/* U+26A0 (Warndreieck) fehlt in allen drei registrierten Fonts und wurde
+                    als Leerraum gerendert. Die Warnfarbe plus Versalien trägt die Bedeutung. */}
+                <Text style={styles.connVerbConflict}>{t('connConflict')}</Text>
                 <Text style={styles.connNode}>{c.b}</Text>
               </View>
             ))}

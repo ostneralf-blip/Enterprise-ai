@@ -468,6 +468,32 @@ tatsächlich vorhandenen Verzeichnisse unter `(dashboard)` gegen die Liste abgle
 `PUBLIC_PREFIXES`, Sitemap, Navigation und ein Smoke-Test auf HTTP 200 im
 Produktions-Build. Der Fehler erzeugt keine Fehlermeldung, nur eine stille Umleitung.
 
+### PDF-Lektion: react-pdf meldet fehlende Glyphen nicht — es rendert Müll (02.08.2026)
+**Symptom:** Im Architektur-Report stand `◎ EU AI Act` als **`Î EU AI Act`**, das `⚠` vor
+Konflikten war unsichtbar, und die Reifegrad-Legende las sich als
+„geplant ' evaluiert ' Pilot". Alles seit Monaten so ausgeliefert, ohne Fehler, ohne Warnung.
+**Ursache:** Weder Work Sans noch Lora noch IBM Plex Mono enthalten diese Zeichen. react-pdf
+wirft dabei KEINEN Fehler (anders als bei fehlenden Font-Varianten, siehe die Italic-Lektion
+weiter unten) — es setzt ein falsches Zeichen aus der Fallback-Tabelle oder gar nichts.
+**Empirischer Befund** (echtes Rendering aller im Projekt genutzten Sonderzeichen):
+- In allen drei Fonts kaputt: `◎` `⚠` `●` `◆` `✓` `─`
+- Nur in IBM Plex Mono vorhanden: `→` `≥` — in Work Sans/Lora werden sie zu `'` bzw. `e`
+- Unbedenklich in allen drei: `«` `»` `×` `–` `—` `„` `…` `€` `•` `·`
+Die geprüften Listen stehen als `UNSUPPORTED_PDF_GLYPHS` und `MONO_ONLY_PDF_GLYPHS` in
+`lib/pdf/meridian/fonts.ts`.
+**Lehre — verbindlich für PDF-Reports:**
+- Keine dekorativen Unicode-Symbole in Reports. Was auf dem Bildschirm gut aussieht (die
+  EAM-Landkarte nutzt ⚖/🛡/◎, Emojis erst recht), existiert in den eingebetteten Fonts nicht.
+  Wo ein Symbol wirklich nötig ist: als SVG zeichnen, nicht als Textzeichen setzen.
+- **Auch die Übersetzungstexte prüfen, nicht nur den Code.** Der zweite Fund saß in
+  `messages/*.json` (`reports.architectureStatus.capabilityLegend`) — ein reiner Quellcode-Scan
+  hätte ihn nicht gefunden. `src/__tests__/unit/pdf-glyphs.test.ts` prüft jetzt beides.
+- Der Jest-Mock für `@react-pdf/renderer` validiert weder Fonts noch Glyphen. Vor dem
+  Ausliefern einer PDF-Änderung ein echtes Rendering laufen lassen (`renderToBuffer` per
+  ts-node mit `TS_NODE_PROJECT` auf eine tsconfig, die die Projekt-Config **erweitert** —
+  eine Inline-Überschreibung verliert `baseUrl`/`paths` und bricht die `@/`-Auflösung) und
+  die erzeugten Seiten tatsächlich ansehen.
+
 ### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026) — Status 05.07.2026
 
 **BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar** → ERLEDIGT (GitHub Issue #4, CLOSED

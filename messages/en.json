@@ -1595,7 +1595,7 @@
       "eamValidationOk": "Architecture validation passed — all rules met",
       "eamValidationFail": "{n} open validation rule(s)",
       "capabilityLabel": "BUSINESS CAPABILITIES & MATURITY",
-      "capabilityLegend": "Maturity per capability: planned → evaluated → pilot → in production (fill level of the four squares).",
+      "capabilityLegend": "Maturity per capability, ascending: planned · evaluated · pilot · in production (fill level of the four squares).",
       "connectionsLabel": "CONNECTIONS & CONFLICTS",
       "connRequires": "requires",
       "connSuggests": "suggests",

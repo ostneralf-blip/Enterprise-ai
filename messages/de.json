@@ -1595,7 +1595,7 @@
       "eamValidationOk": "Architektur-Validierung bestanden — alle Regeln erfüllt",
       "eamValidationFail": "{n} offene Validierungsregel(n)",
       "capabilityLabel": "GESCHÄFTSFÄHIGKEITEN & REIFEGRAD",
-      "capabilityLegend": "Reifegrad je Baustein: geplant → evaluiert → Pilot → produktiv (Füllgrad der vier Kästchen).",
+      "capabilityLegend": "Reifegrad je Baustein, aufsteigend: geplant · evaluiert · Pilot · produktiv (Füllgrad der vier Kästchen).",
       "connectionsLabel": "VERKNÜPFUNGEN & KONFLIKTE",
       "connRequires": "benötigt",
       "connSuggests": "empfiehlt",
