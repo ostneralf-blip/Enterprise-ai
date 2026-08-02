@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { GUIDES } from '@/config/leitfaden-data'
 import { TOOLS } from '@/config/tools-data'
+import { BLOG_POSTS } from '@/config/blog-data'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -8,6 +9,7 @@ const publicRoutes: Array<{ path: string; priority: number; changeFrequency: Met
   { path: '',            priority: 1.0, changeFrequency: 'monthly' },
   { path: '/tools',      priority: 0.9, changeFrequency: 'monthly' },
   { path: '/leitfaden',  priority: 0.9, changeFrequency: 'weekly'  },
+  { path: '/blog',       priority: 0.8, changeFrequency: 'weekly'  },
   { path: '/preise',     priority: 0.8, changeFrequency: 'monthly' },
   { path: '/trust',      priority: 0.7, changeFrequency: 'monthly' },
   { path: '/login',      priority: 0.5, changeFrequency: 'yearly'  },
@@ -25,6 +27,13 @@ const publicRoutes: Array<{ path: string; priority: number; changeFrequency: Met
     path: `/tools/${tool.slug}`,
     priority: 0.85,
     changeFrequency: 'monthly' as MetadataRoute.Sitemap[number]['changeFrequency'],
+  })),
+  // Blogbeiträge sind datiert und werden nach Veröffentlichung normalerweise nicht
+  // mehr überarbeitet — daher 'yearly' statt 'monthly' wie bei den Leitfäden.
+  ...BLOG_POSTS.map((post) => ({
+    path: `/blog/${post.slug}`,
+    priority: 0.7,
+    changeFrequency: 'yearly' as MetadataRoute.Sitemap[number]['changeFrequency'],
   })),
 ]
 

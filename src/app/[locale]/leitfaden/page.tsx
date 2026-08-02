@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { GUIDES, HUB_CATEGORIES, HUB_GLOSSARY, getGuide, type Bi } from '@/config/leitfaden-data'
+import { setRequestLocale } from 'next-intl/server'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -41,6 +42,8 @@ export default async function LeitfadenHubPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  // Erlaubt Next.js das statische Vorrendern dieser Seite (next-intl).
+  setRequestLocale(locale)
   const isEn = locale === 'en'
   const prefix = isEn ? '/en' : ''
   const p = (bi: Bi) => pick(locale, bi)

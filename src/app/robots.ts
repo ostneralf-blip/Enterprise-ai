@@ -1,19 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { PRIVATE_TOOL_ROUTES } from '@/config/private-routes'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
-
-// Private Tool-Routen aus next.config.ts (Cache-Control-Header-Regel) — dieselbe Liste,
-// damit robots.txt und die Auth-/Cache-Konfiguration nicht auseinanderlaufen.
-const PRIVATE_TOOL_ROUTES = [
-  'dashboard',
-  'assessment',
-  'usecase',
-  'governance',
-  'roadmap',
-  'canvas',
-  'compliance',
-  'architecture',
-]
 
 // AI-Crawler (Training + AI-Suche) sind bewusst ERLAUBT: Sichtbarkeit in
 // ChatGPT-, Claude- und Perplexity-Antworten ist für ein SaaS-Produkt wertvoll.

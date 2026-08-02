@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { PublicNav } from '@/components/shared/PublicNav'
 import { setRequestLocale } from 'next-intl/server'
 
-// #220: Eigene Public-Reading-Shell für den Leitfaden-Hub, bewusst getrennt von der
-// App-Shell (Sidebar/Navbar unter (dashboard)). Helles, ruhiges Lese-Design; Header
-// (Logo + „Kostenlos starten"-CTA via PublicNav) und Footer (Impressum/Datenschutz)
-// liegen hier zentral, statt in jeder Guide-/Hub-Seite dupliziert zu werden.
-export default async function LeitfadenLayout({
+// Lese-Shell für den Blog — bewusst identisch aufgebaut zur Leitfaden-Shell
+// (src/app/[locale]/leitfaden/layout.tsx), damit beide Content-Bereiche sich für
+// Besucher gleich anfühlen: PublicNav oben, ruhiger Ivory-Lesebereich, schlanker
+// Rechtsfooter unten.
+export default async function BlogLayout({
   children,
   params,
 }: {
@@ -14,7 +14,7 @@ export default async function LeitfadenLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  // Erlaubt Next.js das statische Vorrendern dieser Seite (next-intl).
+  // Erlaubt Next.js das statische Vorrendern der Blogseiten (next-intl).
   setRequestLocale(locale)
   const isEn = locale === 'en'
   const prefix = isEn ? '/en' : ''

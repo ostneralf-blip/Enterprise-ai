@@ -1,16 +1,25 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getGuide, AMAZON_BOOK_URL, GUIDES_REVIEWED_AT, type Bi } from '@/config/leitfaden-data'
+import { getGuide, GUIDES, AMAZON_BOOK_URL, GUIDES_REVIEWED_AT, type Bi } from '@/config/leitfaden-data'
 import { GUIDE_PRIMARY_TOOL, TOOL_CTA_ANCHOR } from '@/config/tools-data'
 import { GuideViewTracker, GuideCtaLink } from '@/components/shared/GuideAnalytics'
+import { setRequestLocale } from 'next-intl/server'
+import { routing } from '@/i18n/routing'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-// Bewusst kein generateStaticParams: die verschachtelte [locale]/leitfaden/[slug]-Route
-// hatte damit einen Server-Fehler auf allen Slugs (Next.js-Eigenheit bei doppelt
-// verschachtelten Dynamic Segments ohne generateStaticParams im Eltern-Segment).
-// Rein dynamisches Rendering pro Request ist bei 8 Guides performance-unkritisch.
+// Früher stand hier bewusst KEIN generateStaticParams: die verschachtelte
+// [locale]/leitfaden/[slug]-Route lief damit auf allen Slugs in einen Server-Fehler.
+// Die Ursache benannte der damalige Kommentar bereits korrekt — „ohne
+// generateStaticParams im Eltern-Segment". Genau das hat sich mit dem SEO-Sprint
+// (02.08.2026) geändert: [locale]/layout.tsx exportiert jetzt generateStaticParams.
+// Damit lassen sich die Guides wieder vorrendern (verifiziert im Build: ● statt ƒ).
+export function generateStaticParams() {
+  return routing.locales.flatMap((locale) =>
+    GUIDES.map((guide) => ({ locale, slug: guide.slug }))
+  )
+}
 
 export async function generateMetadata({
   params,
@@ -56,6 +65,8 @@ export default async function GuidePage({
   params: Promise<{ locale: string; slug: string }>
 }) {
   const { locale, slug } = await params
+  // Erlaubt Next.js das statische Vorrendern dieser Seite (next-intl).
+  setRequestLocale(locale)
   const guide = getGuide(slug)
   if (!guide) notFound()
 

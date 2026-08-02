@@ -19,6 +19,11 @@ export function initPostHog(onLoaded?: () => void) {
     autocapture: false,
     persistence: 'memory',
     disable_session_recording: true,
+    // Surveys werden im Produkt nicht genutzt. Ohne dieses Flag lädt posthog-js
+    // /ingest/static/surveys.js nach (~32 KiB, 10 % des gesamten JS-Bundles laut
+    // PageSpeed-Treemap vom 02.08.2026). Wird das Feature später eingeführt,
+    // dieses Flag entfernen — das Bundle lädt dann wieder automatisch nach.
+    disable_surveys: true,
     loaded: () => onLoaded?.(),
   })
   return posthog

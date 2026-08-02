@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { setRequestLocale } from 'next-intl/server'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -187,12 +188,14 @@ export default async function WiderrufPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  // Erlaubt Next.js das statische Vorrendern dieser Seite (next-intl).
+  setRequestLocale(locale)
   const isEn = locale === 'en'
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <Link href="/" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">
+        <Link href="/" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
           {isEn ? '← Back' : '← Zurück'}
         </Link>
         <h1 className="text-2xl font-semibold text-slate-900 mt-6 mb-8">
@@ -208,6 +211,6 @@ export default async function WiderrufPage({
           <Link href="/agb" className="hover:text-slate-600">{isEn ? 'Terms' : 'AGB'}</Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

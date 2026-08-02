@@ -357,6 +357,75 @@ zuletzt hinzugefügten.
   die betroffene Tabellengröße gegenrechnen, bevor tiefer nach anderen Ursachen gesucht
   wird — spart Zeit gegenüber dem Nachverfolgen einzelner Symptome.
 
+### Rendering-Lektion: Ein einziger Supabase-Aufruf im Root-Layout machte die ganze App dynamisch (02.08.2026)
+**Symptom:** PageSpeed Mobile 97/LCP 2,6 s bei einer im Grunde statischen Marketing-Startseite.
+Live lieferte `https://enterprise-ai.biz/` den Header `cache-control: private, no-cache,
+no-store, max-age=0, must-revalidate` und `x-vercel-cache: MISS` — die Seite war für das
+CDN nicht cachebar und wurde bei jedem Aufruf serverseitig neu gerendert.
+**Ursache (zwei Schichten, beide nötig):**
+1. `src/app/layout.tsx` fragte bei JEDEM Request — auch anonym — `auth.getUser()` plus die
+   `profiles`-Tabelle ab, nur um `data-theme` auf `<html>` zu setzen.
+2. Selbst nach Entfernen dieser Abfrage blieb ALLES dynamisch (`ƒ` in der Build-Ausgabe),
+   weil das Root-Layout OBERHALB des `[locale]`-Segments lag und die Sprache über
+   `getLocale()` — eine dynamische Request-API — beziehen musste.
+**Fix:** `<html>`/`<body>`, Fonts, `globals.css`, Metadaten und Organization-JSON-LD sind
+von `src/app/layout.tsx` nach `src/app/[locale]/layout.tsx` gewandert (die von next-intl
+dokumentierte Struktur), `src/app/layout.tsx` wurde gelöscht. Dazu `generateStaticParams`
+im `[locale]`-Layout und `setRequestLocale(locale)` in jeder statisch zu rendernden Seite.
+Das Nutzertheme setzt jetzt `<ThemeAttribute>` im `(dashboard)`-Layout, das das Profil
+ohnehin lädt — per blockierendem Inline-Skript (kein Farbaufblitzen) plus Reset beim
+Unmount (sonst behielte ein „dark"-Nutzer den dunklen Grund auf den öffentlichen Seiten,
+die ihre Textfarben fest hell kodieren → dunkel auf dunkel).
+**Ergebnis:** 11 statisch vorgerenderte Routen (Startseite, Blog + Beiträge, Leitfaden +
+alle 8 Guides, Tools-Hub, Trust, alle Rechtstexte) mit `Cache-Control: s-maxage=31536000`
+statt `no-store`.
+**Lehre — verbindlich:**
+- Im Root-/Locale-Layout NIE Nutzerdaten abfragen. Was nur eingeloggte Nutzer betrifft,
+  gehört in das `(dashboard)`-Layout — sonst zahlt jede öffentliche Seite den Preis.
+- Nach jeder Layout- oder Datenabruf-Änderung die Build-Routentabelle prüfen: `●` = statisch,
+  `ƒ` = dynamisch. Eine Route, die unerwartet `ƒ` ist, ist ein Performance-Befund.
+- Neue Seite unter `[locale]`, die statisch sein soll: `setRequestLocale(locale)` als erste
+  Zeile nach dem Auflösen von `params` — sonst fällt Next.js still auf dynamisch zurück.
+- **Gegenprobe vor dem Statisch-Machen:** Liest die Seite veränderliche Daten? `/preise` und
+  `/tools/[slug]` bleiben bewusst `force-dynamic`, weil sie über `getPublicPricing()` den
+  aktuellen Preis samt Promotion zeigen — vorgerendert wäre eine Preisänderung erst nach
+  dem nächsten Deployment sichtbar.
+- Die frühere Notiz „kein `generateStaticParams` bei doppelt verschachtelten Dynamic
+  Segments" ist überholt: Sie galt nur, weil das Eltern-Segment `[locale]` keines hatte.
+  Seit es das hat, werden `leitfaden/[slug]` und `blog/[slug]` normal vorgerendert.
+
+### Accessibility-Lektion: aria-hidden schützt nicht vor der Kontrastprüfung (02.08.2026)
+**Symptom:** Lighthouse A11y 94 mit „Kontrastverhältnis nicht ausreichend" auf der Startseite.
+Nachgerechnet bestand aber jede sichtbare Textfarbe die AA-Schwelle (knappster Wert:
+`text-slate-500` auf Ivory = 4,63:1).
+**Ursache:** Die dekorative `BrandWordcloud` (Buchcover-Begriffe bei 5 % Deckkraft, 1,08:1)
+war die Quelle aller 14 Verstöße — obwohl der Container bereits `aria-hidden="true"` trug.
+axe-core und Lighthouse prüfen `color-contrast` anhand der SICHTBARKEIT, nicht anhand des
+Accessibility-Baums: Was Sehende sehen, wird geprüft, auch wenn Screenreader es überspringen.
+**Fix:** Die Begriffe stehen nicht mehr als Textknoten im DOM, sondern kommen über
+`content: attr(data-word)` aus einem Pseudo-Element (`.brand-wordcloud-word` in
+`globals.css`). Pseudo-Element-Inhalt wird nicht als Fließtext gewertet, die Darstellung
+ist pixelgleich. Empirisch abgesichert: Klartext-Span → Violation, SVG-`<text>` → nur
+„incomplete", Pseudo-Element → sauber bestanden.
+**Lehre:** Bei dekorativem Text mit sehr geringer Deckkraft reicht `aria-hidden` nicht.
+Entweder Pseudo-Element oder Hintergrundbild — den Kontrast anzuheben zerstört die Optik
+und ist inhaltlich falsch, weil reine Dekoration nach WCAG 1.4.3 ausgenommen ist.
+**Nebenbefund:** Nicht raten, wo ein Kontrastproblem sitzt — axe-core im Browser laufen
+lassen. Die ursprüngliche Vermutung (Trust-Bar- und Stat-Labels) war komplett falsch.
+
+### Routing-Lektion: Neuer öffentlicher Bereich braucht einen Eintrag im Auth-Guard (02.08.2026)
+**Symptom:** Der neu angelegte `/blog` lieferte 307 statt 200 — für anonyme Besucher UND
+für Suchmaschinen, obwohl er in Sitemap und robots.txt als öffentlich stand.
+**Ursache:** `src/proxy.ts` schützt alles, was nicht explizit in der Public-Liste steht
+(fail closed — richtig so). `/blog` fehlte dort schlicht.
+**Fix:** Listen und Prüffunktion liegen jetzt in `src/config/public-routes.ts`
+(`isPublicPath()`), analog zu `src/config/private-routes.ts`, die robots.ts und die
+Cache-Header in next.config.ts speist. Beide sind durch Tests abgesichert, die die
+tatsächlich vorhandenen Verzeichnisse unter `(dashboard)` gegen die Liste abgleichen.
+**Lehre:** Beim Anlegen eines öffentlichen Bereichs immer vier Stellen mitziehen —
+`PUBLIC_PREFIXES`, Sitemap, Navigation und ein Smoke-Test auf HTTP 200 im
+Produktions-Build. Der Fehler erzeugt keine Fehlermeldung, nur eine stille Umleitung.
+
 ### Bugs & Feature-Wünsche aus Mobile-Test (21.06.2026) — Status 05.07.2026
 
 **BUG 1 — Gespeicherte Ergebnisse nicht anzeigbar** → ERLEDIGT (GitHub Issue #4, CLOSED
@@ -554,6 +623,62 @@ wurde in dieser Runde nicht zeilengenau nachverifiziert.
 - Alle vier: tsc/eslint sauber, Testlauf-Baseline unverändert, Build grün, deployt.
   Offen: Daniels Screenshot-/Interaktions-Freigabe (Gate B/D) + Redaktions-Feinschliff
   der 24 Texte (jetzt ohne Deploy im Admin möglich).
+
+**ERLEDIGT — SEO- & Performance-Sprint + Blog (02.08.2026, Vorlage `~/Downloads/seo-performance-plan.md`):**
+Der Plan wurde vor der Umsetzung gegen das Repo verifiziert; drei seiner sechs „Sofort-Fixes"
+waren bereits erledigt (`robots.ts`, `SoftwareApplication`-JSON-LD, `og:image` via
+`opengraph-image.tsx`) und zwei Empfehlungen wären Verschlechterungen gewesen — Details in den
+drei neuen Lektionen oben. Umgesetzt wurde:
+- **Statisches Rendering** der öffentlichen Seiten (Rendering-Lektion oben): 11 Routen jetzt
+  `s-maxage=31536000` statt `no-store`. `src/app/layout.tsx` gelöscht, Inhalt in
+  `src/app/[locale]/layout.tsx`; neues `<ThemeAttribute>` im `(dashboard)`-Layout.
+- **Accessibility:** Startseite von 24 beanstandeten Elementen (14× color-contrast,
+  landmark-one-main, region ×8, image-redundant-alt) auf **0 Verstöße** — mit axe-core im
+  Browser gegen den Produktions-Build verifiziert. `<main>` in allen öffentlichen Seiten
+  ergänzt, `BrandWordcloud` auf Pseudo-Elemente umgestellt, Logo-`alt` entschlackt,
+  `text-slate-400` auf Ivory/Slate-50 (2,44–2,50:1) durch `text-slate-500` ersetzt.
+- **PostHog `disable_surveys: true`** — spart ~32 KiB (10 % des JS-Bundles), im gebauten
+  Chunk verifiziert.
+- **Cache-Header für Bild-Assets** aus `/public`, bewusst über Dateiendung gematcht statt
+  über das Verzeichnis (`/tools` ist gleichzeitig Asset-Ordner und Route mit Live-Preisen).
+- **`@next/bundle-analyzer`** als devDependency: `ANALYZE=true npm run build`.
+- **Zentrale Routenlisten** `src/config/private-routes.ts` (speist robots.ts + Cache-Header;
+  `/admin`, `/settings`, `/ergebnisse`, `/zusammenfassung`, `/upgrade`, `/feedback`,
+  `/geteilte-links` fehlten vorher in beiden) und `src/config/public-routes.ts` (speist den
+  Auth-Guard) — beide testgesichert gegen die real vorhandenen Verzeichnisse.
+- **Blog** unter `/blog` (+ `/en/blog`): `src/config/blog-data.ts` nach dem Muster von
+  `leitfaden-data.ts` (TypeScript statt MDX — der `Bi`-Typ erzwingt DE+EN zur Compile-Zeit,
+  keine zweite Content-Pipeline), Hub + Beitragsseite, `BlogPosting`- und
+  `BreadcrumbList`-Schema, hreflang inkl. `x-default`, Sitemap- und Navigationseintrag,
+  interne Verlinkung auf Tool und passende Leitfäden. Erster Beitrag
+  `ki-governance-betriebsmodelle` (DE+EN) — **Redaktionsentwurf, vor Veröffentlichung von
+  Daniel gegenzulesen**; bewusst ohne Statistiken oder Zahlenangaben, um keine nicht
+  belegbaren Fakten zu behaupten.
+- 27 neue Tests in 3 neuen Suites (Blog-Daten inkl. Bilingualitätsprüfung, private und
+  öffentliche Routen, ThemeAttribute-Whitelist): 817 → 844 Tests. Test-Baseline unverändert
+  (27 rote Suites / 10 rote Tests wie vorher, alle next-intl-/ESM-bedingt),
+  tsc + eslint + build sauber.
+- **Next 16.2.9 → 16.2.12** (exakt gepinnt, wie im Repo üblich; `eslint-config-next` und
+  `@next/bundle-analyzer` mitgezogen, `npm ci` als Gegenprobe). **Wichtig für den
+  Deployment-Gate:** Das Update ändert den `npm audit --omit=dev`-Stand NICHT — vorher wie
+  nachher 6 Befunde (1 low, 5 high). Die Meldung „fix available … Will install next@16.2.12"
+  war irreführend; nach dem Update schlägt `npm audit fix --force` sogar einen Downgrade auf
+  next@9.3.3 vor. Die tatsächlichen Leaf-Pakete sind `sharp` 0.34.5 (Advisory verlangt
+  ≥ 0.35.0, Next liefert es noch nicht mit), `postcss` 8.5.15 via `@tailwindcss/postcss`,
+  `dompurify` 3.4.11 via `posthog-js`, dazu `brace-expansion` und `fast-uri` aus der
+  Build-Kette. **Praktische Einordnung:** `next/image` wird im gesamten `src/` nirgends
+  importiert — sharp wird also nie aufgerufen; `postcss`/`brace-expansion`/`fast-uri` laufen
+  nur zur Buildzeit. Erzwingen ließe sich das nur über `overrides` in package.json, was
+  Next-interne Abhängigkeiten überschreibt — bewusst nicht ohne Rücksprache gemacht.
+  Der Gate-Befehl `npm audit --omit=dev` schlägt also weiterhin an; das ist ein bekannter,
+  bewertet-akzeptierter Stand, kein neuer Regressionsbefund.
+- **Bewusst NICHT umgesetzt** (mit Begründung): `browserslist` aus dem Plan hätte die
+  Zielbrowser AUFGEWEITET — Next 16 nutzt bereits `chrome 111 / edge 111 / firefox 111 /
+  safari 16.4` („baseline widely available"), der vorgeschlagene Eintrag
+  `last 2 versions, > 0.5%` hätte mehr Polyfills erzeugt, nicht weniger. Die Annahme zum
+  Tailwind-`content`-Purging trifft auf Tailwind v4 nicht zu (keine `content`-Config). Das
+  „duplizierte JavaScript" liegt ausschließlich in Build-/Dev-Abhängigkeiten, nicht im
+  Client-Bundle.
 
 **PRIO 1 — Noch offen (Betrieb & Vertrauen):**
 - Rechtstexte (Impressum/Datenschutz/AGB): Daniel bestätigt Texte vorhanden (17.07.2026) — Code-seitig erledigt.

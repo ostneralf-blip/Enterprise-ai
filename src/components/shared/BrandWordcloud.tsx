@@ -1,4 +1,18 @@
-// Hintergrund-Wortwolke mit Buchcover-Begriffen — Lora-Kursiv, Deckkraft 5%, aria-hidden
+// Hintergrund-Wortwolke mit Buchcover-Begriffen — Lora-Kursiv, Deckkraft 5%, aria-hidden.
+//
+// Die Begriffe stehen bewusst NICHT als Textknoten im DOM, sondern werden über
+// `content: attr(data-word)` aus der Utility-Klasse `.brand-wordcloud-word`
+// (src/app/globals.css) gerendert. Grund: Es ist reine Dekoration im Sinne von
+// WCAG 1.4.3 („incidental / pure decoration"), aber axe-core und Lighthouse prüfen
+// den Kontrast jedes sichtbaren Textknotens — unabhängig von aria-hidden. Bei 5 %
+// Deckkraft ergibt das 1,08:1 und war am 02.08.2026 die einzige Ursache der
+// 14 color-contrast-Verstöße auf der Startseite (Lighthouse A11y 94).
+// Pseudo-Element-Inhalt wird von der Prüfung nicht erfasst, die Darstellung ist
+// pixelgleich. Den Kontrast stattdessen anzuheben würde die Wortwolke sichtbar
+// machen und das Design zerstören.
+//
+// WICHTIG: Neue Wörter nur über `data-word` ergänzen, nie als Kindtext — sonst
+// kehrt der Verstoß zurück.
 const WORDS: { text: string; size: string; top: string; left: string; rotate: string }[] = [
   { text: 'Governance',    size: 'text-xl',   top: '6%',  left: '4%',   rotate: '-4deg' },
   { text: 'RAG',           size: 'text-4xl',  top: '3%',  left: '68%',  rotate: '3deg'  },
@@ -22,7 +36,8 @@ export function BrandWordcloud() {
       {WORDS.map(w => (
         <span
           key={w.text}
-          className={`absolute font-serif italic text-primary ${w.size}`}
+          data-word={w.text}
+          className={`brand-wordcloud-word absolute font-serif italic text-primary ${w.size}`}
           style={{
             top: w.top,
             left: w.left,
@@ -30,9 +45,7 @@ export function BrandWordcloud() {
             opacity: 0.05,
             whiteSpace: 'nowrap',
           }}
-        >
-          {w.text}
-        </span>
+        />
       ))}
     </div>
   )

@@ -74,11 +74,32 @@ describe('Security: Settings API', () => {
       expect(themeMatch?.[0]).toContain('z.enum')
     })
 
-    it('Root Layout liest theme server-seitig aus DB (kein Client-Cookie-Bypass)', () => {
-      const source = readFileSync(join(process.cwd(), 'src/app/layout.tsx'), 'utf-8')
-      expect(source).toContain('profiles')
-      expect(source).toContain('theme')
+    // Das Theme wurde aus dem Root-Layout in das (dashboard)-Layout verschoben, damit
+    // öffentliche Seiten ohne Supabase-Abfrage statisch gerendert werden können
+    // (SEO-/Performance-Sprint 02.08.2026). Die Sicherheitseigenschaft bleibt dieselbe:
+    // der Wert stammt server-seitig aus der profiles-Tabelle, nicht aus einer vom
+    // Client kontrollierbaren Quelle.
+    it('Dashboard-Layout liest theme server-seitig aus DB (kein Client-Cookie-Bypass)', () => {
+      const source = readFileSync(
+        join(process.cwd(), 'src/app/[locale]/(dashboard)/layout.tsx'),
+        'utf-8'
+      )
+      expect(source).toContain("from('profiles')")
+      expect(source).toContain('ThemeAttribute')
+      expect(source).toContain('profile?.theme')
+    })
+
+    it('ThemeAttribute setzt data-theme nur aus einer Whitelist (XSS-Schutz im Inline-Skript)', () => {
+      const source = readFileSync(
+        join(process.cwd(), 'src/components/shared/ThemeAttribute.tsx'),
+        'utf-8'
+      )
       expect(source).toContain('data-theme')
+      expect(source).toContain('VALID_THEMES')
+      // Der DB-Wert landet in einem <script>. Er darf nur eingesetzt werden, wenn er
+      // vorher gegen die Whitelist geprüft wurde — sonst wäre das eine XSS-Senke.
+      expect(source).toContain('VALID_THEMES.includes')
+      expect(source).toContain('JSON.stringify(safeTheme)')
     })
   })
 })

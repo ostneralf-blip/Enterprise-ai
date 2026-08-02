@@ -14,6 +14,7 @@ export async function PublicNav({ locale }: { locale: string }) {
 
   const links: PublicNavLink[] = [
     { label: t('navLeitfaden'), href: `${prefix}/leitfaden` },
+    { label: t('navBlog'), href: `${prefix}/blog` },
     { label: t('navTools'), href: `${prefix}/tools` },
     { label: t('navBuch'), href: AMAZON_BOOK_URL, external: true },
     { label: t('navPreise'), href: `${prefix}/preise` },
@@ -22,8 +23,11 @@ export async function PublicNav({ locale }: { locale: string }) {
   return (
     <nav className="relative border-b border-slate-200 px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
       <Link href={`${prefix}/`} className="flex items-center gap-3">
+        {/* Dekoratives Logo: alt="" ist hier korrekt, weil der Markenname direkt
+            daneben als Text steht. Ein zweites „AI Navigator" im Alt-Text würde
+            Screenreader-Nutzern den Namen doppelt vorlesen (axe: image-redundant-alt). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/app-icon/app-icon.svg" alt="AI Navigator" width={32} height={32} className="w-8 h-8" />
+        <img src="/brand/app-icon/app-icon.svg" alt="" width={32} height={32} className="w-8 h-8" />
         <span className="font-semibold">AI Navigator</span>
       </Link>
 

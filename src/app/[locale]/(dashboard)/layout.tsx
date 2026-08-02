@@ -7,6 +7,7 @@ import { MobileNavProvider } from '@/components/layout/MobileNavContext'
 import { PaperNoise } from '@/components/shared/PaperNoise'
 import { PostHogInit } from '@/components/shared/PostHogInit'
 import { SubscriptionBanner } from '@/components/shared/SubscriptionBanner'
+import { ThemeAttribute } from '@/components/shared/ThemeAttribute'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -27,6 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <MobileNavProvider>
+      <ThemeAttribute theme={profile?.theme} />
       <PostHogInit userId={user.id} email={user.email ?? undefined} tier={profile?.tier ?? undefined} />
       <PaperNoise />
       {/* h-[100dvh] statt h-screen: verhindert iOS-Safari-Modal-Effekt */}

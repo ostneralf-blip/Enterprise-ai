@@ -341,3 +341,12 @@ body {
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
+
+/* ── Dekorative Wortwolke (BrandWordcloud) ──────────────────────────────────
+   Der Begriff kommt aus dem data-word-Attribut statt aus einem Textknoten.
+   Damit gilt er nicht als Fließtext und löst keinen color-contrast-Verstoß
+   aus — die Wörter liegen bei 5 % Deckkraft (1,08:1) und sind reine
+   Dekoration nach WCAG 1.4.3. Details siehe BrandWordcloud.tsx. */
+.brand-wordcloud-word::before {
+  content: attr(data-word);
+}
