@@ -7,3 +7,8 @@ export const AUTHOR_NAME = 'Daniel Ostner'
 // 512×512, quadratisch zugeschnitten. Wird als Kreis dargestellt (48px im Blog,
 // 44px auf /trust) — die Auflösung ist Reserve für Retina-Displays.
 export const AUTHOR_PHOTO = '/brand/author/daniel-ostner.jpg'
+
+// Für `sameAs` im Person-JSON-LD: Profile, die dieselbe Person belegen. Die
+// utm_*-Parameter aus dem LinkedIn-Teilen-Dialog sind bewusst entfernt — sie
+// gehören zur Sitzung, aus der der Link kopiert wurde, nicht zur Identität.
+export const AUTHOR_LINKEDIN_URL = 'https://www.linkedin.com/in/digital-is-a-must-have'

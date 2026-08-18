@@ -1620,8 +1620,59 @@
     "entriesFor": "{count} entries for this module",
     "fallbackBadge": "DE"
   },
+  "trust": {
+    "back": "← Back to homepage",
+    "title": "Security & Trust",
+    "metaDescription": "EU hosting in Frankfurt, GDPR compliance, data security, and transparency.",
+    "intro": "AI Navigator is built for enterprise requirements — with EU hosting, GDPR compliance and full data transparency.",
+    "badges": {
+      "hosting": "Hosting: Frankfurt EU",
+      "gdpr": "GDPR-compliant",
+      "tls": "TLS-encrypted",
+      "rls": "Row-level security",
+      "payments": "Stripe PCI DSS L1",
+      "analytics": "Cookieless analytics"
+    },
+    "items": {
+      "hosting": {
+        "title": "EU hosting in Frankfurt",
+        "body": "All data is stored and processed exclusively on servers in Frankfurt am Main (eu-central-1) — never outside the EU. Infrastructure providers: Supabase (PostgreSQL) and Vercel (serverless compute), each with an EU data center."
+      },
+      "gdpr": {
+        "title": "GDPR compliance",
+        "body": "AI Navigator was built for GDPR compliance: the right to erasure (Art. 17) directly in your settings, no disclosure of personal data to third parties, privacy-by-design architecture. Privacy policy, legal notice and terms are available at any time."
+      },
+      "security": {
+        "title": "Data security",
+        "body": "Row-level security (RLS) on every database table ensures that users can only read and write their own data. All connections are TLS-encrypted. Passwords are stored exclusively as hashes (bcrypt via Supabase Auth)."
+      },
+      "transparency": {
+        "title": "Transparency & no hidden trackers",
+        "body": "Analytics via PostHog EU Cloud (cookieless, no cross-site tracking). No Google Analytics, no Facebook pixels, no ad networks. Sentry error tracking (EU region) is used solely for troubleshooting, with all text masked in session replays."
+      },
+      "payments": {
+        "title": "Secure payment processing",
+        "body": "Payments are handled entirely by Stripe — certified to PCI DSS Level 1. AI Navigator stores no credit card data. Invoices, payment methods and subscriptions can be managed directly in the Stripe customer portal."
+      },
+      "dpa": {
+        "title": "Data processing agreement (DPA)",
+        "body": "Data processing agreements under Art. 28 GDPR are in place with all sub-processors (Supabase, Vercel, Stripe, PostHog, Resend). On request, we will provide you with a DPA for your own GDPR documentation."
+      }
+    },
+    "contact": {
+      "title": "Questions about privacy & security?",
+      "body": "For data protection enquiries, DPA requests or security questions, contact us directly."
+    },
+    "links": {
+      "imprint": "Legal Notice",
+      "privacy": "Privacy Policy",
+      "terms": "Terms"
+    },
+    "legalNote": "Legal texts (Impressum, Datenschutz) are only available in German, as legally required."
+  },
   "author": {
     "name": "Daniel Ostner",
+    "jobTitle": "Founder, AI Navigator",
     "shortBio": "Daniel Ostner brings 20+ years of experience in SAP landscapes and enterprise IT — including as Chief Architect for an S/4 greenfield transformation in global chemical distribution and roughly 7 years as Head of IT at a SAP consulting firm. Certified through IESE's Executive Program in Data & AI, among others.",
     "founderHeading": "About the founder",
     "longBio1": "Daniel Ostner brings over 20 years of experience across SAP landscapes and enterprise IT — spanning chemical distribution, automotive supply, and SAP consulting. As Chief Architect at a globally operating chemical distribution company, he held €5M budget responsibility (OPEX/CAPEX), led a team of 14 internal and 30 external resources, and directed an international S/4 greenfield rollout. Previously, as SAP Basis Manager at an automotive supplier, he ran SAP operations for plants across four continents in a 24/7 environment, including SOX/SOD audit responsibility.",

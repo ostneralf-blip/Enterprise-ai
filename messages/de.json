@@ -1620,8 +1620,59 @@
     "entriesFor": "{count} Einträge für dieses Modul",
     "fallbackBadge": "DE"
   },
+  "trust": {
+    "back": "← Zurück zur Startseite",
+    "title": "Sicherheit & Vertrauen",
+    "metaDescription": "EU-Hosting in Frankfurt, DSGVO-Konformität, Datensicherheit und Transparenz.",
+    "intro": "Der AI Navigator wurde für Enterprise-Anforderungen entwickelt — mit EU-Hosting, DSGVO-Konformität und vollständiger Datentransparenz.",
+    "badges": {
+      "hosting": "Hosting: Frankfurt EU",
+      "gdpr": "DSGVO-konform",
+      "tls": "TLS-verschlüsselt",
+      "rls": "Row-Level-Security",
+      "payments": "Stripe PCI-DSS L1",
+      "analytics": "Cookieless Analytics"
+    },
+    "items": {
+      "hosting": {
+        "title": "EU-Hosting in Frankfurt",
+        "body": "Alle Daten werden ausschließlich auf Servern in Frankfurt am Main (eu-central-1) gespeichert und verarbeitet — niemals außerhalb der EU. Infrastruktur-Anbieter: Supabase (PostgreSQL) und Vercel (Serverless-Compute), jeweils mit EU-Rechenzentrum."
+      },
+      "gdpr": {
+        "title": "DSGVO-Konformität",
+        "body": "Der AI Navigator wurde DSGVO-konform entwickelt: Recht auf Datenlöschung (Art. 17) direkt in den Einstellungen, keine Weitergabe personenbezogener Daten an Dritte, Privacy-by-Design-Architektur. Datenschutzerklärung, Impressum und AGB sind jederzeit einsehbar."
+      },
+      "security": {
+        "title": "Datensicherheit",
+        "body": "Row-Level-Security (RLS) auf jeder Datenbanktabelle stellt sicher, dass Nutzer ausschließlich ihre eigenen Daten lesen und schreiben können. Sämtliche Verbindungen sind TLS-verschlüsselt. Passwörter werden ausschließlich gehasht gespeichert (bcrypt via Supabase Auth)."
+      },
+      "transparency": {
+        "title": "Transparenz & keine versteckten Tracker",
+        "body": "Analytics über PostHog EU-Cloud (cookieless, kein Cross-Site-Tracking). Keine Google Analytics, keine Facebook-Pixel, keine Werbenetze. Sentry Error-Tracking (EU-Region) ausschließlich zur Fehlerbehebung, mit vollständiger Textverschleierung in Session-Replays."
+      },
+      "payments": {
+        "title": "Sichere Zahlungsabwicklung",
+        "body": "Zahlungen werden vollständig über Stripe abgewickelt — PCI-DSS Level 1 zertifiziert. Der AI Navigator speichert keine Kreditkartendaten. Rechnungen, Zahlungsmethoden und Abonnements können direkt im Stripe-Kundenportal verwaltet werden."
+      },
+      "dpa": {
+        "title": "Auftragsverarbeitungsvertrag (AVV)",
+        "body": "Mit allen Unterauftragsverarbeitern (Supabase, Vercel, Stripe, PostHog, Resend) bestehen Auftragsverarbeitungsverträge gemäß Art. 28 DSGVO. Auf Anfrage stellen wir Ihnen einen AVV für Ihre eigene DSGVO-Dokumentation bereit."
+      }
+    },
+    "contact": {
+      "title": "Fragen zu Datenschutz & Sicherheit?",
+      "body": "Für Datenschutzanfragen, AVV-Anforderungen oder Sicherheitsfragen wenden Sie sich direkt an uns."
+    },
+    "links": {
+      "imprint": "Impressum",
+      "privacy": "Datenschutzerklärung",
+      "terms": "AGB"
+    },
+    "legalNote": "Rechtstexte (Impressum, Datenschutz) sind ausschließlich auf Deutsch verfügbar, wie gesetzlich vorgeschrieben."
+  },
   "author": {
     "name": "Daniel Ostner",
+    "jobTitle": "Gründer, AI Navigator",
     "shortBio": "Daniel Ostner bringt 20+ Jahre Erfahrung aus SAP-Landschaften und Enterprise-IT mit — als Chief Architect einer S/4-Greenfield-Transformation im globalen Chemiehandel und rund 7 Jahre als IT-Leiter eines SAP-Beratungshauses. Zertifiziert u.a. im IESE Executive Program Data & AI.",
     "founderHeading": "Über den Gründer",
     "longBio1": "Daniel Ostner bringt über 20 Jahre Erfahrung aus SAP-Landschaften und Enterprise-IT mit — über Chemiehandel, Automotive-Zulieferung und SAP-Beratung hinweg. Als Chief Architect verantwortete er bei einem global tätigen Chemiehandelsunternehmen ein Budget von 5 Mio. Euro (OPEX/CAPEX), führte ein Team aus 14 internen und 30 externen Ressourcen und leitete einen internationalen S/4-Greenfield-Rollout. Zuvor steuerte er als SAP-Basis-Manager bei einem Automotive-Zulieferer den SAP-Betrieb für Werke in vier Kontinenten im 24/7-Betrieb, inklusive SOX/SOD-Audit-Verantwortung.",
