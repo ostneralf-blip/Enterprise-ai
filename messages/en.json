@@ -1619,5 +1619,13 @@
     "buttonLabel": "Knowledge Base",
     "entriesFor": "{count} entries for this module",
     "fallbackBadge": "DE"
+  },
+  "author": {
+    "name": "Daniel Ostner",
+    "shortBio": "Daniel Ostner brings 20+ years of experience in SAP landscapes and enterprise IT — including as Chief Architect for an S/4 greenfield transformation in global chemical distribution and roughly 7 years as Head of IT at a SAP consulting firm. Certified through IESE's Executive Program in Data & AI, among others.",
+    "founderHeading": "About the founder",
+    "longBio1": "Daniel Ostner brings over 20 years of experience across SAP landscapes and enterprise IT — spanning chemical distribution, automotive supply, and SAP consulting. As Chief Architect at a globally operating chemical distribution company, he held €5M budget responsibility (OPEX/CAPEX), led a team of 14 internal and 30 external resources, and directed an international S/4 greenfield rollout. Previously, as SAP Basis Manager at an automotive supplier, he ran SAP operations for plants across four continents in a 24/7 environment, including SOX/SOD audit responsibility.",
+    "longBio2": "For roughly 7 years, he served as Head of IT and SAP Senior Consultant at a mid-sized SAP consulting firm — responsible for internal IT and as project lead for clients in building materials and automation technology. Before that, he worked as a SAP Senior Technology Consultant at a SAP consulting firm specializing in mechanical engineering and industrial clients, as well as in SAP Basis roles at a technology corporation and an IT services provider.",
+    "longBio3": "Certified in PRINCE2 Foundation, ITIL V3 Foundation, ISO/IEC 27001 fundamentals, as a Data Protection Officer, and through IESE's Executive Program in Data & AI (2023). AI Navigator grew out of a 191-page concept paper bundling the methodological foundation for enterprise AI strategy, governance, and use-case prioritization."
   }
 }

@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { AUTHOR_PHOTO } from '@/config/author'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
@@ -60,7 +62,15 @@ const TRUST_ITEMS = [
   },
 ]
 
-export default function TrustPage() {
+export default async function TrustPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const tAuthor = await getTranslations('author')
+
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
@@ -100,6 +110,33 @@ export default function TrustPage() {
             </section>
           ))}
         </div>
+
+        {/* Über den Gründer — schließt an die Trust-Signale an: nach den sachlichen
+            Nachweisen folgt die Person, die dahintersteht. Der aktuelle Arbeitgeber
+            wird bewusst nicht genannt (abgestimmte Branchen-Version, kein Versehen). */}
+        <section className="mt-8 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6">
+          <div className="flex items-center gap-3 mb-4">
+            {/* alt="" ist Absicht: Der Name steht direkt daneben — sonst
+                image-redundant-alt, siehe Accessibility-Lektion vom 02.08.2026. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={AUTHOR_PHOTO}
+              alt=""
+              width={44}
+              height={44}
+              className="w-11 h-11 rounded-full object-cover border border-primary-border shrink-0"
+            />
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-slate-900">{tAuthor('founderHeading')}</h2>
+              <p className="text-xs text-slate-500">{tAuthor('name')}</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 leading-relaxed">{tAuthor('longBio1')}</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{tAuthor('longBio2')}</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{tAuthor('longBio3')}</p>
+          </div>
+        </section>
 
         <div className="mt-8 bg-slate-800 text-white rounded-2xl p-5 sm:p-6">
           <h2 className="text-base font-semibold mb-2">Fragen zu Datenschutz & Sicherheit?</h2>

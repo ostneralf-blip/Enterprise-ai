@@ -1619,5 +1619,13 @@
     "buttonLabel": "Wissensbasis",
     "entriesFor": "{count} Einträge für dieses Modul",
     "fallbackBadge": "DE"
+  },
+  "author": {
+    "name": "Daniel Ostner",
+    "shortBio": "Daniel Ostner bringt 20+ Jahre Erfahrung aus SAP-Landschaften und Enterprise-IT mit — als Chief Architect einer S/4-Greenfield-Transformation im globalen Chemiehandel und rund 7 Jahre als IT-Leiter eines SAP-Beratungshauses. Zertifiziert u.a. im IESE Executive Program Data & AI.",
+    "founderHeading": "Über den Gründer",
+    "longBio1": "Daniel Ostner bringt über 20 Jahre Erfahrung aus SAP-Landschaften und Enterprise-IT mit — über Chemiehandel, Automotive-Zulieferung und SAP-Beratung hinweg. Als Chief Architect verantwortete er bei einem global tätigen Chemiehandelsunternehmen ein Budget von 5 Mio. Euro (OPEX/CAPEX), führte ein Team aus 14 internen und 30 externen Ressourcen und leitete einen internationalen S/4-Greenfield-Rollout. Zuvor steuerte er als SAP-Basis-Manager bei einem Automotive-Zulieferer den SAP-Betrieb für Werke in vier Kontinenten im 24/7-Betrieb, inklusive SOX/SOD-Audit-Verantwortung.",
+    "longBio2": "Rund 7 Jahre war er IT-Leiter und SAP Senior Consultant bei einem mittelständischen SAP-Beratungshaus — verantwortlich für die interne IT sowie als Projektleiter für Kunden aus Baustoffindustrie und Automatisierungstechnik. Bereits zuvor war er als SAP Senior Technology Consultant bei einem auf Maschinenbau und Industrieunternehmen spezialisierten SAP-Beratungshaus tätig, ebenso in SAP-Basis-Rollen bei einem Technologiekonzern und einem IT-Dienstleister.",
+    "longBio3": "Zertifiziert in PRINCE2 Foundation, ITIL V3 Foundation, ISO/IEC-27001-Grundlagen, als Datenschutzbeauftragter sowie im IESE Executive Program Data & AI (2023). AI Navigator entstand aus einem 191-seitigen Konzeptpapier, das methodisches Fundament für Enterprise-AI-Strategie, Governance und Use-Case-Priorisierung bündelt."
   }
 }

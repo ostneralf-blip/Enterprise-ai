@@ -3,14 +3,15 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getPublishedPost, getPublishedSlugs, type BlogLocale } from '@/lib/blog'
 import { getGuide, AMAZON_BOOK_URL } from '@/config/leitfaden-data'
+import { AUTHOR_NAME, AUTHOR_PHOTO } from '@/config/author'
 import { getTool, TOOL_CTA_ANCHOR } from '@/config/tools-data'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import { OG_IMAGES } from '@/lib/seo'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://enterprise-ai.biz'
 
-const BLOG_AUTHOR_NAME = 'Daniel Ostner'
+const BLOG_AUTHOR_NAME = AUTHOR_NAME
 
 // Siehe Kommentar im Hub: DB-Inhalte, aber cookielos gelesen und damit statisch.
 export const revalidate = 300
@@ -72,7 +73,14 @@ export default async function BlogPostPage({
   // gar nicht erst heraus, hier landet dann ein sauberes 404 statt einer Teilseite.
   if (!post) notFound()
 
+  const tAuthor = await getTranslations('author')
   const prefix = isEn ? '/en' : ''
+
+  // Die Kurz-Bio gehört Daniel Ostner. Ist ein Beitrag von jemand anderem
+  // redaktionell verantwortet, steht dort dessen Name — dann bleibt die Bio weg,
+  // statt eine fremde Person mit fremdem Lebenslauf auszuzeichnen.
+  const authorName = post.reviewedBy ?? BLOG_AUTHOR_NAME
+  const showAuthorBio = authorName === BLOG_AUTHOR_NAME
 
   const formatDate = (iso: string) =>
     iso
@@ -200,31 +208,47 @@ export default async function BlogPostPage({
             Kennzeichnungspflicht entfällt bei echter redaktioneller Prüfung — der
             Hinweis ist ein freiwilliges Transparenzsignal, keine Warnung, und soll
             die Autorität des Beitrags nicht untergraben. */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-5 mb-12 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary-soft border border-primary-border flex items-center justify-center text-primary font-semibold shrink-0">
-            DO
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-900">{post.reviewedBy ?? BLOG_AUTHOR_NAME}</p>
-            <p className="text-xs text-slate-500">
-              {isEn ? 'Author of the Enterprise AI Guide' : 'Autor des Enterprise-AI-Leitfadens'}
-            </p>
-            {post.aiAssisted && post.reviewedAt && (
-              <p className="text-xs text-slate-500 mt-1">
-                {isEn
-                  ? `AI-assisted draft, editorially reviewed on ${formatDate(post.reviewedAt)}.`
-                  : `KI-unterstützt entworfen, redaktionell geprüft am ${formatDate(post.reviewedAt)}.`}
+        <section className="bg-white border border-slate-200 rounded-2xl p-5 mb-12">
+          {/* flex-wrap + basis-48: auf 375px hat der Namensblock sonst nur ~100px
+              Breite, der Prüfhinweis brach dort auf vier Zeilen. Jetzt rutscht der
+              Buch-Link stattdessen in eine eigene Zeile. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* alt="" ist Absicht: Der Name steht direkt daneben. Ein alt="Daniel
+                Ostner" wäre eine Dopplung und löst axe' image-redundant-alt aus
+                (siehe Accessibility-Lektion vom 02.08.2026 zum Logo). */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={AUTHOR_PHOTO}
+              alt=""
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-full object-cover border border-primary-border shrink-0"
+            />
+            <div className="flex-1 basis-48 min-w-0">
+              <p className="text-sm font-semibold text-slate-900">{authorName}</p>
+              <p className="text-xs text-slate-500">
+                {isEn ? 'Author of the Enterprise AI Guide' : 'Autor des Enterprise-AI-Leitfadens'}
               </p>
-            )}
+              {post.aiAssisted && post.reviewedAt && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {isEn
+                    ? `AI-assisted draft, editorially reviewed on ${formatDate(post.reviewedAt)}.`
+                    : `KI-unterstützt entworfen, redaktionell geprüft am ${formatDate(post.reviewedAt)}.`}
+                </p>
+              )}
+            </div>
+            <a
+              href={AMAZON_BOOK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary text-xs font-medium hover:underline whitespace-nowrap"
+            >
+              {isEn ? 'View book →' : 'Buch ansehen →'}
+            </a>
           </div>
-          <a
-            href={AMAZON_BOOK_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary text-xs font-medium hover:underline whitespace-nowrap"
-          >
-            {isEn ? 'View book →' : 'Buch ansehen →'}
-          </a>
+          {showAuthorBio && (
+            <p className="text-sm text-slate-600 leading-relaxed mt-4">{tAuthor('shortBio')}</p>
+          )}
         </section>
 
         {relatedGuides.length > 0 && (
