@@ -163,7 +163,7 @@ describe('Compliance-Daten: Integrität', () => {
 
 describe('REGULATORY_WATCHLIST', () => {
   it('mindestens 3 Einträge sind definiert', () => {
-    expect(REGULATORY_WATCHLIST).toHaveLength(3)
+    expect(REGULATORY_WATCHLIST.length).toBeGreaterThanOrEqual(3)
   })
 
   it('jeder Eintrag hat id, title, status, summary, potentialImpact, sourceUrl, lastChecked', () => {
@@ -190,17 +190,29 @@ describe('REGULATORY_WATCHLIST', () => {
     })
   })
 
-  it('digital_omnibus_hrais_delay-Eintrag ist vorhanden', () => {
+  it('digital_omnibus_hrais_delay ist final mit Stichtag 02.12.2027 (Verordnung (EU) 2026/1744)', () => {
     const entry = REGULATORY_WATCHLIST.find(i => i.id === 'digital_omnibus_hrais_delay')
     expect(entry).toBeDefined()
-    expect(entry?.status).toBe('in_gesetzgebung')
+    expect(entry?.status).toBe('final')
+    expect(entry?.deadline).toBe('2027-12-02')
+    expect(entry?.sourceUrl).toContain('32026R1744')
   })
 
-  it('alle drei erwarteten Einträge sind vorhanden', () => {
+  it('alle erwarteten Einträge sind vorhanden (inkl. der vier Omnibus-Ergänzungen)', () => {
     const ids = REGULATORY_WATCHLIST.map(i => i.id)
     expect(ids).toContain('digital_omnibus_hrais_delay')
     expect(ids).toContain('bdsg_dsb_threshold')
     expect(ids).toContain('breach_96h_single_entry')
+    expect(ids).toContain('omnibus_annex1_delay')
+    expect(ids).toContain('art50_watermarking_transition')
+    expect(ids).toContain('sandbox_obligation')
+    expect(ids).toContain('art4_ai_literacy_softened')
+  })
+
+  it('art4_ai_literacy_softened hat bewusst keinen Stichtag (deadline null)', () => {
+    const entry = REGULATORY_WATCHLIST.find(i => i.id === 'art4_ai_literacy_softened')
+    expect(entry).toBeDefined()
+    expect(entry?.deadline).toBeNull()
   })
 
   it('neuer DSGVO-Check dsgvo_edpb_cef2026 ist in DSGVO_CHECKLIST', () => {

@@ -39,12 +39,20 @@ const STATUS_VARIANT: Record<CheckStatus, 'success' | 'warning' | 'critical' | '
 }
 
 // Offizielle, öffentlich bekannte EU-AI-Act-Umsetzungstermine (Art. 113) —
-// gesetzlich fixiert, kein pro Nutzer variierendes Datum.
-const EU_AI_ACT_MILESTONES = [
-  { dateMs: Date.UTC(2025, 1, 2), key: 'milestoneProhibitions' as const },
-  { dateMs: Date.UTC(2025, 7, 2), key: 'milestoneGpai' as const },
-  { dateMs: Date.UTC(2026, 7, 2), key: 'milestoneHighRisk' as const },
-  { dateMs: Date.UTC(2027, 7, 2), key: 'milestoneTransitionEnd' as const },
+// gesetzlich fixiert, kein pro Nutzer variierendes Datum. Stand: gestaffelte
+// Geltung nach Verordnung (EU) 2026/1744 („Digital Omnibus on AI", in Kraft seit
+// 27.07.2026): Hochrisiko Anhang III ab 02.12.2027, Anhang I ab 02.08.2028.
+// Der frühere „milestoneTransitionEnd" (02.08.2027) bezog sich auf die alte
+// Anhang-I-Frist und ist mit der Verschiebung gegenstandslos — ersatzlos
+// entfernt (Issue #262). Exportiert für den Regressionstest, der einen künftigen
+// Rückschritt hinter den 02.12.2027 auffangen soll.
+export const EU_AI_ACT_MILESTONES = [
+  { dateMs: Date.UTC(2025, 1, 2),  key: 'milestoneProhibitions' as const },   // 02.02.2025 Verbote
+  { dateMs: Date.UTC(2025, 7, 2),  key: 'milestoneGpai' as const },           // 02.08.2025 GPAI-Pflichten
+  { dateMs: Date.UTC(2026, 7, 2),  key: 'milestoneTransparency' as const },   // 02.08.2026 Transparenz (Art. 50)
+  { dateMs: Date.UTC(2026, 11, 2), key: 'milestoneWatermarking' as const },   // 02.12.2026 Kennzeichnung (Übergang)
+  { dateMs: Date.UTC(2027, 11, 2), key: 'milestoneHighRisk' as const },       // 02.12.2027 Hochrisiko (Anhang III)
+  { dateMs: Date.UTC(2028, 7, 2),  key: 'milestoneHighRiskAnnex1' as const }, // 02.08.2028 Hochrisiko (Anhang I)
 ]
 
 const styles = StyleSheet.create({

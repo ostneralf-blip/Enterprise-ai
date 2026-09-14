@@ -13,7 +13,10 @@ const STATUS_CLASSES: Record<WatchlistStatus, string> = {
 
 type CountdownInfo = { months: number; days: number; className: string }
 
-export function computeCountdown(deadline: string, today = new Date()): CountdownInfo {
+// Gibt null zurück, wenn kein Stichtag gesetzt ist (deadline null/undefined) —
+// dann zeigt die Karte bewusst kein Countdown-Badge (Issue #262).
+export function computeCountdown(deadline: string | null | undefined, today = new Date()): CountdownInfo | null {
+  if (!deadline) return null
   const target = new Date(deadline)
   const diffMs = target.getTime() - today.getTime()
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
@@ -36,7 +39,7 @@ export function WatchlistCard({ item }: { item: WatchlistItem }) {
     item.status === 'angekuendigt'    ? t('compliance.watchlistStatusAnnounced') :
     t('compliance.watchlistStatusFinal')
 
-  const countdown = item.deadline ? computeCountdown(item.deadline) : null
+  const countdown = computeCountdown(item.deadline)
   const countdownLabel = countdown
     ? countdown.days < 0
       ? t('compliance.watchlistDeadlinePassed')

@@ -43,8 +43,8 @@ export const GOVERNANCE_GATES: Gate[] = [
       en: 'How do you classify your AI system under the EU AI Act?',
     },
     context: {
-      de: 'Der EU AI Act (ab August 2026 vollständig in Kraft) stuft KI-Systeme in 4 Risikoklassen ein, die unterschiedliche Pflichten auslösen.',
-      en: 'The EU AI Act (fully in force from August 2026) classifies AI systems into 4 risk categories, each triggering different obligations.',
+      de: 'Der EU AI Act gilt gestaffelt — Verbote seit Februar 2025, Transparenzpflichten seit August 2026, Hochrisiko-Pflichten ab Dezember 2027. Er stuft KI-Systeme in 4 Risikoklassen ein, die unterschiedliche Pflichten auslösen.',
+      en: 'The EU AI Act applies in stages — prohibitions since February 2025, transparency obligations since August 2026, high-risk obligations from December 2027. It classifies AI systems into 4 risk categories, each triggering different obligations.',
     },
     options: [
       {
