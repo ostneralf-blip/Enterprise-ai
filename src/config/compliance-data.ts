@@ -874,38 +874,155 @@ export interface WatchlistItem {
   potentialImpact: LocaleString
   sourceUrl: string
   lastChecked: string
-  deadline?: string
+  // null = bewusst kein Stichtag (reiner Hinweis, kein Countdown-Badge);
+  // undefined = Feld nicht gesetzt. WatchlistCard/computeCountdown behandeln beide gleich.
+  deadline?: string | null
 }
 
 export const REGULATORY_WATCHLIST: WatchlistItem[] = [
   {
     id: 'digital_omnibus_hrais_delay',
     title:  {
-      de: 'EU AI Act: Verschiebung der Hochrisiko-Pflichten (Annex III)',
+      de: 'EU AI Act: Verschiebung der Hochrisiko-Pflichten (Anhang III)',
       en: 'EU AI Act: Delay of High-Risk Obligations (Annex III)',
     },
-    status: 'in_gesetzgebung',
+    status: 'final',
     summary: {
       de:
-        'Vorläufige Einigung vom 7. Mai 2026 (Digital Omnibus on AI) verschiebt die ' +
-        'Annex-III-Hochrisiko-Pflichten von August 2026 auf Dezember 2027. Noch nicht ' +
-        'final im Amtsblatt veröffentlicht.',
+        'Die Verordnung (EU) 2026/1744 („Digital Omnibus on AI") ist am 27.07.2026 in Kraft ' +
+        'getreten und verschiebt die Anhang-III-Hochrisiko-Pflichten (Art. 6 Abs. 2) auf den ' +
+        '02.12.2027. Die Verschiebung ist damit final und geltendes Recht.',
       en:
-        'Provisional agreement of 7 May 2026 (Digital Omnibus on AI) delays the ' +
-        'Annex III high-risk obligations from August 2026 to December 2027. Not yet ' +
-        'published in final form in the Official Journal.',
+        'Regulation (EU) 2026/1744 ("Digital Omnibus on AI") entered into force on 27 July 2026 ' +
+        'and moves the Annex III high-risk obligations (Art. 6(2)) to 2 December 2027. The delay ' +
+        'is therefore final and applicable law.',
     },
     potentialImpact: {
       de:
         'Betrifft Fristangaben im Roadmap-Generator und Governance-Entscheidungsbaum ' +
-        'für Hochrisiko-Use-Cases. Bei finaler Verabschiedung: Fristen dort anpassen.',
+        'für Hochrisiko-Use-Cases. Maßgeblicher Stichtag ist nun der 02.12.2027.',
       en:
         'Affects deadline information in the roadmap generator and governance decision tree ' +
-        'for high-risk use cases. Upon final adoption: update deadlines accordingly.',
+        'for high-risk use cases. The relevant deadline is now 2 December 2027.',
     },
-    sourceUrl: 'https://www.insideglobaltech.com/2026/05/28/eu-ai-act-update-timeline-relief-targeted-simplification-and-new-prohibitions/',
-    lastChecked: '2026-07-07',
-    deadline: '2027-12-01',
+    sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX%3A32026R1744',
+    lastChecked: '2026-09-14',
+    deadline: '2027-12-02',
+  },
+  {
+    id: 'omnibus_annex1_delay',
+    title:  {
+      de: 'EU AI Act: Hochrisiko-Pflichten für Anhang-I-Systeme (Art. 6 Abs. 1)',
+      en: 'EU AI Act: High-Risk Obligations for Annex I Systems (Art. 6(1))',
+    },
+    status: 'final',
+    summary: {
+      de:
+        'Die Verordnung (EU) 2026/1744 setzt den Geltungsbeginn für Hochrisiko-KI-Systeme ' +
+        'nach Art. 6 Abs. 1 i. V. m. Anhang I (Produktsicherheits-Rechtsakte) auf den ' +
+        '02.08.2028 — später als der Anhang-III-Stichtag.',
+      en:
+        'Regulation (EU) 2026/1744 sets the date of application for high-risk AI systems under ' +
+        'Art. 6(1) in conjunction with Annex I (product safety legislation) to 2 August 2028 — ' +
+        'later than the Annex III deadline.',
+    },
+    potentialImpact: {
+      de:
+        'Relevant für Use-Cases, die als Sicherheitsbauteil eines unter Anhang I fallenden ' +
+        'Produkts eingesetzt werden. Für diese gilt die spätere Frist 02.08.2028.',
+      en:
+        'Relevant for use cases deployed as a safety component of a product covered by Annex I. ' +
+        'For these the later deadline of 2 August 2028 applies.',
+    },
+    sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX%3A32026R1744',
+    lastChecked: '2026-09-14',
+    deadline: '2028-08-02',
+  },
+  {
+    id: 'art50_watermarking_transition',
+    title:  {
+      de: 'EU AI Act Art. 50: Übergangsfrist maschinenlesbare Kennzeichnung',
+      en: 'EU AI Act Art. 50: Transition Period for Machine-Readable Labelling',
+    },
+    status: 'final',
+    summary: {
+      de:
+        'Die Transparenzpflichten nach Art. 50 gelten seit 02.08.2026. Für KI-Systeme, die vor ' +
+        'dem 02.08.2026 in Verkehr gebracht wurden, läuft die Übergangsfrist für die ' +
+        'maschinenlesbare Kennzeichnung (Art. 50 Abs. 2) bis zum 02.12.2026.',
+      en:
+        'The transparency obligations under Art. 50 have applied since 2 August 2026. For AI ' +
+        'systems placed on the market before 2 August 2026, the transition period for the ' +
+        'machine-readable labelling (Art. 50(2)) runs until 2 December 2026.',
+    },
+    potentialImpact: {
+      de:
+        'Betrifft die maschinenlesbare KI-Kennzeichnung ausgelieferter Inhalte (u. a. ' +
+        'PDF-Metadaten, Share-Links). Nach dem 02.12.2026 gilt sie ausnahmslos.',
+      en:
+        'Affects the machine-readable AI labelling of delivered content (e.g. PDF metadata, ' +
+        'share links). After 2 December 2026 it applies without exception.',
+    },
+    sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX%3A32026R1744',
+    lastChecked: '2026-09-14',
+    deadline: '2026-12-02',
+  },
+  {
+    id: 'sandbox_obligation',
+    title:  {
+      de: 'EU AI Act: Pflicht zur Einrichtung von KI-Reallaboren',
+      en: 'EU AI Act: Obligation to Establish AI Regulatory Sandboxes',
+    },
+    status: 'final',
+    summary: {
+      de:
+        'Nach der Verordnung (EU) 2026/1744 müssen die Mitgliedstaaten bis zum 02.08.2027 ' +
+        'mindestens ein KI-Reallabor (regulatory sandbox) auf nationaler Ebene einrichten und ' +
+        'betriebsbereit machen.',
+      en:
+        'Under Regulation (EU) 2026/1744, Member States must establish and make operational at ' +
+        'least one AI regulatory sandbox at national level by 2 August 2027.',
+    },
+    potentialImpact: {
+      de:
+        'Keine unmittelbare Pflicht für Anbieter, aber eine mögliche Erprobungsumgebung für ' +
+        'Hochrisiko-Use-Cases vor deren Geltungsbeginn.',
+      en:
+        'No direct obligation for providers, but a potential testing environment for high-risk ' +
+        'use cases ahead of their date of application.',
+    },
+    sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX%3A32026R1744',
+    lastChecked: '2026-09-14',
+    deadline: '2027-08-02',
+  },
+  {
+    id: 'art4_ai_literacy_softened',
+    title:  {
+      de: 'EU AI Act Art. 4: Abgeschwächte KI-Kompetenzpflicht',
+      en: 'EU AI Act Art. 4: Softened AI Literacy Obligation',
+    },
+    status: 'final',
+    summary: {
+      de:
+        'Die Verordnung (EU) 2026/1744 hat Art. 4 (KI-Kompetenz) von „sicherstellen" auf ' +
+        '„Maßnahmen zur Unterstützung ergreifen" abgeschwächt. Kein eigener Stichtag — reiner ' +
+        'Hinweis auf die geänderte Pflichtenintensität.',
+      en:
+        'Regulation (EU) 2026/1744 softened Art. 4 (AI literacy) from "ensure" to "take measures ' +
+        'to support". No dedicated deadline — an advisory note on the changed intensity of the ' +
+        'obligation only.',
+    },
+    potentialImpact: {
+      de:
+        'Betrifft die Empfehlungen zu Schulungs- und Kompetenzmaßnahmen. Die Pflicht bleibt ' +
+        'bestehen, ihre Anforderungshöhe ist jedoch reduziert.',
+      en:
+        'Affects the recommendations on training and competence measures. The obligation ' +
+        'remains, but its required level is reduced.',
+    },
+    sourceUrl: 'https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX%3A32026R1744',
+    lastChecked: '2026-09-14',
+    deadline: null,
   },
   {
     id: 'bdsg_dsb_threshold',

@@ -373,8 +373,8 @@ export const TOOLS: ToolLanding[] = [
       en: 'EU AI Act compliance tool, AI compliance check, EU AI Act risk class, GDPR AI assessment',
     },
     problemHook: {
-      de: 'Der EU AI Act bringt gestaffelte Pflichten je Risikoklasse — und die Fristen laufen. Wer nicht weiß, ob eine Anwendung als Hochrisiko gilt, plant entweder zu viel Aufwand ein oder übersieht verpflichtende Maßnahmen.',
-      en: 'The EU AI Act brings staggered obligations per risk class — and the deadlines are running. Not knowing whether an application counts as high-risk means either over-planning effort or missing mandatory measures.',
+      de: 'Der EU AI Act bringt gestaffelte Pflichten je Risikoklasse. Wer nicht weiß, ob eine Anwendung als Hochrisiko gilt, plant entweder zu viel Aufwand ein oder übersieht verpflichtende Maßnahmen.',
+      en: 'The EU AI Act brings staggered obligations per risk class. Not knowing whether an application counts as high-risk means either over-planning effort or missing mandatory measures.',
     },
     whatYouGet: [
       { de: 'Die Risikoklasse Ihrer KI-Anwendung nach EU AI Act (verboten, hoch, begrenzt, minimal)', en: 'Your AI application’s risk class under the EU AI Act (prohibited, high, limited, minimal)' },
