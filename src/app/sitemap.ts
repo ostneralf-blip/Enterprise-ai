@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { GUIDES } from '@/config/leitfaden-data'
 import { TOOLS } from '@/config/tools-data'
 import { getPublishedSlugsWithDates } from '@/lib/blog'
+import { blogAlternateLanguages, blogPostUrl } from '@/lib/blog-alternates'
 
 // Blogbeiträge kommen aus der Datenbank und können im Admin freigegeben oder
 // deaktiviert werden. Damit eine Freigabe zeitnah in der Sitemap landet, wird sie
@@ -39,6 +40,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
   const entries: MetadataRoute.Sitemap = []
 
+  for (const route of publicRoutes) {
+    const deUrl = `${BASE}${route.path}`
+    const enUrl = `${BASE}/en${route.path}`
+    // x-default zeigt auf die deutsche Fassung — identisch zu dem, was die Seiten
+    // selbst im <link rel="alternate">-Block ausgeben. Fehlte hier bisher, wodurch
+    // Sitemap und Seitenkopf widersprüchliche Angaben machten.
+    const alternates = { languages: { de: deUrl, en: enUrl, 'x-default': deUrl } }
+
+    entries.push({
+      url: deUrl,
+      lastModified: now,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+      alternates,
+    })
+    entries.push({
+      url: enUrl,
+      lastModified: now,
+      changeFrequency: route.changeFrequency,
+      priority: Math.round(route.priority * 90) / 100,
+      alternates,
+    })
+  }
+
   // Nur FREIGEGEBENE Beiträge in die Sitemap. Entwürfe und Beiträge in Prüfung
   // dürfen Suchmaschinen nicht angeboten werden — die Seiten liefern für sie 404.
   // Blogbeiträge sind datiert und werden nach Veröffentlichung normalerweise nicht
@@ -47,45 +72,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // lastModified kommt hier aus der Datenbank (Überarbeitungs- bzw.
   // Veröffentlichungsdatum) statt aus `now`: Ein Datum, das sich bei jedem
   // Deployment ändert, ist für Suchmaschinen kein Signal, sondern Rauschen.
-  const blogRoutes = (await getPublishedSlugsWithDates()).map((post) => ({
-    path: `/blog/${post.slug}`,
-    priority: 0.7,
-    changeFrequency: 'yearly' as MetadataRoute.Sitemap[number]['changeFrequency'],
-    lastModified: post.lastModified,
-  }))
-
-  // Ein gemeinsamer Typ für beide Quellen — statische Routen kennen kein echtes
-  // Änderungsdatum und fallen auf `now` zurück.
-  const allRoutes: Array<{
-    path: string
-    priority: number
-    changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']
-    lastModified?: Date
-  }> = [...publicRoutes, ...blogRoutes]
-
-  for (const route of allRoutes) {
-    const deUrl = `${BASE}${route.path}`
-    const enUrl = `${BASE}/en${route.path}`
-    // x-default zeigt auf die deutsche Fassung — identisch zu dem, was die Seiten
-    // selbst im <link rel="alternate">-Block ausgeben. Fehlte hier bisher, wodurch
-    // Sitemap und Seitenkopf widersprüchliche Angaben machten.
-    const alternates = { languages: { de: deUrl, en: enUrl, 'x-default': deUrl } }
-    const lastModified = route.lastModified ?? now
-
-    entries.push({
-      url: deUrl,
-      lastModified,
-      changeFrequency: route.changeFrequency,
-      priority: route.priority,
-      alternates,
-    })
-    entries.push({
-      url: enUrl,
-      lastModified,
-      changeFrequency: route.changeFrequency,
-      priority: Math.round(route.priority * 90) / 100,
-      alternates,
-    })
+  for (const post of await getPublishedSlugsWithDates()) {
+    // Nur die Sprachfassungen eintragen, die es gibt — ein DE-only-Beitrag
+    // („…-dach") hat keine /en-URL, und hreflang darf nicht auf 404 zeigen.
+    const alternates = { languages: blogAlternateLanguages(BASE, post.slug, post.locales) }
+    for (const locale of post.locales) {
+      entries.push({
+        url: blogPostUrl(BASE, post.slug, locale),
+        lastModified: post.lastModified,
+        changeFrequency: 'yearly',
+        priority: locale === 'de' ? 0.7 : 0.63,
+        alternates,
+      })
+    }
   }
 
   return entries

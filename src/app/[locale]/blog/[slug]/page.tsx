@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getPublishedPost, getPublishedSlugs, type BlogLocale } from '@/lib/blog'
+import { getPublishedPost, getPublishedPostLocales, getPublishedSlugLocales, type BlogLocale } from '@/lib/blog'
+import { blogAlternateLanguages } from '@/lib/blog-alternates'
 import { getGuide, AMAZON_BOOK_URL } from '@/config/leitfaden-data'
 import { AUTHOR_NAME, AUTHOR_PHOTO } from '@/config/author'
 import { getTool, TOOL_CTA_ANCHOR } from '@/config/tools-data'
@@ -16,12 +17,17 @@ const BLOG_AUTHOR_NAME = AUTHOR_NAME
 // Siehe Kommentar im Hub: DB-Inhalte, aber cookielos gelesen und damit statisch.
 export const revalidate = 300
 
-// Nur veröffentlichte Beiträge vorrendern. Ein später freigegebener Beitrag ist
-// nicht in dieser Liste — Next.js rendert ihn dann bei der ersten Anfrage on demand
-// (dynamicParams bleibt bewusst auf dem Standard true).
+// Nur veröffentlichte Beiträge vorrendern, und nur in den Sprachen, in denen sie
+// existieren (DE- und EN-Fassung sind oft eigene Slugs). Ein später freigegebener
+// Beitrag ist nicht in dieser Liste — Next.js rendert ihn dann bei der ersten
+// Anfrage on demand (dynamicParams bleibt bewusst auf dem Standard true).
 export async function generateStaticParams() {
-  const slugs = await getPublishedSlugs()
-  return routing.locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })))
+  const posts = await getPublishedSlugLocales()
+  return posts.flatMap(({ slug, locales }) =>
+    locales
+      .filter((locale) => (routing.locales as readonly string[]).includes(locale))
+      .map((locale) => ({ locale, slug }))
+  )
 }
 
 export async function generateMetadata({
@@ -31,7 +37,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params
   const isEn = locale === 'en'
-  const post = await getPublishedPost(slug, (isEn ? 'en' : 'de') as BlogLocale)
+  const [post, locales] = await Promise.all([
+    getPublishedPost(slug, (isEn ? 'en' : 'de') as BlogLocale),
+    getPublishedPostLocales(slug),
+  ])
   if (!post) return {}
   const prefix = isEn ? '/en' : ''
   const canonical = `${BASE}${prefix}/blog/${slug}`
@@ -40,11 +49,9 @@ export async function generateMetadata({
     description: post.metaDescription,
     alternates: {
       canonical,
-      languages: {
-        de: `${BASE}/blog/${slug}`,
-        en: `${BASE}/en/blog/${slug}`,
-        'x-default': `${BASE}/blog/${slug}`,
-      },
+      // Nur existierende Sprachfassungen (inkl. 'x-default') — hreflang auf eine
+      // 404-Seite wertet Google als Fehler. Regel in lib/blog-alternates.ts.
+      languages: blogAlternateLanguages(BASE, slug, locales),
     },
     openGraph: {
       images: OG_IMAGES,

@@ -1,5 +1,6 @@
 import 'server-only'
 import { createPublicClient } from '@/lib/supabase/server'
+import { toBlogLocales } from '@/lib/blog-alternates'
 
 // Öffentliche Lese-Schicht für den Blog. Löst die frühere statische Datei
 // src/config/blog-data.ts ab (02.08.2026), damit Beiträge im Admin-Panel angelegt,
@@ -145,20 +146,40 @@ export async function getPublishedPost(slug: string, locale: BlogLocale): Promis
   return mapPost(data as unknown as PostRow)
 }
 
+/** Aus dem Übersetzungs-Join die vorhandenen Sprachen eines Beitrags lesen. */
+function localesOf(row: { blog_post_translations?: { locale: string }[] | null }): BlogLocale[] {
+  return toBlogLocales((row.blog_post_translations ?? []).map((t) => t.locale))
+}
+
 /**
- * Nur die Slugs veröffentlichter Beiträge — für generateStaticParams.
- * Sprachunabhängig, daher ohne Übersetzungs-Join.
+ * Slugs veröffentlichter Beiträge samt vorhandener Sprachen — für
+ * generateStaticParams. Beiträge sind nicht zwingend zweisprachig (der News Bot
+ * legt DE und EN als eigene Slugs an); nur existierende Kombinationen vorrendern.
  */
-export async function getPublishedSlugs(): Promise<string[]> {
+export async function getPublishedSlugLocales(): Promise<{ slug: string; locales: BlogLocale[] }[]> {
   const sb = await createPublicClient()
   const { data, error } = await sb
     .from('blog_posts')
-    .select('slug')
+    .select('slug, blog_post_translations (locale)')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
 
   if (error || !data) return []
-  return data.map((r) => r.slug as string)
+  return data.map((r) => ({ slug: r.slug as string, locales: localesOf(r) }))
+}
+
+/** Vorhandene Sprachen EINES veröffentlichten Beitrags — für hreflang im Seitenkopf. */
+export async function getPublishedPostLocales(slug: string): Promise<BlogLocale[]> {
+  const sb = await createPublicClient()
+  const { data, error } = await sb
+    .from('blog_posts')
+    .select('slug, blog_post_translations (locale)')
+    .eq('status', 'published')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (error || !data) return []
+  return localesOf(data)
 }
 
 /**
@@ -169,11 +190,11 @@ export async function getPublishedSlugs(): Promise<string[]> {
  * Deployment ändert, ist für Suchmaschinen kein Signal, sondern Rauschen.
  * Vorrang hat das Überarbeitungsdatum, sonst das Veröffentlichungsdatum.
  */
-export async function getPublishedSlugsWithDates(): Promise<{ slug: string; lastModified: Date }[]> {
+export async function getPublishedSlugsWithDates(): Promise<{ slug: string; lastModified: Date; locales: BlogLocale[] }[]> {
   const sb = await createPublicClient()
   const { data, error } = await sb
     .from('blog_posts')
-    .select('slug, published_at, content_updated_at, updated_at')
+    .select('slug, published_at, content_updated_at, updated_at, blog_post_translations (locale)')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
 
@@ -185,6 +206,8 @@ export async function getPublishedSlugsWithDates(): Promise<{ slug: string; last
     return {
       slug: row.slug,
       lastModified: Number.isNaN(parsed.getTime()) ? new Date() : parsed,
+      // Nur vorhandene Sprachen in die Sitemap — sonst stehen dort 404-URLs.
+      locales: localesOf(r),
     }
   })
 }

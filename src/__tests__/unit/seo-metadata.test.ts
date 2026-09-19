@@ -97,17 +97,24 @@ describe('Indexierbarkeit des Blogs', () => {
   })
 
   it('Blogseiten setzen Canonical und hreflang inklusive x-default', () => {
-    for (const file of ['blog/page.tsx', 'blog/[slug]/page.tsx']) {
-      const source = readFileSync(join(APP_DIR, file), 'utf-8')
-      expect(source).toContain('canonical')
-      expect(source).toContain("'x-default'")
-      expect(source).toMatch(/languages:\s*\{/)
-    }
+    const hub = readFileSync(join(APP_DIR, 'blog/page.tsx'), 'utf-8')
+    expect(hub).toContain('canonical')
+    expect(hub).toContain("'x-default'")
+    expect(hub).toMatch(/languages:\s*\{/)
+
+    // Beitragsseiten: hreflang nur für vorhandene Sprachen (x-default steckt im
+    // Helper, siehe blog-alternates.test.ts) — sonst Verweise auf 404-Seiten.
+    const post = readFileSync(join(APP_DIR, 'blog/[slug]/page.tsx'), 'utf-8')
+    expect(post).toContain('canonical')
+    expect(post).toContain('blogAlternateLanguages(BASE, slug, locales)')
   })
 
   it('Sitemap meldet für Beiträge ein echtes Änderungsdatum statt des Build-Zeitpunkts', () => {
     const source = readFileSync(join(process.cwd(), 'src/app/sitemap.ts'), 'utf-8')
     expect(source).toContain('getPublishedSlugsWithDates')
     expect(source).toContain("'x-default': deUrl")
+    // Blogbeiträge nur in vorhandenen Sprachen, keine fest verdrahtete /en-URL.
+    expect(source).toContain('blogAlternateLanguages(BASE, post.slug, post.locales)')
+    expect(source).toContain('for (const locale of post.locales)')
   })
 })
