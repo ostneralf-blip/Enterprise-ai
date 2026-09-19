@@ -23,7 +23,9 @@ describe('Blog-Admin-API: Zugriffsschutz', () => {
   })
 
   it('beschränkt den Slug auf URL-taugliche Zeichen', () => {
-    expect(route).toMatch(/slug:\s*z\.string\(\)\.regex\(/)
+    // Das PostSchema liegt seit dem Einsprachigkeits-Fix in lib/blog-post-schema.ts.
+    expect(route).toContain("from '@/lib/blog-post-schema'")
+    expect(read('src/lib/blog-post-schema.ts')).toMatch(/slug:\s*z\.string\(\)\.regex\(/)
   })
 
   it('gibt 401 bzw. 403 statt 500 zurück, wenn die Admin-Prüfung scheitert', () => {

@@ -49,6 +49,14 @@ const emptyForm = () => ({
   sections: [emptySection()],
 })
 
+/** Sprachen, in denen irgendetwas eingetragen ist — Kopfdaten oder Abschnittstext. */
+function filledLocales(form: ReturnType<typeof emptyForm>): ('de' | 'en')[] {
+  return (['de', 'en'] as const).filter(loc =>
+    Object.values(form[loc]).some(v => v.trim()) ||
+    form.sections.some(s => s[loc].heading.trim() || s[loc].paragraphs.some(p => p.trim()) ||
+      s[loc].bullets.some(b => b.trim()) || s[loc].callout_tag?.trim() || s[loc].callout_body?.trim()))
+}
+
 const inputCls = 'w-full border border-line-strong rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring'
 const labelCls = 'block text-[11px] font-medium text-ink-secondary mb-0.5'
 
@@ -95,8 +103,12 @@ export function BlogPanel() {
   const resetForm = () => { setForm(emptyForm()); setEditing(null); setShowForm(false) }
 
   function startEdit(post: PostRow) {
-    const tr = (loc: 'de' | 'en'): LocaleText =>
-      post.blog_post_translations?.find(t => t.locale === loc) ?? emptyLocale()
+    const tr = (loc: 'de' | 'en'): LocaleText => {
+      const row = post.blog_post_translations?.find(t => t.locale === loc)
+      if (!row) return emptyLocale()
+      const { category, eyebrow, title, meta_description, lead } = row
+      return { category, eyebrow, title, meta_description, lead }
+    }
     const positions = [...new Set((post.blog_post_sections ?? []).map(s => s.position))].sort((a, b) => a - b)
     const sections = positions.map(pos => {
       const pick = (loc: 'de' | 'en') => {
@@ -134,11 +146,12 @@ export function BlogPanel() {
           cta_tool_slug: form.cta_tool_slug.trim() || null,
           related_guide_slugs: form.related_guide_slugs.split(',').map(s => s.trim()).filter(Boolean),
           content_updated_at: form.content_updated_at.trim() || null,
-          de: form.de, en: form.en,
-          sections: form.sections.map(s => ({
-            de: { ...s.de, paragraphs: s.de.paragraphs.filter(Boolean), bullets: s.de.bullets.filter(Boolean) },
-            en: { ...s.en, paragraphs: s.en.paragraphs.filter(Boolean), bullets: s.en.bullets.filter(Boolean) },
-          })),
+          // Nur ausgefüllte Sprachen senden: Einsprachige Beiträge (eigener Slug je
+          // Sprache) sind erlaubt, eine komplett leere Sprache wird entfernt.
+          ...Object.fromEntries(filledLocales(form).map(loc => [loc, form[loc]])),
+          sections: form.sections.map(s => Object.fromEntries(filledLocales(form).map(loc => [
+            loc, { ...s[loc], paragraphs: s[loc].paragraphs.filter(p => p.trim()), bullets: s[loc].bullets.filter(b => b.trim()) },
+          ]))),
         }),
       })
       const json = await res.json()
